@@ -29,15 +29,6 @@ const AppLayout: React.FC<AppLayoutProps> = ({
   useEffect(() => {
     if (isLoading) return;
     
-    // Para desenvolvimento, não redirecionar para login
-    // if (!isAuthenticated || !user) {
-    //   navigate("/login", {
-    //     replace: true,
-    //     state: { from: location.pathname },
-    //   });
-    //   return;
-    // }
-    
     if (requireAdmin && user?.role !== "admin") {
       navigate("/dashboard", { replace: true });
       return;
@@ -46,33 +37,41 @@ const AppLayout: React.FC<AppLayoutProps> = ({
 
   if (isLoading) {
     return (
-      <AuroraPageLayout particleIntensity="high" interactive={true}>
-        <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen aurora-enhanced-bg">
+        <div className="min-h-screen flex items-center justify-center relative z-10">
           <div className="flex flex-col items-center space-y-4">
             <div className="aurora-loading-enhanced rounded-full h-12 w-12 border-b-2 border-aurora-electric-purple animate-spin"></div>
             <p className="text-slate-50 aurora-body-enhanced">Verificando autenticação...</p>
           </div>
         </div>
-      </AuroraPageLayout>
+      </div>
     );
   }
 
   return (
     <div className="min-h-screen aurora-enhanced-bg">
       {/* Sidebar sempre fixo à esquerda */}
-      <Sidebar />
+      <div className="relative z-30">
+        <Sidebar />
+      </div>
+      
       {/* Conteúdo principal, com left padding igual ao sidebar */}
       <div
-        className="min-h-screen flex flex-col"
+        className="min-h-screen flex flex-col relative z-20"
         style={{ marginLeft: SIDEBAR_WIDTH }}
       >
         {/* Topbar fixa */}
-        <Navbar />
+        <div className="relative z-25">
+          <Navbar />
+        </div>
+        
         <main 
-          className="flex-1 overflow-auto px-2 md:px-6"
+          className="flex-1 overflow-auto px-2 md:px-6 relative z-20"
           style={{ paddingTop: NAVBAR_HEIGHT + 8 }} // 8px extra para espaçamento
         >
-          {children}
+          <div className="relative z-20 clickable">
+            {children}
+          </div>
         </main>
       </div>
     </div>

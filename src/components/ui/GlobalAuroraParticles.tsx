@@ -13,7 +13,7 @@ interface Particle {
 }
 
 const GlobalAuroraParticles: React.FC<{ count?: number; active?: boolean }> = ({ 
-  count = 15, 
+  count = 8, // Reduzido drasticamente
   active = true 
 }) => {
   const [particles, setParticles] = useState<Particle[]>([]);
@@ -23,8 +23,6 @@ const GlobalAuroraParticles: React.FC<{ count?: number; active?: boolean }> = ({
     '#14B8A6', // teal
     '#06B6D4', // turquoise
     '#7C3AED', // deep violet
-    '#F472B6', // soft pink
-    '#3B82F6', // electric blue
   ];
 
   useEffect(() => {
@@ -37,17 +35,17 @@ const GlobalAuroraParticles: React.FC<{ count?: number; active?: boolean }> = ({
           id: i,
           x: Math.random() * window.innerWidth,
           y: window.innerHeight + 20,
-          size: Math.random() * 3 + 1,
+          size: Math.random() * 2 + 1, // Tamanhos menores
           color: colors[Math.floor(Math.random() * colors.length)],
-          duration: Math.random() * 8 + 12,
-          delay: Math.random() * 3,
+          duration: Math.random() * 10 + 15, // Mais lento
+          delay: Math.random() * 5,
         });
       }
       setParticles(newParticles);
     };
 
     generateParticles();
-    const interval = setInterval(generateParticles, 10000);
+    const interval = setInterval(generateParticles, 15000); // Menos frequente
 
     return () => clearInterval(interval);
   }, [count, active]);
@@ -59,13 +57,14 @@ const GlobalAuroraParticles: React.FC<{ count?: number; active?: boolean }> = ({
       {particles.map((particle) => (
         <motion.div
           key={particle.id}
-          className="absolute rounded-full opacity-50"
+          className="absolute rounded-full opacity-30" // Opacidade reduzida
           style={{
             width: particle.size,
             height: particle.size,
             backgroundColor: particle.color,
             left: particle.x,
-            boxShadow: `0 0 ${particle.size * 3}px ${particle.color}`,
+            boxShadow: `0 0 ${particle.size * 2}px ${particle.color}`,
+            willChange: 'transform, opacity',
           }}
           initial={{
             y: window.innerHeight + 20,
@@ -73,15 +72,15 @@ const GlobalAuroraParticles: React.FC<{ count?: number; active?: boolean }> = ({
           }}
           animate={{
             y: -50,
-            opacity: [0, 0.8, 0.8, 0],
-            x: particle.x + (Math.random() - 0.5) * 100,
+            opacity: [0, 0.6, 0.6, 0],
+            x: particle.x + (Math.random() - 0.5) * 50, // Movimento reduzido
           }}
           transition={{
             duration: particle.duration,
             delay: particle.delay,
             ease: "linear",
             repeat: Infinity,
-            repeatDelay: 8,
+            repeatDelay: 10,
           }}
         />
       ))}
