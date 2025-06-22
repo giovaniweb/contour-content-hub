@@ -1,222 +1,185 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { UnifiedDocument, DocumentTypeEnum, ProcessingStatusEnum, GetDocumentsParams } from '@/types/document';
+import { UnifiedDocument, DocumentTypeEnum, GetDocumentsParams } from '@/types/document';
 
-export interface UnifiedDocumentService {
-  fetchDocuments: (params?: GetDocumentsParams) => Promise<UnifiedDocument[]>;
-  getDocumentById: (id: string) => Promise<UnifiedDocument | null>;
-  uploadDocument: (file: File, tipo: DocumentTypeEnum, equipamentoId?: string) => Promise<string>;
-  processDocument: (documentId: string) => Promise<boolean>;
-  deleteDocument: (id: string) => Promise<boolean>;
-}
-
-class UnifiedDocumentServiceImpl implements UnifiedDocumentService {
-  async fetchDocuments(params: GetDocumentsParams = {}): Promise<UnifiedDocument[]> {
+export class UnifiedDocumentService {
+  async fetchDocuments(params?: GetDocumentsParams): Promise<UnifiedDocument[]> {
     try {
       let query = supabase
         .from('unified_documents')
         .select(`
-          id,
-          tipo_documento,
-          titulo_extraido,
-          palavras_chave,
-          autores,
-          texto_completo,
-          raw_text,
-          data_upload,
-          equipamento_id,
-          equipamentos (nome),
-          user_id,
-          file_path,
-          status_processamento,
-          detalhes_erro,
-          created_at,
-          updated_at
-        `);
+          *,
+          equipamentos!equipamento_id(id, nome)
+        `)
+        .order('created_at', { ascending: false });
 
-      // Apply filters
-      if (params.tipo_documento) {
+      if (params?.tipo_documento) {
         query = query.eq('tipo_documento', params.tipo_documento);
       }
 
-      if (params.status_processamento) {
+      if (params?.equipamento_id) {
+        query = query.eq('equipamento_id', params.equipamento_id);
+      }
+
+      if (params?.status_processamento) {
         query = query.eq('status_processamento', params.status_processamento);
       }
 
-      if (params.search) {
-        query = query.or(`titulo_extraido.ilike.%${params.search}%,texto_completo.ilike.%${params.search}%,palavras_chave.cs.{${params.search}},autores.cs.{${params.search}}`);
+      if (params?.search) {
+        query = query.or(`titulo_extraido.ilike.%${params.search}%,texto_completo.ilike.%${params.search}%`);
       }
-
-      if (params.equipmentId) {
-        query = query.eq('equipamento_id', params.equipmentId);
-      }
-
-      if (params.limit) {
-        query = query.limit(params.limit);
-      }
-
-      if (params.offset) {
-        query = query.range(params.offset, params.offset + (params.limit || 10) - 1);
-      }
-
-      query = query.order('data_upload', { ascending: false });
 
       const { data, error } = await query;
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching documents:', error);
+        throw error;
+      }
 
-      return data?.map(this.mapToUnifiedDocument) || [];
+      return data || [];
     } catch (error) {
-      console.error('Error fetching unified documents:', error);
+      console.error('Error in fetchDocuments:', error);
       throw error;
     }
   }
 
-  async getDocumentById(id: string): Promise<UnifiedDocument | null> {
+  async getDocumentById(id: string): Promise<UnifiedDocument> {
     try {
       const { data, error } = await supabase
         .from('unified_documents')
         .select(`
-          id,
-          tipo_documento,
-          titulo_extraido,
-          palavras_chave,
-          autores,
-          texto_completo,
-          raw_text,
-          data_upload,
-          equipamento_id,
-          equipamentos (nome),
-          user_id,
-          file_path,
-          status_processamento,
-          detalhes_erro,
-          created_at,
-          updated_at
+          *,
+          equipamentos!equipamento_id(id, nome)
         `)
         .eq('id', id)
         .single();
 
-      if (error) throw error;
-
-      return data ? this.mapToUnifiedDocument(data) : null;
-    } catch (error) {
-      console.error('Error fetching document by ID:', error);
-      throw error;
-    }
-  }
-
-  async uploadDocument(file: File, tipo: DocumentTypeEnum, equipamentoId?: string): Promise<string> {
-    try {
-      // Get current user
-      const { data: authData } = await supabase.auth.getUser();
-      const userId = authData.user?.id;
-
-      if (!userId) {
-        throw new Error('Usuário não autenticado');
+      if (error) {
+        console.error('Error fetching document by ID:', error);
+        throw error;
       }
 
-      // Upload file to storage
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.]/g, '_')}`;
-      const filePath = `documents/${fileName}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from('documents')
-        .upload(filePath, file);
-
-      if (uploadError) throw uploadError;
-
-      // Create document record
-      const { data: insertedDoc, error: insertError } = await supabase
-        .from('unified_documents')
-        .insert({
-          tipo_documento: tipo,
-          equipamento_id: equipamentoId || null,
-          user_id: userId,
-          file_path: filePath,
-          status_processamento: 'pendente' as ProcessingStatusEnum,
-        })
-        .select()
-        .single();
-
-      if (insertError) throw insertError;
-
-      return insertedDoc.id;
+      return data;
     } catch (error) {
-      console.error('Error uploading document:', error);
-      throw error;
-    }
-  }
-
-  async processDocument(documentId: string): Promise<boolean> {
-    try {
-      const { error } = await supabase.functions.invoke('process-document', {
-        body: { 
-          documentId,
-          forceRefresh: true,
-          timestamp: Date.now()
-        }
-      });
-
-      if (error) throw error;
-
-      return true;
-    } catch (error) {
-      console.error('Error processing document:', error);
+      console.error('Error in getDocumentById:', error);
       throw error;
     }
   }
 
   async deleteDocument(id: string): Promise<boolean> {
     try {
-      // Get document info first
-      const document = await this.getDocumentById(id);
-      if (!document) throw new Error('Documento não encontrado');
+      // First get the document to check file path
+      const { data: document, error: fetchError } = await supabase
+        .from('unified_documents')
+        .select('file_path')
+        .eq('id', id)
+        .single();
 
-      // Delete from storage if file exists
-      if (document.file_path) {
-        await supabase.storage
-          .from('documents')
-          .remove([document.file_path]);
+      if (fetchError) {
+        console.error('Error fetching document for deletion:', fetchError);
+        throw fetchError;
       }
 
-      // Delete from database
-      const { error } = await supabase
+      // Delete file from storage if exists
+      if (document?.file_path) {
+        const { error: storageError } = await supabase.storage
+          .from('documents')
+          .remove([document.file_path]);
+
+        if (storageError) {
+          console.warn('Error deleting file from storage:', storageError);
+          // Continue with document deletion even if file deletion fails
+        }
+      }
+
+      // Delete document record
+      const { error: deleteError } = await supabase
         .from('unified_documents')
         .delete()
         .eq('id', id);
 
-      if (error) throw error;
+      if (deleteError) {
+        console.error('Error deleting document:', deleteError);
+        throw deleteError;
+      }
 
       return true;
     } catch (error) {
-      console.error('Error deleting document:', error);
+      console.error('Error in deleteDocument:', error);
       throw error;
     }
   }
 
-  private mapToUnifiedDocument(data: any): UnifiedDocument {
-    return {
-      id: data.id,
-      tipo_documento: data.tipo_documento as DocumentTypeEnum,
-      titulo_extraido: data.titulo_extraido || null,
-      palavras_chave: data.palavras_chave || [],
-      autores: data.autores || [],
-      texto_completo: data.texto_completo || null,
-      raw_text: data.raw_text || null,
-      data_upload: data.data_upload,
-      equipamento_id: data.equipamento_id || null,
-      equipamento_nome: data.equipamentos?.nome || null,
-      user_id: data.user_id || null,
-      file_path: data.file_path || null,
-      status_processamento: data.status_processamento as ProcessingStatusEnum,
-      detalhes_erro: data.detalhes_erro || null,
-      created_at: data.created_at,
-      updated_at: data.updated_at,
-      descricao: data.texto_completo?.substring(0, 200) || null,
-    };
+  async processDocument(id: string): Promise<boolean> {
+    try {
+      const { error } = await supabase.functions.invoke('process-document', {
+        body: { 
+          documentId: id,
+          forceRefresh: true
+        }
+      });
+
+      if (error) {
+        console.error('Error processing document:', error);
+        throw error;
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Error in processDocument:', error);
+      throw error;
+    }
+  }
+
+  async createDocument(documentData: Partial<UnifiedDocument>): Promise<UnifiedDocument> {
+    try {
+      const { data: userData, error: userError } = await supabase.auth.getUser();
+      if (userError || !userData.user) {
+        throw new Error('Usuário não autenticado');
+      }
+
+      const { data, error } = await supabase
+        .from('unified_documents')
+        .insert({
+          ...documentData,
+          user_id: userData.user.id,
+          status_processamento: 'pendente'
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error creating document:', error);
+        throw error;
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error in createDocument:', error);
+      throw error;
+    }
+  }
+
+  async updateDocument(id: string, updates: Partial<UnifiedDocument>): Promise<UnifiedDocument> {
+    try {
+      const { data, error } = await supabase
+        .from('unified_documents')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error updating document:', error);
+        throw error;
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error in updateDocument:', error);
+      throw error;
+    }
   }
 }
 
-export const unifiedDocumentService = new UnifiedDocumentServiceImpl();
+export const unifiedDocumentService = new UnifiedDocumentService();
