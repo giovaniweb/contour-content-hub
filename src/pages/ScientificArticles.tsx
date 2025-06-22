@@ -1,27 +1,29 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { BookOpen, Flame, Sparkles, FileText, Calendar, User, AlertTriangle, CheckCircle, RefreshCw, UploadCloud, Trash2 } from 'lucide-react';
+import { BookOpen, Flame, Sparkles, FileText, Calendar, User, AlertTriangle, CheckCircle, RefreshCw, Eye } from 'lucide-react';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useScientificArticles, ScientificArticleFilters } from '@/hooks/use-scientific-articles';
 import AuroraPageLayout from '@/components/layout/AuroraPageLayout';
 import StandardPageHeader from '@/components/layout/StandardPageHeader';
 import { UnifiedDocument, ProcessingStatusEnum } from '@/types/document';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
+import DocumentQuestionChat from '@/components/documents/DocumentQuestionChat';
+import PDFViewer from '@/components/documents/PDFViewer';
 
 const ScientificArticlesPage: React.FC = () => {
   const [selectedArticle, setSelectedArticle] = useState<UnifiedDocument | null>(null);
+  const [isPDFViewerOpen, setIsPDFViewerOpen] = useState(false);
+  const [isQuestionChatOpen, setIsQuestionChatOpen] = useState(false);
   const { toast } = useToast();
 
   const { articles, loading, error, fetchScientificArticles } = useScientificArticles();
-  const [currentFilters, setCurrentFilters] = useState<Partial<ScientificArticleFilters>>({});
 
   useEffect(() => {
-    // Fetch all documents without filters to see everything
     fetchScientificArticles();
   }, [fetchScientificArticles]);
 
@@ -32,82 +34,14 @@ const ScientificArticlesPage: React.FC = () => {
     });
   };
 
-  const handleReprocess = async (documentId: string) => {
-    toast({ title: "Reprocessando...", description: `Iniciando o reprocessamento do artigo ID: ${documentId}` });
-    try {
-      // Update status to 'pendente' to visually indicate it's queued again
-      await supabase.from('unified_documents').update({ status_processamento: 'pendente', detalhes_erro: null }).eq('id', documentId);
-
-      const { error: functionError } = await supabase.functions.invoke('process-document', {
-        body: { documentId: documentId, forceRefresh: true },
-      });
-
-      if (functionError) {
-        throw new Error(functionError.message);
-      }
-      toast({ title: "Sucesso", description: "Reprocessamento iniciado. O artigo será atualizado em breve." });
-      // Refresh the list after a short delay
-      setTimeout(() => fetchScientificArticles(), 3000);
-    } catch (err: any) {
-      console.error("Reprocess Error:", err);
-      toast({ variant: "destructive", title: "Falha ao Reprocessar", description: err.message });
-      // Revert status if needed
-      await supabase.from('unified_documents').update({ status_processamento: 'falhou', detalhes_erro: `Falha ao tentar reprocessar: ${err.message}` }).eq('id', documentId);
-    }
+  const handleView = (article: UnifiedDocument) => {
+    setSelectedArticle(article);
+    setIsPDFViewerOpen(true);
   };
 
-  const handleDelete = async (documentId: string, articleTitle: string) => {
-    if (!window.confirm(`Tem certeza que deseja excluir o artigo "${articleTitle}"? Esta ação não pode ser desfeita.`)) {
-      return;
-    }
-
-    try {
-      toast({ title: "Excluindo...", description: "Removendo o artigo e seus arquivos..." });
-
-      // Get document info to delete files from storage
-      const { data: document } = await supabase
-        .from('unified_documents')
-        .select('file_path')
-        .eq('id', documentId)
-        .single();
-
-      // Delete file from storage if exists
-      if (document?.file_path) {
-        const { error: storageError } = await supabase.storage
-          .from('documents')
-          .remove([document.file_path]);
-        
-        if (storageError) {
-          console.warn('Error deleting file from storage:', storageError);
-        }
-      }
-
-      // Delete document record
-      const { error: deleteError } = await supabase
-        .from('unified_documents')
-        .delete()
-        .eq('id', documentId);
-
-      if (deleteError) {
-        throw new Error(deleteError.message);
-      }
-
-      toast({ 
-        title: "Sucesso", 
-        description: "Artigo excluído com sucesso." 
-      });
-
-      // Refresh the list
-      fetchScientificArticles();
-
-    } catch (err: any) {
-      console.error("Delete Error:", err);
-      toast({ 
-        variant: "destructive", 
-        title: "Falha ao Excluir", 
-        description: err.message || "Ocorreu um erro ao excluir o artigo."
-      });
-    }
+  const handleQuestion = (article: UnifiedDocument) => {
+    setSelectedArticle(article);
+    setIsQuestionChatOpen(true);
   };
 
   const handleRefresh = useCallback(() => {
@@ -116,16 +50,10 @@ const ScientificArticlesPage: React.FC = () => {
 
   const pageActions = (
     <div className="flex gap-4">
-      <Button onClick={handleRefresh} variant="outline" className="border-cyan-500/70 text-cyan-400 hover:bg-cyan-500/10">
+      <Button onClick={handleRefresh} variant="outline" className="border-cyan-500/70 text-cyan-400 hover:bg-cyan-500/10 aurora-glass-enhanced">
         <RefreshCw className="mr-2 h-4 w-4" />
         Atualizar
       </Button>
-      <Link to="/admin/upload-documento">
-        <Button className="bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-600 hover:to-purple-600 text-white aurora-glow">
-          <UploadCloud className="mr-2 h-4 w-4" />
-          Adicionar Novo Documento
-        </Button>
-      </Link>
     </div>
   );
 
@@ -134,14 +62,15 @@ const ScientificArticlesPage: React.FC = () => {
       <StandardPageHeader
         icon={BookOpen}
         title="Artigos Científicos"
-        subtitle="Biblioteca de artigos e pesquisas científicas"
+        subtitle="Biblioteca de artigos e pesquisas científicas para consulta"
         actions={pageActions}
       />
 
       {error && (
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="bg-red-800/30 text-red-300 border border-red-700/50 p-4 rounded-md flex items-center">
-            <AlertTriangle className="h-5 w-5 mr-3 text-red-400" /> Erro ao carregar artigos: {error}
+          <div className="aurora-glass-enhanced border border-red-500/50 p-4 rounded-xl flex items-center">
+            <AlertTriangle className="h-5 w-5 mr-3 text-red-400" /> 
+            <span className="text-red-300">Erro ao carregar artigos: {error}</span>
           </div>
         </div>
       )}
@@ -157,9 +86,9 @@ const ScientificArticlesPage: React.FC = () => {
             <EmptyState
               icon={BookOpen}
               title="Nenhum artigo científico encontrado"
-              description="Nenhum artigo foi carregado ainda. Faça upload do seu primeiro documento científico."
-              actionLabel="Fazer Upload"
-              onAction={() => window.location.href = '/admin/upload-documento'}
+              description="Nenhum artigo foi carregado ainda na biblioteca."
+              actionLabel="Explorar Equipamentos"
+              onAction={() => window.location.href = '/equipments'}
             />
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -171,8 +100,8 @@ const ScientificArticlesPage: React.FC = () => {
                         <FileText className="h-16 w-16 text-cyan-400 opacity-70" />
                       </div>
                       <div className="absolute top-2 right-2">
-                        {article.status_processamento === 'falhou' && <Badge variant="destructive" className="bg-red-500 text-white"><AlertTriangle className="h-3 w-3 mr-1" /> Falhou</Badge>}
-                        {article.status_processamento === 'concluido' && <Badge className="bg-green-500 text-white"><CheckCircle className="h-3 w-3 mr-1" /> Concluído</Badge>}
+                        {article.status_processamento === 'falhou' && <Badge variant="destructive" className="bg-red-500 text-white"><AlertTriangle className="h-3 w-3 mr-1" /> Erro</Badge>}
+                        {article.status_processamento === 'concluido' && <Badge className="bg-green-500 text-white"><CheckCircle className="h-3 w-3 mr-1" /> Disponível</Badge>}
                         {article.status_processamento === 'processando' && <Badge variant="outline" className="text-blue-300 border-blue-400">Processando...</Badge>}
                         {article.status_processamento === 'pendente' && <Badge variant="outline" className="text-yellow-300 border-yellow-400">Pendente</Badge>}
                       </div>
@@ -221,11 +150,6 @@ const ScientificArticlesPage: React.FC = () => {
                     {article.equipamento_nome && (
                       <p className="text-xs text-slate-500 mt-1">Equip.: {article.equipamento_nome}</p>
                     )}
-                    {article.status_processamento === 'falhou' && article.detalhes_erro && (
-                      <p className="text-xs text-red-400 mt-2 line-clamp-2" title={article.detalhes_erro}>
-                        <AlertTriangle className="inline h-3 w-3 mr-1" /> {article.detalhes_erro}
-                      </p>
-                    )}
                   </CardContent>
 
                   <CardFooter className="p-3 aurora-glass-enhanced border-t border-slate-700/60 mt-auto">
@@ -233,32 +157,24 @@ const ScientificArticlesPage: React.FC = () => {
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => setSelectedArticle(article)}
+                        onClick={() => handleView(article)}
                         className="flex-1 border-cyan-500/70 text-cyan-400 hover:bg-cyan-500/10 hover:text-cyan-300 hover:border-cyan-500"
                         disabled={article.status_processamento !== 'concluido'}
                       >
-                        <FileText className="h-4 w-4 mr-1.5" />
+                        <Eye className="h-4 w-4 mr-1.5" />
                         Visualizar
                       </Button>
-                      {article.status_processamento === 'falhou' && (
+                      {article.status_processamento === 'concluido' && (
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => handleReprocess(article.id)}
-                          className="flex-1 border-yellow-500/70 text-yellow-400 hover:bg-yellow-500/10 hover:text-yellow-300 hover:border-yellow-500"
+                          onClick={() => handleQuestion(article)}
+                          className="flex-1 border-purple-500/70 text-purple-400 hover:bg-purple-500/10 hover:text-purple-300 hover:border-purple-500"
                         >
-                          <RefreshCw className="h-4 w-4 mr-1.5" />
-                          Reprocessar
+                          <Sparkles className="h-4 w-4 mr-1.5" />
+                          Perguntar
                         </Button>
                       )}
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleDelete(article.id, article.titulo_extraido || 'Documento')}
-                        className="border-red-500/70 text-red-400 hover:bg-red-500/10 hover:text-red-300 hover:border-red-500"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
                     </div>
                   </CardFooter>
                 </Card>
@@ -267,6 +183,30 @@ const ScientificArticlesPage: React.FC = () => {
           )}
         </div>
       </div>
+
+      {/* PDF Viewer */}
+      <PDFViewer
+        isOpen={isPDFViewerOpen}
+        onOpenChange={setIsPDFViewerOpen}
+        title={selectedArticle?.titulo_extraido || 'Documento'}
+        pdfUrl={selectedArticle?.file_path}
+        documentId={selectedArticle?.id}
+      />
+
+      {/* Question Chat Dialog */}
+      <Dialog open={isQuestionChatOpen} onOpenChange={setIsQuestionChatOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] aurora-glass-enhanced border-cyan-500/30">
+          <DialogHeader>
+            <DialogTitle className="text-slate-100 aurora-text-gradient-enhanced">Perguntas sobre o Documento</DialogTitle>
+          </DialogHeader>
+          {selectedArticle && (
+            <DocumentQuestionChat
+              documentId={selectedArticle.id}
+              documentTitle={selectedArticle.titulo_extraido || 'Documento'}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </AuroraPageLayout>
   );
 };
