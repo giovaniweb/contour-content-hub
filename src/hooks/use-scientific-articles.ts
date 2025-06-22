@@ -45,8 +45,7 @@ export const useScientificArticles = () => {
           detalhes_erro,
           created_at,
           updated_at
-        `)
-        .eq('tipo_documento', 'artigo_cientifico' as DocumentTypeEnum);
+        `);
 
       // Apply common document filters
       if (filters) {
@@ -65,10 +64,16 @@ export const useScientificArticles = () => {
 
         // Apply specific ScientificArticleFilters
         if (filters.palavras_chave && filters.palavras_chave.length > 0) {
-          query = query.overlaps('palavras_chave', filters.palavras_chave);
+          const keywordConditions = filters.palavras_chave.map(keyword => 
+            `palavras_chave.cs.{${keyword}}`
+          ).join(',');
+          query = query.or(keywordConditions);
         }
         if (filters.autores && filters.autores.length > 0) {
-          query = query.overlaps('autores', filters.autores);
+          const authorConditions = filters.autores.map(author => 
+            `autores.cs.{${author}}`
+          ).join(',');
+          query = query.or(authorConditions);
         }
         if (filters.dateRange) {
           if (filters.dateRange.startDate) {
@@ -83,11 +88,9 @@ export const useScientificArticles = () => {
         if (filters.status_processamento) {
           query = query.eq('status_processamento', filters.status_processamento as ProcessingStatusEnum);
         }
-      } else {
-        // Default filter to show completed documents
-        query = query.eq('status_processamento', 'concluido' as ProcessingStatusEnum);
       }
 
+      // Order by upload date
       query = query.order('data_upload', { ascending: false });
 
       const { data, error: queryError } = await query;
