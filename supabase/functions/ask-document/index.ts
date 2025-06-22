@@ -18,85 +18,112 @@ serve(async (req) => {
   }
 
   try {
-    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+    console.log('🤖 [AskDocument] Iniciando processamento de pergunta...');
     const { documentId, question } = await req.json();
     
-    console.log(`Received question request for document ${documentId}: "${question}"`);
-    
     if (!documentId || !question) {
+      console.error('❌ [AskDocument] Parâmetros obrigatórios não fornecidos');
       return new Response(
-        JSON.stringify({ error: 'Document ID and question are required' }),
+        JSON.stringify({ error: 'Document ID e pergunta são obrigatórios' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
-    
-    // Try unified_documents first
-    let document = null;
-    let { data: unifiedDoc, error: unifiedError } = await supabase
+
+    console.log(`📄 [AskDocument] Pergunta sobre documento: ${documentId}`);
+    console.log(`❓ [AskDocument] Pergunta: ${question}`);
+
+    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+
+    // 1. Buscar documento na unified_documents
+    console.log('🔍 [AskDocument] Buscando documento...');
+    const { data: document, error: docError } = await supabase
       .from('unified_documents')
-      .select('titulo_extraido, texto_completo, raw_text, palavras_chave, autores')
+      .select('*')
       .eq('id', documentId)
       .single();
 
-    if (unifiedDoc) {
-      document = {
-        titulo: unifiedDoc.titulo_extraido,
-        conteudo_extraido: unifiedDoc.texto_completo || unifiedDoc.raw_text,
-        keywords: unifiedDoc.palavras_chave,
-        researchers: unifiedDoc.autores
-      };
-    } else {
-      // Fallback to documentos_tecnicos
-      const { data: techDoc, error: techError } = await supabase
-        .from('documentos_tecnicos')
-        .select('titulo, conteudo_extraido, keywords, researchers')
-        .eq('id', documentId)
-        .single();
-
-      if (techDoc) {
-        document = techDoc;
-      } else {
-        console.error('Document not found in both tables:', { unifiedError, techError });
-        return new Response(
-          JSON.stringify({ error: 'Document not found' }),
-          { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
+    if (docError || !document) {
+      console.error('❌ [AskDocument] Documento não encontrado:', docError);
+      return new Response(
+        JSON.stringify({ error: 'Documento não encontrado' }),
+        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
-    const answer = await generateAnswer(question, document);
+    console.log('✅ [AskDocument] Documento encontrado:', document.titulo_extraido);
+
+    // 2. Verificar se o documento tem conteúdo para análise
+    const documentContent = document.texto_completo || document.raw_text;
+    
+    if (!documentContent) {
+      console.warn('⚠️ [AskDocument] Documento sem conteúdo processado');
+      return new Response(
+        JSON.stringify({ 
+          error: 'Este documento ainda não foi processado ou não possui conteúdo extraído.' 
+        }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // 3. Processar pergunta com IA
+    let answer;
+
+    if (OPENAI_API_KEY) {
+      console.log('🤖 [AskDocument] Processando com OpenAI...');
+      try {
+        answer = await processWithOpenAI(question, documentContent, document);
+      } catch (openaiError) {
+        console.warn('⚠️ [AskDocument] Erro OpenAI, usando resposta padrão:', openaiError);
+        answer = generateFallbackAnswer(question, document);
+      }
+    } else {
+      console.log('📝 [AskDocument] Sem OpenAI, usando resposta padrão...');
+      answer = generateFallbackAnswer(question, document);
+    }
+
+    console.log('✅ [AskDocument] Resposta gerada com sucesso');
 
     return new Response(
       JSON.stringify({ 
         success: true,
         answer,
-        question,
-        documentTitle: document.titulo
+        documentTitle: document.titulo_extraido || 'Documento',
+        documentType: document.tipo_documento
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
+
   } catch (error) {
-    console.error('Error answering question:', error);
+    console.error('💥 [AskDocument] Erro crítico:', error);
+    
     return new Response(
-      JSON.stringify({ error: 'Failed to answer question', details: error.message }),
+      JSON.stringify({ 
+        error: 'Erro interno do servidor',
+        details: error.message 
+      }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 });
 
-async function generateAnswer(question: string, document: any) {
-  if (!OPENAI_API_KEY) {
-    return `Baseado no documento "${document.titulo}", esta é uma resposta simulada para a pergunta: "${question}". Para respostas mais precisas, configure a chave da API OpenAI.`;
-  }
+async function processWithOpenAI(question: string, documentContent: string, document: any): Promise<string> {
+  const systemPrompt = `Você é um assistente especializado em análise de documentos científicos e técnicos. 
+Responda à pergunta do usuário baseando-se exclusivamente no conteúdo do documento fornecido.
+
+INFORMAÇÕES DO DOCUMENTO:
+- Título: ${document.titulo_extraido || 'Não especificado'}
+- Tipo: ${document.tipo_documento || 'Não especificado'}
+- Autores: ${document.autores?.join(', ') || 'Não especificados'}
+- Palavras-chave: ${document.palavras_chave?.join(', ') || 'Não especificadas'}
+
+DIRETRIZES:
+1. Responda apenas com base no conteúdo fornecido
+2. Se a pergunta não puder ser respondida com as informações disponíveis, diga isso claramente
+3. Seja preciso e objetivo
+4. Use português brasileiro
+5. Cite trechos específicos quando relevante`;
 
   try {
-    const context = `
-      Documento: ${document.titulo}
-      Conteúdo: ${document.conteudo_extraido || 'Conteúdo não disponível'}
-      Pesquisadores: ${document.researchers?.join(', ') || 'Não informado'}
-      Palavras-chave: ${document.keywords?.join(', ') || 'Não informado'}
-    `;
-
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -104,28 +131,87 @@ async function generateAnswer(question: string, document: any) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'gpt-3.5-turbo',
         messages: [
-          { 
-            role: 'system', 
-            content: 'Você é um assistente especializado em analisar documentos científicos. Responda perguntas baseadas exclusivamente no conteúdo fornecido. Se a informação não estiver disponível no documento, diga isso claramente.' 
+          {
+            role: 'system',
+            content: systemPrompt
           },
-          { 
-            role: 'user', 
-            content: `Contexto do documento:\n${context}\n\nPergunta: ${question}\n\nPor favor, responda baseado apenas nas informações do documento fornecido.` 
+          {
+            role: 'user',
+            content: `CONTEÚDO DO DOCUMENTO:\n${documentContent.substring(0, 3000)}\n\nPERGUNTA: ${question}`
           }
-        ]
-      }),
+        ],
+        max_tokens: 500,
+        temperature: 0.3
+      })
     });
 
-    if (response.ok) {
-      const data = await response.json();
-      return data.choices[0].message.content;
-    } else {
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error('❌ [AskDocument] Erro OpenAI:', errorData);
       throw new Error(`OpenAI API error: ${response.status}`);
     }
+
+    const result = await response.json();
+    const answer = result.choices[0]?.message?.content;
+    
+    if (!answer) {
+      throw new Error('Resposta vazia da OpenAI');
+    }
+
+    return answer;
   } catch (error) {
-    console.error('Error generating answer:', error);
-    return `Baseado no documento "${document.titulo}", não foi possível gerar uma resposta precisa para: "${question}". Erro: ${error.message}`;
+    console.error('❌ [AskDocument] Erro ao processar com OpenAI:', error);
+    throw error;
   }
+}
+
+function generateFallbackAnswer(question: string, document: any): string {
+  const questionLower = question.toLowerCase();
+  
+  // Respostas baseadas em palavras-chave da pergunta
+  if (questionLower.includes('título') || questionLower.includes('nome')) {
+    return `O título deste documento é: "${document.titulo_extraido || 'Título não especificado'}"`;
+  }
+  
+  if (questionLower.includes('autor') || questionLower.includes('quem escreveu')) {
+    const autores = document.autores || [];
+    if (autores.length > 0) {
+      return `O(s) autor(es) deste documento são: ${autores.join(', ')}`;
+    }
+    return 'Informações sobre autores não estão disponíveis neste documento.';
+  }
+  
+  if (questionLower.includes('resumo') || questionLower.includes('sobre o que')) {
+    const resumo = document.texto_completo;
+    if (resumo && resumo.length > 50) {
+      return `Com base no conteúdo disponível: ${resumo.substring(0, 300)}${resumo.length > 300 ? '...' : ''}`;
+    }
+    return 'Resumo não disponível para este documento.';
+  }
+  
+  if (questionLower.includes('palavra') && questionLower.includes('chave')) {
+    const palavrasChave = document.palavras_chave || [];
+    if (palavrasChave.length > 0) {
+      return `As palavras-chave deste documento são: ${palavrasChave.join(', ')}`;
+    }
+    return 'Palavras-chave não foram identificadas neste documento.';
+  }
+  
+  if (questionLower.includes('tipo') || questionLower.includes('categoria')) {
+    const tipo = document.tipo_documento || 'não especificado';
+    return `Este documento é classificado como: ${tipo.replace('_', ' ')}`;
+  }
+  
+  // Resposta padrão
+  return `Desculpe, não consigo responder especificamente à sua pergunta com as informações disponíveis deste documento. 
+
+**Informações disponíveis:**
+- **Título:** ${document.titulo_extraido || 'Não especificado'}
+- **Tipo:** ${document.tipo_documento?.replace('_', ' ') || 'Não especificado'}
+- **Autores:** ${document.autores?.join(', ') || 'Não especificados'}
+- **Palavras-chave:** ${document.palavras_chave?.join(', ') || 'Não especificadas'}
+
+Tente fazer uma pergunta mais específica sobre o título, autores, ou conteúdo geral do documento.`;
 }

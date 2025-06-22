@@ -290,6 +290,7 @@
   border-color: var(--aurora-electric-purple);
   box-shadow: 0 0 0 2px rgba(107, 70, 193, 0.3);
   outline: none;
+  background: rgba(26, 11, 46, 0.5);
 }
 
 .aurora-input::placeholder {
@@ -311,12 +312,14 @@
   padding: 12px;
   resize: vertical;
   min-height: 80px;
+  transition: all 0.3s ease;
 }
 
 .aurora-textarea:focus {
   border-color: var(--aurora-electric-purple);
   box-shadow: 0 0 0 2px rgba(107, 70, 193, 0.3);
   outline: none;
+  background: rgba(26, 11, 46, 0.5);
 }
 
 .aurora-textarea::placeholder {
@@ -398,4 +401,26 @@
   background: transparent;
   position: relative;
   z-index: 10;
+}
+
+/* Remove problematic animations */
+@keyframes problematic-rotation {
+  /* Remove any rotation animations */
+}
+
+/* Disable any element that causes page shake */
+*[class*="rotate"], 
+*[style*="transform: rotate"] {
+  transform: none !important;
+  animation: none !important;
+}
+
+/* Stability fixes */
+body, html {
+  overflow-x: hidden;
+}
+
+.aurora-stable {
+  transform: none !important;
+  animation: aurora-float 12s ease-in-out infinite;
 }

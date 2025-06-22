@@ -1,16 +1,15 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { Link } from 'react-router-dom';
-import { BookOpen, Flame, Sparkles, FileText, Calendar, User, AlertTriangle, CheckCircle, RefreshCw, Eye } from 'lucide-react';
+import { BookOpen, Sparkles, FileText, Calendar, User, AlertTriangle, CheckCircle, RefreshCw, Eye } from 'lucide-react';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { useScientificArticles, ScientificArticleFilters } from '@/hooks/use-scientific-articles';
+import { useScientificArticles } from '@/hooks/use-scientific-articles';
 import AuroraPageLayout from '@/components/layout/AuroraPageLayout';
 import StandardPageHeader from '@/components/layout/StandardPageHeader';
-import { UnifiedDocument, ProcessingStatusEnum } from '@/types/document';
+import { UnifiedDocument } from '@/types/document';
 import { useToast } from '@/hooks/use-toast';
 import DocumentQuestionChat from '@/components/documents/DocumentQuestionChat';
 import PDFViewer from '@/components/documents/PDFViewer';
@@ -50,7 +49,7 @@ const ScientificArticlesPage: React.FC = () => {
 
   const pageActions = (
     <div className="flex gap-4">
-      <Button onClick={handleRefresh} variant="outline" className="border-cyan-500/70 text-cyan-400 hover:bg-cyan-500/10 aurora-glass-enhanced">
+      <Button onClick={handleRefresh} variant="outline" className="aurora-button-enhanced border-cyan-500/70 text-cyan-400 hover:bg-cyan-500/10">
         <RefreshCw className="mr-2 h-4 w-4" />
         Atualizar
       </Button>
@@ -93,7 +92,7 @@ const ScientificArticlesPage: React.FC = () => {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {articles.map((article) => (
-                <Card key={article.id} className="group relative hover:shadow-2xl transition-all duration-300 aurora-glass-enhanced border border-slate-700/50 rounded-xl overflow-hidden backdrop-blur-sm aurora-border-enhanced flex flex-col justify-between">
+                <Card key={article.id} className="group relative hover:shadow-2xl transition-all duration-300 aurora-card-enhanced aurora-border-enhanced flex flex-col justify-between">
                   <CardContent className="p-4">
                     <div className="relative aspect-[16/9] bg-slate-700/50 overflow-hidden rounded-md mb-3">
                       <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-700 via-slate-800 to-slate-700">
@@ -158,7 +157,7 @@ const ScientificArticlesPage: React.FC = () => {
                         size="sm"
                         variant="outline"
                         onClick={() => handleView(article)}
-                        className="flex-1 border-cyan-500/70 text-cyan-400 hover:bg-cyan-500/10 hover:text-cyan-300 hover:border-cyan-500"
+                        className="flex-1 aurora-button-enhanced border-cyan-500/70 text-cyan-400 hover:bg-cyan-500/10"
                         disabled={article.status_processamento !== 'concluido'}
                       >
                         <Eye className="h-4 w-4 mr-1.5" />
@@ -169,7 +168,7 @@ const ScientificArticlesPage: React.FC = () => {
                           size="sm"
                           variant="outline"
                           onClick={() => handleQuestion(article)}
-                          className="flex-1 border-purple-500/70 text-purple-400 hover:bg-purple-500/10 hover:text-purple-300 hover:border-purple-500"
+                          className="flex-1 aurora-button-enhanced border-purple-500/70 text-purple-400 hover:bg-purple-500/10"
                         >
                           <Sparkles className="h-4 w-4 mr-1.5" />
                           Perguntar
