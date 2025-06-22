@@ -1,4 +1,3 @@
-// Caminho sugerido: .github/workflows/jules-autodeploy.yml
 name: Deploy to Vercel
 
 on:
