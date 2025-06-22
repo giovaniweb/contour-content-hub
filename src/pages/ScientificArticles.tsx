@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { BookOpen, Flame, Sparkles, FileText, Calendar, User, AlertTriangle, CheckCircle, RefreshCw, UploadCloud } from 'lucide-react';
+import { BookOpen, Flame, Sparkles, FileText, Calendar, User, AlertTriangle, CheckCircle, RefreshCw, UploadCloud, Trash2 } from 'lucide-react';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -53,6 +53,60 @@ const ScientificArticlesPage: React.FC = () => {
       toast({ variant: "destructive", title: "Falha ao Reprocessar", description: err.message });
       // Revert status if needed
       await supabase.from('unified_documents').update({ status_processamento: 'falhou', detalhes_erro: `Falha ao tentar reprocessar: ${err.message}` }).eq('id', documentId);
+    }
+  };
+
+  const handleDelete = async (documentId: string, articleTitle: string) => {
+    if (!window.confirm(`Tem certeza que deseja excluir o artigo "${articleTitle}"? Esta ação não pode ser desfeita.`)) {
+      return;
+    }
+
+    try {
+      toast({ title: "Excluindo...", description: "Removendo o artigo e seus arquivos..." });
+
+      // Get document info to delete files from storage
+      const { data: document } = await supabase
+        .from('unified_documents')
+        .select('file_path')
+        .eq('id', documentId)
+        .single();
+
+      // Delete file from storage if exists
+      if (document?.file_path) {
+        const { error: storageError } = await supabase.storage
+          .from('documents')
+          .remove([document.file_path]);
+        
+        if (storageError) {
+          console.warn('Error deleting file from storage:', storageError);
+        }
+      }
+
+      // Delete document record
+      const { error: deleteError } = await supabase
+        .from('unified_documents')
+        .delete()
+        .eq('id', documentId);
+
+      if (deleteError) {
+        throw new Error(deleteError.message);
+      }
+
+      toast({ 
+        title: "Sucesso", 
+        description: "Artigo excluído com sucesso." 
+      });
+
+      // Refresh the list
+      fetchScientificArticles();
+
+    } catch (err: any) {
+      console.error("Delete Error:", err);
+      toast({ 
+        variant: "destructive", 
+        title: "Falha ao Excluir", 
+        description: err.message || "Ocorreu um erro ao excluir o artigo."
+      });
     }
   };
 
@@ -197,6 +251,14 @@ const ScientificArticlesPage: React.FC = () => {
                           Reprocessar
                         </Button>
                       )}
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleDelete(article.id, article.titulo_extraido || 'Documento')}
+                        className="border-red-500/70 text-red-400 hover:bg-red-500/10 hover:text-red-300 hover:border-red-500"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </div>
                   </CardFooter>
                 </Card>

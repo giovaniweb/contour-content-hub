@@ -1,11 +1,12 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useEquipments } from '@/hooks/useEquipments';
@@ -17,13 +18,22 @@ import {
   AlertCircle, 
   Loader2,
   Brain,
-  Zap
+  Zap,
+  Edit,
+  Save
 } from 'lucide-react';
 
 interface UploadState {
   status: 'idle' | 'uploading' | 'processing' | 'success' | 'error';
   message: string;
   documentId?: string;
+}
+
+interface ExtractedData {
+  title?: string;
+  authors?: string[];
+  keywords?: string[];
+  summary?: string;
 }
 
 export const IntelligentUploadForm: React.FC = () => {
@@ -34,6 +44,14 @@ export const IntelligentUploadForm: React.FC = () => {
     status: 'idle',
     message: ''
   });
+  
+  // Campos editáveis após processamento
+  const [isEditing, setIsEditing] = useState(false);
+  const [extractedData, setExtractedData] = useState<ExtractedData>({});
+  const [editableTitle, setEditableTitle] = useState('');
+  const [editableAuthors, setEditableAuthors] = useState('');
+  const [editableKeywords, setEditableKeywords] = useState('');
+  const [editableSummary, setEditableSummary] = useState('');
   
   const { toast } = useToast();
   const { equipments, loading: equipmentsLoading } = useEquipments();
@@ -69,6 +87,8 @@ export const IntelligentUploadForm: React.FC = () => {
       
       setFile(selectedFile);
       setUploadState({ status: 'idle', message: '' });
+      setIsEditing(false);
+      setExtractedData({});
     }
   };
 
@@ -138,33 +158,10 @@ export const IntelligentUploadForm: React.FC = () => {
 
       if (processError) {
         console.error('Process function error:', processError);
-        // Don't throw error here, let the user know but continue
-        setUploadState({
-          status: 'success',
-          message: 'Documento enviado! Processamento pode demorar alguns minutos.',
-          documentId: insertedDoc.id
-        });
-      } else {
-        setUploadState({
-          status: 'success',
-          message: 'Documento processado com sucesso!',
-          documentId: insertedDoc.id
-        });
       }
 
-      toast({
-        title: "Upload Concluído",
-        description: "Documento enviado e processado com sucesso.",
-      });
-
-      // Reset form
-      setFile(null);
-      setDocumentType('artigo_cientifico');
-      setEquipmentId('');
-      
-      // Reset file input
-      const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
-      if (fileInput) fileInput.value = '';
+      // Aguardar o processamento e buscar dados extraídos
+      await waitForProcessing(insertedDoc.id);
 
     } catch (error: any) {
       console.error('Upload error:', error);
@@ -176,6 +173,104 @@ export const IntelligentUploadForm: React.FC = () => {
       toast({
         title: "Erro no Upload",
         description: error.message || "Ocorreu um erro durante o upload do documento.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const waitForProcessing = async (documentId: string) => {
+    let attempts = 0;
+    const maxAttempts = 30; // 30 segundos
+    
+    const checkStatus = async () => {
+      const { data: doc } = await supabase
+        .from('unified_documents')
+        .select('*')
+        .eq('id', documentId)
+        .single();
+
+      if (doc?.status_processamento === 'concluido') {
+        setExtractedData({
+          title: doc.titulo_extraido,
+          authors: doc.autores,
+          keywords: doc.palavras_chave,
+          summary: doc.texto_completo?.substring(0, 500)
+        });
+
+        // Preencher campos editáveis
+        setEditableTitle(doc.titulo_extraido || '');
+        setEditableAuthors(doc.autores?.join(', ') || '');
+        setEditableKeywords(doc.palavras_chave?.join(', ') || '');
+        setEditableSummary(doc.texto_completo?.substring(0, 500) || '');
+
+        setUploadState({
+          status: 'success',
+          message: 'Documento processado com sucesso!',
+          documentId: documentId
+        });
+
+        // Automaticamente abrir para edição
+        setIsEditing(true);
+
+        toast({
+          title: "Processamento Concluído",
+          description: "Documento processado! Você pode editar os campos extraídos.",
+        });
+
+        return;
+      } else if (doc?.status_processamento === 'falhou') {
+        throw new Error(doc.detalhes_erro || 'Falha no processamento');
+      }
+
+      attempts++;
+      if (attempts < maxAttempts) {
+        setTimeout(checkStatus, 1000);
+      } else {
+        throw new Error('Timeout no processamento');
+      }
+    };
+
+    checkStatus();
+  };
+
+  const handleSaveChanges = async () => {
+    if (!uploadState.documentId) return;
+
+    try {
+      const { error } = await supabase
+        .from('unified_documents')
+        .update({
+          titulo_extraido: editableTitle,
+          autores: editableAuthors.split(',').map(a => a.trim()).filter(Boolean),
+          palavras_chave: editableKeywords.split(',').map(k => k.trim()).filter(Boolean),
+          texto_completo: editableSummary,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', uploadState.documentId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Alterações Salvas",
+        description: "As informações do documento foram atualizadas com sucesso.",
+      });
+
+      // Reset form
+      setFile(null);
+      setDocumentType('artigo_cientifico');
+      setEquipmentId('');
+      setIsEditing(false);
+      setExtractedData({});
+      setUploadState({ status: 'idle', message: '' });
+      
+      // Reset file input
+      const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+      if (fileInput) fileInput.value = '';
+
+    } catch (error: any) {
+      toast({
+        title: "Erro ao Salvar",
+        description: error.message || "Ocorreu um erro ao salvar as alterações.",
         variant: "destructive"
       });
     }
@@ -217,9 +312,10 @@ export const IntelligentUploadForm: React.FC = () => {
                 className={`h-auto p-4 justify-start ${
                   documentType === type.value
                     ? 'bg-cyan-600 hover:bg-cyan-700 text-white aurora-glow'
-                    : 'border-slate-600 text-slate-300 hover:bg-slate-700'
+                    : 'aurora-glass-enhanced border-slate-600 text-slate-300 hover:bg-slate-700'
                 }`}
                 onClick={() => setDocumentType(type.value as DocumentTypeEnum)}
+                disabled={isProcessing}
               >
                 <div className="flex flex-col items-start gap-2">
                   <div className="text-lg">{type.icon}</div>
@@ -237,8 +333,8 @@ export const IntelligentUploadForm: React.FC = () => {
           <CardTitle className="text-white">Equipamento (Opcional)</CardTitle>
         </CardHeader>
         <CardContent>
-          <Select value={equipmentId} onValueChange={setEquipmentId}>
-            <SelectTrigger className="aurora-glass-enhanced border-slate-600 text-white">
+          <Select value={equipmentId} onValueChange={setEquipmentId} disabled={isProcessing}>
+            <SelectTrigger className="aurora-input">
               <SelectValue placeholder="Selecione um equipamento (opcional)" />
             </SelectTrigger>
             <SelectContent className="aurora-glass-enhanced border-slate-600">
@@ -274,12 +370,12 @@ export const IntelligentUploadForm: React.FC = () => {
               accept=".pdf"
               onChange={handleFileChange}
               disabled={isProcessing}
-              className="aurora-glass-enhanced border-slate-600 text-white file:bg-slate-700 file:text-white file:border-0"
+              className="aurora-input file:bg-slate-700 file:text-white file:border-0"
             />
           </div>
 
           {file && (
-            <div className="flex items-center gap-2 p-3 rounded-lg bg-slate-700/50 border border-slate-600">
+            <div className="flex items-center gap-2 p-3 rounded-lg aurora-glass-enhanced border border-slate-600">
               <FileText className="h-4 w-4 text-cyan-400" />
               <span className="text-slate-300 text-sm">{file.name}</span>
               <Badge variant="secondary" className="ml-auto">
@@ -289,49 +385,127 @@ export const IntelligentUploadForm: React.FC = () => {
           )}
 
           {uploadState.status !== 'idle' && (
-            <div className="flex items-center gap-3 p-4 rounded-lg bg-slate-700/50 border border-slate-600">
+            <div className="flex items-center gap-3 p-4 rounded-lg aurora-glass-enhanced border border-slate-600">
               {getStatusIcon()}
               <span className="text-slate-300">{uploadState.message}</span>
             </div>
           )}
 
-          <Button
-            onClick={handleUpload}
-            disabled={!file || isProcessing}
-            className="w-full bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-600 hover:to-purple-600 text-white aurora-glow"
-          >
-            {isProcessing ? (
-              <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                {uploadState.status === 'uploading' ? 'Enviando...' : 'Processando...'}
-              </>
-            ) : (
-              <>
-                <Upload className="h-4 w-4 mr-2" />
-                Fazer Upload e Processar
-              </>
-            )}
-          </Button>
+          {!isEditing && (
+            <Button
+              onClick={handleUpload}
+              disabled={!file || isProcessing}
+              className="w-full bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-600 hover:to-purple-600 text-white aurora-glow"
+            >
+              {isProcessing ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  {uploadState.status === 'uploading' ? 'Enviando...' : 'Processando...'}
+                </>
+              ) : (
+                <>
+                  <Upload className="h-4 w-4 mr-2" />
+                  Fazer Upload e Processar
+                </>
+              )}
+            </Button>
+          )}
         </CardContent>
       </Card>
 
+      {/* Campos Editáveis após Processamento */}
+      {isEditing && (
+        <Card className="aurora-glass-enhanced border-green-500/30">
+          <CardHeader>
+            <CardTitle className="text-white flex items-center gap-2">
+              <Edit className="h-5 w-5 text-green-400" />
+              Editar Informações Extraídas
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <Label htmlFor="edit-title" className="text-white mb-2 block">
+                Título
+              </Label>
+              <Input
+                id="edit-title"
+                value={editableTitle}
+                onChange={(e) => setEditableTitle(e.target.value)}
+                className="aurora-input"
+                placeholder="Título do documento"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="edit-authors" className="text-white mb-2 block">
+                Autores (separados por vírgula)
+              </Label>
+              <Input
+                id="edit-authors"
+                value={editableAuthors}
+                onChange={(e) => setEditableAuthors(e.target.value)}
+                className="aurora-input"
+                placeholder="Autor 1, Autor 2, Autor 3"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="edit-keywords" className="text-white mb-2 block">
+                Palavras-chave (separadas por vírgula)
+              </Label>
+              <Input
+                id="edit-keywords"
+                value={editableKeywords}
+                onChange={(e) => setEditableKeywords(e.target.value)}
+                className="aurora-input"
+                placeholder="palavra1, palavra2, palavra3"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="edit-summary" className="text-white mb-2 block">
+                Resumo/Abstract
+              </Label>
+              <Textarea
+                id="edit-summary"
+                value={editableSummary}
+                onChange={(e) => setEditableSummary(e.target.value)}
+                className="aurora-textarea"
+                placeholder="Resumo ou abstract do documento"
+                rows={4}
+              />
+            </div>
+
+            <Button
+              onClick={handleSaveChanges}
+              className="w-full bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white aurora-glow"
+            >
+              <Save className="h-4 w-4 mr-2" />
+              Salvar Alterações
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Processing Info */}
-      <Card className="aurora-glass-enhanced border-cyan-500/30">
-        <CardContent className="pt-6">
-          <div className="text-center text-slate-400 text-sm">
-            <Brain className="h-8 w-8 mx-auto mb-2 text-purple-400" />
-            <p className="font-medium text-slate-300 mb-1">Processamento Inteligente</p>
-            <p>
-              A IA irá extrair automaticamente o título, autores, palavras-chave e conteúdo do documento.
-              {documentType === 'artigo_cientifico' && (
-                <span className="block mt-1 text-cyan-400">
-                  Para artigos científicos, título e autores são obrigatórios.
-                </span>
-              )}
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+      {!isEditing && (
+        <Card className="aurora-glass-enhanced border-cyan-500/30">
+          <CardContent className="pt-6">
+            <div className="text-center text-slate-400 text-sm">
+              <Brain className="h-8 w-8 mx-auto mb-2 text-purple-400" />
+              <p className="font-medium text-slate-300 mb-1">Processamento Inteligente</p>
+              <p>
+                A IA irá extrair automaticamente o título, autores, palavras-chave e conteúdo do documento.
+                {documentType === 'artigo_cientifico' && (
+                  <span className="block mt-1 text-cyan-400">
+                    Para artigos científicos, título e autores são obrigatórios.
+                  </span>
+                )}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };
