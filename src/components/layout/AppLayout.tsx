@@ -28,14 +28,17 @@ const AppLayout: React.FC<AppLayoutProps> = ({
 
   useEffect(() => {
     if (isLoading) return;
-    if (!isAuthenticated || !user) {
-      navigate("/login", {
-        replace: true,
-        state: { from: location.pathname },
-      });
-      return;
-    }
-    if (requireAdmin && user.role !== "admin") {
+    
+    // Para desenvolvimento, não redirecionar para login
+    // if (!isAuthenticated || !user) {
+    //   navigate("/login", {
+    //     replace: true,
+    //     state: { from: location.pathname },
+    //   });
+    //   return;
+    // }
+    
+    if (requireAdmin && user?.role !== "admin") {
       navigate("/dashboard", { replace: true });
       return;
     }
@@ -54,31 +57,25 @@ const AppLayout: React.FC<AppLayoutProps> = ({
     );
   }
 
-  if (!isAuthenticated || !user) {
-    return null;
-  }
-
   return (
-    <AuroraPageLayout particleIntensity={particleIntensity} interactive={interactive}>
-      <div>
-        {/* Sidebar sempre fixo à esquerda */}
-        <Sidebar />
-        {/* Conteúdo principal, com left padding igual ao sidebar */}
-        <div
-          className="min-h-screen flex flex-col"
-          style={{ marginLeft: SIDEBAR_WIDTH }}
+    <div className="min-h-screen aurora-enhanced-bg">
+      {/* Sidebar sempre fixo à esquerda */}
+      <Sidebar />
+      {/* Conteúdo principal, com left padding igual ao sidebar */}
+      <div
+        className="min-h-screen flex flex-col"
+        style={{ marginLeft: SIDEBAR_WIDTH }}
+      >
+        {/* Topbar fixa */}
+        <Navbar />
+        <main 
+          className="flex-1 overflow-auto px-2 md:px-6"
+          style={{ paddingTop: NAVBAR_HEIGHT + 8 }} // 8px extra para espaçamento
         >
-          {/* Topbar fixa */}
-          <Navbar />
-          <main 
-            className="flex-1 overflow-auto px-2 md:px-6"
-            style={{ paddingTop: NAVBAR_HEIGHT + 8 }} // 8px extra para espaçamento
-          >
-            {children}
-          </main>
-        </div>
+          {children}
+        </main>
       </div>
-    </AuroraPageLayout>
+    </div>
   );
 };
 

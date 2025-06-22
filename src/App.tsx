@@ -8,6 +8,7 @@ import { Toaster as Sonner } from '@/components/ui/sonner'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { ThemeProvider } from 'next-themes'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
+import { AuthProvider } from '@/context/AuthContext'
 import AppRoutes from '@/components/AppRoutes'
 import './App.css'
 
@@ -37,13 +38,16 @@ function App() {
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
           <Router>
-            <ErrorBoundary>
-              <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-                <AppRoutes />
-                <Toaster />
-                <Sonner />
-              </div>
-            </ErrorBoundary>
+            <AuthProvider>
+              <ErrorBoundary>
+                {/* Fundo Aurora Boreal padronizado para toda a aplicação */}
+                <div className="min-h-screen aurora-enhanced-bg">
+                  <AppRoutes />
+                  <Toaster />
+                  <Sonner />
+                </div>
+              </ErrorBoundary>
+            </AuthProvider>
           </Router>
         </TooltipProvider>
         <ReactQueryDevtools initialIsOpen={false} />
