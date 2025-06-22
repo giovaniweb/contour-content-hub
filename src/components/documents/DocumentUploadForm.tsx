@@ -242,7 +242,7 @@ const DocumentUploadForm: React.FC<DocumentUploadFormProps> = ({ onSuccess }) =>
                   <FormLabel>Tipo de Documento</FormLabel>
                   <Select 
                     onValueChange={field.onChange} 
-                    defaultValue={field.value}
+                    value={field.value}
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -269,7 +269,7 @@ const DocumentUploadForm: React.FC<DocumentUploadFormProps> = ({ onSuccess }) =>
                   <FormLabel>Equipamento Relacionado</FormLabel>
                   <Select 
                     onValueChange={field.onChange} 
-                    defaultValue={field.value}
+                    value={field.value || "none"}
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -298,7 +298,7 @@ const DocumentUploadForm: React.FC<DocumentUploadFormProps> = ({ onSuccess }) =>
                   <FormLabel>Idioma Original</FormLabel>
                   <Select 
                     onValueChange={field.onChange} 
-                    defaultValue={field.value}
+                    value={field.value}
                   >
                     <FormControl>
                       <SelectTrigger>

@@ -171,8 +171,8 @@ const ArticleUploadDialog: React.FC<ArticleUploadDialogProps> = ({ open, onClose
             <div className="space-y-2">
               <Label htmlFor="equipamento_id">Related Equipment</Label>
               <Select
-                onValueChange={(value) => form.setValue("equipamento_id", value)}
-                defaultValue={form.getValues("equipamento_id")}
+                onValueChange={(value) => form.setValue("equipamento_id", value === "none" ? null : value)}
+                value={form.getValues("equipamento_id") || "none"}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select equipment" />

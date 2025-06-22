@@ -277,8 +277,8 @@ const EnhancedScientificArticleForm: React.FC<EnhancedScientificArticleFormProps
                 <div className="space-y-2">
                   <Label htmlFor="equipamento_id" className="aurora-heading">Equipamento Relacionado ao Estudo</Label>
                   <Select
-                    onValueChange={(value) => form.setValue("equipamento_id", value)}
-                    defaultValue={form.getValues("equipamento_id")}
+                    onValueChange={(value) => form.setValue("equipamento_id", value === "none" ? null : value)}
+                    value={form.getValues("equipamento_id") || "none"}
                   >
                     <SelectTrigger className="aurora-glass border-aurora-electric-purple/30 focus:border-aurora-electric-purple">
                       <SelectValue placeholder="Selecione o equipamento estudado no artigo (opcional)" />

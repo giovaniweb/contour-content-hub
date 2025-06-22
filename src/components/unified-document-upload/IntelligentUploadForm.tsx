@@ -219,7 +219,7 @@ const IntelligentUploadForm: React.FC = () => {
               <SelectValue placeholder="Selecione um equipamento" />
             </SelectTrigger>
             <SelectContent className="aurora-glass-enhanced border-cyan-500/30">
-              <SelectItem value="">Nenhum equipamento</SelectItem>
+              <SelectItem value="none">Nenhum equipamento</SelectItem>
               {equipments.map((equipment) => (
                 <SelectItem key={equipment.id} value={equipment.id}>
                   {equipment.nome}
