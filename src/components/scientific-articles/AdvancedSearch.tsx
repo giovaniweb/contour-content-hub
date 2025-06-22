@@ -80,12 +80,12 @@ const AdvancedSearch: React.FC<AdvancedSearchProps> = ({
                 placeholder="Buscar por título, conteúdo, palavras-chave ou autores..."
                 value={filters.search || ''}
                 onChange={(e) => handleFilterChange('search', e.target.value)}
-                className="aurora-glass border-slate-600 text-white placeholder:text-slate-400"
+                className="aurora-input"
               />
             </div>
             <Button
               onClick={handleSearch}
-              className="bg-cyan-600 hover:bg-cyan-700 text-white px-6"
+              className="aurora-button-enhanced bg-cyan-600 hover:bg-cyan-700 text-white px-6"
             >
               <Search className="h-4 w-4 mr-2" />
               Buscar
@@ -94,7 +94,7 @@ const AdvancedSearch: React.FC<AdvancedSearchProps> = ({
               <Button
                 onClick={handleClear}
                 variant="outline"
-                className="border-slate-600 text-slate-300 hover:bg-slate-700"
+                className="aurora-button-enhanced border-slate-600 text-slate-300 hover:bg-slate-700"
               >
                 <X className="h-4 w-4 mr-2" />
                 Limpar

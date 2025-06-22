@@ -3,6 +3,18 @@ import { useState, useCallback } from 'react';
 import { UnifiedDocument, GetDocumentsParams } from '@/types/document';
 import { unifiedDocumentService } from '@/services/unifiedDocuments';
 
+export interface ScientificArticleFilters {
+  search?: string;
+  equipmentId?: string;
+  status_processamento?: string;
+  dateRange?: {
+    startDate?: string;
+    endDate?: string;
+  };
+  palavras_chave?: string[];
+  autores?: string[];
+}
+
 export const useScientificArticles = () => {
   const [articles, setArticles] = useState<UnifiedDocument[]>([]);
   const [loading, setLoading] = useState(false);

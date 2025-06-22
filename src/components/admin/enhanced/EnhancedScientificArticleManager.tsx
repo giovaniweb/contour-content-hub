@@ -7,7 +7,7 @@ import { useScientificArticles } from '@/hooks/use-scientific-articles';
 import { useEquipments } from '@/hooks/useEquipments';
 import PDFViewer from '@/components/documents/PDFViewer';
 import DocumentQuestionChat from '@/components/documents/DocumentQuestionChat';
-import { IntelligentUploadForm } from '@/components/unified-document-upload/IntelligentUploadForm';
+import IntelligentUploadForm from '@/components/unified-document-upload/IntelligentUploadForm';
 
 // Importing the refactored components
 import ScientificArticleHeader from './components/ScientificArticleHeader';
