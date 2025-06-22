@@ -1,3 +1,4 @@
+
 project_id = "default"
 
 [api]
@@ -16,6 +17,12 @@ jwt_expiry = 3600
 enable_signup = true
 enable_anonymous_sign_ins = false
 
+[functions.process-document]
+verify_jwt = true
+
+[functions.ask-document]
+verify_jwt = true
+
 [functions.generate-image]
 verify_jwt = true
 
@@ -27,8 +34,6 @@ verify_jwt = true
 
 [functions.generate-marketing-diagnostic]
 verify_jwt = true
-
-# Outras funções, se existirem, manter verify_jwt = true (padrão seguro).
 
 [db]
 enabled = true
