@@ -1,646 +1,486 @@
 
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { FileUploader } from '@/components/admin/article-form/FileUploader';
-import { supabase } from '@/integrations/supabase/client';
-import { processFileContent, uploadFileToStorage } from '@/services/documentProcessing';
-import { processExistingDocument } from '@/services/documentProcessing';
-import { 
-  Upload, 
-  FileText, 
-  CheckCircle, 
-  AlertTriangle, 
-  Loader2, 
-  Save,
-  Sparkles,
-  RotateCcw
-} from 'lucide-react';
+import { DocumentTypeEnum } from '@/types/document';
+import { useEquipments } from '@/hooks/useEquipments';
+import { Badge } from '@/components/ui/badge';
+import { X, Upload, Loader2, FileText, Save, Trash2 } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { AlertCircle, CheckCircle, Clock } from 'lucide-react';
+import FileUploader from '@/components/admin/article-form/FileUploader';
 
 interface ExtractedData {
-  title: string | null;
-  conclusion: string | null;
-  keywords: string[] | null;
-  researchers: string[] | null;
-  error?: string | null;
+  title?: string;
+  authors?: string[];
+  keywords?: string[];
+  content?: string;
 }
 
 export const IntelligentUploadForm: React.FC = () => {
-  // Estados do formulário
   const [file, setFile] = useState<File | null>(null);
   const [fileUrl, setFileUrl] = useState<string | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [processingProgress, setProcessingProgress] = useState<string | null>(null);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [processingFailed, setProcessingFailed] = useState(false);
   const [uploadStep, setUploadStep] = useState<'upload' | 'form'>('upload');
   
-  // Estados de processamento
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-  const [uploadError, setUploadError] = useState<string | null>(null);
-  const [processingProgress, setProcessingProgress] = useState<string | null>(null);
-  const [processingFailed, setProcessingFailed] = useState(false);
+  // Form fields
+  const [documentType, setDocumentType] = useState<DocumentTypeEnum>('artigo_cientifico');
+  const [title, setTitle] = useState('');
+  const [authors, setAuthors] = useState<string[]>([]);
+  const [newAuthor, setNewAuthor] = useState('');
+  const [keywords, setKeywords] = useState<string[]>([]);
+  const [newKeyword, setNewKeyword] = useState('');
+  const [description, setDescription] = useState('');
+  const [equipmentId, setEquipmentId] = useState<string>('');
+  const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
   
-  // Estados dos dados extraídos
+  // Extract and auto-save
   const [extractedData, setExtractedData] = useState<ExtractedData | null>(null);
-  
-  // Estados do formulário
-  const [formData, setFormData] = useState({
-    titulo: '',
-    autores: [] as string[],
-    palavrasChave: [] as string[],
-    resumo: '',
-    tipoDocumento: 'artigo_cientifico' as string,
-    equipamentoId: '',
-    thumbnailFile: null as File | null
-  });
-  
-  // Estados de rascunho
-  const [draftId, setDraftId] = useState<string | null>(null);
+  const [isDraft, setIsDraft] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   
   const { toast } = useToast();
+  const { equipments } = useEquipments();
 
-  // Auto-save do rascunho a cada 30 segundos
+  // Auto-save draft functionality
   useEffect(() => {
-    const interval = setInterval(() => {
-      if (formData.titulo || formData.resumo || formData.autores.length > 0) {
+    if (title || description || authors.length > 0 || keywords.length > 0) {
+      const timer = setTimeout(() => {
         saveDraft();
-      }
-    }, 30000);
+      }, 2000); // Auto-save after 2 seconds of inactivity
+      
+      return () => clearTimeout(timer);
+    }
+  }, [title, description, authors, keywords, documentType, equipmentId]);
 
-    return () => clearInterval(interval);
-  }, [formData]);
+  const saveDraft = () => {
+    const draftData = {
+      documentType,
+      title,
+      authors,
+      keywords,
+      description,
+      equipmentId,
+      savedAt: new Date().toISOString()
+    };
+    
+    localStorage.setItem('intelligent-upload-draft', JSON.stringify(draftData));
+    setIsDraft(true);
+    setLastSaved(new Date());
+  };
 
-  // Salvar rascunho
-  const saveDraft = useCallback(async () => {
+  const loadDraft = () => {
+    const draftData = localStorage.getItem('intelligent-upload-draft');
+    if (draftData) {
+      const draft = JSON.parse(draftData);
+      setDocumentType(draft.documentType || 'artigo_cientifico');
+      setTitle(draft.title || '');
+      setAuthors(draft.authors || []);
+      setKeywords(draft.keywords || []);
+      setDescription(draft.description || '');
+      setEquipmentId(draft.equipmentId || '');
+      setIsDraft(true);
+      setLastSaved(new Date(draft.savedAt));
+    }
+  };
+
+  const clearDraft = () => {
+    localStorage.removeItem('intelligent-upload-draft');
+    setIsDraft(false);
+    setLastSaved(null);
+  };
+
+  // Load draft on component mount
+  useEffect(() => {
+    loadDraft();
+  }, []);
+
+  const resetData = () => {
+    setFile(null);
+    setFileUrl(null);
+    setUploadError(null);
+    setProcessingFailed(false);
+    setProcessingProgress(null);
+    setExtractedData(null);
+  };
+
+  const processFile = async (): Promise<boolean> => {
+    if (!file) return false;
+
+    setIsProcessing(true);
+    setProcessingProgress('Fazendo upload do arquivo...');
+    setUploadError(null);
+    setProcessingFailed(false);
+
     try {
-      if (!formData.titulo && !formData.resumo && formData.autores.length === 0) {
-        return; // Não salva rascunho vazio
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('documentType', documentType);
+
+      const response = await fetch('/api/process-document', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error(`Erro na resposta: ${response.status}`);
       }
 
-      const draftData = {
-        tipo_documento: formData.tipoDocumento,
-        titulo_extraido: formData.titulo || null,
-        autores: formData.autores,
-        palavras_chave: formData.palavrasChave,
-        texto_completo: formData.resumo || null,
-        equipamento_id: formData.equipamentoId || null,
-        user_id: (await supabase.auth.getUser()).data.user?.id,
-        status_processamento: 'pendente' as const,
-        file_path: fileUrl,
-        updated_at: new Date().toISOString()
-      };
-
-      if (draftId) {
-        // Atualizar rascunho existente
-        const { error } = await supabase
-          .from('unified_documents')
-          .update(draftData)
-          .eq('id', draftId);
-
-        if (error) throw error;
+      const result = await response.json();
+      
+      if (result.success) {
+        setProcessingProgress('Processamento concluído!');
+        setFileUrl(result.fileUrl);
+        
+        // Auto-fill extracted data
+        if (result.extracted) {
+          setExtractedData(result.extracted);
+          setTitle(result.extracted.title || '');
+          setAuthors(result.extracted.authors || []);
+          setKeywords(result.extracted.keywords || []);
+          setDescription(result.extracted.content?.substring(0, 500) || '');
+        }
+        
+        toast({
+          title: 'Arquivo processado',
+          description: 'O documento foi processado com sucesso e os dados foram extraídos.',
+        });
+        
+        return true;
       } else {
-        // Criar novo rascunho
-        const { data, error } = await supabase
-          .from('unified_documents')
-          .insert(draftData)
-          .select()
-          .single();
-
-        if (error) throw error;
-        setDraftId(data.id);
+        throw new Error(result.error || 'Falha no processamento');
       }
-
-      setLastSaved(new Date());
-      console.log('💾 Rascunho salvo automaticamente');
-    } catch (error) {
-      console.error('Erro ao salvar rascunho:', error);
-    }
-  }, [formData, draftId, fileUrl]);
-
-  // Processar arquivo
-  const handleProcessFile = async (): Promise<boolean> => {
-    if (!file) {
-      setUploadError('Nenhum arquivo selecionado');
-      return false;
-    }
-
-    try {
-      setIsProcessing(true);
-      setUploadError(null);
-      setProcessingFailed(false);
-      setProcessingProgress('Fazendo upload do arquivo...');
-
-      // 1. Upload do arquivo
-      console.log('📤 Iniciando upload do arquivo...');
-      setIsUploading(true);
-      
-      const uploadedUrl = await uploadFileToStorage(file);
-      setFileUrl(uploadedUrl);
-      setIsUploading(false);
-      
-      setProcessingProgress('Extraindo informações do documento...');
-
-      // 2. Converter arquivo para base64 para processamento
-      const reader = new FileReader();
-      const fileContent = await new Promise<string>((resolve, reject) => {
-        reader.onload = () => {
-          const result = reader.result as string;
-          // Remover prefixo data:application/pdf;base64,
-          const base64 = result.split(',')[1];
-          resolve(base64);
-        };
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-      });
-
-      // 3. Processar conteúdo
-      console.log('🔄 Processando conteúdo do arquivo...');
-      const extracted = await processFileContent(fileContent);
-      
-      if (extracted.error) {
-        throw new Error(extracted.error);
-      }
-
-      setExtractedData(extracted);
-
-      // 4. Preencher formulário com dados extraídos
-      setFormData(prev => ({
-        ...prev,
-        titulo: extracted.title || '',
-        autores: extracted.researchers || [],
-        palavrasChave: extracted.keywords || [],
-        resumo: extracted.conclusion || ''
-      }));
-
-      setProcessingProgress('Processamento concluído com sucesso!');
-      
-      toast({
-        title: 'Arquivo processado',
-        description: 'As informações foram extraídas e podem ser editadas.',
-      });
-
-      return true;
     } catch (error: any) {
       console.error('Erro no processamento:', error);
+      setUploadError(error.message || 'Erro desconhecido no processamento');
       setProcessingFailed(true);
-      setUploadError(error.message || 'Erro ao processar arquivo');
       
       toast({
         variant: 'destructive',
         title: 'Erro no processamento',
-        description: error.message || 'Não foi possível processar o arquivo.',
+        description: error.message || 'Falha ao processar o arquivo',
       });
       
       return false;
     } finally {
       setIsProcessing(false);
-      setIsUploading(false);
     }
   };
 
-  // Reprocessar arquivo
-  const handleReprocess = async () => {
-    if (!draftId) {
+  const addAuthor = () => {
+    if (newAuthor.trim() && !authors.includes(newAuthor.trim())) {
+      setAuthors([...authors, newAuthor.trim()]);
+      setNewAuthor('');
+    }
+  };
+
+  const removeAuthor = (author: string) => {
+    setAuthors(authors.filter(a => a !== author));
+  };
+
+  const addKeyword = () => {
+    if (newKeyword.trim() && !keywords.includes(newKeyword.trim())) {
+      setKeywords([...keywords, newKeyword.trim()]);
+      setNewKeyword('');
+    }
+  };
+
+  const removeKeyword = (keyword: string) => {
+    setKeywords(keywords.filter(k => k !== keyword));
+  };
+
+  const handleSubmit = async () => {
+    if (!title.trim()) {
       toast({
         variant: 'destructive',
-        title: 'Erro',
-        description: 'Documento não encontrado para reprocessamento.',
+        title: 'Erro de validação',
+        description: 'O título é obrigatório.',
       });
       return;
     }
 
     try {
-      setIsProcessing(true);
-      setProcessingProgress('Reprocessando documento...');
+      const documentData = {
+        tipo_documento: documentType,
+        titulo_extraido: title,
+        autores: authors,
+        palavras_chave: keywords,
+        descricao: description,
+        equipamento_id: equipmentId || null,
+        file_path: fileUrl,
+        status_processamento: fileUrl ? 'concluido' : 'pendente',
+      };
 
-      const success = await processExistingDocument(draftId);
+      const response = await fetch('/api/create-document', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(documentData),
+      });
+
+      if (!response.ok) {
+        throw new Error('Falha ao salvar documento');
+      }
+
+      const result = await response.json();
       
-      if (success) {
+      if (result.success) {
         toast({
-          title: 'Reprocessamento concluído',
-          description: 'O documento foi reprocessado com sucesso.',
+          title: 'Documento salvo',
+          description: 'O documento foi salvo com sucesso na biblioteca.',
         });
         
-        // Recarregar dados do documento
-        const { data, error } = await supabase
-          .from('unified_documents')
-          .select('*')
-          .eq('id', draftId)
-          .single();
-
-        if (!error && data) {
-          setFormData(prev => ({
-            ...prev,
-            titulo: data.titulo_extraido || '',
-            autores: data.autores || [],
-            palavrasChave: data.palavras_chave || [],
-            resumo: data.texto_completo || ''
-          }));
-        }
+        // Clear form and draft
+        setTitle('');
+        setAuthors([]);
+        setKeywords([]);
+        setDescription('');
+        setEquipmentId('');
+        setFile(null);
+        setFileUrl(null);
+        setExtractedData(null);
+        clearDraft();
+        setUploadStep('upload');
       }
-    } catch (error: any) {
-      toast({
-        variant: 'destructive',
-        title: 'Erro no reprocessamento',
-        description: error.message || 'Não foi possível reprocessar o documento.',
-      });
-    } finally {
-      setIsProcessing(false);
-    }
-  };
-
-  // Salvar documento final
-  const handleSave = async () => {
-    try {
-      setIsSaving(true);
-
-      if (!formData.titulo.trim()) {
-        toast({
-          variant: 'destructive',
-          title: 'Título obrigatório',
-          description: 'Por favor, insira um título para o documento.',
-        });
-        return;
-      }
-
-      // Salvar como rascunho primeiro
-      await saveDraft();
-
-      if (draftId) {
-        // Atualizar status para concluído
-        const { error } = await supabase
-          .from('unified_documents')
-          .update({ 
-            status_processamento: 'concluido',
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', draftId);
-
-        if (error) throw error;
-      }
-
-      toast({
-        title: 'Documento salvo',
-        description: 'O documento foi salvo com sucesso na biblioteca.',
-      });
-
-      // Reset do formulário
-      setFile(null);
-      setFileUrl(null);
-      setFormData({
-        titulo: '',
-        autores: [],
-        palavrasChave: [],
-        resumo: '',
-        tipoDocumento: 'artigo_cientifico',
-        equipamentoId: '',
-        thumbnailFile: null
-      });
-      setExtractedData(null);
-      setDraftId(null);
-      setLastSaved(null);
-      setUploadStep('upload');
-
     } catch (error: any) {
       console.error('Erro ao salvar:', error);
       toast({
         variant: 'destructive',
         title: 'Erro ao salvar',
-        description: error.message || 'Não foi possível salvar o documento.',
+        description: error.message || 'Falha ao salvar o documento',
       });
-    } finally {
-      setIsSaving(false);
     }
   };
 
-  // Reset dos dados
-  const handleReset = () => {
-    setFile(null);
-    setFileUrl(null);
-    setFormData({
-      titulo: '',
-      autores: [],
-      palavrasChave: [],
-      resumo: '',
-      tipoDocumento: 'artigo_cientifico',
-      equipamentoId: '',
-      thumbnailFile: null
-    });
-    setExtractedData(null);
-    setUploadError(null);
-    setProcessingProgress(null);
-    setProcessingFailed(false);
-    setDraftId(null);
-    setLastSaved(null);
-    setUploadStep('upload');
-  };
+  if (uploadStep === 'upload') {
+    return (
+      <div className="space-y-6">
+        {isDraft && lastSaved && (
+          <Alert className="aurora-glass-enhanced border-yellow-500/30">
+            <Clock className="h-4 w-4 text-yellow-400" />
+            <AlertDescription className="text-yellow-300">
+              Rascunho salvo automaticamente em {lastSaved.toLocaleTimeString()}
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => setUploadStep('form')}
+                className="ml-2 text-yellow-400 hover:text-yellow-300"
+              >
+                Continuar editando
+              </Button>
+            </AlertDescription>
+          </Alert>
+        )}
 
-  // Adicionar autor
-  const addAuthor = (author: string) => {
-    if (author.trim() && !formData.autores.includes(author.trim())) {
-      setFormData(prev => ({
-        ...prev,
-        autores: [...prev.autores, author.trim()]
-      }));
-    }
-  };
-
-  // Remover autor
-  const removeAuthor = (index: number) => {
-    setFormData(prev => ({
-      ...prev,
-      autores: prev.autores.filter((_, i) => i !== index)
-    }));
-  };
-
-  // Adicionar palavra-chave
-  const addKeyword = (keyword: string) => {
-    if (keyword.trim() && !formData.palavrasChave.includes(keyword.trim())) {
-      setFormData(prev => ({
-        ...prev,
-        palavrasChave: [...prev.palavrasChave, keyword.trim()]
-      }));
-    }
-  };
-
-  // Remover palavra-chave
-  const removeKeyword = (index: number) => {
-    setFormData(prev => ({
-      ...prev,
-      palavrasChave: prev.palavrasChave.filter((_, i) => i !== index)
-    }));
-  };
+        <FileUploader
+          file={file}
+          setFile={setFile}
+          fileUrl={fileUrl}
+          setFileUrl={setFileUrl}
+          isProcessing={isProcessing}
+          uploadError={uploadError}
+          processingProgress={processingProgress}
+          processingFailed={processingFailed}
+          onProcessFile={processFile}
+          onSetUploadStep={setUploadStep}
+          onResetData={resetData}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
-      {/* Indicador de Progresso */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center space-x-4">
-          <div className={`flex items-center space-x-2 ${uploadStep === 'upload' ? 'text-cyan-400' : 'text-green-400'}`}>
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${uploadStep === 'upload' ? 'bg-cyan-500/20 border-2 border-cyan-500' : 'bg-green-500/20 border-2 border-green-500'}`}>
-              {uploadStep === 'upload' ? '1' : <CheckCircle className="h-5 w-5" />}
-            </div>
-            <span className="font-medium">Upload</span>
-          </div>
-          <div className={`w-12 h-px ${uploadStep === 'form' ? 'bg-cyan-500' : 'bg-slate-600'}`}></div>
-          <div className={`flex items-center space-x-2 ${uploadStep === 'form' ? 'text-cyan-400' : 'text-slate-400'}`}>
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${uploadStep === 'form' ? 'bg-cyan-500/20 border-2 border-cyan-500' : 'bg-slate-700 border-2 border-slate-600'}`}>
-              2
-            </div>
-            <span className="font-medium">Dados</span>
-          </div>
+      {/* Header with status */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-lg font-semibold text-slate-100">Informações do Documento</h3>
+          <p className="text-sm text-slate-400">
+            {extractedData ? 'Dados extraídos automaticamente - você pode editá-los' : 'Preencha as informações do documento'}
+          </p>
         </div>
-
-        {lastSaved && (
-          <div className="text-xs text-slate-400 flex items-center space-x-1">
-            <Save className="h-3 w-3" />
-            <span>Salvo {lastSaved.toLocaleTimeString()}</span>
+        
+        {isDraft && lastSaved && (
+          <div className="flex items-center gap-2 text-sm text-yellow-400">
+            <Save className="h-4 w-4" />
+            Salvo {lastSaved.toLocaleTimeString()}
           </div>
         )}
       </div>
 
-      {uploadStep === 'upload' ? (
-        // Etapa 1: Upload do arquivo
-        <Card className="aurora-card-enhanced">
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2 aurora-text-gradient-enhanced">
-              <Upload className="h-5 w-5" />
-              <span>Upload de Documento</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <FileUploader
-              file={file}
-              setFile={setFile}
-              fileUrl={fileUrl}
-              setFileUrl={setFileUrl}
-              isProcessing={isProcessing}
-              uploadError={uploadError}
-              processingProgress={processingProgress}
-              processingFailed={processingFailed}
-              onProcessFile={handleProcessFile}
-              onSetUploadStep={setUploadStep}
-              onResetData={handleReset}
-            />
-          </CardContent>
-        </Card>
-      ) : (
-        // Etapa 2: Formulário de dados
-        <div className="space-y-6">
-          {/* Informações Extraídas */}
-          {extractedData && (
-            <Card className="aurora-card-enhanced border-green-500/30">
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2 text-green-400">
-                  <Sparkles className="h-5 w-5" />
-                  <span>Informações Extraídas Automaticamente</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <strong className="text-slate-300">Título:</strong>
-                    <p className="text-slate-400 mt-1">{extractedData.title || 'Não detectado'}</p>
-                  </div>
-                  <div>
-                    <strong className="text-slate-300">Autores:</strong>
-                    <p className="text-slate-400 mt-1">
-                      {extractedData.researchers?.join(', ') || 'Não detectados'}
-                    </p>
-                  </div>
-                </div>
-                {extractedData.keywords && extractedData.keywords.length > 0 && (
-                  <div>
-                    <strong className="text-slate-300">Palavras-chave:</strong>
-                    <div className="flex flex-wrap gap-1 mt-1">
-                      {extractedData.keywords.map((keyword, index) => (
-                        <Badge key={index} variant="secondary" className="bg-green-600/30 text-green-300">
-                          {keyword}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                <div className="flex gap-2">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={handleReprocess}
-                    disabled={isProcessing}
-                    className="aurora-button-enhanced border-blue-500/70 text-blue-400"
-                  >
-                    {isProcessing ? (
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    ) : (
-                      <RotateCcw className="h-4 w-4 mr-2" />
-                    )}
-                    Reprocessar
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Formulário Principal */}
-          <Card className="aurora-card-enhanced">
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2 aurora-text-gradient-enhanced">
-                <FileText className="h-5 w-5" />
-                <span>Informações do Documento</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {/* Tipo de Documento */}
-              <div className="space-y-2">
-                <Label htmlFor="tipo" className="text-slate-200">Tipo de Documento *</Label>
-                <Select
-                  value={formData.tipoDocumento}
-                  onValueChange={(value) => setFormData(prev => ({ ...prev, tipoDocumento: value }))}
-                >
-                  <SelectTrigger className="aurora-input">
-                    <SelectValue placeholder="Selecione o tipo" />
-                  </SelectTrigger>
-                  <SelectContent className="aurora-glass-enhanced border-cyan-500/30">
-                    <SelectItem value="artigo_cientifico">Artigo Científico</SelectItem>
-                    <SelectItem value="ficha_tecnica">Ficha Técnica</SelectItem>
-                    <SelectItem value="protocolo">Protocolo</SelectItem>
-                    <SelectItem value="folder_publicitario">Folder Publicitário</SelectItem>
-                    <SelectItem value="outro">Outro</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Título */}
-              <div className="space-y-2">
-                <Label htmlFor="titulo" className="text-slate-200">Título *</Label>
-                <Input
-                  id="titulo"
-                  value={formData.titulo}
-                  onChange={(e) => setFormData(prev => ({ ...prev, titulo: e.target.value }))}
-                  placeholder="Digite o título do documento"
-                  className="aurora-input"
-                />
-              </div>
-
-              {/* Autores */}
-              <div className="space-y-2">
-                <Label className="text-slate-200">Autores</Label>
-                <div className="flex gap-2">
-                  <Input
-                    placeholder="Digite o nome do autor e pressione Enter"
-                    className="aurora-input"
-                    onKeyPress={(e) => {
-                      if (e.key === 'Enter') {
-                        addAuthor(e.currentTarget.value);
-                        e.currentTarget.value = '';
-                      }
-                    }}
-                  />
-                </div>
-                {formData.autores.length > 0 && (
-                  <div className="flex flex-wrap gap-2">
-                    {formData.autores.map((author, index) => (
-                      <Badge
-                        key={index}
-                        variant="secondary"
-                        className="bg-blue-600/30 text-blue-300 cursor-pointer hover:bg-red-600/30 hover:text-red-300"
-                        onClick={() => removeAuthor(index)}
-                      >
-                        {author} ×
-                      </Badge>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Palavras-chave */}
-              <div className="space-y-2">
-                <Label className="text-slate-200">Palavras-chave</Label>
-                <div className="flex gap-2">
-                  <Input
-                    placeholder="Digite uma palavra-chave e pressione Enter"
-                    className="aurora-input"
-                    onKeyPress={(e) => {
-                      if (e.key === 'Enter') {
-                        addKeyword(e.currentTarget.value);
-                        e.currentTarget.value = '';
-                      }
-                    }}
-                  />
-                </div>
-                {formData.palavrasChave.length > 0 && (
-                  <div className="flex flex-wrap gap-2">
-                    {formData.palavrasChave.map((keyword, index) => (
-                      <Badge
-                        key={index}
-                        variant="secondary"
-                        className="bg-purple-600/30 text-purple-300 cursor-pointer hover:bg-red-600/30 hover:text-red-300"
-                        onClick={() => removeKeyword(index)}
-                      >
-                        {keyword} ×
-                      </Badge>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Resumo/Conclusão */}
-              <div className="space-y-2">
-                <Label htmlFor="resumo" className="text-slate-200">Resumo/Conclusão</Label>
-                <Textarea
-                  id="resumo"
-                  value={formData.resumo}
-                  onChange={(e) => setFormData(prev => ({ ...prev, resumo: e.target.value }))}
-                  placeholder="Digite um resumo ou a conclusão principal do documento"
-                  rows={4}
-                  className="aurora-textarea"
-                />
-              </div>
-
-              {/* Botões de Ação */}
-              <div className="flex justify-between pt-4">
-                <Button
-                  variant="outline"
-                  onClick={() => setUploadStep('upload')}
-                  className="aurora-button-enhanced border-slate-500/70 text-slate-400"
-                >
-                  Voltar
-                </Button>
-
-                <div className="flex gap-3">
-                  <Button
-                    variant="outline"
-                    onClick={handleReset}
-                    className="aurora-button-enhanced border-slate-500/70 text-slate-400"
-                  >
-                    <RotateCcw className="h-4 w-4 mr-2" />
-                    Resetar
-                  </Button>
-
-                  <Button
-                    onClick={handleSave}
-                    disabled={isSaving || !formData.titulo.trim()}
-                    className="aurora-button-enhanced bg-gradient-to-r from-cyan-500 to-purple-500"
-                  >
-                    {isSaving ? (
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    ) : (
-                      <Save className="h-4 w-4 mr-2" />
-                    )}
-                    Salvar Documento
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+      {extractedData && (
+        <Alert className="aurora-glass-enhanced border-green-500/30">
+          <CheckCircle className="h-4 w-4 text-green-400" />
+          <AlertDescription className="text-green-300">
+            ✅ Dados extraídos automaticamente do PDF. Você pode revisar e editar as informações abaixo.
+          </AlertDescription>
+        </Alert>
       )}
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Left Column */}
+        <div className="space-y-4">
+          <div>
+            <Label htmlFor="documentType" className="text-slate-200">Tipo de Documento</Label>
+            <Select value={documentType} onValueChange={(value) => setDocumentType(value as DocumentTypeEnum)}>
+              <SelectTrigger className="aurora-input">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="aurora-glass-enhanced border-cyan-500/30">
+                <SelectItem value="artigo_cientifico">Artigo Científico</SelectItem>
+                <SelectItem value="manual_tecnico">Manual Técnico</SelectItem>
+                <SelectItem value="estudo_caso">Estudo de Caso</SelectItem>
+                <SelectItem value="protocolo_tratamento">Protocolo de Tratamento</SelectItem>
+                <SelectItem value="relatorio_pesquisa">Relatório de Pesquisa</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <Label htmlFor="title" className="text-slate-200">Título *</Label>
+            <Input
+              id="title"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              className="aurora-input"
+              placeholder="Digite o título do documento"
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="equipment" className="text-slate-200">Equipamento Relacionado</Label>
+            <Select value={equipmentId} onValueChange={setEquipmentId}>
+              <SelectTrigger className="aurora-input">
+                <SelectValue placeholder="Selecione um equipamento (opcional)" />
+              </SelectTrigger>
+              <SelectContent className="aurora-glass-enhanced border-cyan-500/30">
+                {equipments.map((equipment) => (
+                  <SelectItem key={equipment.id} value={equipment.id}>
+                    {equipment.nome}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <Label htmlFor="description" className="text-slate-200">Descrição</Label>
+            <Textarea
+              id="description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className="aurora-textarea"
+              placeholder="Adicione uma descrição ou resumo do documento"
+              rows={4}
+            />
+          </div>
+        </div>
+
+        {/* Right Column */}
+        <div className="space-y-4">
+          <div>
+            <Label className="text-slate-200">Autores</Label>
+            <div className="flex gap-2 mb-2">
+              <Input
+                value={newAuthor}
+                onChange={(e) => setNewAuthor(e.target.value)}
+                placeholder="Nome do autor"
+                className="aurora-input flex-1"
+                onKeyPress={(e) => e.key === 'Enter' && addAuthor()}
+              />
+              <Button onClick={addAuthor} variant="outline" className="aurora-button-enhanced border-cyan-500/70 text-cyan-400">
+                Adicionar
+              </Button>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {authors.map((author, index) => (
+                <Badge key={index} variant="secondary" className="bg-blue-600/30 text-blue-300 border border-blue-500/30">
+                  {author}
+                  <button onClick={() => removeAuthor(author)} className="ml-1 hover:text-red-300">
+                    <X className="h-3 w-3" />
+                  </button>
+                </Badge>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <Label className="text-slate-200">Palavras-chave</Label>
+            <div className="flex gap-2 mb-2">
+              <Input
+                value={newKeyword}
+                onChange={(e) => setNewKeyword(e.target.value)}
+                placeholder="Palavra-chave"
+                className="aurora-input flex-1"
+                onKeyPress={(e) => e.key === 'Enter' && addKeyword()}
+              />
+              <Button onClick={addKeyword} variant="outline" className="aurora-button-enhanced border-cyan-500/70 text-cyan-400">
+                Adicionar
+              </Button>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {keywords.map((keyword, index) => (
+                <Badge key={index} variant="secondary" className="bg-purple-600/30 text-purple-300 border border-purple-500/30">
+                  {keyword}
+                  <button onClick={() => removeKeyword(keyword)} className="ml-1 hover:text-red-300">
+                    <X className="h-3 w-3" />
+                  </button>
+                </Badge>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <Label htmlFor="thumbnail" className="text-slate-200">Thumbnail (Opcional)</Label>
+            <Input
+              id="thumbnail"
+              type="file"
+              accept="image/*"
+              onChange={(e) => setThumbnailFile(e.target.files?.[0] || null)}
+              className="aurora-input"
+            />
+            <p className="text-xs text-slate-500 mt-1">Imagem de capa para o documento (JPG, PNG)</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Action Buttons */}
+      <div className="flex justify-between pt-4 border-t border-slate-700">
+        <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            onClick={() => setUploadStep('upload')}
+            className="aurora-button-enhanced border-slate-500/70 text-slate-400"
+          >
+            Voltar
+          </Button>
+          
+          <Button 
+            variant="outline" 
+            onClick={clearDraft}
+            className="aurora-button-enhanced border-red-500/70 text-red-400"
+          >
+            <Trash2 className="h-4 w-4 mr-2" />
+            Limpar Rascunho
+          </Button>
+        </div>
+
+        <Button 
+          onClick={handleSubmit}
+          className="aurora-button-enhanced bg-gradient-to-r from-blue-600 to-purple-600 text-white"
+        >
+          <FileText className="h-4 w-4 mr-2" />
+          Salvar Documento
+        </Button>
+      </div>
     </div>
   );
 };

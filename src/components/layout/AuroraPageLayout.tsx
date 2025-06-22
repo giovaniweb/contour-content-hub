@@ -15,12 +15,10 @@ const AuroraPageLayout: React.FC<AuroraPageLayoutProps> = ({
 }) => {
   return (
     <div className="min-h-screen relative overflow-hidden aurora-enhanced-bg">
-      {/* Global Aurora Particles - ONLY FLOATING PARTICLES */}
+      {/* Global Aurora Particles - Removed unsupported props */}
       <GlobalAuroraParticles
         count={30}
         active={true}
-        intensity={particleIntensity}
-        interactive={interactive}
       />
 
       {/* Content */}

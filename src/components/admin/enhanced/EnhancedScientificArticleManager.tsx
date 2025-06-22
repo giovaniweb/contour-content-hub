@@ -40,22 +40,13 @@ const EnhancedScientificArticleManager: React.FC = () => {
     setIsPDFViewerOpen(true);
   };
 
-  const handleQuestion = (document: UnifiedDocument) => {
-    setSelectedDocument(document);
-    setIsQuestionChatOpen(true);
+  const handleEdit = (document: UnifiedDocument) => {
+    console.log('Edit document:', document.id);
+    // TODO: Implement edit functionality
   };
 
-  const handleDownload = (document: UnifiedDocument) => {
-    const url = document.file_path;
-    if (url) {
-      const link = window.document.createElement('a');
-      link.href = url;
-      link.download = `${document.titulo_extraido || 'documento'}.pdf`;
-      link.target = '_blank';
-      window.document.body.appendChild(link);
-      link.click();
-      window.document.body.removeChild(link);
-    }
+  const handleRefresh = () => {
+    fetchScientificArticles();
   };
 
   const handleUploadSuccess = () => {
@@ -69,11 +60,6 @@ const EnhancedScientificArticleManager: React.FC = () => {
     setIsUploadDialogOpen(true);
   };
 
-  const handleCancelUpload = () => {
-    console.log('Canceling upload, closing dialog...');
-    setIsUploadDialogOpen(false);
-  };
-
   const filteredDocuments = articles.filter(doc => {
     const matchesSearch = !searchTerm || 
       doc.titulo_extraido?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -84,8 +70,6 @@ const EnhancedScientificArticleManager: React.FC = () => {
     
     return matchesSearch && matchesType && matchesEquipment;
   });
-
-  console.log('Upload dialog state:', isUploadDialogOpen);
 
   return (
     <div className="min-h-screen relative overflow-hidden">
@@ -120,19 +104,17 @@ const EnhancedScientificArticleManager: React.FC = () => {
           equipments={equipments}
         />
 
-        {/* Documents Grid */}
+        {/* Documents Grid - Fixed prop name */}
         <ScientificArticleGrid
-          documents={filteredDocuments}
-          loading={loading}
-          searchTerm={searchTerm}
+          articles={filteredDocuments}
+          isLoading={loading}
+          onEdit={handleEdit}
           onView={handleView}
-          onQuestion={handleQuestion}
-          onDownload={handleDownload}
-          onUpload={handleNewDocument}
+          onRefresh={handleRefresh}
         />
       </div>
 
-      {/* Upload Dialog - Fixed z-index and positioning */}
+      {/* Upload Dialog */}
       <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-hidden bg-slate-800/95 backdrop-blur-sm border border-cyan-500/30 z-50">
           <DialogHeader>
@@ -159,7 +141,7 @@ const EnhancedScientificArticleManager: React.FC = () => {
         documentId={selectedDocument?.id}
       />
 
-      {/* Question Chat Dialog - Fixed props */}
+      {/* Question Chat Dialog */}
       <Dialog open={isQuestionChatOpen} onOpenChange={setIsQuestionChatOpen}>
         <DialogContent className="max-w-4xl max-h-[90vh] bg-slate-800/95 border-cyan-500/30">
           <DialogHeader>
