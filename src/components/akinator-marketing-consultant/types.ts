@@ -2,9 +2,20 @@
 export interface MarketingStep {
   id: string;
   question: string;
+  text?: string; // Add this for backwards compatibility
+  type?: 'multiple_choice' | 'equipment_selection';
   options?: { value: string; label: string }[];
+  answers?: Answer[]; // Add this for backwards compatibility
+  phase?: string; // Add this for backwards compatibility
   isOpen?: boolean;
   condition?: (state: MarketingConsultantState) => boolean;
+}
+
+export interface Answer {
+  id: string;
+  text: string;
+  points: number;
+  next_question_id?: string;
 }
 
 export interface MarketingConsultantState {

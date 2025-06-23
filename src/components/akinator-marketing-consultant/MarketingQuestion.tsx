@@ -5,10 +5,20 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Sparkles, ChevronLeft, ChevronRight, Brain, Target, Lightbulb } from 'lucide-react';
-import { useEquipments, Equipment } from '@/hooks/useEquipments';
+import { useEquipments } from '@/hooks/useEquipments';
 import { getErrorMessage } from '@/utils/errorUtils';
+import { MarketingStep } from './types';
 
-interface MarketingStep {
+// Local Equipment interface to match what we need
+interface Equipment {
+  id: string;
+  nome: string;
+  categoria: 'medico' | 'estetico';
+  tecnologia: string;
+  akinator_enabled: boolean;
+}
+
+interface MarketingQuestionStep {
   id: string;
   text: string;
   type: 'multiple_choice' | 'equipment_selection';
@@ -58,6 +68,21 @@ const MarketingQuestion: React.FC<MarketingQuestionProps> = ({
     setSelectedAnswer(null);
   }, [stepData]);
 
+  // Transform MarketingStep to MarketingQuestionStep format
+  const transformedStep: MarketingQuestionStep = {
+    id: stepData.id,
+    text: stepData.question,
+    type: stepData.id === 'medicalEquipments' || stepData.id === 'aestheticEquipments' ? 'equipment_selection' : 'multiple_choice',
+    answers: stepData.options?.map(option => ({
+      id: option.value,
+      text: option.label,
+      points: 1
+    })) || [],
+    phase: stepData.id.includes('medical') ? 'Perfil Médico' : 
+           stepData.id.includes('aesthetic') ? 'Perfil Estético' :
+           'Briefing Geral'
+  };
+
   const getPhaseIcon = (phase: string) => {
     return phaseIcons[phase] || <Brain className="h-5 w-5 text-gray-400" />;
   };
@@ -73,7 +98,7 @@ const MarketingQuestion: React.FC<MarketingQuestionProps> = ({
   const renderAnswerOptions = () => {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {stepData.answers.map((answer) => (
+        {transformedStep.answers.map((answer) => (
           <Card
             key={answer.id}
             className={`cursor-pointer transition-all duration-300 hover:scale-105 border-2 ${
@@ -129,8 +154,17 @@ const MarketingQuestion: React.FC<MarketingQuestionProps> = ({
       );
     }
 
+    // Transform equipments to local Equipment interface
+    const localEquipments: Equipment[] = equipments.map(eq => ({
+      id: eq.id,
+      nome: eq.nome,
+      categoria: eq.categoria as 'medico' | 'estetico',
+      tecnologia: eq.tecnologia,
+      akinator_enabled: eq.akinator_enabled
+    }));
+
     // Filter only akinator-enabled equipments
-    const enabledEquipments = equipments.filter(eq => eq.akinator_enabled);
+    const enabledEquipments = localEquipments.filter(eq => eq.akinator_enabled);
     
     if (enabledEquipments.length === 0) {
       return (
@@ -236,7 +270,7 @@ const MarketingQuestion: React.FC<MarketingQuestionProps> = ({
 
   // Calculate progress - this would need to be passed from parent component
   const progress = ((currentStep + 1) / 20) * 100;
-  const currentPhase = stepData.phase;
+  const currentPhase = transformedStep.phase;
 
   return (
     <div className="w-full max-w-4xl mx-auto">
@@ -270,12 +304,12 @@ const MarketingQuestion: React.FC<MarketingQuestionProps> = ({
         <CardHeader className="pb-4">
           <CardTitle className="text-white flex items-start gap-3">
             <Brain className="h-6 w-6 text-aurora-electric-purple mt-1 flex-shrink-0" />
-            <span className="leading-relaxed">{stepData.text}</span>
+            <span className="leading-relaxed">{transformedStep.text}</span>
           </CardTitle>
         </CardHeader>
         
         <CardContent>
-          {stepData.type === 'equipment_selection' ? renderEquipmentOptions() : renderAnswerOptions()}
+          {transformedStep.type === 'equipment_selection' ? renderEquipmentOptions() : renderAnswerOptions()}
         </CardContent>
       </Card>
 

@@ -86,8 +86,13 @@ export const useContentStrategy = () => {
     try {
       const newItem = await createContentStrategyItem(item);
       if (newItem) {
+        // Ensure distribuicao field is present before transformation
+        const itemWithDistribuicao = {
+          ...newItem,
+          distribuicao: newItem.distribuicao || 'Instagram'
+        };
         // Transform the raw data using the transformation utility
-        const typedItem: ContentStrategyItem = transformToContentStrategyItem(newItem);
+        const typedItem: ContentStrategyItem = transformToContentStrategyItem(itemWithDistribuicao);
         setItems(prev => [typedItem, ...prev]);
       }
     } catch (error) {
