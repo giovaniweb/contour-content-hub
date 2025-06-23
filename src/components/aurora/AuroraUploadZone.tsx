@@ -49,7 +49,13 @@ const AuroraUploadZone: React.FC<AuroraUploadZoneProps> = ({
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = '.pdf';
-    input.onchange = handleFileInput;
+    input.addEventListener('change', (e) => {
+      const target = e.target as HTMLInputElement;
+      const files = target.files;
+      if (files && files.length > 0) {
+        onFileSelect(files[0]);
+      }
+    });
     input.click();
   };
 

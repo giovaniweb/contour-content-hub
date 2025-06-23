@@ -49,7 +49,7 @@ const EquipmentsPage: React.FC = () => {
             <div className="text-center py-12">
               <Wrench className="h-16 w-16 text-red-400 mx-auto mb-4 opacity-50" />
               <h3 className="aurora-heading text-xl text-white mb-2">Erro ao carregar</h3>
-              <p className="aurora-body text-red-400 mb-6">{error.message}</p>
+              <p className="aurora-body text-red-400 mb-6">{error}</p>
               <Button 
                 onClick={() => window.location.reload()}
                 className="aurora-button aurora-glow hover:aurora-glow-intense"

@@ -1,20 +1,9 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { Equipment } from '@/types/equipment';
 
-export interface Equipment {
-  id: string;
-  nome: string;
-  categoria: string;
-  tecnologia: string;
-  beneficios: string;
-  indicacoes: string;
-  diferenciais: string;
-  ativo: boolean;
-  image_url?: string;
-  thumbnail_url?: string;
-  data_cadastro: string;
-}
+export { Equipment } from '@/types/equipment';
 
 export const useEquipments = () => {
   const [equipments, setEquipments] = useState<Equipment[]>([]);
@@ -38,10 +27,35 @@ export const useEquipments = () => {
       }
 
       console.log('✅ Equipments loaded:', data?.length || 0);
-      setEquipments(data || []);
+      
+      // Transform data to match Equipment interface
+      const transformedData: Equipment[] = (data || []).map(item => ({
+        id: item.id,
+        nome: item.nome,
+        categoria: item.categoria || 'estetico',
+        tecnologia: item.tecnologia,
+        beneficios: item.beneficios,
+        indicacoes: item.indicacoes,
+        diferenciais: item.diferenciais,
+        ativo: item.ativo,
+        image_url: item.image_url,
+        thumbnail_url: item.thumbnail_url,
+        data_cadastro: item.data_cadastro,
+        efeito: item.efeito || '',
+        linguagem: item.linguagem || '',
+        area_aplicacao: item.area_aplicacao || [],
+        tipo_acao: item.tipo_acao,
+        possui_consumiveis: item.possui_consumiveis || false,
+        contraindicacoes: item.contraindicacoes || [],
+        perfil_ideal_paciente: item.perfil_ideal_paciente || [],
+        nivel_investimento: item.nivel_investimento,
+        akinator_enabled: item.akinator_enabled ?? true,
+      }));
+      
+      setEquipments(transformedData);
     } catch (err: any) {
       console.error('Error in fetchEquipments:', err);
-      setError(err.message || 'Erro ao carregar equipamentos');
+      setError(typeof err === 'string' ? err : err?.message || 'Erro ao carregar equipamentos');
       setEquipments([]);
     } finally {
       setLoading(false);

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -90,7 +89,7 @@ const EquipmentList: React.FC = () => {
           </div>
         </div>
         <div className="text-center py-12">
-          <p className="text-red-400 mb-4">{error.message}</p>
+          <p className="text-red-400 mb-4">{error}</p>
           <Button onClick={() => window.location.reload()}>Tentar novamente</Button>
         </div>
       </div>

@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { Equipment } from '@/hooks/useEquipments';
+import { Equipment } from '@/types/equipment';
 import { getEquipmentById } from '@/utils/api-equipment';
 
 export const useEquipmentData = () => {
