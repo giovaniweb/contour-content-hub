@@ -136,7 +136,7 @@ const EnhancedScientificArticleManager: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="aurora-dark-bg min-h-screen p-6">
+      <div className="p-6">
         <div className="flex items-center justify-center h-64">
           <div className="flex items-center gap-3">
             <RefreshCw className="h-6 w-6 animate-spin text-aurora-electric-purple" />
@@ -149,7 +149,7 @@ const EnhancedScientificArticleManager: React.FC = () => {
 
   if (error) {
     return (
-      <div className="aurora-dark-bg min-h-screen p-6">
+      <div className="p-6">
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
             <XCircle className="h-12 w-12 text-red-400 mx-auto mb-4" />
@@ -165,9 +165,7 @@ const EnhancedScientificArticleManager: React.FC = () => {
   }
 
   return (
-    <div className="aurora-dark-bg min-h-screen p-6">
-      <div className="aurora-particles fixed inset-0 pointer-events-none" />
-      
+    <div className="p-6">
       <div className="relative max-w-7xl mx-auto space-y-8">
         {/* Header */}
         <div className="text-center space-y-4">
@@ -306,10 +304,10 @@ const EnhancedScientificArticleManager: React.FC = () => {
                 )}
 
                 {/* Equipment */}
-                {(article as any).equipamentos && (
+                {article.equipamento_nome && (
                   <div className="flex items-center gap-2 text-sm text-aurora-neon-blue">
                     <Database className="h-3 w-3" />
-                    <span>{(article as any).equipamentos.nome}</span>
+                    <span>{article.equipamento_nome}</span>
                   </div>
                 )}
 
