@@ -15,20 +15,17 @@ const AuroraProgressBar: React.FC<AuroraProgressBarProps> = ({
   return (
     <div className={`space-y-2 ${className}`}>
       {label && (
-        <div className="flex justify-between items-center">
-          <span className="text-sm text-slate-300 aurora-body">{label}</span>
-          <span className="text-sm text-aurora-electric-purple font-medium">
-            {Math.round(progress)}%
-          </span>
+        <div className="flex items-center justify-between text-sm">
+          <span className="text-slate-300">{label}</span>
+          <span className="text-cyan-400">{Math.round(progress)}%</span>
         </div>
       )}
-      <div className="relative h-3 bg-aurora-deep-purple/50 rounded-full overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-aurora-deep-purple/20 to-aurora-electric-purple/20 rounded-full" />
-        <div
-          className="h-full bg-gradient-to-r from-aurora-electric-purple to-aurora-neon-blue rounded-full transition-all duration-300 ease-out aurora-glow"
-          style={{ width: `${Math.min(progress, 100)}%` }}
+      
+      <div className="w-full bg-slate-800 rounded-full h-2 overflow-hidden">
+        <div 
+          className="h-2 bg-gradient-to-r from-cyan-500 to-purple-500 rounded-full transition-all duration-300 ease-out"
+          style={{ width: `${Math.min(100, Math.max(0, progress))}%` }}
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-pulse" />
       </div>
     </div>
   );

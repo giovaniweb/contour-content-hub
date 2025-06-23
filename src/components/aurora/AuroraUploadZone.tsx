@@ -1,100 +1,94 @@
 
-import React, { useRef, useState } from 'react';
-import { Upload, FileText, X, GraduationCap } from 'lucide-react';
+import React from 'react';
+import { Upload, File, X, AlertCircle, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface AuroraUploadZoneProps {
   onFileSelect: (file: File) => void;
-  accept?: string;
-  maxSize?: number;
   file?: File | null;
   onClearFile?: () => void;
   isProcessing?: boolean;
   error?: string | null;
+  className?: string;
 }
 
 const AuroraUploadZone: React.FC<AuroraUploadZoneProps> = ({
   onFileSelect,
-  accept = ".pdf",
-  maxSize = 10 * 1024 * 1024, // 10MB
   file,
   onClearFile,
   isProcessing = false,
-  error
+  error,
+  className = ''
 }) => {
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [isDragOver, setIsDragOver] = useState(false);
-
-  const handleFileChange = (selectedFile: File) => {
-    if (selectedFile.size > maxSize) {
-      return;
-    }
-    onFileSelect(selectedFile);
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
-    setIsDragOver(false);
-    
-    const droppedFile = e.dataTransfer.files[0];
-    if (droppedFile) {
-      handleFileChange(droppedFile);
+    e.stopPropagation();
+
+    const files = e.dataTransfer.files;
+    if (files && files.length > 0) {
+      const selectedFile = files[0];
+      if (selectedFile.type === 'application/pdf' || selectedFile.name.endsWith('.pdf')) {
+        onFileSelect(selectedFile);
+      }
     }
   };
 
-  const handleDragOver = (e: React.DragEvent) => {
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
-    setIsDragOver(true);
+    e.stopPropagation();
   };
 
-  const handleDragLeave = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragOver(false);
+  const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      onFileSelect(files[0]);
+    }
+  };
+
+  const handleClick = () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.pdf';
+    input.onchange = handleFileInput;
+    input.click();
   };
 
   if (file) {
     return (
-      <div className="aurora-card p-6 border-2 border-aurora-electric-purple/50">
+      <div className={`aurora-glass-enhanced border-2 border-green-400/50 rounded-xl p-6 ${className}`}>
         <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <div className="relative">
-              <FileText className="h-12 w-12 text-aurora-electric-purple" />
-              {isProcessing && (
-                <div className="absolute inset-0 bg-aurora-electric-purple/20 rounded-lg animate-pulse" />
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 aurora-glass rounded-lg flex items-center justify-center">
+              {isProcessing ? (
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-aurora-electric-purple"></div>
+              ) : error ? (
+                <AlertCircle className="h-6 w-6 text-red-400" />
+              ) : (
+                <CheckCircle className="h-6 w-6 text-green-400" />
               )}
             </div>
-            <div className="space-y-1">
-              <p className="font-medium text-slate-100 aurora-heading">
-                {file.name}
-              </p>
+            <div>
+              <p className="font-medium text-slate-100">{file.name}</p>
               <p className="text-sm text-slate-400">
-                {(file.size / 1024 / 1024).toFixed(2)} MB • Artigo Científico
+                {(file.size / 1024 / 1024).toFixed(2)} MB
               </p>
-              {isProcessing && (
-                <p className="text-sm text-aurora-electric-purple animate-pulse">
-                  Extraindo dados científicos...
-                </p>
+              {error && (
+                <p className="text-sm text-red-400 mt-1">{error}</p>
               )}
             </div>
           </div>
           
-          {!isProcessing && onClearFile && (
+          {onClearFile && !isProcessing && (
             <Button
               variant="ghost"
               size="sm"
               onClick={onClearFile}
-              className="text-slate-400 hover:text-red-400"
+              className="text-slate-400 hover:text-slate-300"
             >
               <X className="h-4 w-4" />
             </Button>
           )}
         </div>
-        
-        {error && (
-          <div className="mt-4 p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
-            <p className="text-sm text-red-400">{error}</p>
-          </div>
-        )}
       </div>
     );
   }
@@ -102,61 +96,31 @@ const AuroraUploadZone: React.FC<AuroraUploadZoneProps> = ({
   return (
     <div
       className={`
-        relative aurora-card border-2 border-dashed transition-all duration-300 cursor-pointer
-        ${isDragOver 
-          ? 'border-aurora-neon-blue bg-aurora-neon-blue/10 aurora-glow-blue' 
-          : 'border-aurora-electric-purple/40 hover:border-aurora-electric-purple/70'
-        }
-        ${error ? 'border-red-500/50 bg-red-500/5' : ''}
+        aurora-glass-enhanced border-2 border-dashed border-cyan-500/30 rounded-xl p-8 text-center cursor-pointer
+        transition-all duration-300 hover:border-cyan-400/50 hover:bg-cyan-500/5
+        ${className}
       `}
-      onClick={() => fileInputRef.current?.click()}
       onDrop={handleDrop}
       onDragOver={handleDragOver}
-      onDragLeave={handleDragLeave}
+      onClick={handleClick}
     >
-      <div className="aurora-particles absolute inset-0 pointer-events-none">
-        <div className="aurora-particle" style={{ left: '20%', animationDuration: '8s' }} />
-        <div className="aurora-particle" style={{ left: '60%', animationDuration: '6s' }} />
-        <div className="aurora-particle" style={{ left: '80%', animationDuration: '10s' }} />
-      </div>
-      
-      <div className="relative p-12 text-center space-y-4">
-        <div className="mx-auto w-16 h-16 aurora-glass rounded-full flex items-center justify-center mb-6">
-          <div className="relative">
-            <Upload className="h-8 w-8 text-aurora-electric-purple aurora-floating" />
-            <GraduationCap className="h-4 w-4 text-aurora-neon-blue absolute -top-1 -right-1" />
-          </div>
+      <div className="flex flex-col items-center gap-4">
+        <div className="w-16 h-16 aurora-glass rounded-2xl flex items-center justify-center">
+          <Upload className="h-8 w-8 text-cyan-400" />
         </div>
         
-        <div className="space-y-2">
-          <h3 className="text-lg font-medium aurora-text-gradient">
-            Arraste o artigo científico aqui
+        <div>
+          <h3 className="text-lg font-medium text-slate-100 mb-2">
+            Upload do Artigo Científico
           </h3>
-          <p className="text-slate-400 aurora-body">
-            ou clique para selecionar o arquivo PDF do artigo
+          <p className="text-slate-400 mb-2">
+            Arraste um arquivo PDF aqui ou clique para selecionar
           </p>
-          <p className="text-xs text-slate-500">
-            Máximo {(maxSize / 1024 / 1024).toFixed(0)}MB • Apenas PDF de artigos científicos
+          <p className="text-sm text-slate-500">
+            Formatos aceitos: PDF (máximo 50MB)
           </p>
         </div>
-
-        {error && (
-          <div className="mt-4 p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
-            <p className="text-sm text-red-400">{error}</p>
-          </div>
-        )}
       </div>
-      
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept={accept}
-        className="hidden"
-        onChange={(e) => {
-          const file = e.target.files?.[0];
-          if (file) handleFileChange(file);
-        }}
-      />
     </div>
   );
 };

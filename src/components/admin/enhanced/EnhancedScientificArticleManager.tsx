@@ -1,164 +1,143 @@
 
 import React, { useState, useEffect } from 'react';
+import { Plus, Search, Filter, FileText, Eye, Edit, Trash2, Download, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Search, 
-  Plus, 
-  FileText, 
-  Calendar, 
-  User, 
-  Tag,
-  Trash2,
-  Edit,
-  Eye,
-  Filter,
-  RefreshCw,
-  BookOpen,
-  Users,
-  Database,
-  AlertCircle,
-  CheckCircle,
-  Clock,
-  XCircle
-} from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useScientificArticles } from '@/hooks/use-scientific-articles';
 import { useEquipments } from '@/hooks/useEquipments';
-import EnhancedScientificArticleDialog from './EnhancedScientificArticleDialog';
-import { ProcessingStatusEnum } from '@/types/document';
+import { toast } from 'sonner';
+import EnhancedScientificArticleForm from './EnhancedScientificArticleForm';
+import { UnifiedDocument } from '@/types/document';
 
 const EnhancedScientificArticleManager: React.FC = () => {
-  const [selectedArticle, setSelectedArticle] = useState<any>(null);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<ProcessingStatusEnum | 'all'>('all');
-  const [equipmentFilter, setEquipmentFilter] = useState('all');
+  const [equipmentFilter, setEquipmentFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [selectedArticle, setSelectedArticle] = useState<UnifiedDocument | null>(null);
+  const [isViewMode, setIsViewMode] = useState(false);
 
-  const { toast } = useToast();
-  const { articles, loading, error, fetchScientificArticles, deleteArticle, processArticle } = useScientificArticles();
-  const { equipments } = useEquipments();
+  const { 
+    articles, 
+    loading, 
+    error, 
+    fetchScientificArticles, 
+    deleteArticle, 
+    processArticle 
+  } = useScientificArticles();
+  
+  const { equipments, loading: equipmentsLoading } = useEquipments();
 
+  // Load articles on component mount
   useEffect(() => {
+    console.log('📚 EnhancedScientificArticleManager: Loading articles...');
     fetchScientificArticles();
   }, [fetchScientificArticles]);
 
-  const handleSearch = () => {
-    fetchScientificArticles({
-      search: searchTerm,
-      status_processamento: statusFilter === 'all' ? undefined : statusFilter,
-      equipmentId: equipmentFilter === 'all' ? undefined : equipmentFilter
-    });
+  // Filter articles based on search and filters
+  const filteredArticles = articles.filter(article => {
+    const matchesSearch = !searchTerm || 
+      article.titulo_extraido?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      article.texto_completo?.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesEquipment = !equipmentFilter || 
+      article.equipamento_id === equipmentFilter;
+    
+    const matchesStatus = !statusFilter || 
+      article.status_processamento === statusFilter;
+
+    return matchesSearch && matchesEquipment && matchesStatus;
+  });
+
+  const handleCreateNew = () => {
+    setSelectedArticle(null);
+    setIsViewMode(false);
+    setIsFormOpen(true);
   };
 
-  const handleDeleteArticle = async (id: string) => {
-    if (!confirm('Tem certeza que deseja excluir este artigo científico?')) {
+  const handleEdit = (article: UnifiedDocument) => {
+    setSelectedArticle(article);
+    setIsViewMode(false);
+    setIsFormOpen(true);
+  };
+
+  const handleView = (article: UnifiedDocument) => {
+    setSelectedArticle(article);
+    setIsViewMode(true);
+    setIsFormOpen(true);
+  };
+
+  const handleDelete = async (articleId: string) => {
+    if (!confirm('Tem certeza que deseja excluir este artigo?')) {
       return;
     }
 
     try {
-      await deleteArticle(id);
-      toast({
-        title: 'Sucesso',
-        description: 'Artigo científico excluído com sucesso',
-      });
-    } catch (error) {
+      await deleteArticle(articleId);
+      toast.success('Artigo excluído com sucesso!');
+    } catch (error: any) {
       console.error('Error deleting article:', error);
-      toast({
-        title: 'Erro',
-        description: 'Erro ao excluir artigo científico',
-        variant: 'destructive',
-      });
+      toast.error('Erro ao excluir artigo: ' + error.message);
     }
   };
 
-  const handleProcessArticle = async (id: string) => {
+  const handleProcess = async (articleId: string) => {
     try {
-      await processArticle(id);
-      toast({
-        title: 'Sucesso',
-        description: 'Processamento do artigo iniciado',
-      });
-    } catch (error) {
+      await processArticle(articleId);
+      toast.success('Processamento iniciado! O artigo será processado em breve.');
+    } catch (error: any) {
       console.error('Error processing article:', error);
-      toast({
-        title: 'Erro',
-        description: 'Erro ao processar artigo',
-        variant: 'destructive',
-      });
+      toast.error('Erro ao processar artigo: ' + error.message);
     }
   };
 
-  const handleCreateNew = () => {
+  const handleFormSuccess = () => {
+    setIsFormOpen(false);
     setSelectedArticle(null);
-    setIsDialogOpen(true);
+    fetchScientificArticles(); // Reload articles
+    toast.success(selectedArticle ? 'Artigo atualizado!' : 'Artigo criado!');
   };
 
-  const handleEditArticle = (article: any) => {
-    setSelectedArticle(article);
-    setIsDialogOpen(true);
-  };
-
-  const handleDialogSuccess = () => {
-    setIsDialogOpen(false);
+  const handleFormCancel = () => {
+    setIsFormOpen(false);
     setSelectedArticle(null);
-    fetchScientificArticles();
   };
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'concluido':
-        return <CheckCircle className="h-4 w-4 text-aurora-emerald" />;
-      case 'processando':
-        return <Clock className="h-4 w-4 text-aurora-neon-blue animate-pulse" />;
-      case 'falhou':
-        return <XCircle className="h-4 w-4 text-red-400" />;
-      default:
-        return <AlertCircle className="h-4 w-4 text-aurora-soft-pink" />;
-    }
-  };
+  const getStatusBadge = (status: string) => {
+    const statusConfig = {
+      'pendente': { color: 'bg-yellow-500', text: 'Pendente' },
+      'processando': { color: 'bg-blue-500', text: 'Processando' },
+      'concluido': { color: 'bg-green-500', text: 'Concluído' },
+      'falhou': { color: 'bg-red-500', text: 'Falhou' }
+    };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'concluido':
-        return 'bg-aurora-emerald/20 text-aurora-emerald border-aurora-emerald/30';
-      case 'processando':
-        return 'bg-aurora-neon-blue/20 text-aurora-neon-blue border-aurora-neon-blue/30';
-      case 'falhou':
-        return 'bg-red-500/20 text-red-400 border-red-500/30';
-      default:
-        return 'bg-aurora-soft-pink/20 text-aurora-soft-pink border-aurora-soft-pink/30';
-    }
-  };
+    const config = statusConfig[status as keyof typeof statusConfig] || 
+                  { color: 'bg-gray-500', text: status };
 
-  if (loading) {
     return (
-      <div className="p-6">
-        <div className="flex items-center justify-center h-64">
-          <div className="flex items-center gap-3">
-            <RefreshCw className="h-6 w-6 animate-spin text-aurora-electric-purple" />
-            <span className="text-slate-300">Carregando artigos científicos...</span>
-          </div>
-        </div>
-      </div>
+      <Badge className={`${config.color} text-white`}>
+        {config.text}
+      </Badge>
     );
-  }
+  };
 
   if (error) {
     return (
       <div className="p-6">
-        <div className="flex items-center justify-center h-64">
-          <div className="text-center">
-            <XCircle className="h-12 w-12 text-red-400 mx-auto mb-4" />
-            <p className="text-red-300 mb-4">{error}</p>
-            <Button onClick={() => fetchScientificArticles()}>
-              <RefreshCw className="h-4 w-4 mr-2" />
-              Tentar Novamente
-            </Button>
-          </div>
+        <div className="aurora-card p-8 text-center">
+          <FileText className="h-16 w-16 text-red-400 mx-auto mb-4" />
+          <h3 className="text-xl font-medium text-red-300 mb-2">
+            Erro ao carregar artigos
+          </h3>
+          <p className="text-red-400 mb-6">{error}</p>
+          <Button onClick={() => fetchScientificArticles()} className="aurora-button">
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Tentar Novamente
+          </Button>
         </div>
       </div>
     );
@@ -171,14 +150,14 @@ const EnhancedScientificArticleManager: React.FC = () => {
         <div className="text-center space-y-4">
           <div className="flex items-center justify-center gap-4 mb-6">
             <div className="w-16 h-16 aurora-glass rounded-2xl flex items-center justify-center">
-              <BookOpen className="h-8 w-8 text-aurora-electric-purple aurora-floating" />
+              <FileText className="h-8 w-8 text-aurora-electric-purple aurora-floating" />
             </div>
             <div>
               <h1 className="text-4xl font-light aurora-text-gradient">
-                Artigos Científicos
+                Gerenciar Artigos Científicos
               </h1>
               <p className="text-slate-400 aurora-body">
-                Gerenciar e processar artigos científicos com IA
+                Upload, processamento e gerenciamento de artigos científicos com IA
               </p>
             </div>
           </div>
@@ -186,41 +165,27 @@ const EnhancedScientificArticleManager: React.FC = () => {
 
         {/* Controls */}
         <div className="aurora-card p-6 space-y-4">
-          <div className="flex flex-col md:flex-row gap-4">
+          <div className="flex flex-col lg:flex-row gap-4">
             <div className="flex-1">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
                 <Input
-                  placeholder="Buscar por título, conteúdo ou autores..."
+                  placeholder="Buscar artigos..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"
-                  onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
                 />
               </div>
             </div>
             
             <div className="flex gap-2">
-              <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as ProcessingStatusEnum | 'all')}>
-                <SelectTrigger className="w-48">
-                  <SelectValue placeholder="Filtrar por status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos os status</SelectItem>
-                  <SelectItem value="pendente">Pendente</SelectItem>
-                  <SelectItem value="processando">Processando</SelectItem>
-                  <SelectItem value="concluido">Concluído</SelectItem>
-                  <SelectItem value="falhou">Falhou</SelectItem>
-                </SelectContent>
-              </Select>
-
               <Select value={equipmentFilter} onValueChange={setEquipmentFilter}>
                 <SelectTrigger className="w-48">
                   <SelectValue placeholder="Filtrar por equipamento" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Todos os equipamentos</SelectItem>
-                  {equipments?.map((equipment) => (
+                  <SelectItem value="">Todos os equipamentos</SelectItem>
+                  {equipments.map((equipment) => (
                     <SelectItem key={equipment.id} value={equipment.id}>
                       {equipment.nome}
                     </SelectItem>
@@ -228,10 +193,18 @@ const EnhancedScientificArticleManager: React.FC = () => {
                 </SelectContent>
               </Select>
 
-              <Button onClick={handleSearch} variant="outline">
-                <Filter className="h-4 w-4 mr-2" />
-                Filtrar
-              </Button>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-40">
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Todos</SelectItem>
+                  <SelectItem value="pendente">Pendente</SelectItem>
+                  <SelectItem value="processando">Processando</SelectItem>
+                  <SelectItem value="concluido">Concluído</SelectItem>
+                  <SelectItem value="falhou">Falhou</SelectItem>
+                </SelectContent>
+              </Select>
 
               <Button onClick={handleCreateNew} className="aurora-button">
                 <Plus className="h-4 w-4 mr-2" />
@@ -242,143 +215,198 @@ const EnhancedScientificArticleManager: React.FC = () => {
         </div>
 
         {/* Articles Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {articles.map((article) => (
-            <Card key={article.id} className="aurora-card hover:scale-105 transition-all duration-300">
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between gap-2">
-                  <CardTitle className="text-lg aurora-heading line-clamp-2">
-                    {article.titulo_extraido || 'Artigo Científico'}
-                  </CardTitle>
-                  <div className="flex items-center gap-1">
-                    {getStatusIcon(article.status_processamento)}
+        {loading ? (
+          <div className="aurora-card p-8 text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-aurora-electric-purple mx-auto mb-4"></div>
+            <p className="text-slate-400">Carregando artigos...</p>
+          </div>
+        ) : filteredArticles.length === 0 ? (
+          <div className="aurora-card p-8 text-center">
+            <FileText className="h-16 w-16 text-slate-400 mx-auto mb-4" />
+            <h3 className="text-xl font-medium text-slate-300 mb-2">
+              {searchTerm || equipmentFilter || statusFilter ? 'Nenhum artigo encontrado' : 'Nenhum artigo científico'}
+            </h3>
+            <p className="text-slate-400 mb-6">
+              {searchTerm || equipmentFilter || statusFilter 
+                ? 'Tente ajustar os filtros de busca'
+                : 'Comece fazendo upload do seu primeiro artigo científico'
+              }
+            </p>
+            {!searchTerm && !equipmentFilter && !statusFilter && (
+              <Button onClick={handleCreateNew} className="aurora-button">
+                <Plus className="h-4 w-4 mr-2" />
+                Primeiro Artigo
+              </Button>
+            )}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredArticles.map((article) => (
+              <Card key={article.id} className="aurora-card hover:scale-105 transition-all duration-300">
+                <CardHeader className="pb-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <CardTitle className="text-lg line-clamp-2 aurora-heading">
+                      {article.titulo_extraido || 'Artigo sem título'}
+                    </CardTitle>
+                    {getStatusBadge(article.status_processamento)}
                   </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Badge variant="secondary" className={getStatusColor(article.status_processamento)}>
-                    {article.status_processamento}
-                  </Badge>
-                  {article.tipo_documento && (
-                    <Badge variant="outline" className="text-aurora-electric-purple border-aurora-electric-purple/30">
-                      {article.tipo_documento}
-                    </Badge>
+                </CardHeader>
+                
+                <CardContent className="space-y-4">
+                  {article.texto_completo && (
+                    <p className="text-sm text-slate-400 line-clamp-3">
+                      {article.texto_completo}
+                    </p>
                   )}
-                </div>
-              </CardHeader>
 
-              <CardContent className="space-y-4">
-                {/* Keywords */}
-                {article.palavras_chave && article.palavras_chave.length > 0 && (
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2 text-sm text-aurora-emerald">
-                      <Tag className="h-3 w-3" />
-                      <span>Palavras-chave</span>
+                  {article.equipamento_nome && (
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline" className="text-xs">
+                        {article.equipamento_nome}
+                      </Badge>
                     </div>
+                  )}
+
+                  {article.palavras_chave && article.palavras_chave.length > 0 && (
                     <div className="flex flex-wrap gap-1">
                       {article.palavras_chave.slice(0, 3).map((keyword, index) => (
-                        <Badge key={index} variant="secondary" className="text-xs bg-aurora-emerald/20 text-aurora-emerald">
+                        <Badge key={index} variant="secondary" className="text-xs">
                           {keyword}
                         </Badge>
                       ))}
                       {article.palavras_chave.length > 3 && (
-                        <Badge variant="secondary" className="text-xs bg-aurora-emerald/20 text-aurora-emerald">
+                        <Badge variant="secondary" className="text-xs">
                           +{article.palavras_chave.length - 3}
                         </Badge>
                       )}
                     </div>
-                  </div>
-                )}
-
-                {/* Authors */}
-                {article.autores && article.autores.length > 0 && (
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2 text-sm text-aurora-soft-pink">
-                      <Users className="h-3 w-3" />
-                      <span>Autores</span>
-                    </div>
-                    <div className="text-sm text-slate-300">
-                      {article.autores.slice(0, 2).join(', ')}
-                      {article.autores.length > 2 && ` e mais ${article.autores.length - 2}`}
-                    </div>
-                  </div>
-                )}
-
-                {/* Equipment */}
-                {article.equipamento_nome && (
-                  <div className="flex items-center gap-2 text-sm text-aurora-neon-blue">
-                    <Database className="h-3 w-3" />
-                    <span>{article.equipamento_nome}</span>
-                  </div>
-                )}
-
-                {/* Date */}
-                <div className="flex items-center gap-2 text-sm text-slate-400">
-                  <Calendar className="h-3 w-3" />
-                  <span>{new Date(article.created_at).toLocaleDateString('pt-BR')}</span>
-                </div>
-
-                {/* Actions */}
-                <div className="flex gap-2 pt-2">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => handleEditArticle(article)}
-                    className="flex-1"
-                  >
-                    <Edit className="h-3 w-3 mr-1" />
-                    Editar
-                  </Button>
-                  
-                  {article.status_processamento === 'pendente' && (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleProcessArticle(article.id)}
-                      className="border-aurora-neon-blue text-aurora-neon-blue hover:bg-aurora-neon-blue/20"
-                    >
-                      <RefreshCw className="h-3 w-3 mr-1" />
-                      Processar
-                    </Button>
                   )}
-                  
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => handleDeleteArticle(article.id)}
-                    className="border-red-500 text-red-400 hover:bg-red-500/20"
-                  >
-                    <Trash2 className="h-3 w-3" />
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
 
-        {articles.length === 0 && (
-          <div className="text-center py-12">
-            <FileText className="h-16 w-16 text-slate-400 mx-auto mb-4" />
-            <h3 className="text-xl font-medium text-slate-300 mb-2">
-              Nenhum artigo científico encontrado
-            </h3>
-            <p className="text-slate-400 mb-6">
-              Comece criando seu primeiro artigo científico
-            </p>
-            <Button onClick={handleCreateNew} className="aurora-button">
-              <Plus className="h-4 w-4 mr-2" />
-              Criar Primeiro Artigo
-            </Button>
+                  {article.autores && article.autores.length > 0 && (
+                    <p className="text-xs text-slate-500">
+                      Autores: {article.autores.join(', ')}
+                    </p>
+                  )}
+
+                  <div className="flex justify-between items-center pt-2">
+                    <span className="text-xs text-slate-500">
+                      {new Date(article.created_at).toLocaleDateString('pt-BR')}
+                    </span>
+                    
+                    <div className="flex gap-1">
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => handleView(article)}
+                        className="h-8 w-8 p-0"
+                      >
+                        <Eye className="h-3 w-3" />
+                      </Button>
+                      
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => handleEdit(article)}
+                        className="h-8 w-8 p-0"
+                      >
+                        <Edit className="h-3 w-3" />
+                      </Button>
+
+                      {article.status_processamento !== 'processando' && (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => handleProcess(article.id)}
+                          className="h-8 w-8 p-0"
+                        >
+                          <RefreshCw className="h-3 w-3" />
+                        </Button>
+                      )}
+                      
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => handleDelete(article.id)}
+                        className="h-8 w-8 p-0 text-red-400 hover:text-red-300"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
           </div>
         )}
-      </div>
 
-      {/* Dialog */}
-      <EnhancedScientificArticleDialog
-        isOpen={isDialogOpen}
-        onClose={() => setIsDialogOpen(false)}
-        onSuccess={handleDialogSuccess}
-        articleData={selectedArticle}
-      />
+        {/* Form Dialog */}
+        <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+          <DialogContent className="aurora-glass-enhanced max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="aurora-text-gradient">
+                {isViewMode 
+                  ? 'Visualizar Artigo Científico'
+                  : selectedArticle 
+                    ? 'Editar Artigo Científico' 
+                    : 'Novo Artigo Científico'
+                }
+              </DialogTitle>
+            </DialogHeader>
+            
+            {isViewMode && selectedArticle ? (
+              <div className="space-y-6 p-6">
+                <div>
+                  <h3 className="text-xl font-semibold mb-2">{selectedArticle.titulo_extraido}</h3>
+                  {getStatusBadge(selectedArticle.status_processamento)}
+                </div>
+
+                {selectedArticle.texto_completo && (
+                  <div>
+                    <h4 className="font-medium mb-2">Conteúdo</h4>
+                    <p className="text-slate-300">{selectedArticle.texto_completo}</p>
+                  </div>
+                )}
+
+                {selectedArticle.palavras_chave && selectedArticle.palavras_chave.length > 0 && (
+                  <div>
+                    <h4 className="font-medium mb-2">Palavras-chave</h4>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedArticle.palavras_chave.map((keyword, index) => (
+                        <Badge key={index} variant="secondary">{keyword}</Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {selectedArticle.autores && selectedArticle.autores.length > 0 && (
+                  <div>
+                    <h4 className="font-medium mb-2">Autores</h4>
+                    <p className="text-slate-300">{selectedArticle.autores.join(', ')}</p>
+                  </div>
+                )}
+
+                <div className="flex justify-end gap-2">
+                  <Button variant="outline" onClick={handleFormCancel}>
+                    Fechar
+                  </Button>
+                  <Button onClick={() => setIsViewMode(false)} className="aurora-button">
+                    <Edit className="h-4 w-4 mr-2" />
+                    Editar
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <EnhancedScientificArticleForm
+                articleData={selectedArticle}
+                onSuccess={handleFormSuccess}
+                onCancel={handleFormCancel}
+                isOpen={isFormOpen}
+                forceClearState={!selectedArticle}
+              />
+            )}
+          </DialogContent>
+        </Dialog>
+      </div>
     </div>
   );
 };

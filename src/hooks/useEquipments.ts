@@ -1,23 +1,61 @@
 
-import { useQuery } from '@tanstack/react-query';
-import { getEquipments } from '@/api/equipment';
-import { Equipment } from '@/types/equipment';
+import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
-// Re-export Equipment type for convenience
-export type { Equipment };
+export interface Equipment {
+  id: string;
+  nome: string;
+  categoria: string;
+  tecnologia: string;
+  beneficios: string;
+  indicacoes: string;
+  diferenciais: string;
+  ativo: boolean;
+  image_url?: string;
+  thumbnail_url?: string;
+  data_cadastro: string;
+}
 
 export const useEquipments = () => {
-  const { data: equipments = [], isLoading: loading, error, refetch } = useQuery({
-    queryKey: ['equipments'],
-    queryFn: getEquipments,
-    staleTime: 5 * 60 * 1000, // 5 minutos
-    gcTime: 10 * 60 * 1000, // 10 minutos (renamed from cacheTime)
-  });
+  const [equipments, setEquipments] = useState<Equipment[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchEquipments = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const { data, error } = await supabase
+        .from('equipamentos')
+        .select('*')
+        .eq('ativo', true)
+        .order('nome');
+
+      if (error) {
+        console.error('Error fetching equipments:', error);
+        throw error;
+      }
+
+      console.log('✅ Equipments loaded:', data?.length || 0);
+      setEquipments(data || []);
+    } catch (err: any) {
+      console.error('Error in fetchEquipments:', err);
+      setError(err.message || 'Erro ao carregar equipamentos');
+      setEquipments([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchEquipments();
+  }, []);
 
   return {
     equipments,
     loading,
-    error: error as Error | null,
-    refetch
+    error,
+    refetch: fetchEquipments
   };
 };

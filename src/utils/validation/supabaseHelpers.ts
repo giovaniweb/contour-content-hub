@@ -1,39 +1,37 @@
 
-import { PostgrestResponse, PostgrestSingleResponse } from "@supabase/supabase-js";
+// Helper functions for safe Supabase query result handling
 
-/**
- * A safe type assertion helper for Supabase queries with joins
- * Avoids "Type instantiation is excessively deep and possibly infinite" errors
- * by explicitly breaking the type inference chain with unknown
- * 
- * @param response The raw response from a Supabase query
- * @returns The properly typed data array or null if there was an error
- */
-export function safeQueryResult<T>(response: PostgrestResponse<any>): T[] | null {
+export function safeQueryResult<T>(response: { data: T[] | null; error: any }): T[] | null {
   if (response.error) {
-    console.error("Error executing Supabase query:", response.error);
+    console.error('Supabase query error:', response.error);
     return null;
   }
-  
-  // Use explicit unknown casting to break deep type inference chain
-  const rawData = response.data as unknown;
-  return rawData as T[];
+  return response.data;
 }
 
-/**
- * A safe type assertion helper for single record Supabase queries with joins
- * Breaks the type inference chain with an explicit unknown cast
- * 
- * @param response The raw response from a Supabase query
- * @returns The properly typed single record or null if there was an error
- */
-export function safeSingleResult<T>(response: PostgrestSingleResponse<any>): T | null {
+export function safeSingleResult<T>(response: { data: T | null; error: any }): T | null {
   if (response.error) {
-    console.error("Error executing Supabase query:", response.error);
+    console.error('Supabase single query error:', response.error);
     return null;
   }
+  return response.data;
+}
+
+export function isValidUUID(str: string): boolean {
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  return uuidRegex.test(str);
+}
+
+export function handleSupabaseError(error: any, context: string = 'Unknown'): string {
+  console.error(`Supabase error in ${context}:`, error);
   
-  // Use explicit unknown casting to break deep type inference chain
-  const rawData = response.data as unknown;
-  return rawData as T;
+  if (error?.message) {
+    return error.message;
+  }
+  
+  if (typeof error === 'string') {
+    return error;
+  }
+  
+  return `Erro em ${context}`;
 }
