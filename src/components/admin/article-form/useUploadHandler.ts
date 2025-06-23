@@ -121,21 +121,6 @@ export const useUploadHandler = ({
       setProcessingProgress("Lendo arquivo e extraindo conteúdo...");
       console.log(`[${instanceId.current}] Reading file and extracting content...`);
       
-      // Upload file to storage first to ensure we have the URL
-      setProcessingProgress("Enviando arquivo para armazenamento...");
-      console.log(`[${instanceId.current}] Uploading file to storage...`);
-      
-      let publicUrl;
-      try {
-        publicUrl = await uploadFileToStorage(file);
-        console.log(`[${instanceId.current}] Upload completed successfully. URL:`, publicUrl);
-        setFileUrl(publicUrl);
-      } catch (storageError: any) {
-        console.error(`[${instanceId.current}] Error during storage upload:`, storageError);
-        // We'll continue even with upload error, but record it
-        setUploadError("Não foi possível fazer upload do arquivo, mas você pode continuar com as informações extraídas.");
-      }
-      
       // Read file as base64 for processing
       const fileReader = new FileReader();
       const fileContentPromise = new Promise<string>((resolve, reject) => {
@@ -161,8 +146,19 @@ export const useUploadHandler = ({
       // Extract document content
       const extractionResult = await processFileContent(fileContent.split(',')[1]);
       
-      if (extractionResult.error) {
-        throw new Error(extractionResult.error);
+      // Upload file to storage (parallel to processing)
+      setProcessingProgress("Salvando arquivo...");
+      console.log(`[${instanceId.current}] Uploading file to storage...`);
+      
+      let publicUrl;
+      try {
+        publicUrl = await uploadFileToStorage(file);
+        console.log(`[${instanceId.current}] Upload completed successfully. URL:`, publicUrl);
+        setFileUrl(publicUrl);
+      } catch (storageError: any) {
+        console.error(`[${instanceId.current}] Error during storage upload:`, storageError);
+        // Continue even with upload error, but record it
+        setUploadError("Não foi possível fazer upload do arquivo, mas as informações foram extraídas.");
       }
       
       // Pass extracted data back to parent component
@@ -174,8 +170,8 @@ export const useUploadHandler = ({
       };
       
       console.log(`[${instanceId.current}] Data extracted from document:`, {
-        title: newExtractedData.title?.substring(0, 20) + '...',
-        conclusion: newExtractedData.conclusion?.substring(0, 20) + '...',
+        title: newExtractedData.title?.substring(0, 50) + '...',
+        conclusion: newExtractedData.conclusion?.substring(0, 50) + '...',
         keywords: newExtractedData.keywords?.length,
         researchers: newExtractedData.researchers?.length
       });
@@ -187,10 +183,9 @@ export const useUploadHandler = ({
         (!newExtractedData.keywords || newExtractedData.keywords.length === 0) &&
         (!newExtractedData.researchers || newExtractedData.researchers.length === 0);
         
-      // If extraction is empty and we're in production, try to get title from filename
+      // If extraction is empty, try to get title from filename
       if (hasEmptyExtraction) {
         console.log(`[${instanceId.current}] Extracted data is empty, using filename as fallback`);
-        // Use filename as title
         if (file) {
           newExtractedData.title = file.name
             .replace('.pdf', '')
@@ -203,10 +198,10 @@ export const useUploadHandler = ({
       
       setProcessingProgress(null);
       
-      // Show relevant toast message
-      if (uploadError) {
+      // Show success message
+      if (extractionResult.error) {
         toast.warning("Documento processado parcialmente", {
-          description: "Informações extraídas com sucesso, mas o upload do arquivo falhou."
+          description: "Algumas informações podem estar incompletas devido a limitações no processamento."
         });
       } else {
         toast.success("Documento processado", {
@@ -222,7 +217,7 @@ export const useUploadHandler = ({
       setProcessingFailed(true);
       
       toast.error("Erro no processamento", {
-        description: "Não foi possível processar o arquivo. Por favor, tente novamente."
+        description: "Não foi possível processar o arquivo completamente. Você pode continuar preenchendo os dados manualmente."
       });
       
       // Even with error, try to use filename as title
