@@ -26,21 +26,22 @@ const EnhancedScientificArticleManager: React.FC = () => {
   const { equipments } = useEquipments();
   
   const {
-    documents,
+    articles,
     loading,
     error,
-    fetchDocuments,
-    deleteDocument,
-    refreshDocuments
-  } = useScientificArticles({
-    search: searchTerm,
-    equipmentId: selectedEquipment === 'all' ? undefined : selectedEquipment,
-    tipo_documento: selectedType === 'all' ? undefined : selectedType,
-  });
+    fetchScientificArticles,
+    deleteArticle,
+    processArticle
+  } = useScientificArticles();
 
   useEffect(() => {
-    fetchDocuments();
-  }, [searchTerm, selectedType, selectedEquipment, fetchDocuments]);
+    const params = {
+      search: searchTerm,
+      equipmentId: selectedEquipment === 'all' ? undefined : selectedEquipment,
+      tipo_documento: selectedType === 'all' ? undefined : selectedType,
+    };
+    fetchScientificArticles(params);
+  }, [searchTerm, selectedType, selectedEquipment, fetchScientificArticles]);
 
   const handleSearch = (value: string) => {
     setSearchTerm(value);
@@ -61,7 +62,7 @@ const EnhancedScientificArticleManager: React.FC = () => {
 
   const handleDeleteDocument = async (documentId: string) => {
     try {
-      await deleteDocument(documentId);
+      await deleteArticle(documentId);
       toast({
         title: "Sucesso",
         description: "Documento removido com sucesso.",
@@ -83,7 +84,13 @@ const EnhancedScientificArticleManager: React.FC = () => {
   const handleDialogClose = () => {
     setIsDialogOpen(false);
     setSelectedDocument(null);
-    refreshDocuments();
+    // Refresh the articles list
+    const params = {
+      search: searchTerm,
+      equipmentId: selectedEquipment === 'all' ? undefined : selectedEquipment,
+      tipo_documento: selectedType === 'all' ? undefined : selectedType,
+    };
+    fetchScientificArticles(params);
   };
 
   const clearFilters = () => {
@@ -116,10 +123,7 @@ const EnhancedScientificArticleManager: React.FC = () => {
 
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-      <ScientificArticleHeader 
-        documentsCount={documents?.length || 0}
-        onAddDocument={handleAddDocument}
-      />
+      <ScientificArticleHeader />
 
       {/* Search and Filters */}
       <Card className="aurora-glass-enhanced border-cyan-500/30">
@@ -245,19 +249,39 @@ const EnhancedScientificArticleManager: React.FC = () => {
         </CardContent>
       </Card>
 
+      {/* Add Document Button */}
+      <div className="flex justify-end">
+        <Button 
+          onClick={handleAddDocument}
+          className="flex items-center gap-2 bg-gradient-to-r from-cyan-500 to-purple-500 text-white hover:from-cyan-600 hover:to-purple-600 rounded-xl"
+        >
+          <Plus className="h-4 w-4" />
+          Novo Documento
+        </Button>
+      </div>
+
       {/* Documents Grid */}
       <ScientificArticleGrid
-        documents={documents || []}
-        loading={loading}
-        onEditDocument={handleEditDocument}
-        onDeleteDocument={handleDeleteDocument}
+        articles={articles || []}
+        isLoading={loading}
+        onEdit={handleEditDocument}
+        onView={(article) => console.log('View article:', article)}
+        onRefresh={() => {
+          const params = {
+            search: searchTerm,
+            equipmentId: selectedEquipment === 'all' ? undefined : selectedEquipment,
+            tipo_documento: selectedType === 'all' ? undefined : selectedType,
+          };
+          fetchScientificArticles(params);
+        }}
       />
 
       {/* Dialog */}
       <EnhancedScientificArticleDialog
         isOpen={isDialogOpen}
         onClose={handleDialogClose}
-        document={selectedDocument}
+        onSuccess={handleDialogClose}
+        articleData={selectedDocument}
       />
     </div>
   );
