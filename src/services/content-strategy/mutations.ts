@@ -21,6 +21,7 @@ interface ContentStrategyRowWithRelations {
   responsavel_id: string;
   status: string;
   updated_at: string;
+  distribuicao?: string;
   equipamento?: { nome: string } | null;
   responsavel?: { nome: string } | null;
 }
@@ -62,8 +63,40 @@ export const createContentStrategyItem = async (item: Partial<ContentStrategyIte
       return null;
     }
 
-    // Return the raw data response for processing elsewhere
-    return response.data as ContentStrategyRowWithRelations;
+    // Safely transform the response data
+    if (response.data) {
+      const rawData = response.data as any;
+      
+      // Ensure we have the expected structure
+      const transformedData: ContentStrategyRowWithRelations = {
+        id: rawData.id,
+        categoria: rawData.categoria,
+        conteudo: rawData.conteudo,
+        created_at: rawData.created_at,
+        created_by: rawData.created_by,
+        equipamento_id: rawData.equipamento_id,
+        formato: rawData.formato,
+        impedimento: rawData.impedimento || null,
+        linha: rawData.linha || null,
+        objetivo: rawData.objetivo,
+        previsao: rawData.previsao,
+        prioridade: rawData.prioridade || 'Média',
+        responsavel_id: rawData.responsavel_id,
+        status: rawData.status,
+        updated_at: rawData.updated_at,
+        distribuicao: rawData.distribuicao || 'Instagram',
+        equipamento: rawData.equipamento && typeof rawData.equipamento === 'object' && 'nome' in rawData.equipamento 
+          ? { nome: rawData.equipamento.nome } 
+          : null,
+        responsavel: rawData.responsavel && typeof rawData.responsavel === 'object' && 'nome' in rawData.responsavel 
+          ? { nome: rawData.responsavel.nome } 
+          : null,
+      };
+
+      return transformedData;
+    }
+
+    return null;
   } catch (error) {
     console.error("Error creating content strategy item:", error);
     return null;

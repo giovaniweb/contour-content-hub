@@ -11,6 +11,7 @@ import {
   scheduleContentInCalendar 
 } from "@/services/contentStrategyService";
 import { ContentStrategyFilter, ContentStrategyItem } from "@/types/content-strategy";
+import { transformToContentStrategyItem } from "@/utils/validation/contentStrategy";
 
 export const useContentStrategy = () => {
   const [items, setItems] = useState<ContentStrategyItem[]>([]);
@@ -85,8 +86,8 @@ export const useContentStrategy = () => {
     try {
       const newItem = await createContentStrategyItem(item);
       if (newItem) {
-        // Ensure newItem is properly typed as ContentStrategyItem
-        const typedItem: ContentStrategyItem = newItem as ContentStrategyItem;
+        // Transform the raw data using the transformation utility
+        const typedItem: ContentStrategyItem = transformToContentStrategyItem(newItem);
         setItems(prev => [typedItem, ...prev]);
       }
     } catch (error) {

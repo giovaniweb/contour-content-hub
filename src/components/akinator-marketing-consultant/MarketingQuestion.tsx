@@ -1,13 +1,14 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Sparkles, ChevronLeft, ChevronRight, Brain, Target, Lightbulb } from 'lucide-react';
-import { useEquipments } from '@/hooks/useEquipments';
+import { useEquipments, Equipment } from '@/hooks/useEquipments';
 import { getErrorMessage } from '@/utils/errorUtils';
 
-interface Question {
+interface MarketingStep {
   id: string;
   text: string;
   type: 'multiple_choice' | 'equipment_selection';
@@ -20,29 +21,6 @@ interface Answer {
   text: string;
   points: number;
   next_question_id?: string;
-}
-
-interface Equipment {
-  id: string;
-  nome: string;
-  categoria: 'medico' | 'estetico';
-  tecnologia: string;
-  beneficios: string;
-  indicacoes: string;
-  diferenciais: string;
-  ativo: boolean;
-  image_url: string;
-  thumbnail_url: string;
-  data_cadastro: string;
-  efeito: string;
-  linguagem: string;
-  area_aplicacao: string[];
-  tipo_acao: 'Não invasivo' | 'Minimante invasivo' | 'Invasivo' | undefined;
-  possui_consumiveis: boolean;
-  contraindicacoes: string[];
-  perfil_ideal_paciente: string[];
-  nivel_investimento: 'Alto' | 'Médio' | 'Baixo' | undefined;
-  akinator_enabled: boolean;
 }
 
 const phaseIcons: { [key: string]: React.ReactNode } = {
@@ -58,21 +36,19 @@ const phaseColors: { [key: string]: string } = {
 };
 
 interface MarketingQuestionProps {
-  question: Question;
-  onAnswer: (answer: Answer) => void;
-  onBack?: () => void;
-  progress: number;
-  currentPhase: string;
-  isAnalyzing?: boolean;
+  stepData: MarketingStep;
+  currentStep: number;
+  onOptionSelect: (value: string) => Promise<void>;
+  onGoBack: () => void;
+  canGoBack: boolean;
 }
 
 const MarketingQuestion: React.FC<MarketingQuestionProps> = ({
-  question,
-  onAnswer,
-  onBack,
-  progress,
-  currentPhase,
-  isAnalyzing = false
+  stepData,
+  currentStep,
+  onOptionSelect,
+  onGoBack,
+  canGoBack
 }) => {
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -80,7 +56,7 @@ const MarketingQuestion: React.FC<MarketingQuestionProps> = ({
 
   useEffect(() => {
     setSelectedAnswer(null);
-  }, [question]);
+  }, [stepData]);
 
   const getPhaseIcon = (phase: string) => {
     return phaseIcons[phase] || <Brain className="h-5 w-5 text-gray-400" />;
@@ -97,7 +73,7 @@ const MarketingQuestion: React.FC<MarketingQuestionProps> = ({
   const renderAnswerOptions = () => {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {question.answers.map((answer) => (
+        {stepData.answers.map((answer) => (
           <Card
             key={answer.id}
             className={`cursor-pointer transition-all duration-300 hover:scale-105 border-2 ${
@@ -124,10 +100,7 @@ const MarketingQuestion: React.FC<MarketingQuestionProps> = ({
 
     setIsSubmitting(true);
     try {
-      const answer = question.answers.find(a => a.id === selectedAnswer);
-      if (answer) {
-        await onAnswer(answer);
-      }
+      await onOptionSelect(selectedAnswer);
     } catch (error) {
       console.error('Error submitting answer:', getErrorMessage(error));
     } finally {
@@ -261,6 +234,10 @@ const MarketingQuestion: React.FC<MarketingQuestionProps> = ({
     );
   };
 
+  // Calculate progress - this would need to be passed from parent component
+  const progress = ((currentStep + 1) / 20) * 100;
+  const currentPhase = stepData.phase;
+
   return (
     <div className="w-full max-w-4xl mx-auto">
       {/* Header with Progress */}
@@ -270,7 +247,7 @@ const MarketingQuestion: React.FC<MarketingQuestionProps> = ({
             {getPhaseIcon(currentPhase)}
             <div>
               <h2 className="text-xl font-bold text-white">{currentPhase}</h2>
-              <p className="text-slate-400 text-sm">Pergunta {Math.round((progress / 100) * 20)} de 20</p>
+              <p className="text-slate-400 text-sm">Pergunta {currentStep + 1} de 20</p>
             </div>
           </div>
           
@@ -293,21 +270,21 @@ const MarketingQuestion: React.FC<MarketingQuestionProps> = ({
         <CardHeader className="pb-4">
           <CardTitle className="text-white flex items-start gap-3">
             <Brain className="h-6 w-6 text-aurora-electric-purple mt-1 flex-shrink-0" />
-            <span className="leading-relaxed">{question.text}</span>
+            <span className="leading-relaxed">{stepData.text}</span>
           </CardTitle>
         </CardHeader>
         
         <CardContent>
-          {question.type === 'equipment_selection' ? renderEquipmentOptions() : renderAnswerOptions()}
+          {stepData.type === 'equipment_selection' ? renderEquipmentOptions() : renderAnswerOptions()}
         </CardContent>
       </Card>
 
       {/* Navigation */}
       <div className="flex justify-between items-center">
-        {onBack && (
+        {canGoBack && (
           <Button
             variant="outline"
-            onClick={onBack}
+            onClick={onGoBack}
             disabled={isSubmitting}
             className="aurora-glass border-slate-600 hover:border-slate-500"
           >
@@ -320,13 +297,13 @@ const MarketingQuestion: React.FC<MarketingQuestionProps> = ({
         
         <Button
           onClick={handleSubmit}
-          disabled={!selectedAnswer || isSubmitting || isAnalyzing}
+          disabled={!selectedAnswer || isSubmitting}
           className="aurora-button aurora-glow hover:aurora-glow-intense"
         >
-          {isSubmitting || isAnalyzing ? (
+          {isSubmitting ? (
             <>
               <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full mr-2" />
-              {isAnalyzing ? 'Analisando...' : 'Processando...'}
+              Processando...
             </>
           ) : (
             <>

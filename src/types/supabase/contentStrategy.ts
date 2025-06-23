@@ -15,6 +15,7 @@ export type ContentStrategyUpdate = ContentStrategyTable["Update"] & {
 
 // Type for joined content strategy item with related data
 export interface ContentStrategyRowWithRelations extends ContentStrategyRow {
+  distribuicao: string; // Make this required for the interface
   equipamento?: { nome: string } | null;
   responsavel?: { nome: string } | null;
 }
