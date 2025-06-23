@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Equipment } from '@/types/equipment';
 
-export { Equipment } from '@/types/equipment';
+export type { Equipment } from '@/types/equipment';
 
 export const useEquipments = () => {
   const [equipments, setEquipments] = useState<Equipment[]>([]);
@@ -32,7 +32,7 @@ export const useEquipments = () => {
       const transformedData: Equipment[] = (data || []).map(item => ({
         id: item.id,
         nome: item.nome,
-        categoria: item.categoria || 'estetico',
+        categoria: (item.categoria === 'medico' ? 'medico' : 'estetico') as 'medico' | 'estetico',
         tecnologia: item.tecnologia,
         beneficios: item.beneficios,
         indicacoes: item.indicacoes,
@@ -44,11 +44,11 @@ export const useEquipments = () => {
         efeito: item.efeito || '',
         linguagem: item.linguagem || '',
         area_aplicacao: item.area_aplicacao || [],
-        tipo_acao: item.tipo_acao,
+        tipo_acao: item.tipo_acao as 'Não invasivo' | 'Minimante invasivo' | 'Invasivo' | undefined,
         possui_consumiveis: item.possui_consumiveis || false,
         contraindicacoes: item.contraindicacoes || [],
         perfil_ideal_paciente: item.perfil_ideal_paciente || [],
-        nivel_investimento: item.nivel_investimento,
+        nivel_investimento: item.nivel_investimento as 'Alto' | 'Médio' | 'Baixo' | undefined,
         akinator_enabled: item.akinator_enabled ?? true,
       }));
       

@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 import { mockEquipments } from './data/mockEquipments';
 import { medicalEquipmentsFallback } from './data/medicalEquipments';
 import { useEquipments } from '@/hooks/useEquipments';
+import { getErrorMessage } from '@/utils/errorUtils';
 
 interface MarketingQuestionProps {
   stepData: MarketingStep;
@@ -272,6 +273,13 @@ const MarketingQuestion: React.FC<MarketingQuestionProps> = ({
     (stepData.id === 'medicalEquipments' || stepData.id === 'aestheticEquipments') &&
     Array.isArray(equipments) &&
     equipments.length > 0;
+
+  // Fix error handling around line 535
+  const handleError = (error: unknown) => {
+    const errorMessage = getErrorMessage(error);
+    console.error('Marketing question error:', errorMessage);
+    // Handle the error appropriately
+  };
 
   return (
     <div className="max-w-4xl mx-auto p-6">

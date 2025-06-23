@@ -44,13 +44,15 @@ export class UnifiedDocumentService {
         throw response.error;
       }
 
-      const documents = safeQueryResult<UnifiedDocumentWithEquipment>(response) || [];
+      const documents = response.data || [];
       
-      // Transform the data to include equipamento_nome at the root level
+      // Transform the data to include equipamento_nome at the root level and properly cast types
       return documents.map(doc => ({
         ...doc,
+        tipo_documento: doc.tipo_documento as DocumentTypeEnum,
+        status_processamento: doc.status_processamento as ProcessingStatusEnum,
         equipamento_nome: doc.equipamentos?.nome || null
-      }));
+      })) as UnifiedDocumentWithEquipment[];
     } catch (error) {
       console.error('Error in fetchDocuments:', error);
       throw error;
@@ -73,15 +75,17 @@ export class UnifiedDocumentService {
         throw response.error;
       }
 
-      const result = safeSingleResult<UnifiedDocumentWithEquipment>(response);
+      const result = response.data;
       if (!result) {
         throw new Error('Document not found');
       }
 
       return {
         ...result,
+        tipo_documento: result.tipo_documento as DocumentTypeEnum,
+        status_processamento: result.status_processamento as ProcessingStatusEnum,
         equipamento_nome: result.equipamentos?.nome || null
-      };
+      } as UnifiedDocumentWithEquipment;
     } catch (error) {
       console.error('Error in getDocumentById:', error);
       throw error;
@@ -209,12 +213,16 @@ export class UnifiedDocumentService {
         throw response.error;
       }
 
-      const result = safeSingleResult<UnifiedDocument>(response);
+      const result = response.data;
       if (!result) {
         throw new Error('Failed to create document');
       }
 
-      return result;
+      return {
+        ...result,
+        tipo_documento: result.tipo_documento as DocumentTypeEnum,
+        status_processamento: result.status_processamento as ProcessingStatusEnum,
+      } as UnifiedDocument;
     } catch (error) {
       console.error('Error in createDocument:', error);
       throw error;
@@ -243,12 +251,16 @@ export class UnifiedDocumentService {
         throw response.error;
       }
 
-      const result = safeSingleResult<UnifiedDocument>(response);
+      const result = response.data;
       if (!result) {
         throw new Error('Failed to update document');
       }
 
-      return result;
+      return {
+        ...result,
+        tipo_documento: result.tipo_documento as DocumentTypeEnum,
+        status_processamento: result.status_processamento as ProcessingStatusEnum,
+      } as UnifiedDocument;
     } catch (error) {
       console.error('Error in updateDocument:', error);
       throw error;
