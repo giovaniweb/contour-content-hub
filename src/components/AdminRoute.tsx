@@ -4,6 +4,7 @@ import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
+import LoadingFallback from './LoadingFallback';
 
 interface AdminRouteProps {
   children?: React.ReactNode;
@@ -23,11 +24,7 @@ const AdminRoute: React.FC<AdminRouteProps> = ({ children }) => {
 
   // If auth is still loading, show loading indicator
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-aurora-electric-purple"></div>
-      </div>
-    );
+    return <LoadingFallback message="Verificando permissões de administrador..." />;
   }
 
   // If no user, redirect
