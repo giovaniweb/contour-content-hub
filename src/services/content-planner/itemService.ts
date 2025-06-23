@@ -2,7 +2,6 @@
 import { toast } from 'sonner';
 import { ContentPlannerItem, ContentPlannerStatus } from '@/types/content-planner';
 import { supabase } from '@/integrations/supabase/client';
-import { safeSingleResult } from '@/utils/validation/supabaseHelpers';
 
 // Raw database row type for content_planner_items
 interface ContentPlannerItemRow {
@@ -65,12 +64,18 @@ export const createContentPlannerItem = async (
     };
 
     const response = await supabase
-      .from('content_planner_items' as any)
+      .from('content_planner_items')
       .insert(itemData)
       .select()
       .single();
 
-    const data = safeSingleResult<ContentPlannerItemRow>(response);
+    if (response.error) {
+      console.error('Error creating item:', response.error);
+      toast.error("Erro ao criar item");
+      return null;
+    }
+
+    const data = response.data as ContentPlannerItemRow;
 
     if (!data) {
       console.error('Error creating item');
@@ -138,13 +143,19 @@ export const updateContentPlannerItem = async (
     if (item.responsibleName !== undefined) updateData.responsible_name = item.responsibleName;
 
     const response = await supabase
-      .from('content_planner_items' as any)
+      .from('content_planner_items')
       .update(updateData)
       .eq('id', id)
       .select()
       .single();
 
-    const data = safeSingleResult<ContentPlannerItemRow>(response);
+    if (response.error) {
+      console.error('Error updating item:', response.error);
+      toast.error("Erro ao atualizar item");
+      return null;
+    }
+
+    const data = response.data as ContentPlannerItemRow;
 
     if (!data) {
       console.error('Error updating item');
@@ -191,7 +202,7 @@ export const updateContentPlannerItem = async (
 export const deleteContentPlannerItem = async (id: string): Promise<boolean> => {
   try {
     const { error } = await supabase
-      .from('content_planner_items' as any)
+      .from('content_planner_items')
       .delete()
       .eq('id', id);
 

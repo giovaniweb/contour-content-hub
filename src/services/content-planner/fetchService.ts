@@ -1,7 +1,6 @@
 
 import { ContentPlannerItem, ContentPlannerFilter } from '@/types/content-planner';
 import { supabase } from '@/integrations/supabase/client';
-import { safeQueryResult } from '@/utils/validation/supabaseHelpers';
 
 // Raw database row type for content_planner_items
 interface ContentPlannerItemRow {
@@ -41,9 +40,9 @@ export const fetchContentPlannerItems = async (
       return [];
     }
 
-    // Build the query using explicit type casting to avoid deep type inference
+    // Build the query
     let query = supabase
-      .from('content_planner_items' as any)
+      .from('content_planner_items')
       .select('*')
       .eq('user_id', user.user.id)
       .order('created_at', { ascending: false });
@@ -82,7 +81,13 @@ export const fetchContentPlannerItems = async (
     }
 
     const response = await query;
-    const data = safeQueryResult<ContentPlannerItemRow>(response);
+
+    if (response.error) {
+      console.error('Error fetching content planner items:', response.error);
+      return [];
+    }
+
+    const data = response.data as ContentPlannerItemRow[];
 
     if (!data) {
       console.error('Error fetching content planner items');

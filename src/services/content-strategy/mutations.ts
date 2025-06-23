@@ -1,9 +1,29 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { ContentStrategyItem } from "@/types/content-strategy";
-import { ContentStrategyInsert, ContentStrategyRowWithRelations, ContentStrategyUpdate } from "@/types/supabase/contentStrategy";
+import { ContentStrategyInsert, ContentStrategyUpdate } from "@/types/supabase/contentStrategy";
 import { prepareContentStrategyData } from "@/utils/validation/contentStrategy";
-import { safeSingleResult } from "@/utils/validation/supabaseHelpers";
+
+// Raw database row type with relations
+interface ContentStrategyRowWithRelations {
+  id: string;
+  categoria: string;
+  conteudo: string;
+  created_at: string;
+  created_by: string;
+  equipamento_id: string;
+  formato: string;
+  impedimento: string;
+  linha: string;
+  objetivo: string;
+  previsao: string;
+  prioridade: string;
+  responsavel_id: string;
+  status: string;
+  updated_at: string;
+  equipamento?: { nome: string } | null;
+  responsavel?: { nome: string } | null;
+}
 
 /**
  * Create content strategy item
@@ -37,8 +57,13 @@ export const createContentStrategyItem = async (item: Partial<ContentStrategyIte
       `)
       .single();
     
+    if (response.error) {
+      console.error("Error creating content strategy item:", response.error);
+      return null;
+    }
+
     // Return the raw data response for processing elsewhere
-    return safeSingleResult<ContentStrategyRowWithRelations>(response);
+    return response.data as ContentStrategyRowWithRelations;
   } catch (error) {
     console.error("Error creating content strategy item:", error);
     return null;
