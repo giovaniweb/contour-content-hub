@@ -92,9 +92,7 @@ const EnhancedScientificArticleForm: React.FC<EnhancedScientificArticleFormProps
   };
 
   return (
-    <div className="aurora-dark-bg min-h-screen p-6">
-      <div className="aurora-particles fixed inset-0 pointer-events-none" />
-      
+    <div className="p-6">
       <div className="relative max-w-4xl mx-auto space-y-8">
         {/* Header */}
         <div className="text-center space-y-4">

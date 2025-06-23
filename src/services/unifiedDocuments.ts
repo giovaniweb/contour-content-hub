@@ -44,7 +44,13 @@ export class UnifiedDocumentService {
         throw response.error;
       }
 
-      return safeQueryResult<UnifiedDocumentWithEquipment>(response) || [];
+      const documents = safeQueryResult<UnifiedDocumentWithEquipment>(response) || [];
+      
+      // Transform the data to include equipamento_nome at the root level
+      return documents.map(doc => ({
+        ...doc,
+        equipamento_nome: doc.equipamentos?.nome || null
+      }));
     } catch (error) {
       console.error('Error in fetchDocuments:', error);
       throw error;
@@ -72,7 +78,10 @@ export class UnifiedDocumentService {
         throw new Error('Document not found');
       }
 
-      return result;
+      return {
+        ...result,
+        equipamento_nome: result.equipamentos?.nome || null
+      };
     } catch (error) {
       console.error('Error in getDocumentById:', error);
       throw error;
@@ -95,13 +104,17 @@ export class UnifiedDocumentService {
 
       // Delete file from storage if exists
       if (document?.file_path) {
-        const { error: storageError } = await supabase.storage
-          .from('documents')
-          .remove([document.file_path]);
+        try {
+          const { error: storageError } = await supabase.storage
+            .from('documents')
+            .remove([document.file_path]);
 
-        if (storageError) {
-          console.warn('Error deleting file from storage:', storageError);
-          // Continue with document deletion even if file deletion fails
+          if (storageError) {
+            console.warn('Error deleting file from storage:', storageError);
+            // Continue with document deletion even if file deletion fails
+          }
+        } catch (storageDeleteError) {
+          console.warn('Storage deletion failed, continuing with document deletion:', storageDeleteError);
         }
       }
 
@@ -125,6 +138,21 @@ export class UnifiedDocumentService {
 
   async processDocument(id: string): Promise<boolean> {
     try {
+      // Update status to processing first
+      const { error: updateError } = await supabase
+        .from('unified_documents')
+        .update({ 
+          status_processamento: 'processando' as ProcessingStatusEnum,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', id);
+
+      if (updateError) {
+        console.error('Error updating document status:', updateError);
+        throw updateError;
+      }
+
+      // Call the processing function
       const { error } = await supabase.functions.invoke('process-document', {
         body: { 
           documentId: id,
@@ -134,6 +162,15 @@ export class UnifiedDocumentService {
 
       if (error) {
         console.error('Error processing document:', error);
+        // Update status to failed
+        await supabase
+          .from('unified_documents')
+          .update({ 
+            status_processamento: 'falhou' as ProcessingStatusEnum,
+            detalhes_erro: error.message,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', id);
         throw error;
       }
 
@@ -194,7 +231,8 @@ export class UnifiedDocumentService {
           equipamento_id: updates.equipamento_id,
           palavras_chave: updates.palavras_chave,
           autores: updates.autores,
-          status_processamento: updates.status_processamento as ProcessingStatusEnum
+          status_processamento: updates.status_processamento as ProcessingStatusEnum,
+          updated_at: new Date().toISOString()
         })
         .eq('id', id)
         .select()

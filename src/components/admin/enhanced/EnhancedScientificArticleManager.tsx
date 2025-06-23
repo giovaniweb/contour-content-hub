@@ -35,8 +35,8 @@ const EnhancedScientificArticleManager: React.FC = () => {
   const [selectedArticle, setSelectedArticle] = useState<any>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<ProcessingStatusEnum | ''>('');
-  const [equipmentFilter, setEquipmentFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState<ProcessingStatusEnum | 'all'>('all');
+  const [equipmentFilter, setEquipmentFilter] = useState('all');
 
   const { toast } = useToast();
   const { articles, loading, error, fetchScientificArticles, deleteArticle, processArticle } = useScientificArticles();
@@ -49,8 +49,8 @@ const EnhancedScientificArticleManager: React.FC = () => {
   const handleSearch = () => {
     fetchScientificArticles({
       search: searchTerm,
-      status_processamento: statusFilter || undefined,
-      equipmentId: equipmentFilter || undefined
+      status_processamento: statusFilter === 'all' ? undefined : statusFilter,
+      equipmentId: equipmentFilter === 'all' ? undefined : equipmentFilter
     });
   };
 
@@ -201,12 +201,12 @@ const EnhancedScientificArticleManager: React.FC = () => {
             </div>
             
             <div className="flex gap-2">
-              <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as ProcessingStatusEnum | '')}>
+              <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as ProcessingStatusEnum | 'all')}>
                 <SelectTrigger className="w-48">
                   <SelectValue placeholder="Filtrar por status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todos os status</SelectItem>
+                  <SelectItem value="all">Todos os status</SelectItem>
                   <SelectItem value="pendente">Pendente</SelectItem>
                   <SelectItem value="processando">Processando</SelectItem>
                   <SelectItem value="concluido">Concluído</SelectItem>
@@ -219,7 +219,7 @@ const EnhancedScientificArticleManager: React.FC = () => {
                   <SelectValue placeholder="Filtrar por equipamento" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todos os equipamentos</SelectItem>
+                  <SelectItem value="all">Todos os equipamentos</SelectItem>
                   {equipments?.map((equipment) => (
                     <SelectItem key={equipment.id} value={equipment.id}>
                       {equipment.nome}
