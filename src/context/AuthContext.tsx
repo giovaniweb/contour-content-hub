@@ -2,7 +2,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
-import { UserProfile } from '@/types/auth';
+import { UserProfile, UserRole } from '@/types/auth';
 
 interface AuthContextType {
   user: UserProfile | null;
@@ -89,13 +89,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           email: profile.email,
           nome: profile.nome,
           name: profile.nome,
-          role: profile.role || 'user',
+          role: (profile.role || 'user') as UserRole,
           workspace_id: 'default',
           clinica: profile.clinica,
           cidade: profile.cidade,
           telefone: profile.telefone,
           equipamentos: profile.equipamentos || [],
-          idioma: profile.idioma || 'PT'
+          idioma: (profile.idioma || 'PT') as 'PT' | 'EN' | 'ES'
         };
         setUser(userProfile);
       }
@@ -150,7 +150,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             id: data.user.id,
             email: userData.email,
             nome: userData.nome,
-            role: 'user'
+            role: 'user' as UserRole
           });
 
         if (profileError) {
