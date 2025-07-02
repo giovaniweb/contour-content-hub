@@ -151,8 +151,9 @@ const EnhancedScientificArticleForm: React.FC<EnhancedScientificArticleFormProps
                     onClick={initiateReplaceFile} // This will set isReplacingFile = true, file = null
                     className="aurora-button-enhanced border-amber-500/70 text-amber-400 hover:bg-amber-500/10"
                   >
-                    <FileText className="h-4 w-4 mr-2" />
-                    Substituir PDF
+                    {/* <FileText className="h-4 w-4 mr-2" /> */}
+                    {/* Substituir PDF */}
+                    Test Button
                   </Button>
                 </div>
               )}
