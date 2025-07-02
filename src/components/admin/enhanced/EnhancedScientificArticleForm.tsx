@@ -138,7 +138,8 @@ const EnhancedScientificArticleForm: React.FC<EnhancedScientificArticleFormProps
                 error={status === 'AI_PROCESSING' && uploadError ? uploadError : null}
               />
 
-              {/* Display current file info OR 'Replace PDF' button OR 'Ready to replace' message */}
+              {/* DEBUG: Commenting out the 'Replace PDF' button block */}
+              {/*
               {articleData && originalFilePath && !isReplacingFile && !file && !formIsProcessingAi && !formIsLoading && (
                 // Scenario 1: Editing an article that has a file, replacement not yet initiated
                 <div className="mt-4 space-y-2 text-center">
@@ -151,12 +152,11 @@ const EnhancedScientificArticleForm: React.FC<EnhancedScientificArticleFormProps
                     onClick={initiateReplaceFile} // This will set isReplacingFile = true, file = null
                     className="aurora-button-enhanced border-amber-500/70 text-amber-400 hover:bg-amber-500/10"
                   >
-                    {/* <FileText className="h-4 w-4 mr-2" /> */}
-                    {/* Substituir PDF */}
                     Test Button
                   </Button>
                 </div>
               )}
+              */}
 
               {isReplacingFile && !file && !formIsProcessingAi && !formIsLoading && (
                  // Scenario 2: Replacement initiated, awaiting new file selection via AuroraUploadZone
