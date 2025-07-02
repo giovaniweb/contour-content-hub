@@ -266,6 +266,29 @@ export class UnifiedDocumentService {
       throw error;
     }
   }
+
+  static async deleteStorageFile(filePath: string): Promise<{ success: boolean; error?: any }> {
+    if (!filePath) {
+      console.warn("No file path provided for deletion.");
+      return { success: true }; // No action needed
+    }
+    try {
+      console.log(`Attempting to delete file from storage: ${filePath}`);
+      const { error } = await supabase.storage
+        .from('documents') // Assuming 'documents' is the correct bucket
+        .remove([filePath]);
+
+      if (error) {
+        console.error('Error deleting file from storage:', error);
+        return { success: false, error };
+      }
+      console.log(`File ${filePath} deleted successfully from storage.`);
+      return { success: true };
+    } catch (e) {
+      console.error('Exception during file deletion from storage:', e);
+      return { success: false, error: e };
+    }
+  }
 }
 
 export const unifiedDocumentService = new UnifiedDocumentService();

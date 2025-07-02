@@ -11,16 +11,22 @@ import { useEquipments } from '@/hooks/useEquipments';
 import EnhancedScientificArticleDialog from './EnhancedScientificArticleDialog';
 import ScientificArticleGrid from './components/ScientificArticleGrid';
 import ScientificArticleHeader from './components/ScientificArticleHeader';
-import ScientificArticleControls from './components/ScientificArticleControls';
-import ScientificArticleFilters from './components/ScientificArticleFilters';
-import { DocumentTypeEnum } from '@/types/document';
+// ScientificArticleControls and ScientificArticleFilters are not used, consider removing if part of old cleanup
+// import ScientificArticleControls from './components/ScientificArticleControls';
+// import ScientificArticleFilters from './components/ScientificArticleFilters';
+import ScientificArticleDetailView from './components/ScientificArticleDetailView'; // Import the new detail view
+import { Dialog, DialogContent } from "@/components/ui/dialog"; // For the detail view modal
+import { DocumentTypeEnum, UnifiedDocument } from '@/types/document';
+
 
 const EnhancedScientificArticleManager: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedType, setSelectedType] = useState<DocumentTypeEnum | 'all'>('all');
   const [selectedEquipment, setSelectedEquipment] = useState('all');
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [selectedDocument, setSelectedDocument] = useState<any>(null);
+  const [isFormDialogOpen, setIsFormDialogOpen] = useState(false); // Renamed for clarity
+  const [documentToEdit, setDocumentToEdit] = useState<UnifiedDocument | null>(null); // Typed and renamed
+  const [isDetailViewOpen, setIsDetailViewOpen] = useState(false);
+  const [documentToView, setDocumentToView] = useState<UnifiedDocument | null>(null);
   const [isFilterExpanded, setIsFilterExpanded] = useState(false);
 
   const { equipments } = useEquipments();
@@ -55,9 +61,14 @@ const EnhancedScientificArticleManager: React.FC = () => {
     setSelectedEquipment(value);
   };
 
-  const handleEditDocument = (document: any) => {
-    setSelectedDocument(document);
-    setIsDialogOpen(true);
+  const handleEditDocument = (document: UnifiedDocument) => {
+    setDocumentToEdit(document);
+    setIsFormDialogOpen(true);
+  };
+
+  const handleViewDocument = (document: UnifiedDocument) => {
+    setDocumentToView(document);
+    setIsDetailViewOpen(true);
   };
 
   const handleDeleteDocument = async (documentId: string) => {
@@ -77,13 +88,13 @@ const EnhancedScientificArticleManager: React.FC = () => {
   };
 
   const handleAddDocument = () => {
-    setSelectedDocument(null);
-    setIsDialogOpen(true);
+    setDocumentToEdit(null); // Clear any document being edited
+    setIsFormDialogOpen(true);
   };
 
-  const handleDialogClose = () => {
-    setIsDialogOpen(false);
-    setSelectedDocument(null);
+  const handleFormDialogClose = () => {
+    setIsFormDialogOpen(false);
+    setDocumentToEdit(null);
     // Refresh the articles list
     const params = {
       search: searchTerm,
@@ -265,7 +276,7 @@ const EnhancedScientificArticleManager: React.FC = () => {
         articles={articles || []}
         isLoading={loading}
         onEdit={handleEditDocument}
-        onView={(article) => console.log('View article:', article)}
+        onView={handleViewDocument} // Pass the new handler
         onRefresh={() => {
           const params = {
             search: searchTerm,
@@ -276,13 +287,24 @@ const EnhancedScientificArticleManager: React.FC = () => {
         }}
       />
 
-      {/* Dialog */}
+      {/* Form Dialog */}
       <EnhancedScientificArticleDialog
-        isOpen={isDialogOpen}
-        onClose={handleDialogClose}
-        onSuccess={handleDialogClose}
-        articleData={selectedDocument}
+        isOpen={isFormDialogOpen}
+        onClose={handleFormDialogClose}
+        onSuccess={handleFormDialogClose}
+        articleData={documentToEdit}
       />
+
+      {/* Detail View Dialog */}
+      <Dialog open={isDetailViewOpen} onOpenChange={setIsDetailViewOpen}>
+        <DialogContent className="max-w-3xl p-0 border-aurora-electric-purple/30 aurora-glass overflow-hidden">
+          {/* The ScientificArticleDetailView itself handles scrolling */}
+          <ScientificArticleDetailView
+            article={documentToView}
+            onClose={() => setIsDetailViewOpen(false)}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
