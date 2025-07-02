@@ -6,9 +6,10 @@ import { toast } from "sonner";
 import { supabase, SUPABASE_BASE_URL } from "@/integrations/supabase/client";
 import { z } from "zod";
 import { useEquipments } from "@/hooks/useEquipments";
-import { useExtractedData, ExtractedData as HookExtractedData } from "./useExtractedData";
-import { useUploadHandler } from "./useUploadHandler";
-import { unifiedDocumentService } from "@/services/unifiedDocuments";
+import { useExtractedData } from "./useExtractedData";
+import { useUploadHandler, ExtractedData as HookExtractedData } from "./useUploadHandler";
+import { unifiedDocumentService, UnifiedDocumentService } from "@/services/unifiedDocuments";
+import { UnifiedDocument } from "@/types/document";
 
 // Define form schema
 export const formSchema = z.object({
@@ -85,7 +86,7 @@ const initialState: ReducerState = {
 };
 
 function formReducer(state: ReducerState, action: ReducerAction): ReducerState {
-  console.log(`[FORM_REDUCER] Action: ${action.type}`, action.payload || '');
+  console.log(`[FORM_REDUCER] Action: ${action.type}`, 'payload' in action ? action.payload : '');
   switch (action.type) {
     case "INITIALIZE_FORM":
       return {
@@ -244,7 +245,7 @@ export function useScientificArticleForm({
     if (forceClearState) {
       console.log(`[${instanceId.current}] Force clear state triggered.`);
       dispatch({ type: "RESET_FORM_STATE" });
-      form.reset(initialState); // Reset react-hook-form
+      form.reset(); // Reset react-hook-form
       uploadHandler.resetUploadState(); // Reset upload handler state
       resetExtractedData(); // Reset extracted data hook
       if (fileInputRef.current) fileInputRef.current.value = "";
@@ -268,7 +269,7 @@ export function useScientificArticleForm({
     } else {
       console.log(`[${instanceId.current}] Initializing for new article.`);
       dispatch({ type: "RESET_FORM_STATE" }); // Ensure it's IDLE if no data
-      form.reset(initialState);
+      form.reset();
       uploadHandler.resetUploadState();
       resetExtractedData();
       if (fileInputRef.current) fileInputRef.current.value = "";
@@ -427,7 +428,7 @@ export function useScientificArticleForm({
       onSuccess(savedArticleData);
 
       dispatch({ type: "RESET_FORM_STATE" });
-      form.reset(initialState); // Reset react-hook-form values
+      form.reset(); // Reset react-hook-form values
       uploadHandler.resetUploadState();
       resetExtractedData();
       if (fileInputRef.current) fileInputRef.current.value = "";
@@ -443,7 +444,7 @@ export function useScientificArticleForm({
   const handleCancelForm = useCallback(() => {
     console.log(`[${instanceId.current}] Canceling and clearing form`);
     dispatch({ type: "RESET_FORM_STATE" });
-    form.reset(initialState); // Reset react-hook-form
+    form.reset(); // Reset react-hook-form
     uploadHandler.resetUploadState();
     resetExtractedData();
     if (fileInputRef.current) fileInputRef.current.value = "";

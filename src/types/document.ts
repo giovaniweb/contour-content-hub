@@ -66,29 +66,14 @@ export interface GetDocumentsParams {
   // TODO: Add semantic search capabilities in future
 }
 
-// Legacy compatibility - TechnicalDocument interface that maps to UnifiedDocument
+// DEPRECATED: Legacy interface - use UnifiedDocument instead
 export interface TechnicalDocument {
   id: string;
   titulo: string;
   descricao?: string;
-  tipo: DocumentTypeEnum; // This maps to tipo_documento
+  tipo: DocumentTypeEnum;
   equipamento_id?: string;
   equipamento_nome?: string;
-  link_dropbox?: string; // Replaced by file_path and Supabase storage
-  arquivo_url?: string;  // Replaced by file_path
-  preview_url?: string;
-  pdfUrl?: string;
-  idioma_original?: string; // Consider if this needs to be part of unified_documents or AI extracted
-  idiomas_traduzidos?: string[];
-  status?: ProcessingStatusEnum; // Maps to status_processamento
-  data_criacao?: string; // Maps to data_upload or created_at
-  criado_por?: string; // Maps to user_id
-  conteudo_extraido?: string; // Maps to texto_completo / raw_text
-  keywords?: string[]; // Maps to palavras_chave
-  researchers?: string[]; // Maps to autores
-  vetor_embeddings?: any; // Consider if needed in UnifiedDocument, maybe a separate table or field
-  duracao?: string; // Specific to video, might be in metadata or a different table for media types
-  video_url?: string;
 }
 
 // DocumentAction might still be relevant for other document interactions
@@ -102,13 +87,11 @@ export interface DocumentAction {
   };
 }
 
-// Legacy form interface for backward compatibility
+// DEPRECATED: Legacy form interface - use UnifiedDocument fields instead
 export interface DocumentUploadForm {
   titulo: string;
   descricao: string;
   tipo: DocumentType;
   equipamento_id?: string;
   file?: File;
-  idioma_original: string;
-  video_url?: string;
 }

@@ -119,20 +119,6 @@ const ScientificArticleDetailView: React.FC<ScientificArticleDetailViewProps> = 
             ) : (
               <p className="text-slate-400 text-sm">Nenhum arquivo PDF associado diretamente.</p>
             )}
-             {article.link_dropbox && !fullFileUrl && (
-                <div className="flex items-center gap-3 mt-2">
-                    <Button
-                        onClick={() => window.open(article.link_dropbox as string, '_blank')}
-                        variant="outline"
-                        className="aurora-button-enhanced border-aurora-cyan text-aurora-cyan hover:bg-aurora-cyan/10 w-full sm:w-auto"
-                    >
-                        <LinkIcon className="h-4 w-4 mr-2" /> Ver Link Externo
-                    </Button>
-                    <p className="text-xs text-slate-500 truncate">
-                        {article.link_dropbox}
-                    </p>
-                </div>
-             )}
           </div>
 
           {/* Other Details */}

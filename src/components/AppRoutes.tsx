@@ -13,7 +13,7 @@ const Register = React.lazy(() => import('@/pages/Register'));
 const ScientificArticles = React.lazy(() => import('@/pages/ScientificArticles'));
 const AdminScientificArticles = React.lazy(() => import('@/pages/admin/AdminScientificArticles'));
 const Equipments = React.lazy(() => import('@/pages/Equipments'));
-const EquipmentDetails = React.lazy(() => import('@/pages/EquipmentDetails'));
+
 const Videos = React.lazy(() => import('@/pages/Videos'));
 const MarketingConsultant = React.lazy(() => import('@/pages/MarketingConsultant'));
 const ContentPlanner = React.lazy(() => import('@/pages/ContentPlanner'));
@@ -85,16 +85,6 @@ const AppRoutes: React.FC = () => {
           } 
         />
 
-        <Route 
-          path="/equipments/:id" 
-          element={
-            <AppLayout>
-              <Suspense fallback={<AuroraLoadingSkeleton />}>
-                <EquipmentDetails />
-              </Suspense>
-            </AppLayout>
-          } 
-        />
 
         <Route 
           path="/videos" 

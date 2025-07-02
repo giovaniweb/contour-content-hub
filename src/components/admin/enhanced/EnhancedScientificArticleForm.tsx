@@ -51,9 +51,7 @@ const EnhancedScientificArticleForm: React.FC<EnhancedScientificArticleFormProps
     isLoading: formIsLoading,
     isProcessing: formIsProcessingAi,
     processingFailed: formProcessingFailed,
-    initiateReplaceFile, // Get the new callback
-    isReplacingFile, // Get the flag from the hook state
-    originalFilePath // Get original file path for display
+    initiateReplaceFile // Get the new callback
   } = useScientificArticleForm({
     articleData,
     onSuccess,
@@ -117,7 +115,7 @@ const EnhancedScientificArticleForm: React.FC<EnhancedScientificArticleFormProps
         </div>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+          <form onSubmit={onSubmit} className="space-y-8">
             {/* File Upload Section */}
             <div className="aurora-card p-8 space-y-6">
               <div className="flex items-center gap-3 mb-6">
@@ -138,54 +136,25 @@ const EnhancedScientificArticleForm: React.FC<EnhancedScientificArticleFormProps
                 error={status === 'AI_PROCESSING' && uploadError ? uploadError : null}
               />
 
-              {/* Display current file info OR 'Replace PDF' button OR 'Ready to replace' message */}
-              {articleData && originalFilePath && !isReplacingFile && !file && !formIsProcessingAi && !formIsLoading && (
-                // Scenario 1: Editing an article that has a file, replacement not yet initiated
+              {/* Display current file info when editing an existing article */}
+              {articleData && articleData.file_path && !file && !formIsProcessingAi && !formIsLoading && (
                 <div className="mt-4 space-y-2 text-center">
                   <p className="text-sm text-slate-400">
-                    Arquivo atual: <span className="font-medium text-slate-300">{originalFilePath.split('/').pop()}</span>
+                    Arquivo atual: <span className="font-medium text-slate-300">{articleData.file_path?.split('/').pop()}</span>
                   </p>
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={initiateReplaceFile} // This will set isReplacingFile = true, file = null
+                    onClick={initiateReplaceFile}
                     className="aurora-button-enhanced border-amber-500/70 text-amber-400 hover:bg-amber-500/10"
-                  >
-                    {/* <FileText className="h-4 w-4 mr-2" /> */}
-                    {/* Substituir PDF */}
-                    Test Button
-                  </Button>
-                </div>
-              )}
-
-              {isReplacingFile && !file && !formIsProcessingAi && !formIsLoading && (
-                 // Scenario 2: Replacement initiated, awaiting new file selection via AuroraUploadZone
-                <div className="mt-4 text-center p-3 bg-amber-900/30 border border-amber-500/50 rounded-lg">
-                  <p className="text-sm text-amber-400">
-                    Modo de substituição ativo. Selecione o novo arquivo PDF na área de upload acima.
-                  </p>
-                </div>
-              )}
-
-              {/* Progress Bar for AI processing (new file or initial upload) */}
-              {formIsProcessingAi && (
-                <div className="space-y-4 mt-4">
-                  <AuroraProgressBar
-                    variant="outline"
-                    onClick={() => {
-                      initiateReplaceFile();
-                      // Optionally, scroll to upload zone or trigger file input directly
-                      // fileInputRef.current?.click(); // This might be too abrupt
-                    }}
-                    className="aurora-button-enhanced border-amber-500/70 text-amber-400 hover:bg-amber-500/10"
-                    disabled={formIsProcessingAi || formIsLoading}
                   >
                     <FileText className="h-4 w-4 mr-2" />
                     Substituir PDF do Artigo
                   </Button>
-                   <p className="text-xs text-slate-400 mt-1">O PDF atual será substituído. A IA irá reanalisar o novo conteúdo.</p>
+                  <p className="text-xs text-slate-400 mt-1">O PDF atual será substituído. A IA irá reanalisar o novo conteúdo.</p>
                 </div>
               )}
+
 
               {/* Progress Bar for AI processing */}
               {formIsProcessingAi && (
@@ -193,7 +162,7 @@ const EnhancedScientificArticleForm: React.FC<EnhancedScientificArticleFormProps
                   <AuroraProgressBar 
                     progress={uploadProgress}
                     label={processingProgress || "Processando artigo científico..."}
-                  /> {/* Ensuring it's self-closed, this is the most likely fix */}
+                  />
                   {processingProgress && ( // Show detailed message if available
                     <div className="flex items-center gap-2 text-aurora-electric-purple">
                       <Loader2 className="h-4 w-4 animate-spin" />
@@ -386,10 +355,10 @@ const EnhancedScientificArticleForm: React.FC<EnhancedScientificArticleFormProps
               
               <Button
                 type="submit"
-                disabled={isLoading || isProcessing}
+                disabled={formIsLoading || formIsProcessingAi}
                 className="aurora-button"
               >
-                {isLoading ? (
+                {formIsLoading ? (
                   <>
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                     Salvando Artigo...
