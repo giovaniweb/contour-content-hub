@@ -28,19 +28,16 @@ const EnhancedScientificArticleForm: React.FC<EnhancedScientificArticleFormProps
   isOpen = true,
   forceClearState = false
 }) => {
-  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadProgress, setUploadProgress] = useState(0); // This local progress can be driven by processingProgress string
   const { equipments } = useEquipments();
 
   const {
     form,
-    isLoading,
     file,
     fileUrl,
     fileInputRef,
-    isProcessing,
     uploadError,
-    processingProgress,
-    processingFailed,
+    processingProgress, // Message from the hook, e.g. "Analyzing content..."
     extractedKeywords,
     extractedResearchers,
     suggestedTitle,
@@ -49,7 +46,14 @@ const EnhancedScientificArticleForm: React.FC<EnhancedScientificArticleFormProps
     onSubmit,
     handleFileUpload,
     handleClearFile,
-    handleCancel
+    handleCancel,
+    status,
+    isLoading: formIsLoading,
+    isProcessing: formIsProcessingAi,
+    processingFailed: formProcessingFailed,
+    initiateReplaceFile, // Get the new callback
+    isReplacingFile, // Get the flag from the hook state
+    originalFilePath // Get original file path for display
   } = useScientificArticleForm({
     articleData,
     onSuccess,
@@ -58,21 +62,19 @@ const EnhancedScientificArticleForm: React.FC<EnhancedScientificArticleFormProps
     forceClearState
   });
 
-  // Simulate upload progress for visual feedback
+  // Effect to manage a visual upload progress bar if desired, or use direct messages
   React.useEffect(() => {
-    if (isProcessing) {
-      const interval = setInterval(() => {
-        setUploadProgress(prev => {
-          if (prev >= 90) return prev;
-          return prev + Math.random() * 10;
-        });
-      }, 500);
-      
-      return () => clearInterval(interval);
-    } else {
+    if (formIsProcessingAi && processingProgress) {
+      // Example: try to parse progress if it's like "Step 1/3: Uploading"
+      // For now, just simulate based on messages changing
+      setUploadProgress(prev => Math.min(prev + 25, 90));
+    } else if (!formIsProcessingAi) {
       setUploadProgress(0);
     }
-  }, [isProcessing]);
+    if (status === 'READY_TO_SUBMIT' && !formProcessingFailed && file) { // Assuming file processing just finished successfully
+        setUploadProgress(100);
+    }
+  }, [formIsProcessingAi, processingProgress, status, formProcessingFailed, file]);
 
   const handleFileSelect = async (selectedFile: File) => {
     // Create a proper input element and trigger the change event
@@ -130,19 +132,68 @@ const EnhancedScientificArticleForm: React.FC<EnhancedScientificArticleFormProps
 
               <AuroraUploadZone
                 onFileSelect={handleFileSelect}
-                file={file}
+                file={file} // This will be null initially if isReplacingFile is true, enabling new selection
                 onClearFile={handleClearFile}
-                isProcessing={isProcessing}
-                error={uploadError}
+                isProcessing={formIsProcessingAi}
+                error={status === 'AI_PROCESSING' && uploadError ? uploadError : null}
               />
 
-              {isProcessing && (
-                <div className="space-y-4">
+              {/* Display current file info OR 'Replace PDF' button OR 'Ready to replace' message */}
+              {articleData && originalFilePath && !isReplacingFile && !file && !formIsProcessingAi && !formIsLoading && (
+                // Scenario 1: Editing an article that has a file, replacement not yet initiated
+                <div className="mt-4 space-y-2 text-center">
+                  <p className="text-sm text-slate-400">
+                    Arquivo atual: <span className="font-medium text-slate-300">{originalFilePath.split('/').pop()}</span>
+                  </p>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={initiateReplaceFile} // This will set isReplacingFile = true, file = null
+                    className="aurora-button-enhanced border-amber-500/70 text-amber-400 hover:bg-amber-500/10"
+                  >
+                    <FileText className="h-4 w-4 mr-2" />
+                    Substituir PDF
+                  </Button>
+                </div>
+              )}
+
+              {isReplacingFile && !file && !formIsProcessingAi && !formIsLoading && (
+                 // Scenario 2: Replacement initiated, awaiting new file selection via AuroraUploadZone
+                <div className="mt-4 text-center p-3 bg-amber-900/30 border border-amber-500/50 rounded-lg">
+                  <p className="text-sm text-amber-400">
+                    Modo de substituição ativo. Selecione o novo arquivo PDF na área de upload acima.
+                  </p>
+                </div>
+              )}
+
+              {/* Progress Bar for AI processing (new file or initial upload) */}
+              {formIsProcessingAi && (
+                <div className="space-y-4 mt-4">
+                  <AuroraProgressBar
+                    variant="outline"
+                    onClick={() => {
+                      initiateReplaceFile();
+                      // Optionally, scroll to upload zone or trigger file input directly
+                      // fileInputRef.current?.click(); // This might be too abrupt
+                    }}
+                    className="aurora-button-enhanced border-amber-500/70 text-amber-400 hover:bg-amber-500/10"
+                    disabled={formIsProcessingAi || formIsLoading}
+                  >
+                    <FileText className="h-4 w-4 mr-2" />
+                    Substituir PDF do Artigo
+                  </Button>
+                   <p className="text-xs text-slate-400 mt-1">O PDF atual será substituído. A IA irá reanalisar o novo conteúdo.</p>
+                </div>
+              )}
+
+              {/* Progress Bar for AI processing */}
+              {formIsProcessingAi && (
+                <div className="space-y-4 mt-4">
                   <AuroraProgressBar 
                     progress={uploadProgress}
-                    label="Processando artigo científico..."
+                    label={processingProgress || "Processando artigo científico..."}
                   />
-                  {processingProgress && (
+                  {processingProgress && ( // Show detailed message if available
                     <div className="flex items-center gap-2 text-aurora-electric-purple">
                       <Loader2 className="h-4 w-4 animate-spin" />
                       <span className="text-sm">{processingProgress}</span>
@@ -150,7 +201,32 @@ const EnhancedScientificArticleForm: React.FC<EnhancedScientificArticleFormProps
                   )}
                 </div>
               )}
+
+              {/* Display for AI Processing Failed */}
+              {formProcessingFailed && status !== 'AI_PROCESSING' && (
+                 <div className="mt-4 p-3 bg-red-900/30 border border-red-500/50 rounded-lg text-center">
+                    <p className="text-sm text-red-400">
+                        A extração de dados por IA falhou. Você pode preencher os campos manualmente.
+                        {uploadError && ` Detalhe: ${uploadError}`}
+                    </p>
+                 </div>
+              )}
+
+              {/* Display for general upload/file error NOT during active AI processing */}
+              {uploadError && !formIsProcessingAi && status !== 'SUBMITTING' && (
+                <div className="mt-4 p-3 bg-red-900/30 border border-red-500/50 rounded-lg text-center">
+                  <p className="text-sm text-red-400">{uploadError}</p>
+                </div>
+              )}
             </div>
+
+            {/* Display for critical submission error */}
+            {status === 'ERROR' && uploadError && (
+              <div className="aurora-card p-4 bg-red-900/50 border border-red-500/70 rounded-lg text-center">
+                <h3 className="text-lg font-semibold text-red-300">Erro na Operação</h3>
+                <p className="text-sm text-red-400">{uploadError}</p>
+              </div>
+            )}
 
             {/* Extracted Information Display */}
             {(extractedKeywords?.length > 0 || extractedResearchers?.length > 0 || suggestedTitle || suggestedDescription) && (
@@ -300,7 +376,7 @@ const EnhancedScientificArticleForm: React.FC<EnhancedScientificArticleFormProps
                 type="button"
                 variant="outline"
                 onClick={handleCancel}
-                disabled={isLoading || isProcessing}
+                disabled={formIsLoading || formIsProcessingAi} // Disable if submitting or AI is actively running
                 className="aurora-glass border-slate-600 text-slate-300 hover:bg-slate-700"
               >
                 <X className="h-4 w-4 mr-2" />

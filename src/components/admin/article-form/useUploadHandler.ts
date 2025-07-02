@@ -118,8 +118,8 @@ export const useUploadHandler = ({
       setUploadError(null);
       onReset(); // Reset any previous extraction data
       
-      setProcessingProgress("Lendo arquivo e extraindo conteúdo...");
-      console.log(`[${instanceId.current}] Reading file and extracting content...`);
+      setProcessingProgress("Preparando arquivo..."); // Step 1
+      console.log(`[${instanceId.current}] Preparing file...`);
       
       // Read file as base64 for processing
       const fileReader = new FileReader();
@@ -136,8 +136,8 @@ export const useUploadHandler = ({
       fileReader.readAsDataURL(file);
       const fileContent = await fileContentPromise;
       
-      setProcessingProgress("Analisando conteúdo do documento...");
-      console.log(`[${instanceId.current}] Analyzing document content...`);
+      setProcessingProgress("Analisando conteúdo com IA..."); // Step 2
+      console.log(`[${instanceId.current}] Analyzing document content with AI...`);
       
       // Extract document content with unique processing ID
       const processingId = `proc-${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
@@ -146,8 +146,7 @@ export const useUploadHandler = ({
       // Extract document content
       const extractionResult = await processFileContent(fileContent.split(',')[1]);
       
-      // Upload file to storage (parallel to processing)
-      setProcessingProgress("Salvando arquivo...");
+      setProcessingProgress("Enviando arquivo para o armazenamento..."); // Step 3
       console.log(`[${instanceId.current}] Uploading file to storage...`);
       
       let publicUrl;
@@ -194,9 +193,10 @@ export const useUploadHandler = ({
         }
       }
       
+      setProcessingProgress("Finalizando processamento..."); // Step 4
       onExtractedData(newExtractedData);
       
-      setProcessingProgress(null);
+      setProcessingProgress(null); // Clear progress after success
       
       // Show success message
       if (extractionResult.error) {
