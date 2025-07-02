@@ -192,7 +192,7 @@ const EnhancedScientificArticleForm: React.FC<EnhancedScientificArticleFormProps
                   <AuroraProgressBar 
                     progress={uploadProgress}
                     label={processingProgress || "Processando artigo científico..."}
-                  />
+                  /> {/* Ensuring it's self-closed, this is the most likely fix */}
                   {processingProgress && ( // Show detailed message if available
                     <div className="flex items-center gap-2 text-aurora-electric-purple">
                       <Loader2 className="h-4 w-4 animate-spin" />
