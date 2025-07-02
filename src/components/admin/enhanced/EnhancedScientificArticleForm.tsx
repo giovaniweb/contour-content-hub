@@ -151,8 +151,9 @@ const EnhancedScientificArticleForm: React.FC<EnhancedScientificArticleFormProps
                     onClick={initiateReplaceFile} // This will set isReplacingFile = true, file = null
                     className="aurora-button-enhanced border-amber-500/70 text-amber-400 hover:bg-amber-500/10"
                   >
-                    <FileText className="h-4 w-4 mr-2" />
-                    Substituir PDF
+                    {/* <FileText className="h-4 w-4 mr-2" /> */}
+                    {/* Substituir PDF */}
+                    Test Button
                   </Button>
                 </div>
               )}
@@ -192,7 +193,7 @@ const EnhancedScientificArticleForm: React.FC<EnhancedScientificArticleFormProps
                   <AuroraProgressBar 
                     progress={uploadProgress}
                     label={processingProgress || "Processando artigo científico..."}
-                  />
+                  /> {/* Ensuring it's self-closed, this is the most likely fix */}
                   {processingProgress && ( // Show detailed message if available
                     <div className="flex items-center gap-2 text-aurora-electric-purple">
                       <Loader2 className="h-4 w-4 animate-spin" />
