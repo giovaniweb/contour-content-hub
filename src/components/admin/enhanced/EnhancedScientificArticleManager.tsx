@@ -133,8 +133,9 @@ const EnhancedScientificArticleManager: React.FC = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-      <ScientificArticleHeader />
+    <div className="aurora-page-container min-h-screen aurora-enhanced-bg">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6 relative z-10">
+        <ScientificArticleHeader />
 
       {/* Search and Filters */}
       <Card className="aurora-glass-enhanced border-cyan-500/30">
@@ -305,6 +306,7 @@ const EnhancedScientificArticleManager: React.FC = () => {
           />
         </DialogContent>
       </Dialog>
+      </div>
     </div>
   );
 };

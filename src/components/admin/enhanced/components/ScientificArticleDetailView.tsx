@@ -1,10 +1,11 @@
 import React from 'react';
-import { UnifiedDocument } from '@/types/document'; // Assuming UnifiedDocument is the correct type
+import { UnifiedDocument } from '@/types/document';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Download, Link as LinkIcon, Paperclip, Users, Tag as TagIcon, Building } from 'lucide-react';
-import { SUPABASE_BASE_URL } from '@/integrations/supabase/client'; // For constructing file URLs
+import { SUPABASE_BASE_URL } from '@/integrations/supabase/client';
+import ArticleChatInterface from '@/components/scientific-articles/ArticleChatInterface';
 
 interface ScientificArticleDetailViewProps {
   article: UnifiedDocument | null;
@@ -158,6 +159,11 @@ const ScientificArticleDetailView: React.FC<ScientificArticleDetailViewProps> = 
                  </div>
                 )}
             </div>
+          </div>
+
+          {/* Chat Interface Section */}
+          <div className="pt-4 border-t border-aurora-electric-purple/20">
+            <ArticleChatInterface article={article} />
           </div>
 
         </CardContent>

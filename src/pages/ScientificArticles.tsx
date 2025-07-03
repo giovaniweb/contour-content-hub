@@ -1,9 +1,9 @@
 
 import React from 'react';
-import EnhancedScientificArticleManager from '@/components/admin/enhanced/EnhancedScientificArticleManager';
+import ScientificArticlesUserManager from '@/components/scientific-articles/ScientificArticlesUserManager';
 
 const ScientificArticles: React.FC = () => {
-  return <EnhancedScientificArticleManager />;
+  return <ScientificArticlesUserManager />;
 };
 
 export default ScientificArticles;
