@@ -7,17 +7,13 @@ import { Search, Eye, Book, MessageSquare } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { useScientificArticles } from '@/hooks/use-scientific-articles';
 import { useEquipments } from '@/hooks/useEquipments';
-import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { DocumentTypeEnum, UnifiedDocument } from '@/types/document';
-import ScientificArticleDetailView from '@/components/admin/enhanced/components/ScientificArticleDetailView';
 import { Badge } from '@/components/ui/badge';
 
 const ScientificArticlesUserManager: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedType, setSelectedType] = useState<DocumentTypeEnum | 'all'>('all');
   const [selectedEquipment, setSelectedEquipment] = useState('all');
-  const [isDetailViewOpen, setIsDetailViewOpen] = useState(false);
-  const [documentToView, setDocumentToView] = useState<UnifiedDocument | null>(null);
 
   const { equipments } = useEquipments();
   
@@ -38,8 +34,8 @@ const ScientificArticlesUserManager: React.FC = () => {
   }, [searchTerm, selectedType, selectedEquipment, fetchScientificArticles]);
 
   const handleViewDocument = (document: UnifiedDocument) => {
-    setDocumentToView(document);
-    setIsDetailViewOpen(true);
+    // Navigate to dedicated page instead of modal
+    window.location.href = `/scientific-articles/${document.id}`;
   };
 
   if (error) {
@@ -244,15 +240,6 @@ const ScientificArticlesUserManager: React.FC = () => {
           )}
         </div>
 
-        {/* Detail View Dialog */}
-        <Dialog open={isDetailViewOpen} onOpenChange={setIsDetailViewOpen}>
-          <DialogContent className="max-w-4xl p-0 border-aurora-electric-purple/30 aurora-glass-enhanced overflow-hidden">
-            <ScientificArticleDetailView
-              article={documentToView}
-              onClose={() => setIsDetailViewOpen(false)}
-            />
-          </DialogContent>
-        </Dialog>
       </div>
     </div>
   );

@@ -11,6 +11,7 @@ const Dashboard = React.lazy(() => import('@/pages/Dashboard'));
 const Login = React.lazy(() => import('@/pages/Login'));
 const Register = React.lazy(() => import('@/pages/Register'));
 const ScientificArticles = React.lazy(() => import('@/pages/ScientificArticles'));
+const ScientificArticleView = React.lazy(() => import('@/pages/ScientificArticleView'));
 const AdminScientificArticles = React.lazy(() => import('@/pages/admin/AdminScientificArticles'));
 const Equipments = React.lazy(() => import('@/pages/Equipments'));
 
@@ -69,6 +70,17 @@ const AppRoutes: React.FC = () => {
             <AppLayout>
               <Suspense fallback={<AuroraLoadingSkeleton />}>
                 <ScientificArticles />
+              </Suspense>
+            </AppLayout>
+          } 
+        />
+
+        <Route 
+          path="/scientific-articles/:id" 
+          element={
+            <AppLayout>
+              <Suspense fallback={<AuroraLoadingSkeleton />}>
+                <ScientificArticleView />
               </Suspense>
             </AppLayout>
           } 
