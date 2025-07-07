@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Search, Eye, Book, MessageSquare } from 'lucide-react';
+import { Search, Eye, Book, MessageSquare, Download } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { useScientificArticles } from '@/hooks/use-scientific-articles';
 import { useEquipments } from '@/hooks/useEquipments';
@@ -201,22 +201,36 @@ const ScientificArticlesUserManager: React.FC = () => {
                       </div>
                     )}
 
-                    <div className="flex gap-2">
-                      <Button
-                        onClick={() => handleViewDocument(article)}
-                        size="sm"
-                        className="flex-1 aurora-button-enhanced"
-                      >
-                        <Eye className="h-4 w-4 mr-2" />
-                        Visualizar
-                      </Button>
+                    <div className="grid grid-cols-3 gap-2">
                       <Button
                         onClick={() => handleViewDocument(article)}
                         size="sm"
                         variant="outline"
                         className="border-aurora-cyan text-aurora-cyan hover:bg-aurora-cyan/10"
                       >
-                        <MessageSquare className="h-4 w-4" />
+                        <Eye className="h-3 w-3" />
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          if (article.file_path) {
+                            const fullFileUrl = `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/documents/${article.file_path}`;
+                            window.open(fullFileUrl, '_blank');
+                          }
+                        }}
+                        size="sm"
+                        variant="outline"
+                        className="border-aurora-emerald text-aurora-emerald hover:bg-aurora-emerald/10"
+                        disabled={!article.file_path}
+                      >
+                        <Download className="h-3 w-3" />
+                      </Button>
+                      <Button
+                        onClick={() => handleViewDocument(article)}
+                        size="sm"
+                        variant="outline"
+                        className="border-aurora-electric-purple text-aurora-electric-purple hover:bg-aurora-electric-purple/10"
+                      >
+                        <MessageSquare className="h-3 w-3" />
                       </Button>
                     </div>
                   </div>
