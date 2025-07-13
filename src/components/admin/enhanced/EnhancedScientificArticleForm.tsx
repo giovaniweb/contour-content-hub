@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { User, Tag, Lightbulb, Loader2, Save, X, FileText, BookOpen } from "lucide-react";
+import { toast } from "sonner";
 import { useScientificArticleForm } from "../article-form/useScientificArticleForm";
 import { useEquipments } from "@/hooks/useEquipments";
 import AuroraUploadZone from "@/components/aurora/AuroraUploadZone";
@@ -319,12 +320,48 @@ const EnhancedScientificArticleForm: React.FC<EnhancedScientificArticleFormProps
                         size="sm"
                         onClick={async () => {
                           try {
-                            // Aqui podemos adicionar uma chamada para gerar resumo via IA
-                            // Por enquanto, vamos mostrar um placeholder
-                            const resumoGerado = "Resumo gerado automaticamente pela IA a partir do conteúdo do PDF...";
-                            form.setValue("descricao", resumoGerado);
-                          } catch (error) {
+                            const currentTitle = form.getValues("titulo");
+                            const currentContent = suggestedDescription || form.getValues("descricao");
+                            
+                            if (!currentTitle) {
+                              toast.error("Título necessário", {
+                                description: "Por favor, preencha o título do artigo antes de gerar o resumo."
+                              });
+                              return;
+                            }
+
+                            if (!currentContent || currentContent === "Resumo gerado automaticamente pela IA a partir do conteúdo do PDF...") {
+                              toast.error("Conteúdo necessário", {
+                                description: "Nenhum conteúdo disponível para gerar o resumo. Faça upload de um PDF primeiro."
+                              });
+                              return;
+                            }
+
+                            toast.loading("Gerando resumo com IA...", { id: "generate-summary" });
+
+                            const { supabase } = await import("@/integrations/supabase/client");
+                            const { data, error } = await supabase.functions.invoke('generate-summary', {
+                              body: {
+                                title: currentTitle,
+                                content: currentContent
+                              }
+                            });
+
+                            if (error || !data.success) {
+                              throw new Error(data?.error || error?.message || 'Erro ao gerar resumo');
+                            }
+
+                            form.setValue("descricao", data.summary);
+                            toast.success("Resumo gerado!", { 
+                              id: "generate-summary",
+                              description: "Resumo científico gerado com sucesso pela IA."
+                            });
+                          } catch (error: any) {
                             console.error("Erro ao gerar resumo:", error);
+                            toast.error("Erro ao gerar resumo", {
+                              id: "generate-summary",
+                              description: error.message || "Não foi possível gerar o resumo automaticamente."
+                            });
                           }
                         }}
                         className="aurora-button-enhanced border-aurora-neon-blue/30 text-aurora-neon-blue hover:bg-aurora-neon-blue/10"

@@ -92,11 +92,15 @@ export const useUploadHandler = ({
   }, [onReset, resetUploadState]);
   
   const handleFileUpload = useCallback(async () => {
+    console.log(`[${instanceId.current}] handleFileUpload called, file state:`, file?.name || 'no file');
+    
     if (!file) {
+      const errorMsg = "Nenhum arquivo selecionado. Por favor, selecione um arquivo PDF para upload.";
       toast.error("Nenhum arquivo selecionado", {
         description: "Por favor, selecione um arquivo PDF para upload."
       });
-      setUploadError("Nenhum arquivo selecionado. Por favor, selecione um arquivo PDF para upload.");
+      setUploadError(errorMsg);
+      onError(errorMsg);
       return false;
     }
 
