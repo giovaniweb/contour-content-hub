@@ -1,4 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
+import * as pdfParse from 'pdf-parse';
 
 // Tipos para os resultados
 export interface PDFProcessingResult {
@@ -104,7 +105,17 @@ export class PDFProcessingService {
     try {
       console.log('🤖 [PDF Processing] Iniciando processamento:', file.name);
 
-      // Por enquanto, extrair apenas o título do nome do arquivo
+      // Extrair texto real do PDF usando pdf-parse
+      const arrayBuffer = await file.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+      
+      console.log('📄 [PDF Processing] Extraindo texto do PDF...');
+      const pdfData = await pdfParse(buffer);
+      const extractedText = pdfData.text;
+      
+      console.log('✅ [PDF Processing] Texto extraído:', extractedText.length, 'caracteres');
+
+      // Extrair título do nome do arquivo como fallback
       let title = file.name
         .replace('.pdf', '')
         .replace(/_/g, ' ')
@@ -114,29 +125,64 @@ export class PDFProcessingService {
       // Capitalizar primeira letra
       title = title.charAt(0).toUpperCase() + title.slice(1);
 
-      console.log('✅ [PDF Processing] Título extraído do nome:', title);
+      // Tentar extrair título do conteúdo do PDF
+      const titleMatch = extractedText.match(/^(.{1,100})/);
+      if (titleMatch) {
+        const potentialTitle = titleMatch[1].trim();
+        if (potentialTitle.length > 10 && potentialTitle.length < 200) {
+          title = potentialTitle;
+        }
+      }
+
+      // Extrair seções importantes
+      const abstractMatch = extractedText.match(/(?:RESUMO|ABSTRACT)[\s\S]{1,1000}?(?=\n\n|\n[A-Z])/i);
+      const methodologyMatch = extractedText.match(/(?:METODOLOGIA|MÉTODO|MATERIALS? AND METHODS?)[\s\S]{1,2000}?(?=\n\n|\n[A-Z])/i);
+      const conclusionMatch = extractedText.match(/(?:CONCLUSÃO|CONCLUSÕES|CONCLUSION|CONSIDERAÇÕES FINAIS)[\s\S]{1,1000}?(?=\n\n|\nREFERÊNCIAS)/i);
+
+      // Extrair palavras-chave
+      const keywordsMatch = extractedText.match(/(?:PALAVRAS-CHAVE|KEYWORDS|KEY WORDS)[:\s]*(.*?)(?=\n|ABSTRACT|RESUMO)/i);
+      const keywords = keywordsMatch ? 
+        keywordsMatch[1].split(/[;,.]/).map(k => k.trim()).filter(k => k.length > 2) : [];
+
+      // Extrair autores (procurar no início do documento)
+      const authorsMatch = extractedText.match(/(?:AUTOR|AUTORES?|AUTHORS?)[\s:]*(.*?)(?=\n|\d)/i);
+      const authors = authorsMatch ? 
+        authorsMatch[1].split(/[,;]/).map(a => a.trim()).filter(a => a.length > 2) : [];
+
+      console.log('✅ [PDF Processing] Análise concluída:', {
+        title: title.substring(0, 50),
+        textLength: extractedText.length,
+        keywordsCount: keywords.length,
+        authorsCount: authors.length
+      });
 
       return {
         title: title || 'Documento PDF',
-        content: 'Documento carregado com sucesso. Conteúdo será analisado posteriormente.',
-        conclusion: '',
-        keywords: [],
-        authors: [],
-        rawText: '',
+        content: abstractMatch ? abstractMatch[0] : extractedText.substring(0, 1000) + '...',
+        conclusion: conclusionMatch ? conclusionMatch[0] : '',
+        keywords: keywords.slice(0, 10), // Máximo 10 palavras-chave
+        authors: authors.slice(0, 5), // Máximo 5 autores
+        rawText: extractedText, // IMPORTANTE: Salvar o texto completo!
         success: true
       };
 
     } catch (error: any) {
       console.error('❌ [PDF Processing] Erro:', error);
       
-      // Retornar resultado de fallback em caso de erro
+      // Fallback sem texto extraído
+      const title = file.name
+        .replace('.pdf', '')
+        .replace(/_/g, ' ')
+        .replace(/^\d+\s*/, '')
+        .trim();
+
       return {
-        title: `Documento Processado (${new Date().toLocaleTimeString()})`,
-        content: 'Documento processado com processamento básico devido a erro no sistema.',
-        conclusion: 'Conteúdo disponível para análise manual.',
-        keywords: ['documento', 'pdf', 'erro'],
+        title: title.charAt(0).toUpperCase() + title.slice(1) || 'Documento PDF',
+        content: 'Erro na extração de texto. Processamento manual necessário.',
+        conclusion: 'Conteúdo não pôde ser analisado automaticamente.',
+        keywords: ['erro', 'processamento'],
         authors: ['Autor Desconhecido'],
-        rawText: '',
+        rawText: '', // Vazio em caso de erro
         success: false,
         error: error.message
       };

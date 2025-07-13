@@ -44,24 +44,22 @@ const ArticleChatInterface: React.FC<ArticleChatInterfaceProps> = ({ article }) 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Carregar conteúdo do PDF
+  // Carregar conteúdo do artigo do banco de dados
   useEffect(() => {
-    const loadArticleContent = async () => {
-      if (article.file_path) {
-        try {
-          const response = await fetch(article.file_path);
-          const text = await response.text();
-          setArticleContent(text);
-        } catch (error) {
-          console.error('Erro ao carregar PDF:', error);
-          setArticleContent(article.raw_text || article.texto_completo || '');
-        }
-      } else {
-        setArticleContent(article.raw_text || article.texto_completo || '');
-      }
-    };
+    console.log('📄 [ArticleChat] Carregando conteúdo do artigo:', {
+      titulo: article.titulo_extraido,
+      rawTextLength: article.raw_text?.length || 0,
+      textoCompletoLength: article.texto_completo?.length || 0,
+      filePath: article.file_path
+    });
 
-    loadArticleContent();
+    // Usar raw_text prioritariamente, depois texto_completo como fallback
+    const content = article.raw_text || article.texto_completo || '';
+    setArticleContent(content);
+
+    if (!content) {
+      console.warn('⚠️ [ArticleChat] Nenhum conteúdo disponível para o artigo');
+    }
   }, [article]);
 
   // Inicializar chat com mensagem de boas-vindas
@@ -167,23 +165,11 @@ Estou aqui para ajudar você com o artigo **"${article.titulo_extraido || 'docum
       // Usar supabase client para chamar edge function
       const { data, error } = await supabase.functions.invoke('chat-assistant', {
         body: {
-          messages: [
-            {
-              role: 'system',
-              content: `Você é um assistente especialista em análise científica. Seja conciso, objetivo e útil. Use formatação markdown para destacar informações importantes.
-
-IMPORTANTE: Responda de forma estruturada e concisa (máximo 300 palavras por resposta). Se for um resumo, foque nos pontos principais. Se for uma pergunta específica, seja direto.
-
-Documento para análise:
-Título: ${article.titulo_extraido}
-Tipo: ${article.tipo_documento}
-Conteúdo: ${articleContent || 'Analisando documento...'}`
-            },
-            ...updatedMessages.map(msg => ({
-              role: msg.type === 'user' ? 'user' : 'assistant',
-              content: msg.content.replace(/\*\*/g, '').replace(/^👋.*$/gm, '').trim()
-            }))
-          ]
+          messages: updatedMessages.map(msg => ({
+            role: msg.type === 'user' ? 'user' : 'assistant',
+            content: msg.content.replace(/\*\*/g, '').replace(/^👋.*$/gm, '').trim()
+          })),
+          scriptContent: articleContent || article.raw_text || article.texto_completo || `Título: ${article.titulo_extraido}\nTipo: ${article.tipo_documento}\nConteúdo não disponível para análise detalhada.`
         }
       });
 
