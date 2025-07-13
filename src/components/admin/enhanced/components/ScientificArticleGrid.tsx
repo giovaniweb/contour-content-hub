@@ -231,21 +231,27 @@ const ScientificArticleGrid: React.FC<ScientificArticleGridProps> = ({
       </div>
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent className="aurora-glass-enhanced border-red-500/30">
-          <AlertDialogHeader>
-            <AlertDialogTitle className="text-slate-100">Confirmar Exclusão</AlertDialogTitle>
-            <AlertDialogDescription className="text-slate-300">
-              Tem certeza que deseja excluir o documento "{articleToDelete?.titulo_extraido}"? 
-              Esta ação não pode ser desfeita e removerá todos os dados relacionados.
+        <AlertDialogContent className="aurora-enhanced-theme bg-card/95 backdrop-blur-lg border border-primary/20 shadow-2xl max-w-md">
+          <AlertDialogHeader className="text-center space-y-4">
+            <div className="mx-auto w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center">
+              <AlertTriangle className="w-8 h-8 text-destructive" />
+            </div>
+            <AlertDialogTitle className="text-xl font-semibold text-foreground">
+              Confirmar Exclusão
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-muted-foreground text-center leading-relaxed">
+              Tem certeza que deseja excluir o documento <span className="font-semibold text-foreground">"{articleToDelete?.titulo_extraido}"</span>?
+              <br />
+              <span className="text-destructive font-medium">Esta ação não pode ser desfeita e removerá todos os dados relacionados.</span>
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel className="aurora-button-enhanced border-slate-500/70 text-slate-400">
+          <AlertDialogFooter className="flex flex-col sm:flex-row gap-3 mt-6">
+            <AlertDialogCancel className="flex-1 bg-secondary/50 hover:bg-secondary border-border text-foreground">
               Cancelar
             </AlertDialogCancel>
             <AlertDialogAction 
               onClick={handleDeleteConfirm}
-              className="aurora-button-enhanced bg-red-600 hover:bg-red-700 text-white"
+              className="flex-1 bg-destructive hover:bg-destructive/90 text-destructive-foreground font-medium shadow-lg hover:shadow-xl transition-all duration-200"
             >
               Excluir
             </AlertDialogAction>
