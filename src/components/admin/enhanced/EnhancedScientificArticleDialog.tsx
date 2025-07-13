@@ -36,7 +36,7 @@ const EnhancedScientificArticleDialog: React.FC<EnhancedScientificArticleDialogP
         }
       }}
     >
-      <DialogContent className="max-w-6xl max-h-[95vh] overflow-hidden p-0 aurora-glass border-aurora-electric-purple/30">
+      <DialogContent className="max-w-6xl max-h-[95vh] overflow-hidden p-0 aurora-enhanced-theme bg-card/95 backdrop-blur-lg border border-primary/20 shadow-2xl">
         <div className="overflow-y-auto max-h-[95vh] scrollbar-hide">
           {isOpen && (
             <EnhancedScientificArticleForm
