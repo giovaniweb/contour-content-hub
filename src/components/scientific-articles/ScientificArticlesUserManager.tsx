@@ -213,7 +213,7 @@ const ScientificArticlesUserManager: React.FC = () => {
                       <Button
                         onClick={() => {
                           if (article.file_path) {
-                            const fullFileUrl = `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/documents/${article.file_path}`;
+                            const fullFileUrl = `https://mksvzhgqnsjfolvskibq.supabase.co/storage/v1/object/public/documents/${article.file_path}`;
                             window.open(fullFileUrl, '_blank');
                           }
                         }}

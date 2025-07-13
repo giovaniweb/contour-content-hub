@@ -103,18 +103,25 @@ export class PDFProcessingService {
       const base64Content = await this.fileToBase64(file);
       console.log('📄 [PDF Processing] Arquivo convertido para Base64');
 
-      // Chamar Edge Function
-      const { data, error } = await supabase.functions.invoke('pdf-text-extraction', {
-        body: { 
+      // Chamar Edge Function usando URL completa
+      const response = await fetch('https://mksvzhgqnsjfolvskibq.supabase.co/functions/v1/pdf-text-extraction', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1rc3Z6aGdxbnNqZm9sdnNraWJxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYxMjg3NTgsImV4cCI6MjA2MTcwNDc1OH0.ERpPooxjvC4BthjXKus6s1xqE7FAE_cjZbEciS_VD4Q`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
           file_content: base64Content,
           extract_metadata: true
-        }
+        })
       });
 
-      if (error) {
-        console.error('❌ [PDF Processing] Erro na Edge Function:', error);
-        throw new Error(`Erro no processamento: ${error.message}`);
+      if (!response.ok) {
+        console.error('❌ [PDF Processing] HTTP Error:', response.status, response.statusText);
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
+
+      const data = await response.json();
 
       if (!data || !data.success) {
         throw new Error('Processamento falhou na Edge Function');
