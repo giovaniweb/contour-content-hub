@@ -236,17 +236,17 @@ const ScientificArticleGrid: React.FC<ScientificArticleGridProps> = ({
             <div className="mx-auto w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center">
               <AlertTriangle className="w-8 h-8 text-destructive" />
             </div>
-            <AlertDialogTitle className="text-xl font-semibold text-foreground">
+            <AlertDialogTitle className="text-xl font-semibold text-slate-100">
               Confirmar Exclusão
             </AlertDialogTitle>
-            <AlertDialogDescription className="text-muted-foreground text-center leading-relaxed">
-              Tem certeza que deseja excluir o documento <span className="font-semibold text-foreground">"{articleToDelete?.titulo_extraido}"</span>?
+            <AlertDialogDescription className="text-slate-300 text-center leading-relaxed">
+              Tem certeza que deseja excluir o documento <span className="font-semibold text-white">"{articleToDelete?.titulo_extraido}"</span>?
               <br />
-              <span className="text-destructive font-medium">Esta ação não pode ser desfeita e removerá todos os dados relacionados.</span>
+              <span className="text-red-400 font-medium">Esta ação não pode ser desfeita e removerá todos os dados relacionados.</span>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="flex flex-col sm:flex-row gap-3 mt-6">
-            <AlertDialogCancel className="flex-1 bg-secondary/50 hover:bg-secondary border-border text-foreground">
+            <AlertDialogCancel className="flex-1 bg-slate-700/50 hover:bg-slate-600 border-slate-600 text-slate-200 hover:text-white">
               Cancelar
             </AlertDialogCancel>
             <AlertDialogAction 
