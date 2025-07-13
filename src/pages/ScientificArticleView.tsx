@@ -268,6 +268,22 @@ const ScientificArticleView: React.FC = () => {
                             <Button
                               variant="outline"
                               size="sm"
+                              onClick={() => {
+                                const link = document.createElement('a');
+                                link.href = fullFileUrl;
+                                link.download = `${article.titulo_extraido || 'artigo'}.pdf`;
+                                document.body.appendChild(link);
+                                link.click();
+                                document.body.removeChild(link);
+                              }}
+                              className="border-aurora-emerald/30 text-aurora-emerald hover:bg-aurora-emerald/10"
+                            >
+                              <Download className="h-4 w-4 mr-2" />
+                              Baixar PDF
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
                               onClick={() => window.open(fullFileUrl, '_blank')}
                               className="border-aurora-cyan/30 text-aurora-cyan hover:bg-aurora-cyan/10"
                             >
