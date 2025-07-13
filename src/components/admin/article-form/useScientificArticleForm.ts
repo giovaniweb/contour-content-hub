@@ -346,8 +346,8 @@ export function useScientificArticleForm({
       let shouldResetStatusToPendente = false;
 
       // Handle file replacement logic
-      if (state.isReplacingFile && state.file && state.fileUrl && state.articleIdToEdit) {
-        console.log(`Replacing file. Old path: ${state.originalFilePath}, New URL: ${state.fileUrl}`);
+      if (state.isReplacingFile && state.file && uploadHandler.fileUrl && state.articleIdToEdit) {
+        console.log(`Replacing file. Old path: ${state.originalFilePath}, New URL: ${uploadHandler.fileUrl}`);
         if (state.originalFilePath) {
           const deleteResult = await unifiedDocumentService.deleteStorageFile(state.originalFilePath);
           if (!deleteResult.success) {
@@ -356,11 +356,13 @@ export function useScientificArticleForm({
             toast.warning("Atenção", { description: "Não foi possível remover o arquivo PDF antigo do armazenamento, mas o novo será salvo." });
           }
         }
-        newFilePath = state.fileUrl.replace(`${SUPABASE_BASE_URL}/storage/v1/object/public/documents/`, '');
+        // Extrair apenas o path sem a URL base
+        newFilePath = uploadHandler.fileUrl.replace(`${SUPABASE_BASE_URL}/storage/v1/object/public/documents/`, '');
         shouldResetStatusToPendente = true; // New file content means AI needs to re-process
-      } else if (state.file && state.fileUrl && !state.articleIdToEdit) {
+      } else if (state.file && uploadHandler.fileUrl && !state.articleIdToEdit) {
         // This is a new article with a new file
-        newFilePath = state.fileUrl.replace(`${SUPABASE_BASE_URL}/storage/v1/object/public/documents/`, '');
+        // Extrair apenas o path sem a URL base
+        newFilePath = uploadHandler.fileUrl.replace(`${SUPABASE_BASE_URL}/storage/v1/object/public/documents/`, '');
         shouldResetStatusToPendente = true; // New file always needs processing
       } else if (state.articleIdToEdit && !state.isReplacingFile) {
         // Editing existing article, no file change by user through "replace" flow
@@ -495,5 +497,6 @@ export function useScientificArticleForm({
     handleClearFile: handleClearLocalFile, // Use our wrapped version
     handleCancel: handleCancelForm, // Use our wrapped version
     initiateReplaceFile: () => dispatch({ type: "INITIATE_REPLACE_FILE" }), // New callback
+    handleExtractedData, // Expose this function
   };
 }

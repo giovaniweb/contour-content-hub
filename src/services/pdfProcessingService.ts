@@ -52,13 +52,15 @@ export class PDFProcessingService {
         throw new Error('Usuário não autenticado');
       }
 
-      // Gerar caminho único
+      // Gerar caminho único - formato simplificado
       const fileExt = file.name.split('.').pop();
-      const fileName = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+      const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
       const filePath = `${userData.user.id}/${fileName}`;
 
+      console.log('📁 [PDF Upload] Caminho do arquivo:', filePath);
+
       // Upload para o storage
-      const { error: uploadError } = await supabase.storage
+      const { data: uploadData, error: uploadError } = await supabase.storage
         .from('documents')
         .upload(filePath, file, {
           cacheControl: '3600',
@@ -76,8 +78,7 @@ export class PDFProcessingService {
         .getPublicUrl(filePath);
 
       console.log('✅ [PDF Upload] Upload concluído:', urlData.publicUrl);
-
-      console.log('✅ [PDF Upload] Upload concluído:', urlData.publicUrl);
+      console.log('✅ [PDF Upload] Caminho salvo:', filePath);
 
       return {
         filePath,

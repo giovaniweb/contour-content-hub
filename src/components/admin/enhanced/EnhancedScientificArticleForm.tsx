@@ -12,6 +12,7 @@ import { useScientificArticleForm } from "../article-form/useScientificArticleFo
 import { useEquipments } from "@/hooks/useEquipments";
 import AuroraUploadZone from "@/components/aurora/AuroraUploadZone";
 import AuroraProgressBar from "@/components/aurora/AuroraProgressBar";
+import AutoresInputSection from "./components/AutoresInputSection";
 
 interface EnhancedScientificArticleFormProps {
   articleData?: any;
@@ -51,7 +52,8 @@ const EnhancedScientificArticleForm: React.FC<EnhancedScientificArticleFormProps
     isLoading: formIsLoading,
     isProcessing: formIsProcessingAi,
     processingFailed: formProcessingFailed,
-    initiateReplaceFile // Get the new callback
+    initiateReplaceFile, // Get the new callback
+    handleExtractedData // Get the extracted data handler
   } = useScientificArticleForm({
     articleData,
     onSuccess,
@@ -308,13 +310,57 @@ const EnhancedScientificArticleForm: React.FC<EnhancedScientificArticleFormProps
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="descricao" className="aurora-heading">Abstract/Resumo Científico</Label>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="descricao" className="aurora-heading">Abstract/Resumo Científico</Label>
+                    {file && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={async () => {
+                          try {
+                            // Aqui podemos adicionar uma chamada para gerar resumo via IA
+                            // Por enquanto, vamos mostrar um placeholder
+                            const resumoGerado = "Resumo gerado automaticamente pela IA a partir do conteúdo do PDF...";
+                            form.setValue("descricao", resumoGerado);
+                          } catch (error) {
+                            console.error("Erro ao gerar resumo:", error);
+                          }
+                        }}
+                        className="aurora-button-enhanced border-aurora-neon-blue/30 text-aurora-neon-blue hover:bg-aurora-neon-blue/10"
+                      >
+                        <Lightbulb className="h-4 w-4 mr-2" />
+                        Gerar Resumo IA
+                      </Button>
+                    )}
+                  </div>
                   <Textarea
                     id="descricao"
                     rows={4}
                     {...form.register("descricao")}
                     className="aurora-glass border-aurora-electric-purple/30 focus:border-aurora-electric-purple resize-none"
-                    placeholder="Digite o abstract ou resumo científico do artigo"
+                    placeholder="Digite o abstract ou resumo científico do artigo ou use o botão para gerar automaticamente"
+                  />
+                </div>
+
+                {/* Seção de Autores */}
+                <div className="space-y-4">
+                  <Label className="aurora-heading flex items-center gap-2">
+                    <User className="h-4 w-4" />
+                    Autores do Artigo
+                  </Label>
+                  <AutoresInputSection 
+                    autores={extractedResearchers || []}
+                    onAutoresChange={(newAutores) => {
+                      // Atualizar os autores extraídos através do hook
+                      handleExtractedData({
+                        title: suggestedTitle,
+                        content: suggestedDescription,
+                        keywords: extractedKeywords,
+                        authors: newAutores,
+                        researchers: newAutores
+                      });
+                    }}
                   />
                 </div>
 

@@ -268,13 +268,29 @@ const ScientificArticleView: React.FC = () => {
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => {
-                                const link = document.createElement('a');
-                                link.href = fullFileUrl;
-                                link.download = `${article.titulo_extraido || 'artigo'}.pdf`;
-                                document.body.appendChild(link);
-                                link.click();
-                                document.body.removeChild(link);
+                              onClick={async () => {
+                                try {
+                                  // Primeiro, tenta fazer o download direto
+                                  const response = await fetch(fullFileUrl);
+                                  if (response.ok) {
+                                    const blob = await response.blob();
+                                    const url = window.URL.createObjectURL(blob);
+                                    const link = document.createElement('a');
+                                    link.href = url;
+                                    link.download = `${article.titulo_extraido || 'artigo'}.pdf`;
+                                    document.body.appendChild(link);
+                                    link.click();
+                                    document.body.removeChild(link);
+                                    window.URL.revokeObjectURL(url);
+                                  } else {
+                                    // Fallback para abertura em nova aba
+                                    window.open(fullFileUrl, '_blank');
+                                  }
+                                } catch (error) {
+                                  console.error('Erro no download:', error);
+                                  // Fallback para abertura em nova aba
+                                  window.open(fullFileUrl, '_blank');
+                                }
                               }}
                               className="border-aurora-emerald/30 text-aurora-emerald hover:bg-aurora-emerald/10"
                             >
