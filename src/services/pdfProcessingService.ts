@@ -77,6 +77,8 @@ export class PDFProcessingService {
 
       console.log('✅ [PDF Upload] Upload concluído:', urlData.publicUrl);
 
+      console.log('✅ [PDF Upload] Upload concluído:', urlData.publicUrl);
+
       return {
         filePath,
         publicUrl: urlData.publicUrl,

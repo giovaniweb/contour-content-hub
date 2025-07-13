@@ -27,196 +27,88 @@ Posso explicar conceitos, discutir metodologias, analisar resultados ou responde
       timestamp: new Date()
     }
   ]);
+  
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
   useEffect(() => {
-    scrollToBottom();
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
   const handleSendMessage = async () => {
     if (!inputMessage.trim() || isLoading) return;
 
-    const userMessage: ChatMessage = {
-      id: Date.now().toString(),
-      type: 'user',
-      content: inputMessage,
-      timestamp: new Date()
-    };
-
-    setMessages(prev => [...prev, userMessage]);
-    setInputMessage('');
-    setIsLoading(true);
-
-    // Focus back to input after sending
-    setTimeout(() => inputRef.current?.focus(), 100);
-
-    // Simulated AI response with more realistic delay
-    setTimeout(() => {
-      const botMessage: ChatMessage = {
-        id: (Date.now() + 1).toString(),
-        type: 'bot',
-        content: generateEnhancedResponse(inputMessage, article),
+    try {
+      setIsLoading(true);
+      
+      const newUserMessage: ChatMessage = {
+        id: Date.now().toString(),
+        type: 'user',
+        content: inputMessage.trim(),
         timestamp: new Date()
       };
       
-      setMessages(prev => [...prev, botMessage]);
+      const updatedMessages = [...messages, newUserMessage];
+      setMessages(updatedMessages);
+      setInputMessage('');
+
+      // Chamar a edge function chat-assistant
+      const response = await fetch(`https://mksvzhgqnsjfolvskibq.supabase.co/functions/v1/chat-assistant`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1rc3Z6aGdxbnNqZm9sdnNraWJxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYxMjg3NTgsImV4cCI6MjA2MTcwNDc1OH0.ERpPooxjvC4BthjXKus6s1xqE7FAE_cjZbEciS_VD4Q`
+        },
+        body: JSON.stringify({
+          messages: [
+            {
+              role: 'system',
+              content: `Você é um assistente especialista em análise científica. Analise este documento: 
+                       Título: ${article.titulo_extraido}
+                       Tipo: ${article.tipo_documento}
+                       Conteúdo: ${article.texto_completo || 'Conteúdo não disponível'}`
+            },
+            ...updatedMessages.map(msg => ({
+              role: msg.type === 'user' ? 'user' : 'assistant',
+              content: msg.content
+            }))
+          ]
+        })
+      });
+
+      const data = await response.json();
+      
+      if (data.content) {
+        const botResponse: ChatMessage = {
+          id: (Date.now() + 1).toString(),
+          type: 'bot',
+          content: data.content,
+          timestamp: new Date()
+        };
+        
+        setMessages([...updatedMessages, botResponse]);
+      } else {
+        throw new Error('Resposta inválida do servidor');
+      }
+      
       setIsLoading(false);
-    }, 1200 + Math.random() * 800); // Variable delay for realism
-  };
-
-  const generateEnhancedResponse = (question: string, article: UnifiedDocument): string => {
-    const lowercaseQuestion = question.toLowerCase();
-    
-    if (lowercaseQuestion.includes('resumo') || lowercaseQuestion.includes('sobre') || lowercaseQuestion.includes('o que é')) {
-      return `📋 **Resumo do Documento**
-
-Este é um ${article.tipo_documento} ${article.equipamento_nome ? `relacionado ao equipamento ${article.equipamento_nome}` : ''}. 
-
-${article.texto_completo ? article.texto_completo.substring(0, 400) + '...' : 'O documento contém informações técnicas especializadas sobre procedimentos estéticos.'}
-
-🔍 **Pontos-chave:**
-- Tipo: ${article.tipo_documento}
-- Status: ${article.status_processamento}
-- Processado em: ${new Date(article.data_upload).toLocaleDateString('pt-BR')}
-
-Gostaria que eu aprofunde algum aspecto específico?`;
+      
+    } catch (error) {
+      console.error('Erro ao enviar mensagem:', error);
+      
+      // Fallback para resposta de erro
+      const errorResponse: ChatMessage = {
+        id: (Date.now() + 1).toString(),
+        type: 'bot',
+        content: 'Desculpe, houve um erro ao processar sua pergunta. Por favor, tente novamente.',
+        timestamp: new Date()
+      };
+      
+      setMessages(prev => [...prev, errorResponse]);
+      setIsLoading(false);
     }
-    
-    if (lowercaseQuestion.includes('autor') || lowercaseQuestion.includes('pesquisador') || lowercaseQuestion.includes('quem')) {
-      return article.autores && article.autores.length > 0 
-        ? `👥 **Autores e Pesquisadores:**
-
-${article.autores.map((author, index) => `${index + 1}. ${author}`).join('\n')}
-
-Este trabalho representa a colaboração de ${article.autores.length} profissional${article.autores.length > 1 ? 'is' : ''} da área. Cada autor provavelmente contribuiu com sua expertise específica para diferentes aspectos da pesquisa.
-
-Posso explicar mais sobre o background ou contribuições específicas se você tiver interesse em algum autor em particular?`
-        : `ℹ️ **Informações sobre Autoria:**
-
-As informações detalhadas sobre os autores não estão disponíveis no momento. Isso pode ocorrer quando o documento está sendo processado ou quando os metadados não foram extraídos completamente.
-
-Posso ajudar com outras informações sobre o conteúdo do documento?`;
-    }
-    
-    if (lowercaseQuestion.includes('palavra-chave') || lowercaseQuestion.includes('tema') || lowercaseQuestion.includes('assunto')) {
-      return article.palavras_chave && article.palavras_chave.length > 0
-        ? `🏷️ **Palavras-chave e Temas Principais:**
-
-${article.palavras_chave.map((keyword, index) => `• ${keyword}`).join('\n')}
-
-Essas palavras-chave indicam os temas centrais abordados no documento. Elas são fundamentais para:
-- Classificação do conteúdo
-- Busca em bases de dados
-- Identificação de trabalhos relacionados
-
-Gostaria que eu explique algum desses termos específicos ou suas aplicações práticas?`
-        : `🔍 **Análise Temática:**
-
-As palavras-chave específicas ainda não foram extraídas ou não estão disponíveis. Baseado no tipo de documento (${article.tipo_documento}) e no equipamento relacionado, posso inferir que se trata de conteúdo técnico especializado.
-
-Posso ajudar analisando o conteúdo disponível ou respondendo perguntas específicas sobre o tema?`;
-    }
-    
-    if (lowercaseQuestion.includes('equipamento') || lowercaseQuestion.includes('tecnologia') || lowercaseQuestion.includes('aparelho')) {
-      return article.equipamento_nome 
-        ? `🔧 **Equipamento e Tecnologia:**
-
-**Equipamento:** ${article.equipamento_nome}
-
-Este documento está diretamente relacionado ao uso, especificações ou aplicações deste equipamento. Equipamentos em estética são fundamentais para:
-
-- Procedimentos seguros e eficazes
-- Resultados padronizados
-- Protocolos bem definidos
-- Evolução técnica da área
-
-Gostaria de saber mais sobre aplicações específicas, protocolos de uso ou comparações com outras tecnologias?`
-        : `💡 **Contexto Tecnológico:**
-
-Este documento não está especificamente associado a um equipamento particular, mas faz parte do conhecimento técnico geral da área de estética.
-
-Mesmo sem um equipamento específico, o conteúdo pode incluir:
-- Fundamentos teóricos
-- Princípios gerais de aplicação
-- Metodologias universais
-
-Posso ajudar com questões técnicas específicas sobre o conteúdo?`;
-    }
-
-    if (lowercaseQuestion.includes('metodologia') || lowercaseQuestion.includes('método') || lowercaseQuestion.includes('como')) {
-      return `🔬 **Análise Metodológica:**
-
-Baseado no tipo de documento (${article.tipo_documento}), posso orientar sobre aspectos metodológicos relevantes:
-
-**Para Artigos Científicos:**
-- Revisão de literatura
-- Desenho experimental
-- Critérios de inclusão/exclusão
-- Análise estatística
-
-**Para Fichas Técnicas:**
-- Especificações técnicas
-- Protocolos de uso
-- Contraindicações
-- Procedimentos padrão
-
-**Para Protocolos:**
-- Passo a passo detalhado
-- Parâmetros de segurança
-- Monitoramento de resultados
-
-Você gostaria de explorar algum aspecto metodológico específico?`;
-    }
-
-    if (lowercaseQuestion.includes('resultado') || lowercaseQuestion.includes('conclusão') || lowercaseQuestion.includes('eficácia')) {
-      return `📊 **Análise de Resultados e Eficácia:**
-
-${article.texto_completo ? 
-`Com base no conteúdo disponível, posso destacar aspectos importantes sobre os resultados:
-
-${article.texto_completo.includes('resultado') || article.texto_completo.includes('conclusão') ? 
-'O documento apresenta dados sobre eficácia e resultados obtidos.' : 
-'O documento contém informações técnicas que podem incluir dados de performance.'}` :
-'Para uma análise detalhada dos resultados, seria necessário examinar o documento completo.'}
-
-**Aspectos a considerar:**
-- Critérios de avaliação utilizados
-- Tempo de acompanhamento
-- Variáveis analisadas
-- Significância dos resultados
-
-Você tem alguma pergunta específica sobre eficácia ou resultados?`;
-    }
-    
-    return `🤖 **Resposta Especializada:**
-
-Obrigado pela pergunta sobre "${question}". Como especialista em análise de documentos científicos, posso ajudar de várias formas:
-
-**Com base neste documento:**
-- Tipo: ${article.tipo_documento}
-- Status: ${article.status_processamento}
-- Área: ${article.equipamento_nome || 'Estética Avançada'}
-
-**Posso ajudar com:**
-• Análise detalhada do conteúdo
-• Explicação de conceitos técnicos
-• Interpretação de resultados
-• Discussão de aplicações práticas
-• Comparação com outras pesquisas
-
-💡 **Dica:** Seja mais específico na sua pergunta para obter uma resposta mais direcionada. Por exemplo:
-- "Explique a metodologia utilizada"
-- "Quais são os principais benefícios?"
-- "Como aplicar esses resultados na prática?"
-
-Como posso ajudar de forma mais específica?`;
   };
 
   const handleSuggestionClick = (suggestion: string) => {
