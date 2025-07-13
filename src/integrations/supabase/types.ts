@@ -2340,6 +2340,20 @@ export type Database = {
         Args: { "": string } | { "": unknown }
         Returns: unknown
       }
+      create_unified_document: {
+        Args: {
+          p_title: string
+          p_content: string
+          p_conclusion: string
+          p_keywords: string[]
+          p_authors: string[]
+          p_raw_text: string
+          p_file_path: string
+          p_user_id: string
+          p_equipamento_id?: string
+        }
+        Returns: string
+      }
       decrement_favorites_count: {
         Args: { video_id: string }
         Returns: undefined
