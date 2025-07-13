@@ -2,8 +2,10 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { MessageSquare, Send, Bot, User, Loader2, Sparkles, Brain, Lightbulb } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { MessageSquare, Send, Bot, User, Loader2, Sparkles, Brain, Lightbulb, FileText, Search, BookOpen, TrendingUp, HelpCircle } from 'lucide-react';
 import { UnifiedDocument } from '@/types/document';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ArticleChatInterfaceProps {
   article: UnifiedDocument;
@@ -14,78 +16,189 @@ interface ChatMessage {
   type: 'user' | 'bot';
   content: string;
   timestamp: Date;
+  quickActions?: QuickAction[];
+}
+
+interface QuickAction {
+  id: string;
+  label: string;
+  icon: React.ReactNode;
+  action: string;
+}
+
+interface ChatIntention {
+  id: string;
+  title: string;
+  description: string;
+  icon: React.ReactNode;
+  questions: string[];
+  category: 'analysis' | 'summary' | 'methodology' | 'results';
 }
 
 const ArticleChatInterface: React.FC<ArticleChatInterfaceProps> = ({ article }) => {
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    {
-      id: '1',
-      type: 'bot',
-      content: `Olá! 👋 Sou seu assistente especialista em análise científica. Estou aqui para ajudar você a explorar e compreender o artigo "${article.titulo_extraido || 'documento'}". 
-
-Posso explicar conceitos, discutir metodologias, analisar resultados ou responder qualquer pergunta sobre o conteúdo. Como posso ajudar?`,
-      timestamp: new Date()
-    }
-  ]);
-  
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [showIntentions, setShowIntentions] = useState(true);
+  const [articleContent, setArticleContent] = useState<string>('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Carregar conteúdo do PDF
+  useEffect(() => {
+    const loadArticleContent = async () => {
+      if (article.file_path) {
+        try {
+          const response = await fetch(article.file_path);
+          const text = await response.text();
+          setArticleContent(text);
+        } catch (error) {
+          console.error('Erro ao carregar PDF:', error);
+          setArticleContent(article.raw_text || article.texto_completo || '');
+        }
+      } else {
+        setArticleContent(article.raw_text || article.texto_completo || '');
+      }
+    };
+
+    loadArticleContent();
+  }, [article]);
+
+  // Inicializar chat com mensagem de boas-vindas
+  useEffect(() => {
+    if (messages.length === 0) {
+      const welcomeMessage: ChatMessage = {
+        id: '1',
+        type: 'bot',
+        content: `👋 **Olá! Sou sua IA especialista em análise científica.**
+
+Estou aqui para ajudar você com o artigo **"${article.titulo_extraido || 'documento'}"**.
+
+✨ **O que posso fazer por você:**
+• Fazer resumos e análises
+• Explicar conceitos complexos  
+• Discutir metodologias
+• Responder perguntas específicas`,
+        timestamp: new Date(),
+        quickActions: [
+          { id: 'resume', label: 'Resumir artigo', icon: <FileText className="h-3 w-3" />, action: 'Faça um resumo executivo deste artigo' },
+          { id: 'concepts', label: 'Conceitos principais', icon: <Brain className="h-3 w-3" />, action: 'Quais são os principais conceitos abordados?' },
+          { id: 'methodology', label: 'Metodologia', icon: <Search className="h-3 w-3" />, action: 'Explique a metodologia utilizada' }
+        ]
+      };
+      setMessages([welcomeMessage]);
+    }
+  }, [article, messages.length]);
+
+  const chatIntentions: ChatIntention[] = [
+    {
+      id: 'summary',
+      title: 'Resumo & Análise',
+      description: 'Obtenha resumos e análises gerais',
+      icon: <FileText className="h-4 w-4" />,
+      category: 'summary',
+      questions: [
+        'Faça um resumo executivo deste artigo',
+        'Quais são os pontos principais?',
+        'Qual é a contribuição científica deste trabalho?'
+      ]
+    },
+    {
+      id: 'concepts',
+      title: 'Conceitos & Definições', 
+      description: 'Explore conceitos e terminologias',
+      icon: <Brain className="h-4 w-4" />,
+      category: 'analysis',
+      questions: [
+        'Quais são os principais conceitos abordados?',
+        'Defina os termos técnicos mencionados',
+        'Como esses conceitos se relacionam?'
+      ]
+    },
+    {
+      id: 'methodology',
+      title: 'Metodologia',
+      description: 'Entenda métodos e procedimentos',
+      icon: <Search className="h-4 w-4" />,
+      category: 'methodology', 
+      questions: [
+        'Explique a metodologia utilizada',
+        'Quais foram os critérios de seleção?',
+        'Como os dados foram coletados?'
+      ]
+    },
+    {
+      id: 'results',
+      title: 'Resultados & Conclusões',
+      description: 'Analise resultados e implicações',
+      icon: <TrendingUp className="h-4 w-4" />,
+      category: 'results',
+      questions: [
+        'Quais foram os principais resultados?',
+        'Quais são as conclusões do estudo?',
+        'Quais as implicações práticas?'
+      ]
+    }
+  ];
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const handleSendMessage = async () => {
-    if (!inputMessage.trim() || isLoading) return;
+  const handleSendMessage = async (customMessage?: string) => {
+    const messageToSend = customMessage || inputMessage.trim();
+    if (!messageToSend || isLoading) return;
 
     try {
       setIsLoading(true);
+      setShowIntentions(false);
       
       const newUserMessage: ChatMessage = {
         id: Date.now().toString(),
         type: 'user',
-        content: inputMessage.trim(),
+        content: messageToSend,
         timestamp: new Date()
       };
       
       const updatedMessages = [...messages, newUserMessage];
       setMessages(updatedMessages);
-      setInputMessage('');
+      if (!customMessage) setInputMessage('');
 
-      // Chamar a edge function chat-assistant
-      const response = await fetch(`https://mksvzhgqnsjfolvskibq.supabase.co/functions/v1/chat-assistant`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1rc3Z6aGdxbnNqZm9sdnNraWJxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYxMjg3NTgsImV4cCI6MjA2MTcwNDc1OH0.ERpPooxjvC4BthjXKus6s1xqE7FAE_cjZbEciS_VD4Q`
-        },
-        body: JSON.stringify({
+      // Usar supabase client para chamar edge function
+      const { data, error } = await supabase.functions.invoke('chat-assistant', {
+        body: {
           messages: [
             {
               role: 'system',
-              content: `Você é um assistente especialista em análise científica. Analise este documento: 
-                       Título: ${article.titulo_extraido}
-                       Tipo: ${article.tipo_documento}
-                       Conteúdo: ${article.texto_completo || 'Conteúdo não disponível'}`
+              content: `Você é um assistente especialista em análise científica. Seja conciso, objetivo e útil. Use formatação markdown para destacar informações importantes.
+
+IMPORTANTE: Responda de forma estruturada e concisa (máximo 300 palavras por resposta). Se for um resumo, foque nos pontos principais. Se for uma pergunta específica, seja direto.
+
+Documento para análise:
+Título: ${article.titulo_extraido}
+Tipo: ${article.tipo_documento}
+Conteúdo: ${articleContent || 'Analisando documento...'}`
             },
             ...updatedMessages.map(msg => ({
               role: msg.type === 'user' ? 'user' : 'assistant',
-              content: msg.content
+              content: msg.content.replace(/\*\*/g, '').replace(/^👋.*$/gm, '').trim()
             }))
           ]
-        })
+        }
       });
 
-      const data = await response.json();
+      if (error) throw error;
       
-      if (data.content) {
+      if (data?.content) {
+        // Gerar quick actions baseadas na resposta
+        const quickActions = generateQuickActions(messageToSend);
+        
         const botResponse: ChatMessage = {
           id: (Date.now() + 1).toString(),
           type: 'bot',
           content: data.content,
-          timestamp: new Date()
+          timestamp: new Date(),
+          quickActions
         };
         
         setMessages([...updatedMessages, botResponse]);
@@ -93,27 +206,53 @@ Posso explicar conceitos, discutir metodologias, analisar resultados ou responde
         throw new Error('Resposta inválida do servidor');
       }
       
-      setIsLoading(false);
-      
     } catch (error) {
       console.error('Erro ao enviar mensagem:', error);
       
-      // Fallback para resposta de erro
       const errorResponse: ChatMessage = {
         id: (Date.now() + 1).toString(),
         type: 'bot',
-        content: 'Desculpe, houve um erro ao processar sua pergunta. Por favor, tente novamente.',
+        content: '⚠️ **Erro temporário.** Tente novamente em alguns segundos.',
         timestamp: new Date()
       };
       
       setMessages(prev => [...prev, errorResponse]);
+    } finally {
       setIsLoading(false);
     }
   };
 
-  const handleSuggestionClick = (suggestion: string) => {
-    setInputMessage(suggestion);
-    inputRef.current?.focus();
+  const generateQuickActions = (userQuestion: string): QuickAction[] => {
+    const question = userQuestion.toLowerCase();
+    
+    if (question.includes('resumo')) {
+      return [
+        { id: 'details', label: 'Mais detalhes', icon: <Search className="h-3 w-3" />, action: 'Pode detalhar melhor os pontos principais?' },
+        { id: 'methodology', label: 'Metodologia', icon: <Brain className="h-3 w-3" />, action: 'Como foi a metodologia utilizada?' }
+      ];
+    }
+    
+    if (question.includes('conceito') || question.includes('definição')) {
+      return [
+        { id: 'examples', label: 'Exemplos práticos', icon: <Lightbulb className="h-3 w-3" />, action: 'Pode dar exemplos práticos?' },
+        { id: 'applications', label: 'Aplicações', icon: <TrendingUp className="h-3 w-3" />, action: 'Quais são as aplicações práticas?' }
+      ];
+    }
+    
+    return [
+      { id: 'elaborate', label: 'Explicar melhor', icon: <HelpCircle className="h-3 w-3" />, action: 'Pode explicar de forma mais simples?' },
+      { id: 'related', label: 'Tópicos relacionados', icon: <BookOpen className="h-3 w-3" />, action: 'Quais outros tópicos estão relacionados?' }
+    ];
+  };
+
+  const handleQuickAction = (action: string) => {
+    handleSendMessage(action);
+  };
+
+  const handleIntentionSelect = (intention: ChatIntention) => {
+    setShowIntentions(false);
+    const firstQuestion = intention.questions[0];
+    handleSendMessage(firstQuestion);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -122,13 +261,6 @@ Posso explicar conceitos, discutir metodologias, analisar resultados ou responde
       handleSendMessage();
     }
   };
-
-  const suggestedQuestions = [
-    "Qual é o resumo deste artigo?",
-    "Quem são os autores?",
-    "Quais as principais conclusões?",
-    "Explique a metodologia utilizada",
-  ];
 
   return (
     <div className="h-full flex flex-col aurora-glass-enhanced border-aurora-electric-purple/30 rounded-lg overflow-hidden">
@@ -171,22 +303,50 @@ Posso explicar conceitos, discutir metodologias, analisar resultados ou responde
               </div>
 
               {/* Message Bubble */}
-              <div className={`rounded-2xl p-4 ${
-                message.type === 'user'
-                  ? 'bg-gradient-to-br from-aurora-electric-purple/20 to-aurora-neon-blue/20 border border-aurora-electric-purple/30'
-                  : 'bg-gradient-to-br from-aurora-cyan/20 to-aurora-emerald/20 border border-aurora-cyan/30'
-              } backdrop-blur-lg`}>
-                <div className="prose prose-invert prose-sm max-w-none">
-                  <p className="text-white text-sm leading-relaxed mb-0 whitespace-pre-wrap">
-                    {message.content}
+              <div className={`space-y-3 ${message.type === 'user' ? 'items-end' : 'items-start'}`}>
+                <div className={`rounded-2xl p-4 ${
+                  message.type === 'user'
+                    ? 'bg-gradient-to-br from-aurora-electric-purple/20 to-aurora-neon-blue/20 border border-aurora-electric-purple/30'
+                    : 'bg-gradient-to-br from-aurora-cyan/20 to-aurora-emerald/20 border border-aurora-cyan/30'
+                } backdrop-blur-lg`}>
+                  <div className="prose prose-invert prose-sm max-w-none">
+                    <div 
+                      className="text-white text-sm leading-relaxed mb-0 whitespace-pre-wrap"
+                      dangerouslySetInnerHTML={{
+                        __html: message.content
+                          .replace(/\*\*(.*?)\*\*/g, '<strong class="text-aurora-cyan">$1</strong>')
+                          .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                          .replace(/•/g, '◦')
+                          .replace(/(\d+\.)/g, '<span class="text-aurora-electric-purple font-semibold">$1</span>')
+                      }}
+                    />
+                  </div>
+                  <p className="text-xs text-slate-400 mt-2 opacity-70">
+                    {message.timestamp.toLocaleTimeString('pt-BR', { 
+                      hour: '2-digit', 
+                      minute: '2-digit' 
+                    })}
                   </p>
                 </div>
-                <p className="text-xs text-slate-400 mt-2 opacity-70">
-                  {message.timestamp.toLocaleTimeString('pt-BR', { 
-                    hour: '2-digit', 
-                    minute: '2-digit' 
-                  })}
-                </p>
+
+                {/* Quick Actions */}
+                {message.type === 'bot' && message.quickActions && message.quickActions.length > 0 && (
+                  <div className="flex flex-wrap gap-2 px-2">
+                    {message.quickActions.map((action) => (
+                      <Button
+                        key={action.id}
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleQuickAction(action.action)}
+                        className="text-xs border-aurora-cyan/30 text-aurora-cyan hover:bg-aurora-cyan/10 aurora-animate-scale"
+                        disabled={isLoading}
+                      >
+                        {action.icon}
+                        <span className="ml-1">{action.label}</span>
+                      </Button>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -216,25 +376,33 @@ Posso explicar conceitos, discutir metodologias, analisar resultados ou responde
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Suggested Questions */}
-      {messages.length === 1 && (
-        <div className="px-4 py-2 border-t border-aurora-electric-purple/10">
-          <p className="text-xs text-slate-400 mb-2 flex items-center gap-1">
-            <Lightbulb className="h-3 w-3" />
-            Sugestões para começar:
-          </p>
-          <div className="flex flex-wrap gap-2">
-            {suggestedQuestions.map((question, index) => (
-              <Button
-                key={index}
-                variant="outline"
-                size="sm"
-                onClick={() => handleSuggestionClick(question)}
-                className="text-xs border-aurora-electric-purple/30 text-aurora-electric-purple hover:bg-aurora-electric-purple/10 aurora-animate-scale"
-                disabled={isLoading}
+      {/* Chat Intentions */}
+      {showIntentions && messages.length === 1 && (
+        <div className="px-4 py-4 border-t border-aurora-electric-purple/10 bg-gradient-to-r from-aurora-electric-purple/5 to-aurora-cyan/5">
+          <div className="flex items-center gap-2 mb-3">
+            <Sparkles className="h-4 w-4 text-aurora-cyan" />
+            <span className="text-sm font-medium text-aurora-cyan">Como posso ajudar você hoje?</span>
+          </div>
+          
+          <div className="grid grid-cols-2 gap-3">
+            {chatIntentions.map((intention) => (
+              <Card
+                key={intention.id}
+                className="cursor-pointer aurora-glass-enhanced border-aurora-electric-purple/20 hover:border-aurora-cyan/40 transition-all duration-300 aurora-animate-scale group"
+                onClick={() => handleIntentionSelect(intention)}
               >
-                {question}
-              </Button>
+                <CardContent className="p-3">
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-aurora-electric-purple/20 to-aurora-cyan/20 flex items-center justify-center group-hover:from-aurora-electric-purple/30 group-hover:to-aurora-cyan/30 transition-colors">
+                      {intention.icon}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="text-sm font-medium text-white truncate">{intention.title}</h4>
+                      <p className="text-xs text-slate-400 mt-1 line-clamp-2">{intention.description}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             ))}
           </div>
         </div>
@@ -253,7 +421,7 @@ Posso explicar conceitos, discutir metodologias, analisar resultados ou responde
             disabled={isLoading}
           />
           <Button
-            onClick={handleSendMessage}
+            onClick={() => handleSendMessage()}
             disabled={!inputMessage.trim() || isLoading}
             className="aurora-button-enhanced bg-gradient-to-r from-aurora-electric-purple to-aurora-cyan hover:from-aurora-electric-purple/80 hover:to-aurora-cyan/80 aurora-animate-scale"
           >

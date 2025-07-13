@@ -77,11 +77,11 @@ serve(async (req) => {
         'Authorization': `Bearer ${openAIApiKey}`,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({
+        body: JSON.stringify({
         model: 'gpt-4o-mini',
         messages: contextualMessages,
         temperature: 0.7,
-        max_tokens: 1000
+        max_tokens: 800
       })
     });
     
