@@ -90,9 +90,18 @@ serve(async (req) => {
 
 async function extractWithOpenAI(base64Content: string) {
   try {
-    // Limitar o tamanho do conteúdo para evitar problemas com a API
-    const limitedContent = base64Content.substring(0, 8000);
+    console.log('🔄 [OpenAI] Iniciando extração de texto do PDF...');
     
+    // Primeiro, vamos extrair o texto real do PDF usando OCR com OpenAI Vision
+    const extractedText = await extractTextFromPDF(base64Content);
+    
+    if (!extractedText || extractedText.length < 50) {
+      throw new Error('Texto extraído insuficiente do PDF');
+    }
+    
+    console.log('📄 [OpenAI] Texto extraído, analisando conteúdo científico...');
+    
+    // Agora analisar o texto extraído com OpenAI
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -105,22 +114,22 @@ async function extractWithOpenAI(base64Content: string) {
           {
             role: 'system',
             content: `Você é um especialista em análise de documentos científicos. 
-            Analise o conteúdo fornecido e extraia as seguintes informações em formato JSON:
-            - title: título do documento
-            - content: resumo do conteúdo principal
-            - conclusion: conclusão ou abstract
-            - keywords: array de palavras-chave relevantes
-            - authors: array de autores/pesquisadores`
+            Analise o texto fornecido e extraia as seguintes informações em formato JSON estrito:
+            {
+              "title": "título do documento",
+              "content": "resumo do conteúdo principal (máximo 500 caracteres)",
+              "conclusion": "conclusão ou abstract principal",
+              "keywords": ["palavra1", "palavra2", "palavra3"],
+              "authors": ["autor1", "autor2"]
+            }`
           },
           {
             role: 'user',
-            content: `Analise este documento científico (base64 limitado): ${limitedContent}...
-            
-            Retorne APENAS um JSON válido com as informações extraídas.`
+            content: `Analise este artigo científico e extraia as informações solicitadas:\n\n${extractedText.substring(0, 4000)}`
           }
         ],
-        max_tokens: 1000,
-        temperature: 0.3
+        max_tokens: 1500,
+        temperature: 0.1
       })
     });
 
@@ -202,6 +211,65 @@ function extractArrayField(text: string, field: string, altField?: string): stri
   }
   
   return null;
+}
+
+// Função para extrair texto real do PDF usando OCR com OpenAI Vision
+async function extractTextFromPDF(base64Content: string) {
+  try {
+    console.log('🔍 [OCR] Extraindo texto do PDF com OpenAI Vision...');
+    
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${OPENAI_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        messages: [
+          {
+            role: 'system',
+            content: 'Você é um especialista em OCR. Extraia TODO o texto visível do documento PDF fornecido. Mantenha a formatação e estrutura do texto original.'
+          },
+          {
+            role: 'user',
+            content: [
+              {
+                type: 'text',
+                text: 'Extraia todo o texto deste documento PDF. Mantenha títulos, parágrafos e estrutura original:'
+              },
+              {
+                type: 'image_url',
+                image_url: {
+                  url: `data:application/pdf;base64,${base64Content}`
+                }
+              }
+            ]
+          }
+        ],
+        max_tokens: 4000,
+        temperature: 0
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`OCR API error: ${response.status} ${response.statusText}`);
+    }
+
+    const result = await response.json();
+    const extractedText = result.choices[0]?.message?.content;
+    
+    if (!extractedText) {
+      throw new Error('Nenhum texto foi extraído do PDF');
+    }
+
+    console.log('✅ [OCR] Texto extraído com sucesso:', extractedText.length, 'caracteres');
+    return extractedText;
+    
+  } catch (error: any) {
+    console.error('❌ [OCR] Erro na extração de texto:', error);
+    throw error;
+  }
 }
 
 function getFallbackExtraction() {
