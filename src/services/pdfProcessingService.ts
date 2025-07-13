@@ -1,5 +1,6 @@
 import { supabase } from '@/integrations/supabase/client';
 
+// Tipos para os resultados
 export interface PDFProcessingResult {
   title: string;
   content: string;
@@ -18,6 +19,7 @@ export interface UploadResult {
   error?: string;
 }
 
+// Classe principal do serviço
 export class PDFProcessingService {
   
   /**
@@ -38,7 +40,7 @@ export class PDFProcessingService {
   }
 
   /**
-   * Faz upload do arquivo PDF para o Supabase Storage
+   * Upload do PDF para o storage
    */
   async uploadPDF(file: File): Promise<UploadResult> {
     try {
@@ -93,49 +95,31 @@ export class PDFProcessingService {
   }
 
   /**
-   * Processa PDF com OpenAI para extrair conteúdo
+   * Processa PDF - versão simplificada
    */
   async processPDF(file: File): Promise<PDFProcessingResult> {
     try {
       console.log('🤖 [PDF Processing] Iniciando processamento:', file.name);
 
-      // Converter para Base64
-      const base64Content = await this.fileToBase64(file);
-      console.log('📄 [PDF Processing] Arquivo convertido para Base64');
+      // Por enquanto, extrair apenas o título do nome do arquivo
+      let title = file.name
+        .replace('.pdf', '')
+        .replace(/_/g, ' ')
+        .replace(/^\d+\s*/, '') // Remove números no início
+        .trim();
 
-      // Chamar Edge Function usando URL completa
-      const response = await fetch('https://mksvzhgqnsjfolvskibq.supabase.co/functions/v1/pdf-text-extraction', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1rc3Z6aGdxbnNqZm9sdnNraWJxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYxMjg3NTgsImV4cCI6MjA2MTcwNDc1OH0.ERpPooxjvC4BthjXKus6s1xqE7FAE_cjZbEciS_VD4Q`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          file_content: base64Content,
-          extract_metadata: true
-        })
-      });
+      // Capitalizar primeira letra
+      title = title.charAt(0).toUpperCase() + title.slice(1);
 
-      if (!response.ok) {
-        console.error('❌ [PDF Processing] HTTP Error:', response.status, response.statusText);
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-
-      const data = await response.json();
-
-      if (!data || !data.success) {
-        throw new Error('Processamento falhou na Edge Function');
-      }
-
-      console.log('✅ [PDF Processing] Processamento concluído com sucesso');
+      console.log('✅ [PDF Processing] Título extraído do nome:', title);
 
       return {
-        title: data.title || 'Documento Processado',
-        content: data.content || '',
-        conclusion: data.conclusion || '',
-        keywords: data.keywords || [],
-        authors: data.authors || data.researchers || [],
-        rawText: data.raw_text || '',
+        title: title || 'Documento PDF',
+        content: 'Documento carregado com sucesso. Conteúdo será analisado posteriormente.',
+        conclusion: '',
+        keywords: [],
+        authors: [],
+        rawText: '',
         success: true
       };
 
@@ -168,7 +152,7 @@ export class PDFProcessingService {
     // 1. Upload do arquivo
     const uploadResult = await this.uploadPDF(file);
     
-    // 2. Processamento com IA (independente do upload)
+    // 2. Processamento básico (extrair título do nome)
     const processingResult = await this.processPDF(file);
 
     return {

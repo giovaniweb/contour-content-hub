@@ -112,34 +112,55 @@ export const useUploadHandler = ({
       
       const result = await pdfProcessingService.uploadAndProcess(file);
 
+      // Verificar se o upload foi bem-sucedido
       if (!result.upload.success) {
         throw new Error(result.upload.error || 'Erro no upload do arquivo');
       }
 
-      if (!result.processing.success) {
-        throw new Error(result.processing.error || 'Erro no processamento do PDF');
+      // Definir URL do arquivo
+      setFileUrl(result.upload.publicUrl);
+      setProcessingProgress("Upload concluído! Analisando conteúdo...");
+
+      // Se o processamento da IA falhou, usar dados do nome do arquivo
+      let extractedData: ExtractedData;
+      
+      if (result.processing.success) {
+        // IA funcionou - usar dados extraídos
+        extractedData = {
+          title: result.processing.title,
+          content: result.processing.content,
+          conclusion: result.processing.conclusion,
+          keywords: result.processing.keywords,
+          authors: result.processing.authors,
+          researchers: result.processing.authors,
+          rawText: result.processing.rawText
+        };
+        toast.success("Documento processado", {
+          description: "Informações extraídas com sucesso do documento."
+        });
+      } else {
+        // IA falhou - usar nome do arquivo como título
+        const suggestedTitleFromFilename = file.name
+          .replace('.pdf', '')
+          .replace(/_/g, ' ');
+          
+        extractedData = {
+          title: suggestedTitleFromFilename,
+          content: 'Conteúdo será analisado posteriormente.',
+          conclusion: '',
+          keywords: [],
+          authors: [],
+          researchers: [],
+          rawText: ''
+        };
+        
+        toast.warning("IA temporariamente indisponível", {
+          description: "Arquivo carregado com sucesso. Título extraído do nome do arquivo."
+        });
       }
 
-      setFileUrl(result.upload.publicUrl);
-      setProcessingProgress("Análise concluída com sucesso!");
-
-      const extractedData: ExtractedData = {
-        title: result.processing.title,
-        content: result.processing.content,
-        conclusion: result.processing.conclusion,
-        keywords: result.processing.keywords,
-        authors: result.processing.authors,
-        researchers: result.processing.authors,
-        rawText: result.processing.rawText
-      };
-
       onExtractedData(extractedData);
-      
       setProcessingProgress(null);
-      
-      toast.success("Documento processado", {
-        description: "Informações extraídas com sucesso do documento."
-      });
       
       return true;
     } catch (error: any) {
@@ -148,17 +169,25 @@ export const useUploadHandler = ({
       onError(error.message || "Ocorreu um erro ao processar o arquivo.");
       setProcessingFailed(true);
       
-      toast.error("Erro no processamento", {
-        description: "Não foi possível processar o arquivo completamente. Você pode continuar preenchendo os dados manualmente."
-      });
       
+      // Em caso de erro geral, tentar extrair pelo menos o título do nome do arquivo
       if (file) {
         const suggestedTitleFromFilename = file.name
           .replace('.pdf', '')
           .replace(/_/g, ' ');
           
         onExtractedData({
-          title: suggestedTitleFromFilename
+          title: suggestedTitleFromFilename,
+          content: 'Erro no processamento. Preencha os dados manualmente.',
+          conclusion: '',
+          keywords: [],
+          authors: [],
+          researchers: [],
+          rawText: ''
+        });
+        
+        toast.error("Erro no sistema", {
+          description: "Não foi possível processar o arquivo. Título extraído do nome do arquivo."
         });
       }
       
