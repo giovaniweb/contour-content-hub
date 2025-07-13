@@ -11,9 +11,32 @@ export interface CreateDocumentPayload {
   rawText?: string;
   filePath?: string;
   equipamentoId?: string;
+  status_processamento?: string;
 }
 
 export class UnifiedDocumentService {
+  
+  async deleteStorageFile(filePath: string): Promise<{success: boolean; error?: string}> {
+    try {
+      const { error } = await supabase.storage
+        .from('documents')
+        .remove([filePath]);
+      
+      if (error) {
+        return { success: false, error: error.message };
+      }
+      
+      return { success: true };
+    } catch (error: any) {
+      return { success: false, error: error.message };
+    }
+  }
+
+  async processDocument(documentId: string): Promise<void> {
+    // This could trigger background processing
+    console.log('Processing document:', documentId);
+  }
+
   
   /**
    * Cria um novo documento na tabela unified_documents

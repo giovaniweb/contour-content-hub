@@ -8,7 +8,7 @@ import { z } from "zod";
 import { useEquipments } from "@/hooks/useEquipments";
 import { useExtractedData } from "./useExtractedData";
 import { useUploadHandler, ExtractedData as HookExtractedData } from "./useUploadHandler";
-import { unifiedDocumentService, UnifiedDocumentService } from "@/services/unifiedDocuments";
+import { unifiedDocumentService, UnifiedDocumentService, CreateDocumentPayload } from "@/services/unifiedDocumentService";
 import { UnifiedDocument } from "@/types/document";
 
 // Define form schema
@@ -349,7 +349,7 @@ export function useScientificArticleForm({
       if (state.isReplacingFile && state.file && state.fileUrl && state.articleIdToEdit) {
         console.log(`Replacing file. Old path: ${state.originalFilePath}, New URL: ${state.fileUrl}`);
         if (state.originalFilePath) {
-          const deleteResult = await UnifiedDocumentService.deleteStorageFile(state.originalFilePath);
+          const deleteResult = await unifiedDocumentService.deleteStorageFile(state.originalFilePath);
           if (!deleteResult.success) {
             // Log error but attempt to continue, as new file might be more important
             console.warn("Failed to delete old file from storage:", deleteResult.error);
@@ -370,15 +370,13 @@ export function useScientificArticleForm({
       // If it's a link_dropbox scenario without a file, newFilePath will be null or the link itself if handled differently.
       // For now, assuming link_dropbox is handled by the form field directly if no actual file is being uploaded.
 
-      const articlePayload: Partial<UnifiedDocument> = {
-        titulo_extraido: values.titulo,
-        texto_completo: values.descricao || null,
-        equipamento_id: values.equipamento_id === "none" || !values.equipamento_id ? null : values.equipamento_id,
-        tipo_documento: 'artigo_cientifico' as const,
-        file_path: newFilePath,
-        palavras_chave: extractedKeywords || [],
-        autores: extractedResearchers || [],
-        // idioma_original: values.idioma_original, // Ensure this is part of payload if needed
+      const articlePayload: CreateDocumentPayload = {
+        title: values.titulo,
+        content: values.descricao || '',
+        keywords: extractedKeywords || [],
+        authors: extractedResearchers || [],
+        filePath: newFilePath,
+        equipamentoId: values.equipamento_id === "none" || !values.equipamento_id ? null : values.equipamento_id,
       };
 
       if (shouldResetStatusToPendente) {
