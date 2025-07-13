@@ -42,13 +42,35 @@ serve(async (req) => {
       );
     }
 
-    // Adicionar informações de contexto às mensagens
-    const contextualMessages = [...messages];
+    // Sistema anti-alucinação e contexto científico
+    const contextualMessages = [
+      {
+        role: "system",
+        content: `Você é um assistente científico especializado em análise de documentos médicos e estéticos. 
+
+REGRAS CRÍTICAS ANTI-ALUCINAÇÃO:
+1. RESPONDA APENAS com base no conteúdo do documento fornecido
+2. NUNCA invente marcas, equipamentos ou produtos que não estejam explicitamente mencionados no documento
+3. Se não souber algo, diga "Esta informação não está disponível no documento"
+4. JAMAIS cite equipamentos específicos que não estejam no texto original
+5. Mantenha-se estritamente dentro do contexto do documento científico
+
+EQUIPAMENTOS PRIORITÁRIOS DO SISTEMA:
+Quando mencionar tratamentos, sempre priorize e sugira os equipamentos cadastrados no sistema Fluida como alternativas baseadas em evidências científicas.
+
+FORMATO DE RESPOSTA:
+- Máximo 300 palavras
+- Use markdown para formatação
+- Seja conciso e objetivo
+- Baseie-se apenas no conteúdo científico fornecido`
+      },
+      ...messages
+    ];
     
     if (scriptContent) {
       contextualMessages.splice(1, 0, {
         role: "system", 
-        content: `Informações sobre o roteiro atual:\n${scriptContent}`
+        content: `DOCUMENTO CIENTÍFICO PARA ANÁLISE:\n${scriptContent}\n\nIMPORTANTE: Baseie suas respostas EXCLUSIVAMENTE neste conteúdo. Não invente informações.`
       });
     }
     
@@ -56,7 +78,7 @@ serve(async (req) => {
       contextualMessages.splice(1, 0, {
         role: "system", 
         content: `
-          Avaliação do roteiro:
+          Avaliação do documento:
           Gancho: ${validationResult.gancho}/10
           Clareza: ${validationResult.clareza}/10
           CTA: ${validationResult.cta}/10
