@@ -29,14 +29,7 @@ const FluidaRoteiristsPage: React.FC = () => {
 
   return (
     <AuroraPageLayout>
-      <StandardPageHeader
-        icon={PenTool}
-        title="Fluida Roteirista"
-        subtitle="Crie roteiros emocionais com inteligência artificial"
-        statusBadges={statusBadges}
-      />
-      
-      <div className="container mx-auto px-6">
+      <div className="min-h-screen">
         <FluidaRoteirista onScriptGenerated={handleScriptGenerated} />
       </div>
     </AuroraPageLayout>

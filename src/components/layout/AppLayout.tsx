@@ -66,10 +66,10 @@ const AppLayout: React.FC<AppLayoutProps> = ({
         </div>
         
         <main 
-          className="flex-1 overflow-auto px-2 md:px-6 relative z-20"
+          className="flex-1 overflow-y-auto px-2 md:px-6 relative z-20"
           style={{ paddingTop: NAVBAR_HEIGHT + 8 }} // 8px extra para espaçamento
         >
-          <div className="relative z-20 clickable">
+          <div className="relative z-20 clickable min-h-full">
             {children}
           </div>
         </main>
