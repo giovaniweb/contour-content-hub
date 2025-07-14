@@ -1,30 +1,36 @@
-
 import React from 'react';
 import { BrainCircuit, MessageSquare, BarChart3, Target, Lightbulb } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import AuroraPageLayout from '@/components/layout/AuroraPageLayout';
+import StandardPageHeader from '@/components/layout/StandardPageHeader';
 
 const MarketingConsultant: React.FC = () => {
-  return (
-    <div className="p-6">
-      <div className="relative max-w-7xl mx-auto space-y-8">
-        {/* Header */}
-        <div className="text-center space-y-4">
-          <div className="flex items-center justify-center gap-4 mb-6">
-            <div className="w-16 h-16 aurora-glass rounded-2xl flex items-center justify-center">
-              <BrainCircuit className="h-8 w-8 text-aurora-electric-purple aurora-floating" />
-            </div>
-            <div>
-              <h1 className="text-4xl font-light aurora-text-gradient">
-                Consultor de Marketing IA
-              </h1>
-              <p className="text-slate-400 aurora-body">
-                Seu assistente inteligente para estratégias de marketing
-              </p>
-            </div>
-          </div>
-        </div>
+  const statusBadges = [
+    {
+      icon: BrainCircuit,
+      label: 'IA Avançada',
+      variant: 'secondary' as const,
+      color: 'bg-blue-500/20 text-blue-400 border-blue-500/30'
+    },
+    {
+      icon: Target,
+      label: 'Estratégico',
+      variant: 'secondary' as const,
+      color: 'bg-green-500/20 text-green-400 border-green-500/30'
+    }
+  ];
 
+  return (
+    <AuroraPageLayout>
+      <StandardPageHeader
+        icon={BrainCircuit}
+        title="Consultor de Marketing IA"
+        subtitle="Seu assistente inteligente para estratégias de marketing"
+        statusBadges={statusBadges}
+      />
+      
+      <div className="container mx-auto px-6">
         {/* Services Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <Card className="aurora-card hover:scale-105 transition-all duration-300">
@@ -86,7 +92,7 @@ const MarketingConsultant: React.FC = () => {
         </div>
 
         {/* Quick Actions */}
-        <div className="aurora-card p-8">
+        <div className="aurora-card p-8 mt-6">
           <div className="text-center space-y-6">
             <div className="flex items-center justify-center gap-3">
               <Lightbulb className="h-8 w-8 text-aurora-electric-purple" />
@@ -103,7 +109,7 @@ const MarketingConsultant: React.FC = () => {
           </div>
         </div>
       </div>
-    </div>
+    </AuroraPageLayout>
   );
 };
 
