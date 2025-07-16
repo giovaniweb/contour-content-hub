@@ -1,21 +1,21 @@
 import React, { useState } from 'react';
 import { UnifiedDocument } from '@/types/document';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Download, Link as LinkIcon, Paperclip, Users, Tag as TagIcon, Building, MessageCircle, FileText, Maximize2, Minimize2, BookOpen } from 'lucide-react';
+import { Link as LinkIcon, Paperclip, Users, Tag as TagIcon, Building, MessageCircle, FileText, Maximize2, Minimize2, BookOpen } from 'lucide-react';
 import { SUPABASE_BASE_URL } from '@/integrations/supabase/client';
 import ArticleChatInterface from '@/components/scientific-articles/ArticleChatInterface';
+import ArticleBlogView from './ArticleBlogView';
 
 interface ScientificArticleDetailViewProps {
   article: UnifiedDocument | null;
   onClose: () => void;
-  onOpenBlogView?: (article: UnifiedDocument) => void;
 }
 
-const ScientificArticleDetailView: React.FC<ScientificArticleDetailViewProps> = ({ article, onClose, onOpenBlogView }) => {
+const ScientificArticleDetailView: React.FC<ScientificArticleDetailViewProps> = ({ article, onClose }) => {
   const [isPdfExpanded, setIsPdfExpanded] = useState(false);
-  const [activeTab, setActiveTab] = useState<'content' | 'chat'>('content');
+  const [activeTab, setActiveTab] = useState<'article' | 'pdf' | 'chat'>('article');
 
   if (!article) {
     return (
@@ -60,54 +60,66 @@ const ScientificArticleDetailView: React.FC<ScientificArticleDetailViewProps> = 
                 {article.titulo_extraido || 'Artigo Científico'}
               </h1>
             </div>
-            
-            {/* Action Buttons and Mobile Tab Switcher */}
-            <div className="flex items-center gap-2">
-              {/* Blog View Button */}
-              {onOpenBlogView && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => onOpenBlogView(article)}
-                  className="hidden lg:flex items-center gap-2 border-aurora-electric-purple/30 text-aurora-electric-purple hover:bg-aurora-electric-purple/10"
-                >
-                  <BookOpen className="h-4 w-4" />
-                  Ver como Blog
-                </Button>
-              )}
-              
-              {/* Mobile Tab Switcher */}
-              <div className="flex lg:hidden">
-                <Button
-                  variant={activeTab === 'content' ? 'default' : 'ghost'}
-                  size="sm"
-                  onClick={() => setActiveTab('content')}
-                  className="aurora-button-enhanced mr-2"
-                >
-                  <FileText className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant={activeTab === 'chat' ? 'default' : 'ghost'}
-                  size="sm"
-                  onClick={() => setActiveTab('chat')}
-                  className="aurora-button-enhanced"
-                >
-                  <MessageCircle className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
           </div>
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="relative z-10 container mx-auto px-6 py-6 h-[calc(100vh-80px)]">
-        <div className="h-full grid grid-cols-1 lg:grid-cols-3 gap-6">
-          
-          {/* Content Panel */}
-          <div className={`lg:col-span-2 ${activeTab === 'content' ? 'block' : 'hidden lg:block'} space-y-6 overflow-y-auto pr-2 aurora-scrollbar`}>
-            
-            {/* Status and Equipment Info */}
+      {/* Tab Navigation */}
+      <div className="relative z-10 border-b border-slate-700/30">
+        <div className="container mx-auto px-6">
+          <div className="flex space-x-0">
+            <Button
+              variant={activeTab === 'article' ? 'default' : 'ghost'}
+              onClick={() => setActiveTab('article')}
+              className={`rounded-none border-b-2 ${
+                activeTab === 'article' 
+                  ? 'border-aurora-electric-purple bg-aurora-electric-purple/10 text-aurora-electric-purple' 
+                  : 'border-transparent text-slate-400 hover:text-white hover:bg-slate-800/50'
+              }`}
+            >
+              <BookOpen className="h-4 w-4 mr-2" />
+              ARTIGO
+            </Button>
+            <Button
+              variant={activeTab === 'pdf' ? 'default' : 'ghost'}
+              onClick={() => setActiveTab('pdf')}
+              className={`rounded-none border-b-2 ${
+                activeTab === 'pdf' 
+                  ? 'border-aurora-cyan bg-aurora-cyan/10 text-aurora-cyan' 
+                  : 'border-transparent text-slate-400 hover:text-white hover:bg-slate-800/50'
+              }`}
+            >
+              <FileText className="h-4 w-4 mr-2" />
+              PDF
+            </Button>
+            <Button
+              variant={activeTab === 'chat' ? 'default' : 'ghost'}
+              onClick={() => setActiveTab('chat')}
+              className={`rounded-none border-b-2 ${
+                activeTab === 'chat' 
+                  ? 'border-aurora-emerald bg-aurora-emerald/10 text-aurora-emerald' 
+                  : 'border-transparent text-slate-400 hover:text-white hover:bg-slate-800/50'
+              }`}
+            >
+              <MessageCircle className="h-4 w-4 mr-2" />
+              CHAT AI
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* Tab Content */}
+      <div className="relative z-10 container mx-auto px-6 py-6 h-[calc(100vh-140px)]">
+        {/* Article Tab */}
+        {activeTab === 'article' && (
+          <div className="h-full overflow-y-auto aurora-scrollbar">
+            <ArticleBlogView article={article} onClose={onClose} />
+          </div>
+        )}
+
+        {/* PDF Tab */}
+        {activeTab === 'pdf' && (
+          <div className="h-full space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 aurora-animate-fade-in">
               <Card className="aurora-glass-enhanced border-aurora-electric-purple/30 aurora-animate-scale">
                 <CardContent className="p-4">
@@ -144,12 +156,12 @@ const ScientificArticleDetailView: React.FC<ScientificArticleDetailViewProps> = 
 
             {/* PDF Viewer */}
             {fullFileUrl && (
-              <Card className="aurora-glass-enhanced border-aurora-cyan/30 aurora-animate-fade-in">
+              <Card className="aurora-glass-enhanced border-aurora-cyan/30 flex-1 aurora-animate-fade-in">
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between">
                     <CardTitle className="flex items-center gap-2 aurora-text-gradient-enhanced">
                       <FileText className="h-5 w-5 text-aurora-cyan" />
-                      Visualização do PDF
+                      Documento PDF
                     </CardTitle>
                     <div className="flex gap-2">
                       <Button
@@ -159,7 +171,7 @@ const ScientificArticleDetailView: React.FC<ScientificArticleDetailViewProps> = 
                         className="border-aurora-cyan/30 text-aurora-cyan hover:bg-aurora-cyan/10"
                       >
                         <LinkIcon className="h-4 w-4 mr-2" />
-                        Abrir Original
+                        Abrir em Nova Aba
                       </Button>
                       <Button
                         variant="outline"
@@ -172,9 +184,9 @@ const ScientificArticleDetailView: React.FC<ScientificArticleDetailViewProps> = 
                     </div>
                   </div>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="flex-1">
                   <div className={`rounded-lg overflow-hidden border border-aurora-cyan/20 transition-all duration-300 ${
-                    isPdfExpanded ? 'h-[80vh]' : 'h-96'
+                    isPdfExpanded ? 'h-[calc(100vh-300px)]' : 'h-[500px]'
                   }`}>
                     <iframe
                       src={`${fullFileUrl}#toolbar=1&navpanes=1&scrollbar=1`}
@@ -186,89 +198,22 @@ const ScientificArticleDetailView: React.FC<ScientificArticleDetailViewProps> = 
               </Card>
             )}
 
-            {/* Abstract */}
-            {article.texto_completo && (
-              <Card className="aurora-glass-enhanced border-aurora-electric-purple/30 aurora-animate-fade-in">
-                <CardHeader className="pb-3">
-                  <CardTitle className="flex items-center gap-2 aurora-text-gradient-enhanced">
-                    <Paperclip className="h-5 w-5 text-aurora-electric-purple" />
-                    Abstract / Resumo
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="prose prose-invert max-w-none">
-                    <p className="text-slate-300 leading-relaxed whitespace-pre-wrap">
-                      {article.texto_completo}
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Authors */}
-            {article.autores && article.autores.length > 0 && (
-              <Card className="aurora-glass-enhanced border-aurora-neon-blue/30 aurora-animate-fade-in">
-                <CardHeader className="pb-3">
-                  <CardTitle className="flex items-center gap-2 aurora-text-gradient-enhanced">
-                    <Users className="h-5 w-5 text-aurora-neon-blue" />
-                    Autores / Pesquisadores
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex flex-wrap gap-2">
-                    {article.autores.map((author, index) => (
-                      <Badge 
-                        key={index} 
-                        variant="secondary" 
-                        className="bg-aurora-neon-blue/20 text-aurora-neon-blue border-aurora-neon-blue/30 aurora-animate-scale hover:scale-105 transition-transform cursor-pointer"
-                      >
-                        {author}
-                      </Badge>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Keywords */}
-            {article.palavras_chave && article.palavras_chave.length > 0 && (
-              <Card className="aurora-glass-enhanced border-aurora-emerald/30 aurora-animate-fade-in">
-                <CardHeader className="pb-3">
-                  <CardTitle className="flex items-center gap-2 aurora-text-gradient-enhanced">
-                    <TagIcon className="h-5 w-5 text-aurora-emerald" />
-                    Palavras-chave
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex flex-wrap gap-2">
-                    {article.palavras_chave.map((keyword, index) => (
-                      <Badge 
-                        key={index} 
-                        variant="secondary" 
-                        className="bg-aurora-emerald/20 text-aurora-emerald border-aurora-emerald/30 aurora-animate-scale hover:scale-105 transition-transform cursor-pointer"
-                      >
-                        {keyword}
-                      </Badge>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
             {/* Technical Details */}
             <Card className="aurora-glass-enhanced border-slate-600/30 aurora-animate-fade-in">
               <CardHeader className="pb-3">
-                <CardTitle className="aurora-text-gradient-enhanced">Detalhes Técnicos</CardTitle>
+                <CardTitle className="aurora-text-gradient-enhanced">Informações do Documento</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                   <div className="space-y-2">
                     <div>
-                      <span className="text-slate-400 font-medium">Tipo de Documento:</span>
+                      <span className="text-slate-400 font-medium">Tipo:</span>
                       <Badge variant="outline" className="ml-2 border-aurora-electric-purple/30 text-aurora-electric-purple">
-                        {article.tipo_documento}
+                        {article.tipo_documento?.replace('_', ' ').toUpperCase()}
                       </Badge>
                     </div>
+                  </div>
+                  <div className="space-y-2">
                     <div>
                       <span className="text-slate-400 font-medium">Data de Upload:</span>
                       <span className="text-slate-300 ml-2">
@@ -278,19 +223,11 @@ const ScientificArticleDetailView: React.FC<ScientificArticleDetailViewProps> = 
                   </div>
                   <div className="space-y-2">
                     <div>
-                      <span className="text-slate-400 font-medium">ID do Documento:</span>
+                      <span className="text-slate-400 font-medium">ID:</span>
                       <code className="text-xs bg-slate-800/50 px-2 py-1 rounded ml-2 text-aurora-cyan">
                         {article.id.substring(0, 8)}...
                       </code>
                     </div>
-                    {article.file_path && (
-                      <div>
-                        <span className="text-slate-400 font-medium">Arquivo:</span>
-                        <span className="text-xs text-slate-500 ml-2 truncate block">
-                          {article.file_path}
-                        </span>
-                      </div>
-                    )}
                   </div>
                 </div>
                 
@@ -304,14 +241,14 @@ const ScientificArticleDetailView: React.FC<ScientificArticleDetailViewProps> = 
               </CardContent>
             </Card>
           </div>
+        )}
 
-          {/* Chat Panel */}
-          <div className={`lg:col-span-1 ${activeTab === 'chat' ? 'block' : 'hidden lg:block'} h-full`}>
-            <div className="h-full aurora-animate-fade-in">
-              <ArticleChatInterface article={article} />
-            </div>
+        {/* Chat Tab */}
+        {activeTab === 'chat' && (
+          <div className="h-full aurora-animate-fade-in">
+            <ArticleChatInterface article={article} />
           </div>
-        </div>
+        )}
       </div>
     </div>
   );
