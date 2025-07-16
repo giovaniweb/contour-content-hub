@@ -14,8 +14,8 @@ import ScientificArticleHeader from './components/ScientificArticleHeader';
 // ScientificArticleControls and ScientificArticleFilters are not used, consider removing if part of old cleanup
 // import ScientificArticleControls from './components/ScientificArticleControls';
 // import ScientificArticleFilters from './components/ScientificArticleFilters';
-import ScientificArticleDetailView from './components/ScientificArticleDetailView';
-import { Dialog, DialogContent } from "@/components/ui/dialog"; // For the detail view modal
+import ScientificArticleViewer from '@/components/scientific-articles/ScientificArticleViewer';
+
 import { DocumentTypeEnum, UnifiedDocument } from '@/types/document';
 
 
@@ -25,7 +25,6 @@ const EnhancedScientificArticleManager: React.FC = () => {
   const [selectedEquipment, setSelectedEquipment] = useState('all');
   const [isFormDialogOpen, setIsFormDialogOpen] = useState(false); // Renamed for clarity
   const [documentToEdit, setDocumentToEdit] = useState<UnifiedDocument | null>(null); // Typed and renamed
-  const [isDetailViewOpen, setIsDetailViewOpen] = useState(false);
   const [documentToView, setDocumentToView] = useState<UnifiedDocument | null>(null);
   const [isFilterExpanded, setIsFilterExpanded] = useState(false);
 
@@ -68,7 +67,6 @@ const EnhancedScientificArticleManager: React.FC = () => {
 
   const handleViewDocument = (document: UnifiedDocument) => {
     setDocumentToView(document);
-    setIsDetailViewOpen(true);
   };
 
 
@@ -297,15 +295,13 @@ const EnhancedScientificArticleManager: React.FC = () => {
         articleData={documentToEdit}
       />
 
-      {/* Detail View Dialog */}
-      <Dialog open={isDetailViewOpen} onOpenChange={setIsDetailViewOpen}>
-        <DialogContent className="max-w-3xl p-0 border-aurora-electric-purple/30 aurora-glass overflow-hidden">
-          <ScientificArticleDetailView
-            article={documentToView}
-            onClose={() => setIsDetailViewOpen(false)}
-          />
-        </DialogContent>
-      </Dialog>
+      {/* Detail View */}
+      {documentToView && (
+        <ScientificArticleViewer 
+          articleId={documentToView.id} 
+          onBack={() => setDocumentToView(null)} 
+        />
+      )}
 
       </div>
     </div>
