@@ -3,16 +3,17 @@ import { UnifiedDocument } from '@/types/document';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Download, Link as LinkIcon, Paperclip, Users, Tag as TagIcon, Building, MessageCircle, FileText, Maximize2, Minimize2 } from 'lucide-react';
+import { Download, Link as LinkIcon, Paperclip, Users, Tag as TagIcon, Building, MessageCircle, FileText, Maximize2, Minimize2, BookOpen } from 'lucide-react';
 import { SUPABASE_BASE_URL } from '@/integrations/supabase/client';
 import ArticleChatInterface from '@/components/scientific-articles/ArticleChatInterface';
 
 interface ScientificArticleDetailViewProps {
   article: UnifiedDocument | null;
   onClose: () => void;
+  onOpenBlogView?: (article: UnifiedDocument) => void;
 }
 
-const ScientificArticleDetailView: React.FC<ScientificArticleDetailViewProps> = ({ article, onClose }) => {
+const ScientificArticleDetailView: React.FC<ScientificArticleDetailViewProps> = ({ article, onClose, onOpenBlogView }) => {
   const [isPdfExpanded, setIsPdfExpanded] = useState(false);
   const [activeTab, setActiveTab] = useState<'content' | 'chat'>('content');
 
@@ -60,24 +61,40 @@ const ScientificArticleDetailView: React.FC<ScientificArticleDetailViewProps> = 
               </h1>
             </div>
             
-            {/* Mobile Tab Switcher */}
-            <div className="flex lg:hidden">
-              <Button
-                variant={activeTab === 'content' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => setActiveTab('content')}
-                className="aurora-button-enhanced mr-2"
-              >
-                <FileText className="h-4 w-4" />
-              </Button>
-              <Button
-                variant={activeTab === 'chat' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => setActiveTab('chat')}
-                className="aurora-button-enhanced"
-              >
-                <MessageCircle className="h-4 w-4" />
-              </Button>
+            {/* Action Buttons and Mobile Tab Switcher */}
+            <div className="flex items-center gap-2">
+              {/* Blog View Button */}
+              {onOpenBlogView && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => onOpenBlogView(article)}
+                  className="hidden lg:flex items-center gap-2 border-aurora-electric-purple/30 text-aurora-electric-purple hover:bg-aurora-electric-purple/10"
+                >
+                  <BookOpen className="h-4 w-4" />
+                  Ver como Blog
+                </Button>
+              )}
+              
+              {/* Mobile Tab Switcher */}
+              <div className="flex lg:hidden">
+                <Button
+                  variant={activeTab === 'content' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setActiveTab('content')}
+                  className="aurora-button-enhanced mr-2"
+                >
+                  <FileText className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant={activeTab === 'chat' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setActiveTab('chat')}
+                  className="aurora-button-enhanced"
+                >
+                  <MessageCircle className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
           </div>
         </div>

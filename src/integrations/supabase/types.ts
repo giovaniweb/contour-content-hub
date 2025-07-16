@@ -1880,6 +1880,7 @@ export type Database = {
           raw_text: string | null
           status_processamento: string
           texto_completo: string | null
+          thumbnail_url: string | null
           tipo_documento: string
           titulo_extraido: string | null
           updated_at: string
@@ -1897,6 +1898,7 @@ export type Database = {
           raw_text?: string | null
           status_processamento?: string
           texto_completo?: string | null
+          thumbnail_url?: string | null
           tipo_documento: string
           titulo_extraido?: string | null
           updated_at?: string
@@ -1914,6 +1916,7 @@ export type Database = {
           raw_text?: string | null
           status_processamento?: string
           texto_completo?: string | null
+          thumbnail_url?: string | null
           tipo_documento?: string
           titulo_extraido?: string | null
           updated_at?: string

@@ -32,9 +32,9 @@ serve(async (req) => {
     // Initialize Supabase client with service role key
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
-    // Get document from database
+    // Get document from unified_documents table
     const { data: document, error: docError } = await supabase
-      .from('documentos_tecnicos')
+      .from('unified_documents')
       .select('*')
       .eq('id', documentId)
       .single();
@@ -46,20 +46,15 @@ serve(async (req) => {
       );
     }
 
-    if (!document.conteudo_extraido) {
+    if (!document.texto_completo && !document.raw_text) {
       return new Response(
-        JSON.stringify({ error: 'Document has no extracted content to translate' }),
+        JSON.stringify({ error: 'Document has no content to translate' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Check if already translated to this language
-    if (document.idiomas_traduzidos?.includes(targetLanguage)) {
-      return new Response(
-        JSON.stringify({ error: 'Document is already translated to this language' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
+    // Get the content to translate (prefer texto_completo, fallback to raw_text)
+    const contentToTranslate = document.texto_completo || document.raw_text;
 
     // Get language names for prompt
     const getLanguageName = (code: string) => {
@@ -67,12 +62,16 @@ serve(async (req) => {
         case 'pt': return 'Portuguese';
         case 'en': return 'English';
         case 'es': return 'Spanish';
+        case 'fr': return 'French';
+        case 'it': return 'Italian';
+        case 'de': return 'German';
         default: return code;
       }
     };
 
-    const sourceLanguageName = getLanguageName(document.idioma_original);
     const targetLanguageName = getLanguageName(targetLanguage);
+
+    console.log(`🌐 Translating document to ${targetLanguageName}...`);
 
     // Use OpenAI to translate the document content
     const translationResponse = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -86,21 +85,30 @@ serve(async (req) => {
         messages: [
           {
             role: 'system',
-            content: `You are a professional translator. Translate the following text from ${sourceLanguageName} to ${targetLanguageName}.
-                     Maintain the original formatting, including paragraphs, bullet points, and any special markers.
-                     Preserve all technical terms and proper names.
-                     Your translation should sound natural and professional in ${targetLanguageName}.`
+            content: `You are a professional translator specializing in scientific articles. 
+                     Translate the following academic content to ${targetLanguageName}.
+                     
+                     Guidelines:
+                     - Maintain the academic tone and technical terminology
+                     - Preserve the structure and formatting
+                     - Keep proper names and citations intact
+                     - Make the translation natural and professional in ${targetLanguageName}
+                     - Preserve any references, equations, or technical notation
+                     
+                     Return only the translated text without any additional comments.`
           },
           {
             role: 'user',
-            content: document.conteudo_extraido
+            content: contentToTranslate
           }
         ],
+        temperature: 0.2,
       }),
     });
 
     if (!translationResponse.ok) {
       const errorData = await translationResponse.json();
+      console.error('❌ OpenAI translation error:', errorData);
       return new Response(
         JSON.stringify({ error: 'Failed to translate document', details: errorData }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -110,81 +118,16 @@ serve(async (req) => {
     const translationData = await translationResponse.json();
     const translatedContent = translationData.choices[0].message.content;
 
-    // Get user ID from JWT token
-    const authHeader = req.headers.get('Authorization');
-    let userId = null;
-
-    if (authHeader) {
-      const token = authHeader.replace('Bearer ', '');
-      const { data: userData, error: userError } = await supabase.auth.getUser(token);
-      
-      if (!userError && userData?.user) {
-        userId = userData.user.id;
-      }
-    }
-
-    // Create a new translation document
-    const translationDocumentData = {
-      titulo: `[${targetLanguage.toUpperCase()}] ${document.titulo}`,
-      descricao: document.descricao,
-      tipo: document.tipo,
-      equipamento_id: document.equipamento_id,
-      link_dropbox: document.link_dropbox,
-      idioma_original: targetLanguage,
-      conteudo_extraido: translatedContent,
-      status: 'ativo',
-      criado_por: userId || document.criado_por,
-      documento_original_id: document.id
-    };
-
-    // Store translation in database
-    const { data: translationDoc, error: translationInsertError } = await supabase
-      .from('documentos_tecnicos')
-      .insert(translationDocumentData)
-      .select()
-      .single();
-
-    if (translationInsertError) {
-      return new Response(
-        JSON.stringify({ error: 'Failed to store translation', details: translationInsertError }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    // Update original document with new translation language
-    const updatedLanguages = [...(document.idiomas_traduzidos || []), targetLanguage];
-    
-    const { error: updateError } = await supabase
-      .from('documentos_tecnicos')
-      .update({
-        idiomas_traduzidos: updatedLanguages
-      })
-      .eq('id', documentId);
-
-    if (updateError) {
-      return new Response(
-        JSON.stringify({ error: 'Failed to update document languages', details: updateError }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    // Log translation in document access history
-    if (userId) {
-      await supabase
-        .from('document_access_history')
-        .insert({
-          document_id: documentId,
-          user_id: userId,
-          action_type: 'translate',
-          details: { targetLanguage, translationDocId: translationDoc.id }
-        });
-    }
+    console.log('✅ Translation completed successfully');
 
     return new Response(
       JSON.stringify({ 
         success: true,
-        message: `Document translated to ${targetLanguageName}`,
-        translationId: translationDoc.id
+        translatedContent,
+        targetLanguage,
+        targetLanguageName,
+        originalTitle: document.titulo_extraido,
+        message: `Document translated to ${targetLanguageName}`
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

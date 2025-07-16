@@ -35,6 +35,7 @@ export interface UnifiedDocument {
   detalhes_erro: string | null;    // TEXT
   created_at: string;              // TIMESTAMPTZ
   updated_at: string;              // TIMESTAMPTZ
+  thumbnail_url: string | null;    // TEXT, URL for article thumbnail
 
   // Optional joined fields (like from 'equipamentos' table)
   equipamento_nome?: string | null;

@@ -14,7 +14,8 @@ import ScientificArticleHeader from './components/ScientificArticleHeader';
 // ScientificArticleControls and ScientificArticleFilters are not used, consider removing if part of old cleanup
 // import ScientificArticleControls from './components/ScientificArticleControls';
 // import ScientificArticleFilters from './components/ScientificArticleFilters';
-import ScientificArticleDetailView from './components/ScientificArticleDetailView'; // Import the new detail view
+import ScientificArticleDetailView from './components/ScientificArticleDetailView';
+import ArticleBlogView from './components/ArticleBlogView';
 import { Dialog, DialogContent } from "@/components/ui/dialog"; // For the detail view modal
 import { DocumentTypeEnum, UnifiedDocument } from '@/types/document';
 
@@ -27,6 +28,8 @@ const EnhancedScientificArticleManager: React.FC = () => {
   const [documentToEdit, setDocumentToEdit] = useState<UnifiedDocument | null>(null); // Typed and renamed
   const [isDetailViewOpen, setIsDetailViewOpen] = useState(false);
   const [documentToView, setDocumentToView] = useState<UnifiedDocument | null>(null);
+  const [isBlogViewOpen, setIsBlogViewOpen] = useState(false);
+  const [documentToBlogView, setDocumentToBlogView] = useState<UnifiedDocument | null>(null);
   const [isFilterExpanded, setIsFilterExpanded] = useState(false);
 
   const { equipments } = useEquipments();
@@ -69,6 +72,11 @@ const EnhancedScientificArticleManager: React.FC = () => {
   const handleViewDocument = (document: UnifiedDocument) => {
     setDocumentToView(document);
     setIsDetailViewOpen(true);
+  };
+
+  const handleOpenBlogView = (document: UnifiedDocument) => {
+    setDocumentToBlogView(document);
+    setIsBlogViewOpen(true);
   };
 
   const handleDeleteDocument = async (documentId: string) => {
@@ -299,11 +307,23 @@ const EnhancedScientificArticleManager: React.FC = () => {
       {/* Detail View Dialog */}
       <Dialog open={isDetailViewOpen} onOpenChange={setIsDetailViewOpen}>
         <DialogContent className="max-w-3xl p-0 border-aurora-electric-purple/30 aurora-glass overflow-hidden">
-          {/* The ScientificArticleDetailView itself handles scrolling */}
           <ScientificArticleDetailView
             article={documentToView}
             onClose={() => setIsDetailViewOpen(false)}
+            onOpenBlogView={handleOpenBlogView}
           />
+        </DialogContent>
+      </Dialog>
+
+      {/* Blog View Dialog */}
+      <Dialog open={isBlogViewOpen} onOpenChange={setIsBlogViewOpen}>
+        <DialogContent className="max-w-5xl max-h-[90vh] p-0 border-aurora-electric-purple/30 aurora-glass overflow-y-auto">
+          {documentToBlogView && (
+            <ArticleBlogView
+              article={documentToBlogView}
+              onClose={() => setIsBlogViewOpen(false)}
+            />
+          )}
         </DialogContent>
       </Dialog>
       </div>
