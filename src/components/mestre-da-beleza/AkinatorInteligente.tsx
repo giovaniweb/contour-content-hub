@@ -23,21 +23,6 @@ interface AIStats {
   artigosConsultados: number;
 }
 
-interface GuidedQuestion {
-  id: string;
-  question: string;
-  options: string[];
-  category: 'objective' | 'bodyArea' | 'skinType' | 'budget' | 'experience';
-}
-
-interface UserProfile {
-  objective?: string;
-  bodyArea?: string;
-  skinType?: string;
-  budget?: string;
-  experience?: string;
-}
-
 const genieNames = ["Jasmin AI", "Akinario Quantum", "Mirabella Neural", "O Gênio Científico", "Aura Tech"];
 
 const AkinatorInteligente: React.FC = () => {
@@ -49,9 +34,6 @@ const AkinatorInteligente: React.FC = () => {
   const [sessionStarted, setSessionStarted] = useState(false);
   const [aiStats, setAiStats] = useState<AIStats>({ equipamentosUsados: 0, artigosConsultados: 0 });
   const [progress, setProgress] = useState(0);
-  const [guidedMode, setGuidedMode] = useState(true);
-  const [currentQuestion, setCurrentQuestion] = useState(0);
-  const [userProfile, setUserProfile] = useState<UserProfile>({});
   const genieName = useRef(genieNames[Math.floor(Math.random() * genieNames.length)]).current;
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -64,12 +46,10 @@ const AkinatorInteligente: React.FC = () => {
   const startSession = async () => {
     setSessionStarted(true);
     setIsThinking(true);
-    setGuidedMode(true);
-    setCurrentQuestion(0);
     
     const welcomeMessage: Message = {
       role: 'assistant',
-      content: `🔮 **Olá! Sou ${genieName}**\n\n• IA com base científica completa\n• Diagnóstico personalizado em 4 passos\n• Recomendações precisas\n\n**Vamos começar com algumas perguntas rápidas para te conhecer melhor!**`,
+      content: `🔮 **Olá! Sou ${genieName}**\n\n• Especialista em estética científica\n• Acesso a equipamentos e estudos\n• Diagnóstico personalizado\n\n**Qual sua principal preocupação estética?**`,
       timestamp: new Date()
     };
 
@@ -77,88 +57,7 @@ const AkinatorInteligente: React.FC = () => {
       setMessages([welcomeMessage]);
       setIsThinking(false);
       setProgress(10);
-    }, 1500);
-  };
-
-  const handleGuidedAnswer = async (answer: string, category: string) => {
-    setUserProfile(prev => ({ ...prev, [category]: answer }));
-    
-    const userMessage: Message = {
-      role: 'user',
-      content: answer,
-      timestamp: new Date()
-    };
-
-    setMessages(prev => [...prev, userMessage]);
-    setProgress(prev => Math.min(prev + 20, 80));
-    
-    if (currentQuestion < guidedQuestions.length - 1) {
-      setCurrentQuestion(prev => prev + 1);
-      setTimeout(() => {
-        const nextQuestion = guidedQuestions[currentQuestion + 1];
-        const assistantMessage: Message = {
-          role: 'assistant',
-          content: `✅ **Perfeito!**\n\n${nextQuestion.question}`,
-          timestamp: new Date()
-        };
-        setMessages(prev => [...prev, assistantMessage]);
-      }, 1000);
-    } else {
-      // Finalizar modo guiado e gerar diagnóstico
-      setGuidedMode(false);
-      setIsThinking(true);
-      
-      setTimeout(async () => {
-        try {
-          const contextMessage = `Perfil do usuário: ${Object.entries({...userProfile, [category]: answer}).map(([key, value]) => `${key}: ${value}`).join(', ')}. Com base nestas informações, forneça uma análise detalhada e recomendações específicas.`;
-          
-          const { data, error } = await supabase.functions.invoke('mestre-da-beleza-ai', {
-            body: {
-              messages: [
-                ...messages,
-                userMessage,
-                { role: 'user', content: contextMessage }
-              ].map(msg => ({
-                role: msg.role,
-                content: msg.content
-              })),
-              currentPath: 'diagnóstico_completo',
-              userProfile: user ? 'autenticado' : 'anonimo',
-              user_id: user?.id
-            }
-          });
-
-          if (error) throw error;
-
-          const finalMessage: Message = {
-            role: 'assistant',
-            content: `🎯 **Diagnóstico Completo**\n\n${data.content}\n\n**💬 Agora você pode fazer perguntas específicas ou solicitar mais detalhes!**`,
-            timestamp: new Date()
-          };
-
-          setMessages(prev => [...prev, finalMessage]);
-          setProgress(100);
-          
-          if (data.equipamentosUsados !== undefined && data.artigosConsultados !== undefined) {
-            setAiStats({
-              equipamentosUsados: data.equipamentosUsados,
-              artigosConsultados: data.artigosConsultados
-            });
-          }
-        } catch (error) {
-          console.error('❌ Erro no diagnóstico:', error);
-          const errorMessage: Message = {
-            role: 'assistant',
-            content: `😔 **Erro no diagnóstico.** Vou ajudar você de forma livre. Pode fazer suas perguntas!`,
-            timestamp: new Date()
-          };
-          setMessages(prev => [...prev, errorMessage]);
-          setGuidedMode(false);
-        } finally {
-          setIsThinking(false);
-        }
-      }, 2000);
-    }
+    }, 2000);
   };
 
   const sendMessage = async (message?: string) => {
@@ -174,33 +73,18 @@ const AkinatorInteligente: React.FC = () => {
     setMessages(prev => [...prev, newUserMessage]);
     setCurrentInput('');
     setIsThinking(true);
-    setProgress(prev => Math.min(prev + 10, 95));
+    setProgress(prev => Math.min(prev + 15, 95));
 
     try {
       console.log('🧠 [AkinatorInteligente] Enviando mensagem para IA...');
       
-      const contextualMessages = [
-        ...messages,
-        newUserMessage
-      ];
-      
-      // Adicionar contexto do perfil se existir
-      if (Object.keys(userProfile).length > 0) {
-        const profileContext = `Contexto do usuário: ${Object.entries(userProfile).map(([key, value]) => `${key}: ${value}`).join(', ')}`;
-        contextualMessages.unshift({
-          role: 'assistant',
-          content: profileContext,
-          timestamp: new Date()
-        });
-      }
-      
       const { data, error } = await supabase.functions.invoke('mestre-da-beleza-ai', {
         body: {
-          messages: contextualMessages.map(msg => ({
+          messages: [...messages, newUserMessage].map(msg => ({
             role: msg.role,
             content: msg.content
           })),
-          currentPath: `conversa_${messages.length}`,
+          currentPath: `consulta_${messages.length}`,
           userProfile: user ? 'autenticado' : 'anonimo',
           user_id: user?.id
         }
@@ -218,6 +102,7 @@ const AkinatorInteligente: React.FC = () => {
 
       setMessages(prev => [...prev, assistantMessage]);
       
+      // Atualizar estatísticas da IA
       if (data.equipamentosUsados !== undefined && data.artigosConsultados !== undefined) {
         setAiStats({
           equipamentosUsados: data.equipamentosUsados,
@@ -250,44 +135,14 @@ const AkinatorInteligente: React.FC = () => {
   const resetSession = () => {
     setMessages([]);
     setSessionStarted(false);
-    setGuidedMode(true);
-    setCurrentQuestion(0);
-    setUserProfile({});
     setProgress(0);
     setAiStats({ equipamentosUsados: 0, artigosConsultados: 0 });
     setCurrentInput('');
   };
 
-  const guidedQuestions: GuidedQuestion[] = [
-    {
-      id: 'objective',
-      question: '🎯 Qual seu principal objetivo estético?',
-      options: ['Rejuvenescimento', 'Contorno Corporal', 'Tratamento Facial', 'Redução de Gordura', 'Melhoria da Pele'],
-      category: 'objective'
-    },
-    {
-      id: 'bodyArea',
-      question: '📍 Qual área deseja tratar?',
-      options: ['Rosto/Pescoço', 'Abdômen', 'Coxas/Glúteos', 'Braços', 'Corpo Todo'],
-      category: 'bodyArea'
-    },
-    {
-      id: 'skinType',
-      question: '✨ Como você descreveria sua pele?',
-      options: ['Oleosa', 'Seca', 'Mista', 'Sensível', 'Normal'],
-      category: 'skinType'
-    },
-    {
-      id: 'budget',
-      question: '💰 Qual seu orçamento previsto?',
-      options: ['Até R$ 500', 'R$ 500-1500', 'R$ 1500-3000', 'Acima R$ 3000', 'Sem limite'],
-      category: 'budget'
-    }
-  ];
-
   const quickQuestions = [
     "Quero tratar flacidez no rosto",
-    "Tenho gordura localizada na barriga", 
+    "Tenho gordura localizada na barriga",
     "Preciso reduzir celulite",
     "Quero definir o contorno facial",
     "Tenho manchas na pele"
@@ -456,30 +311,8 @@ const AkinatorInteligente: React.FC = () => {
                     <div ref={messagesEndRef} />
                   </div>
 
-                  {/* Guided Questions */}
-                  {guidedMode && messages.length > 0 && !isThinking && currentQuestion < guidedQuestions.length && (
-                    <div className="mb-4">
-                      <div className="text-xs text-purple-300 mb-2">📋 Escolha uma opção:</div>
-                      <div className="grid grid-cols-1 gap-2">
-                        {guidedQuestions[currentQuestion].options.map((option, index) => (
-                          <Button
-                            key={index}
-                            variant="outline"
-                            onClick={() => handleGuidedAnswer(option, guidedQuestions[currentQuestion].category)}
-                            className="justify-start text-sm bg-purple-800/20 hover:bg-purple-700/40 border-purple-500/30 text-purple-200 h-10 transition-all duration-200"
-                          >
-                            <span className="w-6 h-6 rounded-full bg-cyan-500/20 text-cyan-300 text-xs flex items-center justify-center mr-3">
-                              {index + 1}
-                            </span>
-                            {option}
-                          </Button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Quick Questions for Free Chat */}
-                  {!guidedMode && messages.length >= 2 && messages[messages.length - 1].content.includes('perguntas específicas') && !isThinking && (
+                  {/* Quick Questions */}
+                  {messages.length === 1 && !isThinking && (
                     <div className="mb-4">
                       <div className="text-xs text-purple-300 mb-2">💡 Sugestões:</div>
                       <div className="flex flex-wrap gap-1.5">
@@ -498,27 +331,25 @@ const AkinatorInteligente: React.FC = () => {
                     </div>
                   )}
 
-                  {/* Input - Only show when not in guided mode or after guided questions */}
-                  {(!guidedMode || currentQuestion >= guidedQuestions.length) && (
-                    <div className="flex gap-2">
-                      <input
-                        type="text"
-                        value={currentInput}
-                        onChange={(e) => setCurrentInput(e.target.value)}
-                        onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
-                        placeholder={guidedMode ? "Aguarde as perguntas guiadas..." : "Faça sua pergunta específica..."}
-                        disabled={isThinking || guidedMode}
-                        className="flex-1 p-3 rounded-lg bg-purple-900/30 border border-purple-500/30 text-white text-sm placeholder-purple-300 focus:outline-none focus:border-cyan-400 disabled:opacity-50"
-                      />
-                      <Button
-                        onClick={() => sendMessage()}
-                        disabled={!currentInput.trim() || isThinking || guidedMode}
-                        className="bg-gradient-to-r from-cyan-600 to-purple-600 hover:from-cyan-700 hover:to-purple-700"
-                      >
-                        <ArrowRight className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  )}
+                  {/* Input */}
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={currentInput}
+                      onChange={(e) => setCurrentInput(e.target.value)}
+                      onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
+                      placeholder="Descreva sua preocupação..."
+                      disabled={isThinking}
+                      className="flex-1 p-3 rounded-lg bg-purple-900/30 border border-purple-500/30 text-white text-sm placeholder-purple-300 focus:outline-none focus:border-cyan-400 disabled:opacity-50"
+                    />
+                    <Button
+                      onClick={() => sendMessage()}
+                      disabled={!currentInput.trim() || isThinking}
+                      className="bg-gradient-to-r from-cyan-600 to-purple-600 hover:from-cyan-700 hover:to-purple-700"
+                    >
+                      <ArrowRight className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
 
