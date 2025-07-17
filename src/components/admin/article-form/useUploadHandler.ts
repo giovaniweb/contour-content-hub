@@ -96,9 +96,7 @@ export const useUploadHandler = ({
     
     if (!file) {
       const errorMsg = "Nenhum arquivo selecionado. Por favor, selecione um arquivo PDF para upload.";
-      toast.error("Nenhum arquivo selecionado", {
-        description: "Por favor, selecione um arquivo PDF para upload."
-      });
+      console.log(`[${instanceId.current}] No file error:`, errorMsg);
       setUploadError(errorMsg);
       onError(errorMsg);
       return false;
