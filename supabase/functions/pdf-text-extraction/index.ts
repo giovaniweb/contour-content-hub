@@ -57,89 +57,122 @@ serve(async (req) => {
       console.log('🤖 [PDF Text Extraction] Tentando extração com IA');
       
       try {
-        // Converter para base64 para enviar para OpenAI
-        const base64Content = btoa(String.fromCharCode(...pdfBuffer));
+        // Primeira tentativa: extrair texto simples do PDF usando técnicas básicas
+        let extractedText = '';
         
-        const aiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${openAIApiKey}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            model: 'gpt-4o',
-            messages: [
-              {
-                role: 'system',
-                content: `Você é um assistente especializado em extrair informações de documentos científicos em PDF. 
-                Analise o documento e extraia:
-                1. Título principal do artigo
-                2. Autores (lista completa)
-                3. Resumo/Abstract
-                4. Palavras-chave
-                5. Texto completo estruturado
-                
-                Retorne APENAS um JSON válido com esta estrutura:
+        try {
+          // Converter PDF buffer para string (tentativa simples de extração de texto)
+          const pdfString = String.fromCharCode(...pdfBuffer);
+          
+          // Procurar por texto legível no PDF (entre caracteres de controle)
+          const textMatches = pdfString.match(/[A-Za-z0-9\s\.,;:!?\-()]+/g);
+          if (textMatches) {
+            extractedText = textMatches
+              .filter(text => text.trim().length > 10) // Filtrar fragmentos muito pequenos
+              .join(' ')
+              .replace(/\s+/g, ' ') // Normalizar espaços
+              .trim()
+              .substring(0, 6000); // Limitar tamanho
+          }
+          
+          console.log('📝 [PDF Text Extraction] Texto extraído do PDF:', extractedText.length, 'caracteres');
+        } catch (extractError) {
+          console.warn('⚠️ [PDF Text Extraction] Erro na extração de texto do PDF:', extractError);
+          extractedText = `Arquivo PDF: ${file_name}. Conteúdo requer análise manual.`;
+        }
+        
+        // Se conseguimos extrair texto, usar IA para analisar
+        if (extractedText.length > 50) {
+          const aiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${openAIApiKey}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              model: 'gpt-4o',
+              messages: [
                 {
-                  "title": "título extraído",
-                  "authors": ["autor1", "autor2"],
-                  "content": "resumo/abstract do artigo",
-                  "conclusion": "conclusão principal",
-                  "keywords": ["palavra1", "palavra2"],
-                  "rawText": "texto completo extraído"
-                }`
-              },
-              {
-                role: 'user',
-                content: `Analise este documento PDF e extraia as informações científicas principais. Nome do arquivo: ${file_name}`
-              }
-            ],
-            max_tokens: 4000,
-            temperature: 0.1
-          }),
-        });
+                  role: 'system',
+                  content: `Você é um assistente especializado em extrair informações de documentos científicos. 
+                  Analise o texto fornecido e extraia:
+                  1. Título principal do artigo
+                  2. Autores (lista completa)
+                  3. Resumo/Abstract
+                  4. Palavras-chave
+                  5. Conclusão principal
+                  
+                  Retorne APENAS um JSON válido com esta estrutura:
+                  {
+                    "title": "título extraído",
+                    "authors": ["autor1", "autor2"],
+                    "content": "resumo/abstract do artigo",
+                    "conclusion": "conclusão principal",
+                    "keywords": ["palavra1", "palavra2"],
+                    "rawText": "texto completo fornecido"
+                  }`
+                },
+                {
+                  role: 'user',
+                  content: `Analise este texto extraído de um documento científico PDF e extraia as informações principais:
+                  
+                  Nome do arquivo: ${file_name}
+                  
+                  Texto extraído:
+                  ${extractedText}`
+                }
+              ],
+              max_tokens: 4000,
+              temperature: 0.1
+            }),
+          });
 
-        if (aiResponse.ok) {
-          const aiData = await aiResponse.json();
-          const extractedContent = aiData.choices[0].message.content;
-          
-          console.log('✅ [PDF Text Extraction] IA processou com sucesso');
-          
-          try {
-            const parsedData = JSON.parse(extractedContent);
+          if (aiResponse.ok) {
+            const aiData = await aiResponse.json();
+            const extractedContent = aiData.choices[0].message.content;
             
-            return new Response(JSON.stringify({
-              success: true,
-              title: parsedData.title || file_name.replace('.pdf', ''),
-              content: parsedData.content || 'Conteúdo extraído com sucesso',
-              conclusion: parsedData.conclusion || 'Conclusão processada',
-              keywords: parsedData.keywords || [],
-              authors: parsedData.authors || [],
-              rawText: parsedData.rawText || extractedContent
-            }), {
-              headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-            });
-          } catch (parseError) {
-            console.warn('⚠️ [PDF Text Extraction] Erro ao fazer parse do JSON da IA, usando texto bruto');
+            console.log('✅ [PDF Text Extraction] IA processou com sucesso');
             
-            return new Response(JSON.stringify({
-              success: true,
-              title: file_name.replace('.pdf', ''),
-              content: extractedContent,
-              conclusion: 'Processado com IA',
-              keywords: ['pdf', 'documento'],
-              authors: ['Extraído por IA'],
-              rawText: extractedContent
-            }), {
-              headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-            });
+            try {
+              const parsedData = JSON.parse(extractedContent);
+              
+              return new Response(JSON.stringify({
+                success: true,
+                title: parsedData.title || file_name.replace('.pdf', ''),
+                content: parsedData.content || 'Conteúdo extraído com sucesso',
+                conclusion: parsedData.conclusion || 'Conclusão processada',
+                keywords: parsedData.keywords || [],
+                authors: parsedData.authors || [],
+                rawText: parsedData.rawText || extractedContent
+              }), {
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+              });
+            } catch (parseError) {
+              console.warn('⚠️ [PDF Text Extraction] Erro ao fazer parse do JSON da IA, usando texto bruto');
+              
+              return new Response(JSON.stringify({
+                success: true,
+                title: file_name.replace('.pdf', ''),
+                content: extractedContent,
+                conclusion: 'Processado com IA',
+                keywords: ['pdf', 'documento'],
+                authors: ['Extraído por IA'],
+                rawText: extractedContent
+              }), {
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+              });
+            }
+          } else {
+            console.warn('⚠️ [PDF Text Extraction] IA falhou, usando fallback');
           }
         } else {
-          console.warn('⚠️ [PDF Text Extraction] IA falhou, usando fallback');
+          console.warn('⚠️ [PDF Text Extraction] Não foi possível extrair texto suficiente do PDF');
         }
       } catch (aiError) {
         console.error('❌ [PDF Text Extraction] Erro na IA:', aiError);
       }
+    } else {
+      console.warn('⚠️ [PDF Text Extraction] OpenAI API key não configurada');
     }
 
     // Fallback: retornar dados básicos baseados no nome do arquivo
