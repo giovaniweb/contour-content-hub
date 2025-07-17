@@ -92,7 +92,13 @@ export const useUploadHandler = ({
   }, [onReset, resetUploadState]);
   
   const handleFileUpload = useCallback(async () => {
-    console.log(`[${instanceId.current}] handleFileUpload called, file state:`, file?.name || 'no file');
+    console.log(`[${instanceId.current}] handleFileUpload called, file state:`, file?.name || 'no file', 'isProcessing:', isProcessing);
+    
+    // Prevent multiple simultaneous calls
+    if (isProcessing) {
+      console.log(`[${instanceId.current}] Already processing, ignoring duplicate call`);
+      return false;
+    }
     
     if (!file) {
       const errorMsg = "Nenhum arquivo selecionado. Por favor, selecione um arquivo PDF para upload.";
@@ -198,7 +204,7 @@ export const useUploadHandler = ({
       setIsProcessing(false);
       setProcessingProgress(null);
     }
-  }, [file, onExtractedData, onError, onReset]);
+  }, [file, onExtractedData, onError, onReset, isProcessing]); // Added isProcessing to dependencies
   
   const handleClearFile = useCallback(() => {
     console.log(`[${instanceId.current}] Clearing file`);
