@@ -1,0 +1,7 @@
+UPDATE unified_documents 
+SET 
+  titulo_extraido = 'Effects Of Cryofrequency on Localized Adiposity in Flanks',
+  texto_completo = 'Este estudo investigou os efeitos da crioterapia combinada com radiofrequência na redução da adiposidade localizada nas flancos. O objetivo foi avaliar a eficácia deste tratamento não invasivo na diminuição da gordura subcutânea e na melhoria do contorno corporal. A metodologia incluiu um ensaio clínico randomizado com participantes submetidos a sessões de crioterapia e radiofrequência, medindo-se as alterações na circunferência da cintura e na espessura da gordura subcutânea antes e após o tratamento. Os resultados demonstraram uma redução significativa na adiposidade localizada, com os participantes apresentando uma diminuição média de 3,5 cm na circunferência da cintura e uma redução na espessura da gordura subcutânea em até 30% após o protocolo de tratamento. Conclui-se que a combinação de crioterapia e radiofrequência é uma abordagem eficaz para o tratamento da adiposidade localizada nas flancos, oferecendo uma alternativa promissora para pacientes que buscam intervenções não cirúrgicas para contorno corporal.',
+  autores = ARRAY['Rodrigo Marcel Valentim da Silva', 'Manoelly Wesleyana Tavares da Silva', 'Sâmela Fernandes de Medeiros', 'Sywdixianny Silva de Brito Guerra', 'Patricia Froes Meyer'],
+  updated_at = NOW()
+WHERE id = 'c7f96f69-6616-4388-8016-46bf5a7956d5';
