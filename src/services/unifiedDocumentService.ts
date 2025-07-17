@@ -33,8 +33,27 @@ export class UnifiedDocumentService {
   }
 
   async processDocument(documentId: string): Promise<void> {
-    // This could trigger background processing
-    console.log('Processing document:', documentId);
+    try {
+      console.log('🔄 [Unified Document] Iniciando processamento do documento:', documentId);
+      
+      // Chamar a edge function para processar o documento
+      const { data, error } = await supabase.functions.invoke('process-document', {
+        body: {
+          documentId: documentId,
+          forceRefresh: true
+        }
+      });
+
+      if (error) {
+        console.error('❌ [Unified Document] Erro no processamento:', error);
+        throw new Error(`Erro no processamento do documento: ${error.message}`);
+      }
+
+      console.log('✅ [Unified Document] Processamento concluído:', data);
+    } catch (error: any) {
+      console.error('❌ [Unified Document] Erro ao processar documento:', error);
+      throw error;
+    }
   }
 
   

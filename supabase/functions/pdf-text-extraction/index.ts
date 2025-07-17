@@ -23,32 +23,64 @@ serve(async (req) => {
     const requestBody = await req.json();
     console.log('📥 [PDF-Text-Extraction] Dados recebidos:', Object.keys(requestBody));
     
-    const { file_content, extract_metadata = true } = requestBody;
+    const { file_content, file_name, use_storage = false } = requestBody;
     
     if (!file_content) {
       console.error('❌ [PDF-Text-Extraction] Conteúdo do arquivo não fornecido');
       return new Response(
-        JSON.stringify({ error: 'Conteúdo do arquivo é obrigatório' }),
+        JSON.stringify({ 
+          success: false,
+          error: 'Nenhum arquivo selecionado. Por favor, selecione um arquivo PDF para upload.' 
+        }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
     console.log('📝 [PDF-Text-Extraction] Processando conteúdo do arquivo...');
+    console.log('📁 [PDF-Text-Extraction] Usar storage:', use_storage);
+
+    let base64Content = file_content;
+
+    // Se use_storage for true, file_content é um filePath, precisamos baixar o arquivo
+    if (use_storage) {
+      console.log('📁 [PDF-Text-Extraction] Baixando arquivo do storage:', file_content);
+      
+      const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+      const { data: fileData, error: fileError } = await supabase.storage
+        .from('documents')
+        .download(file_content);
+
+      if (fileError || !fileData) {
+        console.error('❌ [PDF-Text-Extraction] Erro ao baixar arquivo:', fileError);
+        return new Response(
+          JSON.stringify({ 
+            success: false,
+            error: `Erro ao baixar arquivo: ${fileError?.message}` 
+          }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // Converter arquivo baixado para base64
+      const arrayBuffer = await fileData.arrayBuffer();
+      base64Content = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+      console.log('✅ [PDF-Text-Extraction] Arquivo convertido para base64');
+    }
 
     // Processar conteúdo com IA ou usar fallback
     let extractedInfo;
     
-    if (OPENAI_API_KEY) {
+    if (OPENAI_API_KEY && base64Content) {
       console.log('🤖 [PDF-Text-Extraction] Usando OpenAI para extração...');
       try {
-        extractedInfo = await extractWithOpenAI(file_content);
+        extractedInfo = await extractWithOpenAI(base64Content, file_name);
       } catch (openaiError: any) {
         console.warn('⚠️ [PDF-Text-Extraction] Erro OpenAI, usando fallback:', openaiError.message);
-        extractedInfo = getFallbackExtraction();
+        extractedInfo = getFallbackExtraction(file_name);
       }
     } else {
       console.log('📝 [PDF-Text-Extraction] Usando extração local (sem OpenAI)...');
-      extractedInfo = getFallbackExtraction();
+      extractedInfo = getFallbackExtraction(file_name);
     }
 
     console.log('✅ [PDF-Text-Extraction] Extração concluída com sucesso');
@@ -61,7 +93,8 @@ serve(async (req) => {
         conclusion: extractedInfo.conclusion,
         keywords: extractedInfo.keywords,
         researchers: extractedInfo.researchers || extractedInfo.authors,
-        authors: extractedInfo.authors || extractedInfo.researchers
+        authors: extractedInfo.authors || extractedInfo.researchers,
+        rawText: extractedInfo.rawText || ''
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
@@ -70,7 +103,7 @@ serve(async (req) => {
     console.error('💥 [PDF-Text-Extraction] Erro crítico:', error);
     
     // Em caso de erro, retorna dados básicos para não bloquear o usuário
-    const fallbackData = getFallbackExtraction();
+    const fallbackData = getFallbackExtraction(file_name);
     
     return new Response(
       JSON.stringify({ 
@@ -88,7 +121,7 @@ serve(async (req) => {
   }
 });
 
-async function extractWithOpenAI(base64Content: string) {
+async function extractWithOpenAI(base64Content: string, fileName?: string) {
   try {
     console.log('🔄 [OpenAI] Iniciando extração de texto do PDF...');
     
@@ -272,15 +305,27 @@ async function extractTextFromPDF(base64Content: string) {
   }
 }
 
-function getFallbackExtraction() {
+function getFallbackExtraction(fileName?: string) {
   const currentTime = new Date().toISOString().substring(11, 19);
   
+  // Extrair título do nome do arquivo se fornecido
+  let title = `Artigo Científico (${currentTime})`;
+  if (fileName) {
+    title = fileName
+      .replace('.pdf', '')
+      .replace(/_/g, ' ')
+      .replace(/^\d+\s*/, '') // Remove números no início
+      .trim();
+    title = title.charAt(0).toUpperCase() + title.slice(1);
+  }
+  
   return {
-    title: `Artigo Científico (${currentTime})`,
+    title: title,
     content: "Conteúdo do artigo científico extraído automaticamente. Este documento foi processado e está disponível para consulta e análise.",
     conclusion: "Conclusão do artigo científico. Resultados e considerações finais do estudo apresentado.",
     keywords: ["ciência", "pesquisa", "artigo", "medicina", "estudo"],
     authors: ["Autor Principal", "Pesquisador"],
-    researchers: ["Autor Principal", "Pesquisador"]
+    researchers: ["Autor Principal", "Pesquisador"],
+    rawText: ""
   };
 }

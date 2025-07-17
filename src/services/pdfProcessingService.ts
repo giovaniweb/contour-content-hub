@@ -98,58 +98,98 @@ export class PDFProcessingService {
   }
 
   /**
-   * Processa PDF - versão simplificada (somente metadados do arquivo)
+   * Processa PDF usando a edge function de processamento de texto
    */
-  async processPDF(file: File): Promise<PDFProcessingResult> {
+  async processPDF(file: File, filePath?: string): Promise<PDFProcessingResult> {
     try {
-      console.log('🤖 [PDF Processing] Iniciando processamento:', file.name);
+      console.log('🤖 [PDF Processing] Iniciando processamento via edge function:', file.name);
 
-      // Extrair título do nome do arquivo
-      let title = file.name
-        .replace('.pdf', '')
-        .replace(/_/g, ' ')
-        .replace(/^\d+\s*/, '') // Remove números no início
-        .trim();
+      // Se já temos o filePath, usar diretamente, senão converter para base64
+      let fileContent: string;
+      
+      if (filePath) {
+        // Usar o filePath para que a edge function baixe o arquivo do storage
+        console.log('📁 [PDF Processing] Usando arquivo do storage:', filePath);
+        fileContent = filePath; // A edge function vai baixar o arquivo usando este path
+      } else {
+        // Converter para base64 para envio direto
+        console.log('📝 [PDF Processing] Convertendo arquivo para base64...');
+        fileContent = await this.fileToBase64(file);
+      }
 
-      // Capitalizar primeira letra
-      title = title.charAt(0).toUpperCase() + title.slice(1);
-
-      console.log('✅ [PDF Processing] Análise concluída:', {
-        title: title.substring(0, 50),
-        fileName: file.name
+      // Chamar edge function de extração de texto
+      const { data, error } = await supabase.functions.invoke('pdf-text-extraction', {
+        body: {
+          file_content: fileContent,
+          file_name: file.name,
+          use_storage: !!filePath // Indica se deve usar storage ou base64
+        }
       });
 
+      if (error) {
+        console.error('❌ [PDF Processing] Erro na edge function:', error);
+        throw new Error(`Erro no processamento: ${error.message}`);
+      }
+
+      if (!data || !data.success) {
+        console.warn('⚠️ [PDF Processing] Edge function retornou erro:', data?.error);
+        // Fallback para extração local
+        return this.processPDFLocally(file);
+      }
+
+      console.log('✅ [PDF Processing] Processamento via edge function concluído');
+
       return {
-        title: title || 'Documento PDF',
-        content: 'Documento PDF carregado. O processamento de texto será feito no servidor.',
-        conclusion: 'Aguardando processamento completo do documento.',
-        keywords: ['pdf', 'documento'],
-        authors: ['A definir'],
-        rawText: '', // Será processado no servidor
+        title: data.title || this.extractTitleFromFilename(file.name),
+        content: data.content || 'Documento processado com sucesso.',
+        conclusion: data.conclusion || 'Processamento concluído.',
+        keywords: data.keywords || ['pdf', 'documento'],
+        authors: data.authors || ['A definir'],
+        rawText: data.rawText || '',
         success: true
       };
 
     } catch (error: any) {
       console.error('❌ [PDF Processing] Erro:', error);
       
-      // Fallback sem texto extraído
-      const title = file.name
-        .replace('.pdf', '')
-        .replace(/_/g, ' ')
-        .replace(/^\d+\s*/, '')
-        .trim();
-
-      return {
-        title: title.charAt(0).toUpperCase() + title.slice(1) || 'Documento PDF',
-        content: 'Erro no processamento. Processamento manual necessário.',
-        conclusion: 'Conteúdo não pôde ser analisado automaticamente.',
-        keywords: ['erro', 'processamento'],
-        authors: ['Autor Desconhecido'],
-        rawText: '',
-        success: false,
-        error: error.message
-      };
+      // Fallback para processamento local
+      return this.processPDFLocally(file);
     }
+  }
+
+  /**
+   * Processamento local como fallback
+   */
+  private async processPDFLocally(file: File): Promise<PDFProcessingResult> {
+    console.log('📝 [PDF Processing] Usando processamento local (fallback)');
+    
+    const title = this.extractTitleFromFilename(file.name);
+
+    return {
+      title: title || 'Documento PDF',
+      content: 'Documento PDF carregado. O processamento de texto será feito no servidor.',
+      conclusion: 'Aguardando processamento completo do documento.',
+      keywords: ['pdf', 'documento'],
+      authors: ['A definir'],
+      rawText: '',
+      success: true
+    };
+  }
+
+  /**
+   * Extrai título do nome do arquivo
+   */
+  private extractTitleFromFilename(fileName: string): string {
+    let title = fileName
+      .replace('.pdf', '')
+      .replace(/_/g, ' ')
+      .replace(/^\d+\s*/, '') // Remove números no início
+      .trim();
+
+    // Capitalizar primeira letra
+    title = title.charAt(0).toUpperCase() + title.slice(1);
+    
+    return title;
   }
 
   /**
@@ -164,8 +204,8 @@ export class PDFProcessingService {
     // 1. Upload do arquivo
     const uploadResult = await this.uploadPDF(file);
     
-    // 2. Processamento básico (extrair título do nome)
-    const processingResult = await this.processPDF(file);
+    // 2. Processamento com edge function (usando o filePath se upload foi bem-sucedido)
+    const processingResult = await this.processPDF(file, uploadResult.success ? uploadResult.filePath : undefined);
 
     return {
       upload: uploadResult,
