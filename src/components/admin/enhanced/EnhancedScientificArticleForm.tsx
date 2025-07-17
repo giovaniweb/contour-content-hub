@@ -407,7 +407,7 @@ const EnhancedScientificArticleForm: React.FC<EnhancedScientificArticleFormProps
                       form.setValue("equipamento_id", equipmentValue);
                       console.log("Equipamento selecionado:", { value, equipmentValue });
                     }}
-                    value={form.getValues("equipamento_id") || "none"}
+                    value={form.watch("equipamento_id") || "none"}
                   >
                     <SelectTrigger className="aurora-glass border-aurora-electric-purple/30 focus:border-aurora-electric-purple">
                       <SelectValue placeholder="Selecione o equipamento estudado no artigo (opcional)" />
