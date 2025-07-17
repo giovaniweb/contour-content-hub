@@ -15,7 +15,7 @@ import { UnifiedDocument } from "@/types/document";
 export const formSchema = z.object({
   titulo: z.string().min(3, { message: "Título precisa ter pelo menos 3 caracteres" }),
   descricao: z.string().optional(),
-  equipamento_id: z.string().optional(),
+  equipamento_id: z.string().optional().nullable(),
   idioma_original: z.string().default("pt"),
   link_dropbox: z.string().url({ message: "Link inválido" }).optional().or(z.literal("")),
 });
@@ -378,7 +378,7 @@ export function useScientificArticleForm({
         keywords: extractedKeywords || [],
         authors: extractedResearchers || [],
         filePath: newFilePath,
-        equipamentoId: values.equipamento_id === "none" || !values.equipamento_id ? null : values.equipamento_id,
+        equipamentoId: values.equipamento_id && values.equipamento_id !== "" ? values.equipamento_id : null,
       };
 
       if (shouldResetStatusToPendente) {

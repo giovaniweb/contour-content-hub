@@ -404,7 +404,11 @@ const EnhancedScientificArticleForm: React.FC<EnhancedScientificArticleFormProps
                 <div className="space-y-2">
                   <Label htmlFor="equipamento_id" className="aurora-heading">Equipamento Relacionado ao Estudo</Label>
                   <Select
-                    onValueChange={(value) => form.setValue("equipamento_id", value === "none" ? null : value)}
+                    onValueChange={(value) => {
+                      const equipmentValue = value === "none" ? "" : value;
+                      form.setValue("equipamento_id", equipmentValue);
+                      console.log("Equipamento selecionado:", { value, equipmentValue });
+                    }}
                     value={form.getValues("equipamento_id") || "none"}
                   >
                     <SelectTrigger className="aurora-glass border-aurora-electric-purple/30 focus:border-aurora-electric-purple">
