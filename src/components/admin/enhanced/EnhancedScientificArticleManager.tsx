@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
@@ -14,18 +15,17 @@ import ScientificArticleHeader from './components/ScientificArticleHeader';
 // ScientificArticleControls and ScientificArticleFilters are not used, consider removing if part of old cleanup
 // import ScientificArticleControls from './components/ScientificArticleControls';
 // import ScientificArticleFilters from './components/ScientificArticleFilters';
-import ScientificArticleViewer from '@/components/scientific-articles/ScientificArticleViewer';
 
 import { DocumentTypeEnum, UnifiedDocument } from '@/types/document';
 
 
 const EnhancedScientificArticleManager: React.FC = () => {
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedType, setSelectedType] = useState<DocumentTypeEnum | 'all'>('all');
   const [selectedEquipment, setSelectedEquipment] = useState('all');
   const [isFormDialogOpen, setIsFormDialogOpen] = useState(false); // Renamed for clarity
   const [documentToEdit, setDocumentToEdit] = useState<UnifiedDocument | null>(null); // Typed and renamed
-  const [documentToView, setDocumentToView] = useState<UnifiedDocument | null>(null);
   const [isFilterExpanded, setIsFilterExpanded] = useState(false);
 
   const { equipments } = useEquipments();
@@ -66,7 +66,7 @@ const EnhancedScientificArticleManager: React.FC = () => {
   };
 
   const handleViewDocument = (document: UnifiedDocument) => {
-    setDocumentToView(document);
+    navigate(`/scientific-articles/${document.id}`);
   };
 
 
@@ -295,13 +295,6 @@ const EnhancedScientificArticleManager: React.FC = () => {
         articleData={documentToEdit}
       />
 
-      {/* Detail View */}
-      {documentToView && (
-        <ScientificArticleViewer 
-          articleId={documentToView.id} 
-          onBack={() => setDocumentToView(null)} 
-        />
-      )}
 
       </div>
     </div>
