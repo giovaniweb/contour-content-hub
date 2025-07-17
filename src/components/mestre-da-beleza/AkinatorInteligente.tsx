@@ -49,7 +49,7 @@ const AkinatorInteligente: React.FC = () => {
     
     const welcomeMessage: Message = {
       role: 'assistant',
-      content: `🔮 **Saudações, buscador da beleza!** Eu sou ${genieName}, seu guia místico no universo da estética científica.\n\n✨ Tenho acesso a uma vasta biblioteca de **equipamentos de última geração** e **estudos científicos** para criar o diagnóstico perfeito para você.\n\n🎯 **Para começar nossa jornada:** Conte-me qual é sua principal preocupação estética ou o que você gostaria de melhorar?`,
+      content: `🔮 **Olá! Sou ${genieName}**\n\n• Especialista em estética científica\n• Acesso a equipamentos e estudos\n• Diagnóstico personalizado\n\n**Qual sua principal preocupação estética?**`,
       timestamp: new Date()
     };
 
@@ -244,7 +244,7 @@ const AkinatorInteligente: React.FC = () => {
               {/* Chat Messages */}
               <Card className="aurora-card border-2 border-purple-400/50 backdrop-blur-lg">
                 <CardContent className="p-4">
-                  <div className="h-96 overflow-y-auto space-y-4 mb-4">
+                  <div className="h-80 overflow-y-auto space-y-3 mb-4">
                     {messages.map((message, index) => (
                       <motion.div
                         key={index}
@@ -253,24 +253,39 @@ const AkinatorInteligente: React.FC = () => {
                         className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
                       >
                         <div
-                          className={`max-w-[80%] p-3 rounded-lg ${
+                          className={`max-w-[85%] p-3 rounded-lg ${
                             message.role === 'user'
                               ? 'bg-cyan-600/30 text-cyan-100 border border-cyan-500/30'
                               : 'bg-purple-600/30 text-purple-100 border border-purple-500/30'
                           }`}
                         >
-                          <div className="prose prose-invert prose-sm max-w-none">
+                          <div className="text-sm leading-relaxed">
                             {message.content.split('\n').map((line, i) => {
-                              if (line.startsWith('**') && line.endsWith('**')) {
-                                return <div key={i} className="font-bold text-yellow-200">{line.slice(2, -2)}</div>;
+                              // Texto em negrito
+                              if (line.includes('**')) {
+                                const parts = line.split('**');
+                                return (
+                                  <div key={i} className="mb-1">
+                                    {parts.map((part, j) => 
+                                      j % 2 === 1 ? 
+                                        <span key={j} className="font-bold text-yellow-200">{part}</span> : 
+                                        <span key={j}>{part}</span>
+                                    )}
+                                  </div>
+                                );
                               }
-                              if (line.startsWith('🔮') || line.startsWith('✨') || line.startsWith('🎯')) {
-                                return <div key={i} className="font-semibold">{line}</div>;
+                              // Bullets
+                              if (line.startsWith('•')) {
+                                return <div key={i} className="ml-2 mb-1 text-purple-100">{line}</div>;
                               }
-                              return line ? <div key={i}>{line}</div> : <br key={i} />;
+                              // Emojis importantes
+                              if (line.match(/^[🔮✨🎯🧙‍♂️💡]/)) {
+                                return <div key={i} className="font-medium mb-1">{line}</div>;
+                              }
+                              return line ? <div key={i} className="mb-1">{line}</div> : <br key={i} />;
                             })}
                           </div>
-                          <div className="text-xs opacity-60 mt-1">
+                          <div className="text-xs opacity-50 mt-2">
                             {message.timestamp.toLocaleTimeString()}
                           </div>
                         </div>
@@ -286,8 +301,8 @@ const AkinatorInteligente: React.FC = () => {
                         <div className="bg-purple-600/30 border border-purple-500/30 p-3 rounded-lg">
                           <div className="flex items-center gap-2">
                             <Sparkles className="w-4 h-4 animate-pulse text-purple-300" />
-                            <span className="text-purple-200 italic">
-                              {genieName} está analisando a base científica...
+                            <span className="text-purple-200 italic text-sm">
+                              Analisando base científica...
                             </span>
                           </div>
                         </div>
@@ -299,15 +314,15 @@ const AkinatorInteligente: React.FC = () => {
                   {/* Quick Questions */}
                   {messages.length === 1 && !isThinking && (
                     <div className="mb-4">
-                      <div className="text-sm text-purple-300 mb-2">💡 Perguntas rápidas:</div>
-                      <div className="flex flex-wrap gap-2">
+                      <div className="text-xs text-purple-300 mb-2">💡 Sugestões:</div>
+                      <div className="flex flex-wrap gap-1.5">
                         {quickQuestions.map((question, index) => (
                           <Button
                             key={index}
                             variant="outline"
                             size="sm"
                             onClick={() => sendMessage(question)}
-                            className="text-xs bg-purple-800/20 hover:bg-purple-700/30 border-purple-500/30 text-purple-200"
+                            className="text-xs bg-purple-800/20 hover:bg-purple-700/30 border-purple-500/30 text-purple-200 h-8"
                           >
                             {question}
                           </Button>
@@ -323,9 +338,9 @@ const AkinatorInteligente: React.FC = () => {
                       value={currentInput}
                       onChange={(e) => setCurrentInput(e.target.value)}
                       onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
-                      placeholder="Digite sua pergunta ou preocupação..."
+                      placeholder="Descreva sua preocupação..."
                       disabled={isThinking}
-                      className="flex-1 p-3 rounded-lg bg-purple-900/30 border border-purple-500/30 text-white placeholder-purple-300 focus:outline-none focus:border-cyan-400 disabled:opacity-50"
+                      className="flex-1 p-3 rounded-lg bg-purple-900/30 border border-purple-500/30 text-white text-sm placeholder-purple-300 focus:outline-none focus:border-cyan-400 disabled:opacity-50"
                     />
                     <Button
                       onClick={() => sendMessage()}
