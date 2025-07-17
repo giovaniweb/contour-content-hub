@@ -133,12 +133,24 @@ serve(async (req) => {
 
     // 6. Atualizar documento com informações extraídas
     console.log('💾 [ProcessDocument] Salvando informações extraídas...');
+    
+    // Preservar dados existentes válidos e só atualizar se melhor informação foi extraída
     const updateData = {
-      titulo_extraido: extractedInfo.title || document.titulo_extraido || 'Documento Processado',
-      palavras_chave: extractedInfo.keywords || [],
-      autores: extractedInfo.authors || [],
-      texto_completo: extractedInfo.content || null,
-      raw_text: extractedInfo.rawText || null,
+      titulo_extraido: (extractedInfo.title && extractedInfo.title !== `Artigo Científico Processado (${new Date().toISOString().substring(11, 19)})`) 
+        ? extractedInfo.title 
+        : document.titulo_extraido || 'Documento Processado',
+      palavras_chave: (extractedInfo.keywords && extractedInfo.keywords.length > 0 && 
+        JSON.stringify(extractedInfo.keywords) !== JSON.stringify(["ciência", "pesquisa", "artigo", "medicina estética"])) 
+        ? extractedInfo.keywords 
+        : document.palavras_chave || [],
+      autores: (extractedInfo.authors && extractedInfo.authors.length > 0 && 
+        JSON.stringify(extractedInfo.authors) !== JSON.stringify(["Autor Principal", "Pesquisador Associado"])) 
+        ? extractedInfo.authors 
+        : document.autores || [],
+      texto_completo: (extractedInfo.content && extractedInfo.content !== "Conteúdo do artigo científico extraído automaticamente. Este documento foi processado e está disponível para consulta e análise.") 
+        ? extractedInfo.content 
+        : document.texto_completo || null,
+      raw_text: extractedInfo.rawText || document.raw_text || null,
       status_processamento: status,
       detalhes_erro: errorDetails,
       updated_at: new Date().toISOString()
