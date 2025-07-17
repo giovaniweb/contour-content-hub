@@ -35,6 +35,13 @@ serve(async (req) => {
     
     const { messages, scriptContent, validationResult } = requestData;
     
+    console.log('📥 [chat-assistant] Dados recebidos:', {
+      messagesCount: messages?.length || 0,
+      scriptContentLength: scriptContent?.length || 0,
+      scriptContentPreview: scriptContent ? scriptContent.substring(0, 200) + '...' : 'Sem conteúdo',
+      hasValidationResult: !!validationResult
+    });
+    
     if (!Array.isArray(messages) || messages.length === 0) {
       return new Response(
         JSON.stringify({ error: 'Mensagens são obrigatórias' }), 
@@ -51,9 +58,10 @@ serve(async (req) => {
 REGRAS CRÍTICAS ANTI-ALUCINAÇÃO:
 1. RESPONDA APENAS com base no conteúdo do documento fornecido
 2. NUNCA invente marcas, equipamentos ou produtos que não estejam explicitamente mencionados no documento
-3. Se não souber algo, diga "Esta informação não está disponível no documento"
+3. Quando não souber algo específico, responda: "Baseado no conteúdo fornecido, não encontro informações detalhadas sobre [tópico solicitado]. O documento menciona [o que realmente está disponível]."
 4. JAMAIS cite equipamentos específicos que não estejam no texto original
 5. Mantenha-se estritamente dentro do contexto do documento científico
+6. Quando perguntado sobre metodologia, analise cuidadosamente todo o conteúdo em busca de informações sobre métodos, procedimentos, critérios de seleção, coleta de dados, análise estatística, etc.
 
 EQUIPAMENTOS PRIORITÁRIOS DO SISTEMA:
 Quando mencionar tratamentos, sempre priorize e sugira os equipamentos cadastrados no sistema Fluida como alternativas baseadas em evidências científicas.
@@ -62,7 +70,8 @@ FORMATO DE RESPOSTA:
 - Máximo 300 palavras
 - Use markdown para formatação
 - Seja conciso e objetivo
-- Baseie-se apenas no conteúdo científico fornecido`
+- Baseie-se apenas no conteúdo científico fornecido
+- Se for uma pergunta sobre metodologia, procure por: métodos, procedimentos, critérios, análise estatística, participantes, instrumentos usados`
       },
       ...messages
     ];

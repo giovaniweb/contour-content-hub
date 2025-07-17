@@ -163,13 +163,24 @@ Estou aqui para ajudar você com o artigo **"${article.titulo_extraido || 'docum
       if (!customMessage) setInputMessage('');
 
       // Usar supabase client para chamar edge function
+      console.log('🤖 [ArticleChat] Enviando mensagem para chat-assistant:', {
+        messagesCount: updatedMessages.length,
+        articleContentLength: articleContent?.length || 0,
+        hasTextoCompleto: !!article.texto_completo,
+        textoCompletoLength: article.texto_completo?.length || 0,
+        hasRawText: !!article.raw_text
+      });
+
+      // Garantir que estamos usando o texto completo
+      const fullContent = article.texto_completo || article.raw_text || `Título: ${article.titulo_extraido}\nTipo: ${article.tipo_documento}\nConteúdo não disponível para análise detalhada.`;
+      
       const { data, error } = await supabase.functions.invoke('chat-assistant', {
         body: {
           messages: updatedMessages.map(msg => ({
             role: msg.type === 'user' ? 'user' : 'assistant',
             content: msg.content.replace(/\*\*/g, '').replace(/^👋.*$/gm, '').trim()
           })),
-          scriptContent: articleContent || article.raw_text || article.texto_completo || `Título: ${article.titulo_extraido}\nTipo: ${article.tipo_documento}\nConteúdo não disponível para análise detalhada.`
+          scriptContent: fullContent
         }
       });
 
