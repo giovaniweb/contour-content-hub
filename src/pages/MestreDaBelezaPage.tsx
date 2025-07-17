@@ -1,23 +1,23 @@
 
 import React from 'react';
-import { Sparkles, Wand2, Star } from 'lucide-react';
+import { Sparkles, Brain, Zap } from 'lucide-react';
 import AuroraPageLayout from '@/components/layout/AuroraPageLayout';
 import StandardPageHeader from '@/components/layout/StandardPageHeader';
-import AkinatorMagico from '@/components/mestre-da-beleza/AkinatorMagico';
+import AkinatorInteligente from '@/components/mestre-da-beleza/AkinatorInteligente';
 
 const MestreDaBelezaPage: React.FC = () => {
   const statusBadges = [
     {
-      icon: Wand2,
-      label: 'Mágico',
+      icon: Brain,
+      label: 'IA Científica',
       variant: 'secondary' as const,
-      color: 'bg-pink-500/20 text-pink-400 border-pink-500/30'
+      color: 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30'
     },
     {
-      icon: Star,
-      label: 'Experiência',
+      icon: Zap,
+      label: 'Base Completa',
       variant: 'secondary' as const,
-      color: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30'
+      color: 'bg-purple-500/20 text-purple-400 border-purple-500/30'
     }
   ];
 
@@ -25,13 +25,13 @@ const MestreDaBelezaPage: React.FC = () => {
     <AuroraPageLayout>
       <StandardPageHeader
         icon={Sparkles}
-        title="Mestre da Beleza"
-        subtitle="Descoberta mágica de equipamentos e tratamentos"
+        title="Mestre da Beleza 2.0"
+        subtitle="IA Científica com Base Completa de Equipamentos e Estudos"
         statusBadges={statusBadges}
       />
       
       <div className="container mx-auto px-6">
-        <AkinatorMagico />
+        <AkinatorInteligente />
       </div>
     </AuroraPageLayout>
   );
