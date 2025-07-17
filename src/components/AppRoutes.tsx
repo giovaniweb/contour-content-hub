@@ -13,6 +13,7 @@ const Register = React.lazy(() => import('@/pages/Register'));
 const ScientificArticles = React.lazy(() => import('@/pages/ScientificArticles'));
 const ScientificArticleView = React.lazy(() => import('@/pages/ScientificArticleView'));
 const AdminScientificArticles = React.lazy(() => import('@/pages/admin/AdminScientificArticles'));
+const AdminScientificArticleView = React.lazy(() => import('@/pages/admin/AdminScientificArticleView'));
 const Equipments = React.lazy(() => import('@/pages/Equipments'));
 const MestreDaBelezaPage = React.lazy(() => import('@/pages/MestreDaBelezaPage'));
 const FluidaRoteiristsPage = React.lazy(() => import('@/pages/FluidaRoteiristsPage'));
@@ -213,7 +214,18 @@ const AppRoutes: React.FC = () => {
           />
 
           <Route 
-            path="/admin/equipments" 
+            path="/admin/scientific-articles/:id" 
+            element={
+              <AppLayout requireAdmin={true}>
+                <Suspense fallback={<AuroraLoadingSkeleton />}>
+                  <AdminScientificArticleView />
+                </Suspense>
+              </AppLayout>
+            } 
+          />
+
+          <Route 
+            path="/admin/equipments"
             element={
               <AppLayout requireAdmin={true}>
                 <Suspense fallback={<AuroraLoadingSkeleton />}>

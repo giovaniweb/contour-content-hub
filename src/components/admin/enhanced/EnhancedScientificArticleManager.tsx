@@ -66,7 +66,7 @@ const EnhancedScientificArticleManager: React.FC = () => {
   };
 
   const handleViewDocument = (document: UnifiedDocument) => {
-    navigate(`/scientific-articles/${document.id}`);
+    navigate(`/admin/scientific-articles/${document.id}`);
   };
 
 
