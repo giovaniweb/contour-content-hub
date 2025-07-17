@@ -169,6 +169,7 @@ export const useUploadHandler = ({
 
       onExtractedData(extractedData);
       setProcessingProgress(null);
+      setUploadError(null); // Limpar erro quando processamento é bem-sucedido
       
       return true;
     } catch (error: any) {

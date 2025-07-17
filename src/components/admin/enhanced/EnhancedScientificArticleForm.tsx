@@ -88,10 +88,8 @@ const EnhancedScientificArticleForm: React.FC<EnhancedScientificArticleFormProps
       fileInputRef.current.dispatchEvent(event);
     }
     
-    // Auto-process file after selection
-    setTimeout(() => {
-      handleFileUpload();
-    }, 500);
+    // O auto-processamento já é feito pelo useScientificArticleForm
+    // Removido a chamada dupla do handleFileUpload
   };
 
   return (
