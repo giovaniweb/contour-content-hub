@@ -1,4 +1,3 @@
-
 import React, { Suspense } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import AppLayout from '@/components/layout/AppLayout';
@@ -21,6 +20,7 @@ const FluidaRoteiristsPage = React.lazy(() => import('@/pages/FluidaRoteiristsPa
 const Videos = React.lazy(() => import('@/pages/Videos'));
 const MarketingConsultant = React.lazy(() => import('@/pages/MarketingConsultant'));
 const DiagnosticHistory = React.lazy(() => import('@/pages/DiagnosticHistory'));
+const DiagnosticReport = React.lazy(() => import('@/pages/DiagnosticReport'));
 const ContentPlanner = React.lazy(() => import('@/pages/ContentPlanner'));
 const ContentScripts = React.lazy(() => import('@/pages/ContentScripts'));
 const Photos = React.lazy(() => import('@/pages/Photos'));
@@ -130,6 +130,17 @@ const AppRoutes: React.FC = () => {
             <AppLayout>
               <Suspense fallback={<AuroraLoadingSkeleton />}>
                 <DiagnosticHistory />
+              </Suspense>
+            </AppLayout>
+          } 
+        />
+
+        <Route 
+          path="/diagnostic-report/:id" 
+          element={
+            <AppLayout>
+              <Suspense fallback={<AuroraLoadingSkeleton />}>
+                <DiagnosticReport />
               </Suspense>
             </AppLayout>
           } 

@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -8,8 +9,7 @@ import { FileText, Trash2, Download, Shield, AlertTriangle, Eraser } from "lucid
 import { DiagnosticSession } from '@/hooks/useDiagnosticPersistence';
 import ReportViewButton from '@/components/ui/ReportViewButton';
 import ReportPdfButton from '@/components/ui/ReportPdfButton';
-import GenerateAuroraPdfButton from "@/components/ui/GenerateAuroraPdfButton";
-import { extractDiagnosticSections } from "@/components/diagnostic-report/diagnostic-sections/diagnosticSectionUtils";
+import { toast } from 'sonner';
 
 interface SavedDiagnosticsSectionProps {
   savedDiagnostics: DiagnosticSession[];
@@ -38,6 +38,52 @@ const SavedDiagnosticsSection: React.FC<SavedDiagnosticsSectionProps> = ({
 
   const handleViewReport = (session: DiagnosticSession) => {
     navigate(`/diagnostic-report/${session.id}`);
+  };
+
+  const handleDownloadPdf = async (session: DiagnosticSession) => {
+    try {
+      toast.loading("Gerando PDF...", { id: "pdf-download" });
+      
+      // Chamar a edge function para gerar PDF
+      const response = await fetch('/api/generate-pdf', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          sessionId: session.id,
+          title: `Relatório ${session.clinicTypeLabel} - ${session.specialty}`,
+          htmlString: session.state.generatedDiagnostic || '',
+          type: 'diagnostic-report'
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Erro ao gerar PDF');
+      }
+
+      const data = await response.json();
+      
+      if (data.success && data.pdfUrl) {
+        // Iniciar download do PDF
+        const link = document.createElement('a');
+        link.href = data.pdfUrl;
+        link.download = `diagnostico-${session.clinicTypeLabel.toLowerCase().replace(/\s+/g, '-')}-${new Date(session.timestamp).toISOString().split('T')[0]}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        toast.success("PDF baixado com sucesso!", { id: "pdf-download" });
+      } else {
+        throw new Error(data.error || 'Erro desconhecido');
+      }
+    } catch (error) {
+      console.error('Erro ao gerar PDF:', error);
+      toast.error("Erro ao gerar PDF", { 
+        description: "Tente novamente em alguns instantes",
+        id: "pdf-download" 
+      });
+    }
   };
 
   // Separar diagnósticos por tipo
@@ -116,22 +162,14 @@ const SavedDiagnosticsSection: React.FC<SavedDiagnosticsSectionProps> = ({
                     onClick={() => handleViewReport(session)}
                   />
 
-                  {/* Botão PDF: aparece só se já houver um PDF pronto (URL válida) */}
-                  {typeof session.state.generatedDiagnostic === "string" &&
-                    session.state.generatedDiagnostic.startsWith("http") ? (
-                    <ReportPdfButton
-                      pdfUrl={session.state.generatedDiagnostic}
-                      diagnosticTitle={session.clinicTypeLabel}
-                    />
-                  ) : (
-                    // <GenerateAuroraPdfButton ... /> REMOVIDO AQUI
-                    // Antigamente havia um botão PDF customizado aqui, mas agora ele foi removido.
-                    null
-                  )}
-
-                  <Button onClick={() => onDownloadDiagnostic(session)} size="sm" variant="outline" className="flex items-center gap-1 bg-aurora-glass border-aurora-electric-purple/30 text-white hover:bg-aurora-electric-purple/20">
+                  <Button 
+                    onClick={() => handleDownloadPdf(session)} 
+                    size="sm" 
+                    variant="outline" 
+                    className="flex items-center gap-1 bg-aurora-glass border-aurora-electric-purple/30 text-white hover:bg-aurora-electric-purple/20"
+                  >
                     <Download className="h-3 w-3" />
-                    Download
+                    Download PDF
                   </Button>
                   
                   {!session.isPaidData && !session.isCompleted && (
