@@ -11,10 +11,10 @@ export interface MentorMapping {
 // Mapeamento: apenas 4 mentores
 export function getMentorMapping(): Record<string, string> {
   return {
-    'Pedro Sobral': 'arquiteto_do_planejamento',
-    'Leandro Ladeira': 'mestre_do_copy',
-    'Hyeser Souza': 'rei_do_viral',
-    'Paulo Cuenca': 'diretor_visual',
+    'Marcus "MKT Master" Silva': 'arquiteto_do_planejamento',
+    'Leonardo "Copy King" Ferreira': 'mestre_do_copy',
+    'Henrique "Viral Lord" Santos': 'rei_do_viral',
+    'Paula "Design Queen" Costa': 'diretor_visual',
   };
 }
 
