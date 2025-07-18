@@ -13,6 +13,7 @@ import {
   Calendar
 } from "lucide-react";
 import { MarketingConsultantState } from '../types';
+import { useEquipmentData } from '../hooks/useEquipmentData';
 
 interface FluidAnalysisCardsProps {
   state: MarketingConsultantState;
@@ -21,12 +22,23 @@ interface FluidAnalysisCardsProps {
 
 const FluidAnalysisCards: React.FC<FluidAnalysisCardsProps> = ({ state, aiSections }) => {
   const isClinicaMedica = state.clinicType === 'clinica_medica';
+  
+  const equipmentId = isClinicaMedica ? state.medicalEquipments : state.aestheticEquipments;
+  const { equipment, loading } = useEquipmentData(equipmentId);
 
   const getMainEquipment = () => {
-    if (isClinicaMedica) {
-      return state.medicalEquipments || 'Não informado';
+    if (equipment) {
+      return equipment.nome;
     }
-    return state.aestheticEquipments || 'Não informado';
+    return 'Não informado';
+  };
+
+  const getEquipmentBenefits = () => {
+    if (equipment?.beneficios) {
+      const benefits = equipment.beneficios.split(';').slice(0, 2);
+      return benefits.map(b => b.trim()).join(' • ');
+    }
+    return 'Diferencial competitivo';
   };
 
   const getMainObjective = () => {
@@ -125,7 +137,7 @@ const FluidAnalysisCards: React.FC<FluidAnalysisCardsProps> = ({ state, aiSectio
               <div className="flex items-center gap-1">
                 <Crown className="h-3 w-3 text-purple-400" />
                 <span className="text-xs text-purple-400">
-                  Diferencial competitivo
+                  {getEquipmentBenefits()}
                 </span>
               </div>
             </div>

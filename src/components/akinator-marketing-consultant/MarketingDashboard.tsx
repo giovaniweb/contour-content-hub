@@ -18,6 +18,8 @@ import RealMentorSection from "./dashboard/RealMentorSection";
 import { useRealMentors } from "./hooks/useRealMentors";
 import SmartWeeklySchedule, { generateWeekPlan } from './dashboard/SmartWeeklySchedule';
 import { useBulkContentPlannerActions } from './dashboard/hooks/useBulkContentPlannerActions';
+import AuroraMarketingPDFGenerator from '../marketing-consultant/components/AuroraMarketingPDFGenerator';
+import { useEquipmentData } from './hooks/useEquipmentData';
 interface MarketingDashboardProps {
   state: MarketingConsultantState;
   mentor: any;
@@ -33,6 +35,11 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
   onStateUpdate
 }) => {
   const [activeTab, setActiveTab] = useState('overview');
+  
+  // Buscar dados do equipamento
+  const isClinicaMedica = state?.clinicType === 'clinica_medica';
+  const equipmentId = isClinicaMedica ? state?.medicalEquipments : state?.aestheticEquipments;
+  const { equipment } = useEquipmentData(equipmentId);
 
   // Create a safe state with proper defaults to match MarketingConsultantState interface
   const safeState: MarketingConsultantState = {
@@ -366,6 +373,28 @@ const MarketingDashboard: React.FC<MarketingDashboardProps> = ({
               </CardContent>
             </Card>
           </div>}
+      </motion.div>
+
+      {/* Gerador de PDF Aurora */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.4 }}
+      >
+        <AuroraMarketingPDFGenerator 
+          diagnosticData={{
+            generatedDiagnostic: safeState.generatedDiagnostic,
+            equipment,
+            mentor: mentorMapping?.mentor ? {
+              name: mentorMapping.mentor.nome,
+              speciality: mentorMapping.mentor.descricao
+            } : safeMentor,
+            targetAudience: safeState.targetAudience,
+            currentRevenue: getCurrentRevenue(),
+            revenueGoal: getRevenueGoal(),
+            mainChallenges: safeState.mainChallenges
+          }}
+        />
       </motion.div>
 
       {/* Action Buttons */}
