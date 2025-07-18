@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { ArrowRight, ArrowLeft } from "lucide-react";
 
 interface QuestionFlowProps {
@@ -15,6 +17,7 @@ interface QuestionFlowProps {
       description?: string;
       icon?: React.ReactNode;
     }[];
+    isOpen?: boolean;
   };
   currentStep: number;
   totalSteps: number;
@@ -31,6 +34,16 @@ const QuestionFlow: React.FC<QuestionFlowProps> = ({
   onBack,
   canGoBack
 }) => {
+  const [openAnswer, setOpenAnswer] = useState('');
+
+  const handleOpenAnswerSubmit = () => {
+    if (openAnswer.trim()) {
+      onNext(openAnswer.trim());
+    }
+  };
+
+  const isOpenQuestion = question.isOpen || question.options.length === 0;
+
   return (
     <div className="w-full space-y-6">
       {/* Progress Bar */}
@@ -65,44 +78,77 @@ const QuestionFlow: React.FC<QuestionFlowProps> = ({
             )}
           </div>
 
-          {/* Options */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
-            {question.options.map((option) => (
-              <motion.div
-                key={option.value}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
+          {/* Options or Open Input */}
+          {isOpenQuestion ? (
+            <div className="space-y-4 mt-6">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-foreground">
+                  Sua resposta:
+                </label>
+                {question.title.toLowerCase().includes('descreva') ? (
+                  <Textarea
+                    value={openAnswer}
+                    onChange={(e) => setOpenAnswer(e.target.value)}
+                    placeholder="Digite sua resposta detalhada aqui..."
+                    className="min-h-[100px] bg-background border-border"
+                  />
+                ) : (
+                  <Input
+                    value={openAnswer}
+                    onChange={(e) => setOpenAnswer(e.target.value)}
+                    placeholder="Digite sua resposta aqui..."
+                    className="bg-background border-border"
+                  />
+                )}
+              </div>
+              <Button
+                onClick={handleOpenAnswerSubmit}
+                disabled={!openAnswer.trim()}
+                className="w-full"
               >
-                <Card
-                  className="p-4 cursor-pointer hover:border-primary transition-colors"
-                  onClick={() => onNext(option.value)}
+                Continuar
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+              {question.options.map((option) => (
+                <motion.div
+                  key={option.value}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                 >
-                  <div className="flex items-center gap-4">
-                    {option.icon && (
-                      <div className="text-primary">{option.icon}</div>
-                    )}
-                    <div className="flex-1">
-                      <h3 className="font-medium">{option.label}</h3>
-                      {option.description && (
-                        <p className="text-sm text-muted-foreground mt-1">
-                          {option.description}
-                        </p>
+                  <Card
+                    className="p-4 cursor-pointer hover:border-primary transition-colors bg-card text-card-foreground border-border"
+                    onClick={() => onNext(option.value)}
+                  >
+                    <div className="flex items-center gap-4">
+                      {option.icon && (
+                        <div className="text-primary">{option.icon}</div>
                       )}
+                      <div className="flex-1">
+                        <h3 className="font-medium text-card-foreground">{option.label}</h3>
+                        {option.description && (
+                          <p className="text-sm text-muted-foreground mt-1">
+                            {option.description}
+                          </p>
+                        )}
+                      </div>
+                      <ArrowRight className="text-muted-foreground/50" />
                     </div>
-                    <ArrowRight className="text-muted-foreground/50" />
-                  </div>
-                </Card>
-              </motion.div>
-            ))}
-          </div>
+                  </Card>
+                </motion.div>
+              ))}
+            </div>
+          )}
 
           {/* Navigation */}
           <div className="flex justify-between items-center mt-8">
             {canGoBack ? (
               <Button 
-                variant="ghost" 
+                variant="outline" 
                 onClick={onBack}
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 bg-background border-border text-foreground hover:bg-accent"
               >
                 <ArrowLeft className="h-4 w-4" />
                 Voltar

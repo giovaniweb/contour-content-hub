@@ -9,6 +9,7 @@ import MarketingResult from './MarketingResult';
 import MarketingDashboard from './MarketingDashboard';
 import ProcessingState from './components/ProcessingState';
 import ProgressIndicators from './components/ProgressIndicators';
+import QuestionFlow from '../marketing-consultant/components/QuestionFlow';
 import { useAkinatorFlow } from './hooks/useAkinatorFlow';
 import { useSessionManagement } from './hooks/useSessionManagement';
 import { useQuestionNavigation } from './hooks/useQuestionNavigation';
@@ -219,6 +220,10 @@ const AkinatorMarketingConsultant: React.FC<AkinatorMarketingConsultantProps> = 
 
   console.log('✅ Renderizando pergunta normalmente');
 
+  // Check if it's an open question or equipment question
+  const isOpenQuestion = currentQuestion.isOpen || currentQuestion.options.length === 0;
+  const isEquipmentQuestion = currentQuestion.id === 'medicalEquipments' || currentQuestion.id === 'aestheticEquipments';
+
   return (
     <div className="container mx-auto max-w-6xl py-6">
       {/* Progress indicators */}
@@ -236,13 +241,28 @@ const AkinatorMarketingConsultant: React.FC<AkinatorMarketingConsultantProps> = 
           exit={{ opacity: 0, x: -50 }}
           transition={{ duration: 0.3 }}
         >
-          <MarketingQuestion
-            stepData={currentQuestion}
-            currentStep={currentStep}
-            onOptionSelect={handleOptionSelect}
-            onGoBack={handleGoBack}
-            canGoBack={currentStep > 0}
-          />
+          {isOpenQuestion && !isEquipmentQuestion ? (
+            <QuestionFlow
+              question={{
+                title: currentQuestion.question,
+                options: currentQuestion.options || [],
+                isOpen: currentQuestion.isOpen
+              }}
+              currentStep={currentQuestionNumber}
+              totalSteps={totalQuestions}
+              onNext={handleOptionSelect}
+              onBack={handleGoBack}
+              canGoBack={currentStep > 0}
+            />
+          ) : (
+            <MarketingQuestion
+              stepData={currentQuestion}
+              currentStep={currentStep}
+              onOptionSelect={handleOptionSelect}
+              onGoBack={handleGoBack}
+              canGoBack={currentStep > 0}
+            />
+          )}
         </motion.div>
       </AnimatePresence>
     </div>
