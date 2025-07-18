@@ -113,7 +113,7 @@ const ActionCards: React.FC<ActionCardsProps> = ({ onStartNewDiagnostic }) => {
         whileHover={{ y: -5 }}
         className="perspective-1000"
       >
-        <Card className="relative overflow-hidden border-green-500/30 hover:border-green-400/50 transition-all group cursor-pointer bg-gradient-to-br from-background via-background to-background/80" onClick={() => navigate('/diagnostic-history')}>
+        <Card className="relative overflow-hidden border-green-500/30 hover:border-green-400/50 transition-all group cursor-pointer bg-gradient-to-br from-background via-background to-background/80">
           {/* Animated background gradient */}
           <div className="absolute inset-0 bg-gradient-to-br from-green-500/10 via-emerald-500/5 to-teal-500/10 opacity-50 group-hover:opacity-70 transition-opacity" />
           
