@@ -1,17 +1,20 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Wrench, Star, Zap, Users, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
+import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { useEquipmentDetailsState } from '@/hooks/useEquipmentDetailsState';
 import AuroraPageLayout from '@/components/layout/AuroraPageLayout';
 import { EquipmentDetailsError } from '@/components/equipment-details/EquipmentDetailsError';
 import { EquipmentDetailsLoading } from '@/components/equipment-details/EquipmentDetailsLoading';
+import { EquipmentDetailsTabsList } from '@/components/equipment-details/EquipmentDetailsTabs';
 
 const EquipmentDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState('details');
   const { equipment, loading, error } = useEquipmentDetailsState(id);
 
   if (loading) {
@@ -116,147 +119,194 @@ const EquipmentDetails: React.FC = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Main Information */}
-          <div className="space-y-6">
-            {/* Technology */}
-            <Card className="aurora-glass border-aurora-electric-purple/30 aurora-glow">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-3 mb-4">
-                  <Zap className="h-5 w-5 text-aurora-electric-purple" />
-                  <h3 className="aurora-heading text-xl text-white">Tecnologia</h3>
-                </div>
-                <p className="aurora-body text-white/80">{equipment.tecnologia}</p>
-                {equipment.efeito && (
-                  <div className="mt-4 p-3 rounded-xl bg-aurora-electric-purple/10 border border-aurora-electric-purple/20">
-                    <p className="aurora-body text-aurora-electric-purple font-medium">
-                      <strong>Efeito:</strong> {equipment.efeito}
-                    </p>
-                  </div>
+        {/* Equipment Details Tabs */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <EquipmentDetailsTabsList activeTab={activeTab} setActiveTab={setActiveTab} />
+          
+          <TabsContent value="details" className="mt-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* Main Information */}
+              <div className="space-y-6">
+                {/* Technology */}
+                <Card className="aurora-glass border-aurora-electric-purple/30 aurora-glow">
+                  <CardContent className="p-6">
+                    <div className="flex items-center gap-3 mb-4">
+                      <Zap className="h-5 w-5 text-aurora-electric-purple" />
+                      <h3 className="aurora-heading text-xl text-white">Tecnologia</h3>
+                    </div>
+                    <p className="aurora-body text-white/80">{equipment.tecnologia}</p>
+                    {equipment.efeito && (
+                      <div className="mt-4 p-3 rounded-xl bg-aurora-electric-purple/10 border border-aurora-electric-purple/20">
+                        <p className="aurora-body text-aurora-electric-purple font-medium">
+                          <strong>Efeito:</strong> {equipment.efeito}
+                        </p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Benefits */}
+                {benefits.length > 0 && (
+                  <Card className="aurora-glass border-aurora-emerald/30 aurora-glow-emerald">
+                    <CardContent className="p-6">
+                      <div className="flex items-center gap-3 mb-4">
+                        <Star className="h-5 w-5 text-aurora-emerald" />
+                        <h3 className="aurora-heading text-xl text-white">Benefícios</h3>
+                      </div>
+                      <ul className="space-y-2">
+                        {benefits.map((benefit, index) => (
+                          <li key={index} className="flex items-start gap-2 aurora-body text-white/80">
+                            <CheckCircle className="h-4 w-4 text-aurora-emerald mt-0.5 flex-shrink-0" />
+                            <span>{benefit.trim()}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </CardContent>
+                  </Card>
                 )}
+
+                {/* Differentials */}
+                {equipment.diferenciais && (
+                  <Card className="aurora-glass border-aurora-neon-blue/30 aurora-glow">
+                    <CardContent className="p-6">
+                      <div className="flex items-center gap-3 mb-4">
+                        <Zap className="h-5 w-5 text-aurora-neon-blue" />
+                        <h3 className="aurora-heading text-xl text-white">Diferenciais</h3>
+                      </div>
+                      <p className="aurora-body text-white/80 whitespace-pre-line">{equipment.diferenciais}</p>
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
+
+              {/* Indications and Applications */}
+              <div className="space-y-6">
+                {/* Indications */}
+                {indications.length > 0 && (
+                  <Card className="aurora-glass border-aurora-electric-purple/30 aurora-glow">
+                    <CardContent className="p-6">
+                      <div className="flex items-center gap-3 mb-4">
+                        <Users className="h-5 w-5 text-aurora-electric-purple" />
+                        <h3 className="aurora-heading text-xl text-white">Indicações</h3>
+                      </div>
+                      <ul className="space-y-2">
+                        {indications.map((indication, index) => (
+                          <li key={index} className="flex items-start gap-2 aurora-body text-white/80">
+                            <CheckCircle className="h-4 w-4 text-aurora-electric-purple mt-0.5 flex-shrink-0" />
+                            <span>{indication.trim()}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Application Areas */}
+                {equipment.area_aplicacao && equipment.area_aplicacao.length > 0 && (
+                  <Card className="aurora-glass border-aurora-emerald/30 aurora-glow-emerald">
+                    <CardContent className="p-6">
+                      <div className="flex items-center gap-3 mb-4">
+                        <Wrench className="h-5 w-5 text-aurora-emerald" />
+                        <h3 className="aurora-heading text-xl text-white">Áreas de Aplicação</h3>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {equipment.area_aplicacao.map((area, index) => (
+                          <Badge 
+                            key={index}
+                            variant="outline" 
+                            className="border-aurora-emerald/30 text-aurora-emerald bg-aurora-emerald/10"
+                          >
+                            {area}
+                          </Badge>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Ideal Patient Profile */}
+                {equipment.perfil_ideal_paciente && equipment.perfil_ideal_paciente.length > 0 && (
+                  <Card className="aurora-glass border-aurora-neon-blue/30 aurora-glow">
+                    <CardContent className="p-6">
+                      <div className="flex items-center gap-3 mb-4">
+                        <Users className="h-5 w-5 text-aurora-neon-blue" />
+                        <h3 className="aurora-heading text-xl text-white">Perfil Ideal do Paciente</h3>
+                      </div>
+                      <ul className="space-y-2">
+                        {equipment.perfil_ideal_paciente.map((perfil, index) => (
+                          <li key={index} className="flex items-start gap-2 aurora-body text-white/80">
+                            <CheckCircle className="h-4 w-4 text-aurora-neon-blue mt-0.5 flex-shrink-0" />
+                            <span>{perfil}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Contraindications */}
+                {equipment.contraindicacoes && equipment.contraindicacoes.length > 0 && (
+                  <Card className="aurora-glass border-red-500/30">
+                    <CardContent className="p-6">
+                      <div className="flex items-center gap-3 mb-4">
+                        <Users className="h-5 w-5 text-red-400" />
+                        <h3 className="aurora-heading text-xl text-white">Contraindicações</h3>
+                      </div>
+                      <ul className="space-y-2">
+                        {equipment.contraindicacoes.map((contraindicacao, index) => (
+                          <li key={index} className="flex items-start gap-2 aurora-body text-red-400">
+                            <span className="h-4 w-4 text-red-400 mt-0.5 flex-shrink-0">⚠️</span>
+                            <span>{contraindicacao}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="videos" className="mt-6">
+            <Card className="aurora-glass border-aurora-electric-purple/30 aurora-glow">
+              <CardContent className="p-8 text-center">
+                <div className="text-white/60 mb-4">📹</div>
+                <h3 className="aurora-heading text-xl text-white mb-2">Vídeos em breve</h3>
+                <p className="aurora-body text-white/70">Estamos preparando vídeos demonstrativos deste equipamento.</p>
               </CardContent>
             </Card>
+          </TabsContent>
 
-            {/* Benefits */}
-            {benefits.length > 0 && (
-              <Card className="aurora-glass border-aurora-emerald/30 aurora-glow-emerald">
-                <CardContent className="p-6">
-                  <div className="flex items-center gap-3 mb-4">
-                    <Star className="h-5 w-5 text-aurora-emerald" />
-                    <h3 className="aurora-heading text-xl text-white">Benefícios</h3>
-                  </div>
-                  <ul className="space-y-2">
-                    {benefits.map((benefit, index) => (
-                      <li key={index} className="flex items-start gap-2 aurora-body text-white/80">
-                        <CheckCircle className="h-4 w-4 text-aurora-emerald mt-0.5 flex-shrink-0" />
-                        <span>{benefit.trim()}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </CardContent>
-              </Card>
-            )}
+          <TabsContent value="documents" className="mt-6">
+            <Card className="aurora-glass border-aurora-emerald/30 aurora-glow-emerald">
+              <CardContent className="p-8 text-center">
+                <div className="text-white/60 mb-4">📄</div>
+                <h3 className="aurora-heading text-xl text-white mb-2">Documentos técnicos em breve</h3>
+                <p className="aurora-body text-white/70">Artigos científicos e documentação técnica estarão disponíveis em breve.</p>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-            {/* Differentials */}
-            {equipment.diferenciais && (
-              <Card className="aurora-glass border-aurora-neon-blue/30 aurora-glow">
-                <CardContent className="p-6">
-                  <div className="flex items-center gap-3 mb-4">
-                    <Zap className="h-5 w-5 text-aurora-neon-blue" />
-                    <h3 className="aurora-heading text-xl text-white">Diferenciais</h3>
-                  </div>
-                  <p className="aurora-body text-white/80 whitespace-pre-line">{equipment.diferenciais}</p>
-                </CardContent>
-              </Card>
-            )}
-          </div>
+          <TabsContent value="import" className="mt-6">
+            <Card className="aurora-glass border-aurora-neon-blue/30 aurora-glow">
+              <CardContent className="p-8 text-center">
+                <div className="text-white/60 mb-4">📥</div>
+                <h3 className="aurora-heading text-xl text-white mb-2">Importação de conteúdo</h3>
+                <p className="aurora-body text-white/70">Funcionalidade de importação de materiais em desenvolvimento.</p>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-          {/* Indications and Applications */}
-          <div className="space-y-6">
-            {/* Indications */}
-            {indications.length > 0 && (
-              <Card className="aurora-glass border-aurora-electric-purple/30 aurora-glow">
-                <CardContent className="p-6">
-                  <div className="flex items-center gap-3 mb-4">
-                    <Users className="h-5 w-5 text-aurora-electric-purple" />
-                    <h3 className="aurora-heading text-xl text-white">Indicações</h3>
-                  </div>
-                  <ul className="space-y-2">
-                    {indications.map((indication, index) => (
-                      <li key={index} className="flex items-start gap-2 aurora-body text-white/80">
-                        <CheckCircle className="h-4 w-4 text-aurora-electric-purple mt-0.5 flex-shrink-0" />
-                        <span>{indication.trim()}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Application Areas */}
-            {equipment.area_aplicacao && equipment.area_aplicacao.length > 0 && (
-              <Card className="aurora-glass border-aurora-emerald/30 aurora-glow-emerald">
-                <CardContent className="p-6">
-                  <div className="flex items-center gap-3 mb-4">
-                    <Wrench className="h-5 w-5 text-aurora-emerald" />
-                    <h3 className="aurora-heading text-xl text-white">Áreas de Aplicação</h3>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {equipment.area_aplicacao.map((area, index) => (
-                      <Badge 
-                        key={index}
-                        variant="outline" 
-                        className="border-aurora-emerald/30 text-aurora-emerald bg-aurora-emerald/10"
-                      >
-                        {area}
-                      </Badge>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Ideal Patient Profile */}
-            {equipment.perfil_ideal_paciente && equipment.perfil_ideal_paciente.length > 0 && (
-              <Card className="aurora-glass border-aurora-neon-blue/30 aurora-glow">
-                <CardContent className="p-6">
-                  <div className="flex items-center gap-3 mb-4">
-                    <Users className="h-5 w-5 text-aurora-neon-blue" />
-                    <h3 className="aurora-heading text-xl text-white">Perfil Ideal do Paciente</h3>
-                  </div>
-                  <ul className="space-y-2">
-                    {equipment.perfil_ideal_paciente.map((perfil, index) => (
-                      <li key={index} className="flex items-start gap-2 aurora-body text-white/80">
-                        <CheckCircle className="h-4 w-4 text-aurora-neon-blue mt-0.5 flex-shrink-0" />
-                        <span>{perfil}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Contraindications */}
-            {equipment.contraindicacoes && equipment.contraindicacoes.length > 0 && (
-              <Card className="aurora-glass border-red-500/30">
-                <CardContent className="p-6">
-                  <div className="flex items-center gap-3 mb-4">
-                    <Users className="h-5 w-5 text-red-400" />
-                    <h3 className="aurora-heading text-xl text-white">Contraindicações</h3>
-                  </div>
-                  <ul className="space-y-2">
-                    {equipment.contraindicacoes.map((contraindicacao, index) => (
-                      <li key={index} className="flex items-start gap-2 aurora-body text-red-400">
-                        <span className="h-4 w-4 text-red-400 mt-0.5 flex-shrink-0">⚠️</span>
-                        <span>{contraindicacao}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </CardContent>
-              </Card>
-            )}
-          </div>
-        </div>
+          <TabsContent value="content" className="mt-6">
+            <Card className="aurora-glass border-aurora-electric-purple/30 aurora-glow">
+              <CardContent className="p-8 text-center">
+                <div className="text-white/60 mb-4">✨</div>
+                <h3 className="aurora-heading text-xl text-white mb-2">Criação de conteúdo</h3>
+                <p className="aurora-body text-white/70">Ferramentas para criação de conteúdo personalizado em breve.</p>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
     </AuroraPageLayout>
   );
