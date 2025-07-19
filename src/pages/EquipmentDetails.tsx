@@ -267,6 +267,16 @@ const EquipmentDetails: React.FC = () => {
             </div>
           </TabsContent>
 
+          <TabsContent value="articles" className="mt-6">
+            <Card className="aurora-glass border-aurora-emerald/30 aurora-glow-emerald">
+              <CardContent className="p-8 text-center">
+                <div className="text-white/60 mb-4">📄</div>
+                <h3 className="aurora-heading text-xl text-white mb-2">Artigos científicos em breve</h3>
+                <p className="aurora-body text-white/70">Artigos científicos e estudos sobre este equipamento estarão disponíveis em breve.</p>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
           <TabsContent value="videos" className="mt-6">
             <Card className="aurora-glass border-aurora-electric-purple/30 aurora-glow">
               <CardContent className="p-8 text-center">
@@ -277,32 +287,12 @@ const EquipmentDetails: React.FC = () => {
             </Card>
           </TabsContent>
 
-          <TabsContent value="documents" className="mt-6">
-            <Card className="aurora-glass border-aurora-emerald/30 aurora-glow-emerald">
-              <CardContent className="p-8 text-center">
-                <div className="text-white/60 mb-4">📄</div>
-                <h3 className="aurora-heading text-xl text-white mb-2">Documentos técnicos em breve</h3>
-                <p className="aurora-body text-white/70">Artigos científicos e documentação técnica estarão disponíveis em breve.</p>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="import" className="mt-6">
+          <TabsContent value="arts" className="mt-6">
             <Card className="aurora-glass border-aurora-neon-blue/30 aurora-glow">
               <CardContent className="p-8 text-center">
-                <div className="text-white/60 mb-4">📥</div>
-                <h3 className="aurora-heading text-xl text-white mb-2">Importação de conteúdo</h3>
-                <p className="aurora-body text-white/70">Funcionalidade de importação de materiais em desenvolvimento.</p>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="content" className="mt-6">
-            <Card className="aurora-glass border-aurora-electric-purple/30 aurora-glow">
-              <CardContent className="p-8 text-center">
-                <div className="text-white/60 mb-4">✨</div>
-                <h3 className="aurora-heading text-xl text-white mb-2">Criação de conteúdo</h3>
-                <p className="aurora-body text-white/70">Ferramentas para criação de conteúdo personalizado em breve.</p>
+                <div className="text-white/60 mb-4">🎨</div>
+                <h3 className="aurora-heading text-xl text-white mb-2">Artes em breve</h3>
+                <p className="aurora-body text-white/70">Materiais artísticos e criativos sobre este equipamento em desenvolvimento.</p>
               </CardContent>
             </Card>
           </TabsContent>

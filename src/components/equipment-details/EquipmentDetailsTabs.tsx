@@ -12,12 +12,11 @@ export const EquipmentDetailsTabsList: React.FC<EquipmentDetailsTabsListProps> =
   setActiveTab
 }) => {
   return (
-    <TabsList className="grid grid-cols-3 lg:grid-cols-5 mb-6">
+    <TabsList className="grid grid-cols-4 lg:grid-cols-4 mb-6">
       <TabsTrigger value="details">Detalhes</TabsTrigger>
-      <TabsTrigger value="documents">Documentos</TabsTrigger>
+      <TabsTrigger value="articles">Artigos Científicos</TabsTrigger>
       <TabsTrigger value="videos">Vídeos</TabsTrigger>
-      <TabsTrigger value="import">Importar</TabsTrigger>
-      <TabsTrigger value="content">Criar Conteúdo</TabsTrigger>
+      <TabsTrigger value="arts">Artes</TabsTrigger>
     </TabsList>
   );
 };
