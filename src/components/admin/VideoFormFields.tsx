@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Loader2, Image } from "lucide-react";
+import { Loader2, Image, Wand2 } from "lucide-react";
 import VideoObjectiveSelector from './VideoObjectiveSelector';
 import { MarketingObjectiveType } from '@/types/script';
 
@@ -37,6 +37,7 @@ interface VideoFormFieldsProps {
   bodyAreasList: any[];
   purposes: any[];
   isGeneratingThumbnail?: boolean;
+  onGenerateThumbnail?: () => void;
 }
 
 const VideoFormFields: React.FC<VideoFormFieldsProps> = ({
@@ -65,7 +66,8 @@ const VideoFormFields: React.FC<VideoFormFieldsProps> = ({
   equipmentsList,
   bodyAreasList,
   purposes,
-  isGeneratingThumbnail = false
+  isGeneratingThumbnail = false,
+  onGenerateThumbnail
 }) => {
   return (
     <>
@@ -142,12 +144,24 @@ const VideoFormFields: React.FC<VideoFormFieldsProps> = ({
             value={thumbUrl}
             onChange={(e) => setThumbUrl(e.target.value)}
             disabled={isGeneratingThumbnail}
+            className="flex-1"
           />
-          {isGeneratingThumbnail && (
-            <div className="flex items-center text-sm text-muted-foreground">
-              <Loader2 className="h-4 w-4 animate-spin mr-2" />
-              Gerando...
-            </div>
+          {videoUrl && !thumbUrl && onGenerateThumbnail && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={onGenerateThumbnail}
+              disabled={isGeneratingThumbnail}
+              className="shrink-0"
+            >
+              {isGeneratingThumbnail ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Wand2 className="h-4 w-4" />
+              )}
+              {isGeneratingThumbnail ? "Gerando..." : "Gerar"}
+            </Button>
           )}
         </div>
         {thumbUrl && (
@@ -162,7 +176,9 @@ const VideoFormFields: React.FC<VideoFormFieldsProps> = ({
         <p className="text-xs text-muted-foreground">
           {isGeneratingThumbnail 
             ? "Gerando thumbnail automaticamente..." 
-            : "A thumbnail será gerada automaticamente quando você inserir a URL do vídeo"
+            : videoUrl && !thumbUrl 
+              ? "Clique em 'Gerar' para criar uma thumbnail automaticamente"
+              : "A thumbnail será gerada automaticamente quando você inserir a URL do vídeo"
           }
         </p>
       </div>

@@ -217,6 +217,25 @@ const VideoForm: React.FC<VideoFormProps> = ({ onSuccess, onCancel, videoData = 
       generateThumbnail();
     }
   }, [videoUrl, thumbUrl, isGeneratingThumbnail]);
+
+  const handleGenerateThumbnail = async () => {
+    if (!videoUrl) {
+      toast.error('Adicione uma URL de vídeo primeiro para gerar a thumbnail.');
+      return;
+    }
+
+    try {
+      setIsGeneratingThumbnail(true);
+      const thumbnail = await generateThumbnailFromVideo(videoUrl);
+      setThumbUrl(thumbnail);
+      toast.success('Thumbnail gerada automaticamente!');
+    } catch (error) {
+      console.error('Error generating thumbnail:', error);
+      toast.error('Não foi possível gerar thumbnail automaticamente');
+    } finally {
+      setIsGeneratingThumbnail(false);
+    }
+  };
   
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -307,6 +326,7 @@ const VideoForm: React.FC<VideoFormProps> = ({ onSuccess, onCancel, videoData = 
                 bodyAreasList={bodyAreasList}
                 purposes={purposes}
                 isGeneratingThumbnail={isGeneratingThumbnail}
+                onGenerateThumbnail={handleGenerateThumbnail}
               />
 
               <VideoFormActions 

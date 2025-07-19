@@ -1,6 +1,6 @@
 
 import React, { useState, useMemo } from 'react';
-import { Video, Search, Filter, Play, Grid, List, Tag, Zap } from 'lucide-react';
+import { Video, Search, Filter, Play, Grid, List, Tag, Zap, Heart, Download } from 'lucide-react';
 import AuroraPageLayout from '@/components/layout/AuroraPageLayout';
 import StandardPageHeader from '@/components/layout/StandardPageHeader';
 import { Button } from '@/components/ui/button';
@@ -9,8 +9,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { useUserVideos } from '@/hooks/useUserVideos';
 import { useUserEquipments } from '@/hooks/useUserEquipments';
+import { useLikes } from '@/hooks/video-player/use-likes';
 import UserVideoPlayer from '@/components/video-storage/UserVideoPlayer';
 import VideoDownloadMenu from '@/components/video-storage/VideoDownloadMenu';
+import { toast } from '@/hooks/use-toast';
 
 interface Video {
   id: string;
@@ -29,12 +31,14 @@ interface Video {
 const Videos: React.FC = () => {
   const { videos, isLoading, error } = useUserVideos();
   const { equipments } = useUserEquipments();
+  const { saveLike } = useLikes();
   const [selectedVideo, setSelectedVideo] = useState<Video | null>(null);
   const [isPlayerOpen, setIsPlayerOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedEquipment, setSelectedEquipment] = useState('');
   const [selectedProcedure, setSelectedProcedure] = useState('');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [likedVideos, setLikedVideos] = useState<Set<string>>(new Set());
 
   const handleVideoPlay = (video: Video) => {
     setSelectedVideo(video);
@@ -70,6 +74,57 @@ const Videos: React.FC = () => {
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('pt-BR');
+  };
+
+  const getEquipmentName = (categoria: string) => {
+    const equipment = equipments.find(eq => eq.nome === categoria);
+    return equipment ? equipment.nome : categoria;
+  };
+
+  const handleLike = async (videoId: string, event: React.MouseEvent) => {
+    event.stopPropagation();
+    
+    if (likedVideos.has(videoId)) {
+      toast({
+        title: "Vídeo já curtido",
+        description: "Você já curtiu este vídeo anteriormente.",
+      });
+      return;
+    }
+
+    const success = await saveLike(videoId);
+    if (success) {
+      setLikedVideos(prev => new Set(prev).add(videoId));
+      toast({
+        title: "Vídeo curtido!",
+        description: "Obrigado por curtir este vídeo.",
+      });
+    }
+  };
+
+  const handleDownload = (videoUrl: string, videoTitle: string, event: React.MouseEvent) => {
+    event.stopPropagation();
+    
+    try {
+      const link = document.createElement('a');
+      link.href = videoUrl;
+      link.download = `${videoTitle}.mp4`;
+      link.target = '_blank';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      toast({
+        title: "Download iniciado",
+        description: "O download do vídeo foi iniciado.",
+      });
+    } catch (error) {
+      toast({
+        title: "Erro no download",
+        description: "Não foi possível iniciar o download.",
+        variant: "destructive"
+      });
+    }
   };
 
   const statusBadges = [
@@ -233,7 +288,12 @@ const Videos: React.FC = () => {
                   )}
 
                   <div className="flex items-center justify-between text-xs text-slate-400 mb-3">
-                    <span>{formatDate(video.data_upload)}</span>
+                    <div className="flex flex-col">
+                      <span>{formatDate(video.data_upload)}</span>
+                      {video.categoria && (
+                        <span className="text-cyan-400 font-medium">{getEquipmentName(video.categoria)}</span>
+                      )}
+                    </div>
                     <span>{video.downloads_count || 0} downloads</span>
                   </div>
 
@@ -254,21 +314,38 @@ const Videos: React.FC = () => {
                   )}
 
                   {/* Actions */}
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
                     <Button 
                       size="sm" 
                       onClick={() => handleVideoPlay(video)}
-                      className="aurora-button rounded-xl flex-1 mr-2"
+                      className="aurora-button rounded-xl flex-1"
                     >
                       <Play className="h-4 w-4 mr-1" />
                       Assistir
                     </Button>
                     
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={(e) => handleLike(video.id, e)}
+                      className={`rounded-xl border-cyan-400/30 ${
+                        likedVideos.has(video.id) 
+                          ? 'bg-cyan-400/20 text-cyan-400 border-cyan-400' 
+                          : 'text-cyan-400 hover:bg-cyan-400/20'
+                      }`}
+                    >
+                      <Heart className={`h-4 w-4 ${likedVideos.has(video.id) ? 'fill-current' : ''}`} />
+                    </Button>
+                    
                     {video.url_video && (
-                      <VideoDownloadMenu
-                        downloads={[{ quality: 'Original', link: video.url_video }]}
-                        videoId={video.id}
-                      />
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={(e) => handleDownload(video.url_video!, video.titulo, e)}
+                        className="rounded-xl border-cyan-400/30 text-cyan-400 hover:bg-cyan-400/20"
+                      >
+                        <Download className="h-4 w-4" />
+                      </Button>
                     )}
                   </div>
                 </div>
@@ -309,6 +386,9 @@ const Videos: React.FC = () => {
                       )}
                       <div className="flex items-center gap-4 text-xs text-slate-400">
                         <span>{formatDate(video.data_upload)}</span>
+                        {video.categoria && (
+                          <span className="text-cyan-400 font-medium">{getEquipmentName(video.categoria)}</span>
+                        )}
                         <span>{video.downloads_count || 0} downloads</span>
                         {video.duracao && <span>{video.duracao}</span>}
                       </div>
@@ -325,11 +405,28 @@ const Videos: React.FC = () => {
                         Assistir
                       </Button>
                       
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={(e) => handleLike(video.id, e)}
+                        className={`rounded-xl border-cyan-400/30 ${
+                          likedVideos.has(video.id) 
+                            ? 'bg-cyan-400/20 text-cyan-400 border-cyan-400' 
+                            : 'text-cyan-400 hover:bg-cyan-400/20'
+                        }`}
+                      >
+                        <Heart className={`h-4 w-4 ${likedVideos.has(video.id) ? 'fill-current' : ''}`} />
+                      </Button>
+                      
                       {video.url_video && (
-                        <VideoDownloadMenu
-                          downloads={[{ quality: 'Original', link: video.url_video }]}
-                          videoId={video.id}
-                        />
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={(e) => handleDownload(video.url_video!, video.titulo, e)}
+                          className="rounded-xl border-cyan-400/30 text-cyan-400 hover:bg-cyan-400/20"
+                        >
+                          <Download className="h-4 w-4" />
+                        </Button>
                       )}
                     </div>
                   </div>
