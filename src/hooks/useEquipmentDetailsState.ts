@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { getEquipmentById } from '@/api/equipment';
+import { getEquipmentById } from '@/api/equipment/getEquipment';
 import { Equipment } from '@/types/equipment';
 import { logQuery } from '@/utils/validation/loggingUtils';
 
@@ -21,7 +21,7 @@ export const useEquipmentDetailsState = (id?: string) => {
         return;
       }
       
-      console.log(`Attempting to fetch equipment with ID: ${id}`);
+      console.log(`🔍 Attempting to fetch equipment with ID: ${id}`);
       try {
         logQuery('select', 'equipamentos', { id, component: 'EquipmentDetails' });
       } catch (err) {
@@ -34,10 +34,11 @@ export const useEquipmentDetailsState = (id?: string) => {
         setError(null);
         
         const data = await getEquipmentById(id);
-        console.log("Equipment data received:", data);
+        console.log("🔍 Equipment data received:", data);
         
         if (!data) {
-          console.error("No equipment found with provided ID");
+          console.error("🚨 No equipment found with provided ID");
+          console.log("🔍 ID usado na busca:", id);
           setError("Equipamento não encontrado");
           toast({
             variant: "destructive",
@@ -48,7 +49,7 @@ export const useEquipmentDetailsState = (id?: string) => {
           return;
         }
         
-        console.log("Setting equipment data:", data.nome);
+        console.log("✅ Setting equipment data:", data.nome);
         setEquipment(data);
       } catch (err: any) {
         console.error('Error fetching equipment:', err);
