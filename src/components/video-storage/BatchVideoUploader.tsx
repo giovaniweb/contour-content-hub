@@ -254,7 +254,7 @@ const BatchVideoUploader: React.FC<BatchVideoUploaderProps> = ({ onUploadComplet
   }
 
   return (
-    <div className="aurora-glass-enhanced p-8 animate-aurora-wave">
+    <div className="aurora-glass-enhanced p-8">
       <div className="text-center mb-8">
         <h3 className="text-2xl font-bold bg-gradient-to-r from-aurora-electric-purple to-aurora-emerald bg-clip-text text-transparent mb-2">
           🚀 Upload em Lote Inteligente
@@ -421,10 +421,9 @@ const BatchVideoUploader: React.FC<BatchVideoUploaderProps> = ({ onUploadComplet
             </div>
           </div>
         ) : (
-          <div className="aurora-glass-enhanced py-16 rounded-xl flex flex-col items-center justify-center animate-aurora-pulse">
+          <div className="aurora-glass-enhanced py-16 rounded-xl flex flex-col items-center justify-center">
             <div className="relative mb-6">
-              <Upload className="h-20 w-20 text-aurora-electric-purple animate-aurora-float" />
-              <div className="absolute inset-0 border-2 border-aurora-electric-purple/30 rounded-full animate-ping"></div>
+              <Upload className="h-20 w-20 text-aurora-electric-purple" />
             </div>
             <h4 className="text-aurora-lavender font-medium text-lg mb-2">Fila de Upload Vazia</h4>
             <p className="text-aurora-lavender/60 mb-6 text-center max-w-md">
@@ -432,7 +431,7 @@ const BatchVideoUploader: React.FC<BatchVideoUploaderProps> = ({ onUploadComplet
             </p>
             <Button 
               onClick={() => fileInputRef.current?.click()}
-              className="bg-gradient-to-r from-aurora-electric-purple to-aurora-neon-blue hover:from-aurora-electric-purple/80 hover:to-aurora-neon-blue/80 text-white border-0 px-8 py-3 text-lg transition-all duration-300 hover:scale-105 hover:shadow-aurora-glow"
+              className="bg-gradient-to-r from-aurora-electric-purple to-aurora-neon-blue hover:from-aurora-electric-purple/80 hover:to-aurora-neon-blue/80 text-white border-0 px-8 py-3 text-lg"
             >
               ✨ Selecionar Vídeos
             </Button>
@@ -453,11 +452,11 @@ const BatchVideoUploader: React.FC<BatchVideoUploaderProps> = ({ onUploadComplet
         <Button 
           onClick={handleBatchUpload} 
           disabled={uploadQueue.length === 0 || isUploading}
-          className="bg-gradient-to-r from-aurora-electric-purple to-aurora-emerald hover:from-aurora-electric-purple/80 hover:to-aurora-emerald/80 text-white border-0 px-8 py-3 text-lg transition-all duration-300 hover:scale-105 hover:shadow-aurora-glow disabled:opacity-50 disabled:hover:scale-100"
+          className="bg-gradient-to-r from-aurora-electric-purple to-aurora-emerald hover:from-aurora-electric-purple/80 hover:to-aurora-emerald/80 text-white border-0 px-8 py-3 text-lg disabled:opacity-50"
         >
           {isUploading ? (
             <>
-              <Upload className="mr-3 h-5 w-5 animate-spin" /> 
+              <Upload className="mr-3 h-5 w-5" /> 
               🚀 Processando {uploadQueue.length} vídeos...
             </>
           ) : (

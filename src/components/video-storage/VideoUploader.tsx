@@ -217,14 +217,14 @@ const VideoUploader: React.FC = () => {
   };
 
   return (
-    <div className="aurora-glass-enhanced p-8 animate-aurora-float">
+    <div className="aurora-glass-enhanced p-8">
       <form onSubmit={formik.handleSubmit} className="space-y-8">
         {/* Aurora Enhanced Dropzone */}
         <div 
           {...getRootProps()} 
-          className={`aurora-glass-enhanced border-2 border-dashed rounded-xl p-8 flex flex-col items-center justify-center transition-all duration-300 cursor-pointer group ${
+          className={`aurora-glass-enhanced border-2 border-dashed rounded-xl p-8 flex flex-col items-center justify-center cursor-pointer group ${
             isDragActive 
-              ? 'border-aurora-electric-purple bg-aurora-electric-purple/20 animate-aurora-glow' 
+              ? 'border-aurora-electric-purple bg-aurora-electric-purple/20' 
               : 'border-aurora-electric-purple/50 hover:border-aurora-electric-purple hover:bg-aurora-electric-purple/10'
           }`}
         >
@@ -232,7 +232,7 @@ const VideoUploader: React.FC = () => {
           {selectedFile ? (
             <div className="flex flex-col items-center justify-center space-y-4">
               <div className="relative">
-                <Video className="h-16 w-16 text-aurora-electric-purple animate-aurora-glow" />
+                <Video className="h-16 w-16 text-aurora-electric-purple" />
                 <div className="absolute -top-2 -right-2 w-6 h-6 bg-aurora-emerald rounded-full flex items-center justify-center">
                   <span className="text-xs text-white">✓</span>
                 </div>
@@ -255,10 +255,7 @@ const VideoUploader: React.FC = () => {
           ) : (
             <div className="flex flex-col items-center justify-center space-y-4">
               <div className="relative">
-                <Upload className="h-16 w-16 text-aurora-electric-purple group-hover:animate-bounce transition-all duration-300" />
-                {isDragActive && (
-                  <div className="absolute inset-0 border-2 border-aurora-electric-purple rounded-full animate-ping"></div>
-                )}
+                <Upload className="h-16 w-16 text-aurora-electric-purple" />
               </div>
               <div className="text-center">
                 <p className="text-aurora-lavender font-medium mb-2">
