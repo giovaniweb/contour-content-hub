@@ -36,9 +36,9 @@ const AdminTopbar: React.FC = () => {
       color: "text-blue-400 hover:text-blue-300"
     },
     {
-      label: "Upload de Imagem",
+      label: "Upload de Foto",
       icon: Image,
-      action: () => navigate("/photos"),
+      action: () => navigate("/admin/photos/upload"),
       color: "text-green-400 hover:text-green-300"
     },
     {
