@@ -112,4 +112,6 @@ const VideoCreatePageAdmin: React.FC = () => {
   );
 };
 
+// Export explícito para evitar problemas de lazy loading
+export { VideoCreatePageAdmin };
 export default VideoCreatePageAdmin;

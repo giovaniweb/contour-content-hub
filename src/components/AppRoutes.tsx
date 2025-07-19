@@ -31,7 +31,7 @@ const AdminEquipments = React.lazy(() => import('@/pages/admin/AdminEquipments')
 const AdminVideos = React.lazy(() => import('@/pages/admin/AdminVideos'));
 const EditEquipment = React.lazy(() => import('@/pages/admin/EditEquipment'));
 const VideoCreatePage = React.lazy(() => import('@/pages/videos/VideoCreatePage'));
-const VideoCreatePageAdmin = React.lazy(() => import('@/pages/admin/VideoCreatePageAdmin'));
+const VideoCreatePageAdmin = React.lazy(() => import('@/pages/admin/VideoCreatePageAdmin').then(module => ({ default: module.default })));
 
 const AppRoutes: React.FC = () => {
   return (

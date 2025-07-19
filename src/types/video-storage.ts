@@ -43,10 +43,10 @@ export interface VideoQueueItem {
   progress?: VideoUploadProgress;
   error?: string;
   status: VideoStatus;
-  title?: string;
-  description?: string;
-  equipmentId?: string;
-  tags?: string[];
+  title: string;
+  description: string;
+  equipmentId: string;
+  tags: string[];
   videoId?: string;
   thumbnailFile?: File;
   category?: string;

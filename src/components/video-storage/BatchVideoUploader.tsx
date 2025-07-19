@@ -18,7 +18,7 @@ import { AlertCircle, Check, Trash2, Upload, X } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { usePermissions } from '@/hooks/use-permissions';
 import { VideoQueueItem } from '@/types/video-storage';
-import { batchUploadVideos } from '@/services/videoStorageService';
+import { batchUploadVideos } from '@/services/videoStorage/videoUploadService';
 import { Textarea } from '@/components/ui/textarea';
 import { v4 as uuidv4 } from 'uuid';
 import { formatFileNameToTitle } from '@/utils/fileUtils';
