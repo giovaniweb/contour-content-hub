@@ -28,6 +28,7 @@ const Photos = React.lazy(() => import('@/pages/Photos'));
 const Arts = React.lazy(() => import('@/pages/Arts'));
 const AdminPanel = React.lazy(() => import('@/pages/admin/AdminPanel'));
 const AdminEquipments = React.lazy(() => import('@/pages/admin/AdminEquipments'));
+const EditEquipment = React.lazy(() => import('@/pages/admin/EditEquipment'));
 
 const AppRoutes: React.FC = () => {
   return (
@@ -265,6 +266,17 @@ const AppRoutes: React.FC = () => {
               <AppLayout requireAdmin={true}>
                 <Suspense fallback={<AuroraLoadingSkeleton />}>
                   <AdminEquipments />
+                </Suspense>
+              </AppLayout>
+            } 
+          />
+
+          <Route 
+            path="/admin/equipments/edit/:id"
+            element={
+              <AppLayout requireAdmin={true}>
+                <Suspense fallback={<AuroraLoadingSkeleton />}>
+                  <EditEquipment />
                 </Suspense>
               </AppLayout>
             } 
