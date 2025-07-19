@@ -101,6 +101,17 @@ const AppRoutes: React.FC = () => {
           } 
         />
 
+        <Route 
+          path="/equipments/:id" 
+          element={
+            <AppLayout>
+              <Suspense fallback={<AuroraLoadingSkeleton />}>
+                <Equipments />
+              </Suspense>
+            </AppLayout>
+          } 
+        />
+
 
         <Route 
           path="/videos" 
