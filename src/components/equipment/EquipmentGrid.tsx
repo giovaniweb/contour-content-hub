@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Equipment } from '@/types/equipment';
 import { Eye } from 'lucide-react';
+import { ROUTES } from '@/routes';
 
 interface EquipmentGridProps {
   equipments: Equipment[];
@@ -24,9 +25,10 @@ const EquipmentGrid: React.FC<EquipmentGridProps> = ({
 
   const handleEquipmentClick = (equipmentId: string) => {
     console.log('🔍 EquipmentGrid - Clicou no equipamento:', equipmentId);
-    console.log('🔍 EquipmentGrid - Navegando para:', `/equipment/${equipmentId}`);
+    const targetPath = ROUTES.EQUIPMENTS.DETAILS(equipmentId);
+    console.log('🔍 EquipmentGrid - Navegando para:', targetPath);
     // Always navigate to equipment details when clicking the card
-    navigate(`/equipment/${equipmentId}`);
+    navigate(targetPath);
   };
 
   return (
