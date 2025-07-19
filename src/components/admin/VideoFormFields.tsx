@@ -95,17 +95,6 @@ const VideoFormFields: React.FC<VideoFormFieldsProps> = ({
         />
       </div>
 
-      {/* Descrição Detalhada */}
-      <div className="space-y-2">
-        <Label htmlFor="descricao-detalhada">Descrição Detalhada</Label>
-        <Textarea
-          id="descricao-detalhada"
-          placeholder="Descrição completa do vídeo"
-          value={detailedDescription}
-          onChange={(e) => setDetailedDescription(e.target.value)}
-          rows={4}
-        />
-      </div>
 
       {/* Tipo de Vídeo */}
       <div className="space-y-3">
@@ -146,7 +135,7 @@ const VideoFormFields: React.FC<VideoFormFieldsProps> = ({
             disabled={isGeneratingThumbnail}
             className="flex-1"
           />
-          {videoUrl && !thumbUrl && onGenerateThumbnail && (
+          {videoUrl && onGenerateThumbnail && (
             <Button
               type="button"
               variant="outline"
