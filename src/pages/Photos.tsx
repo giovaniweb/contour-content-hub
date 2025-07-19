@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Image, Search, Grid, List, Tag, Zap, Heart, Download, Archive, Check } from 'lucide-react';
+import { Image, Search, Grid, List, Tag, Zap, Heart, Download, Archive, Check, Upload } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import AuroraPageLayout from '@/components/layout/AuroraPageLayout';
 import StandardPageHeader from '@/components/layout/StandardPageHeader';
 import { Button } from '@/components/ui/button';
@@ -16,6 +17,7 @@ import JSZip from 'jszip';
 import { Photo } from '@/services/photoService';
 
 const Photos: React.FC = () => {
+  const navigate = useNavigate();
   const { photos, isLoading, error } = useUserPhotos();
   const { equipments } = useUserEquipments();
   const { saveLike } = usePhotoLikes();
@@ -337,6 +339,13 @@ const Photos: React.FC = () => {
                 className="aurora-button rounded-xl"
               >
                 <List className="h-4 w-4" />
+              </Button>
+              <Button
+                onClick={() => navigate('/admin/photos/upload')}
+                className="aurora-button rounded-xl bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600"
+              >
+                <Upload className="h-4 w-4 mr-2" />
+                Upload
               </Button>
             </div>
           </div>

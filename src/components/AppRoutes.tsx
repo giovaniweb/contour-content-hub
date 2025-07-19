@@ -12,6 +12,7 @@ const Register = React.lazy(() => import('@/pages/Register'));
 const ScientificArticles = React.lazy(() => import('@/pages/ScientificArticles'));
 const ScientificArticleView = React.lazy(() => import('@/pages/ScientificArticleView'));
 const AdminScientificArticles = React.lazy(() => import('@/pages/admin/AdminScientificArticles'));
+const AdminPhotosUpload = React.lazy(() => import('@/pages/admin/AdminPhotosUpload'));
 const AdminScientificArticleView = React.lazy(() => import('@/pages/admin/AdminScientificArticleView'));
 const Equipments = React.lazy(() => import('@/pages/Equipments'));
 const EquipmentDetails = React.lazy(() => import('@/pages/EquipmentDetails'));
@@ -303,6 +304,17 @@ const AppRoutes: React.FC = () => {
               <AppLayout requireAdmin={true}>
                 <Suspense fallback={<AuroraLoadingSkeleton />}>
                   <VideoCreatePageAdmin />
+                </Suspense>
+              </AppLayout>
+            } 
+          />
+
+          <Route 
+            path="/admin/photos/upload"
+            element={
+              <AppLayout requireAdmin={true}>
+                <Suspense fallback={<AuroraLoadingSkeleton />}>
+                  <AdminPhotosUpload />
                 </Suspense>
               </AppLayout>
             } 
