@@ -36,7 +36,7 @@ export const PhotoGrid: React.FC<PhotoGridProps> = ({ photos, onPhotoClick }) =>
         <Card key={photo.id} className="bg-slate-800/50 border-cyan-500/20 overflow-hidden hover:border-cyan-500/40 transition-colors">
           <CardContent className="p-0">
             {/* Image Container */}
-            <div className="relative aspect-square bg-slate-700/50 overflow-hidden">
+            <div className="relative aspect-video bg-slate-700/50 overflow-hidden">
               {!failedImages.has(photo.id) && (
                 <>
                   {/* Thumbnail primeiro */}
