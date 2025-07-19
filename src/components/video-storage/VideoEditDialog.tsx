@@ -47,7 +47,6 @@ const VideoEditDialog: React.FC<VideoEditDialogProps> = ({
   const [formData, setFormData] = useState({
     titulo: '',
     descricao_curta: '',
-    descricao_detalhada: '',
     tags: [] as string[],
     equipamentos: [] as string[],
     categoria: ''
@@ -56,6 +55,7 @@ const VideoEditDialog: React.FC<VideoEditDialogProps> = ({
   const [newTag, setNewTag] = useState('');
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [isGeneratingThumbnail, setIsGeneratingThumbnail] = useState(false);
 
   // Initialize form data
   useEffect(() => {
@@ -91,7 +91,6 @@ const VideoEditDialog: React.FC<VideoEditDialogProps> = ({
       setFormData({
         titulo: ('titulo' in video ? video.titulo : video.title) || '',
         descricao_curta: getDescription(),
-        descricao_detalhada: getDetailedDescription(),
         tags: ('tags' in video ? video.tags : []) || [],
         equipamentos: ('equipamentos' in video ? video.equipamentos : []) || [],
         categoria: getCategory()
@@ -133,6 +132,82 @@ const VideoEditDialog: React.FC<VideoEditDialogProps> = ({
         ? currentEquipments.filter(id => id !== equipmentId)
         : [...currentEquipments, equipmentId]
     }));
+  };
+
+  const generateThumbnailFromVideo = async (videoUrl: string): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const video = document.createElement('video');
+      video.crossOrigin = 'anonymous';
+      video.currentTime = 1; // Capture at 1 second
+      
+      video.onloadeddata = () => {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        if (!ctx) {
+          reject(new Error('Não foi possível criar contexto do canvas'));
+          return;
+        }
+        
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        
+        canvas.toBlob((blob) => {
+          if (blob) {
+            // Convert blob to file and upload
+            const file = new File([blob], 'thumbnail.jpg', { type: 'image/jpeg' });
+            handleThumbnailUpload(file).then(resolve).catch(reject);
+          } else {
+            reject(new Error('Erro ao gerar thumbnail'));
+          }
+        }, 'image/jpeg', 0.8);
+      };
+      
+      video.onerror = () => {
+        reject(new Error('Erro ao carregar o vídeo'));
+      };
+      
+      video.src = videoUrl;
+      video.load();
+    });
+  };
+
+  const handleGenerateThumbnail = async () => {
+    try {
+      setIsGeneratingThumbnail(true);
+      const videoUrl = ('url_video' in video ? video.url_video : '') || '';
+      
+      if (!videoUrl) {
+        throw new Error('URL do vídeo não encontrada');
+      }
+
+      const thumbnailUrl = await generateThumbnailFromVideo(videoUrl);
+      
+      // Update the video with the new thumbnail URL
+      const { success, error } = await updateVideo(video.id, { thumbnail_url: thumbnailUrl });
+      
+      if (!success) {
+        throw new Error(error);
+      }
+      
+      toast({
+        title: 'Sucesso',
+        description: 'Thumbnail gerada e salva com sucesso!'
+      });
+      
+      onUpdate();
+    } catch (error) {
+      console.error('Erro ao gerar thumbnail:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Erro',
+        description: error.message || 'Erro ao gerar thumbnail'
+      });
+    } finally {
+      setIsGeneratingThumbnail(false);
+    }
   };
 
   const handleThumbnailUpload = async (file: File) => {
@@ -231,19 +306,7 @@ const VideoEditDialog: React.FC<VideoEditDialogProps> = ({
               value={formData.descricao_curta}
               onChange={(e) => handleInputChange('descricao_curta', e.target.value)}
               placeholder="Descrição breve do vídeo"
-              rows={2}
-            />
-          </div>
-
-          {/* Detailed Description */}
-          <div>
-            <Label htmlFor="descricao_detalhada">Descrição Detalhada</Label>
-            <Textarea
-              id="descricao_detalhada"
-              value={formData.descricao_detalhada}
-              onChange={(e) => handleInputChange('descricao_detalhada', e.target.value)}
-              placeholder="Descrição completa do vídeo"
-              rows={4}
+              rows={3}
             />
           </div>
 
@@ -320,25 +383,50 @@ const VideoEditDialog: React.FC<VideoEditDialogProps> = ({
             </div>
           </div>
 
-          {/* Thumbnail Upload */}
+          {/* Thumbnail Upload and Generation */}
           <div>
-            <Label>Nova Thumbnail (opcional)</Label>
-            <div className="mt-2">
-              <Input
-                type="file"
-                accept="image/*"
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) {
-                    setThumbnailFile(file);
-                  }
-                }}
-              />
-              {thumbnailFile && (
-                <p className="text-sm text-muted-foreground mt-1">
-                  Arquivo selecionado: {thumbnailFile.name}
-                </p>
-              )}
+            <Label>Thumbnail</Label>
+            <div className="space-y-3 mt-2">
+              {/* Generate Thumbnail Button */}
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleGenerateThumbnail}
+                  disabled={isGeneratingThumbnail || !('url_video' in video && video.url_video)}
+                  className="flex-1"
+                >
+                  {isGeneratingThumbnail ? (
+                    <>
+                      <Upload className="mr-2 h-4 w-4 animate-spin" />
+                      Gerando thumbnail...
+                    </>
+                  ) : (
+                    'Gerar Thumbnail Automaticamente'
+                  )}
+                </Button>
+              </div>
+              
+              {/* Or upload custom thumbnail */}
+              <div>
+                <Label className="text-sm text-muted-foreground">Ou faça upload de uma thumbnail personalizada:</Label>
+                <Input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      setThumbnailFile(file);
+                    }
+                  }}
+                  className="mt-1"
+                />
+                {thumbnailFile && (
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Arquivo selecionado: {thumbnailFile.name}
+                  </p>
+                )}
+              </div>
             </div>
           </div>
 
