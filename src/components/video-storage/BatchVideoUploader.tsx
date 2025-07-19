@@ -21,6 +21,7 @@ import { VideoQueueItem } from '@/types/video-storage';
 import { batchUploadVideos } from '@/services/videoStorageService';
 import { Textarea } from '@/components/ui/textarea';
 import { v4 as uuidv4 } from 'uuid';
+import { formatFileNameToTitle } from '@/utils/fileUtils';
 
 interface BatchVideoUploaderProps {
   onUploadComplete?: () => void;
@@ -82,15 +83,8 @@ const BatchVideoUploader: React.FC<BatchVideoUploaderProps> = ({ onUploadComplet
       }
       
       const newQueueItems: VideoQueueItem[] = filteredFiles.map(file => {
-        // Remove file extension and replace underscores/hyphens with spaces
-        const nameWithoutExtension = file.name.replace(/\.[^/.]+$/, "");
-        const formattedName = nameWithoutExtension
-          .replace(/_/g, ' ')
-          .replace(/-/g, ' ')
-          // Capitalize first letter of each word
-          .split(' ')
-          .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-          .join(' ');
+        // Format filename using the new pattern
+        const formattedName = formatFileNameToTitle(file.name);
           
         return {
           id: uuidv4(),

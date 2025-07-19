@@ -89,6 +89,48 @@ export function generateUniqueFileName(originalName: string): string {
   return `${baseName}_${timestamp}_${random}.${extension}`;
 }
 
+/**
+ * Formata o nome do arquivo seguindo o padrão específico
+ * Converte de: aplicação_abdominal_cryorfmax_do_unyquepro-_1 (2160p)-2
+ * Para: Aplicação abdominal Cryo Rf Max do Unyque Pro Cod:XXX
+ */
+export function formatFileNameToTitle(fileName: string): string {
+  // Remove extensão e informações de resolução
+  let cleanName = fileName
+    .replace(/\.[^/.]+$/, '') // Remove extensão (.mp4, .avi, etc.)
+    .replace(/\s*\(\d+p\).*$/, '') // Remove resolução e tudo depois dela (2160p)-2
+    .replace(/-+$/, '') // Remove hífens no final
+    .trim();
+  
+  // Quebra por underscores e hífens, depois formata cada palavra
+  const words = cleanName
+    .split(/[_-]+/)
+    .filter(word => word.length > 0)
+    .map(word => {
+      // Capitaliza primeira letra de cada palavra
+      return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+    });
+  
+  // Junta as palavras com espaços
+  let formattedTitle = words.join(' ');
+  
+  // Aplica correções específicas para nomes conhecidos
+  formattedTitle = formattedTitle
+    .replace(/\bCryo\s*rf\s*max\b/gi, 'Cryo Rf Max')
+    .replace(/\bUnyque\s*pro\b/gi, 'Unyque Pro')
+    .replace(/\bdo\s+/gi, 'do ')
+    .replace(/\bda\s+/gi, 'da ')
+    .replace(/\bde\s+/gi, 'de ');
+  
+  // Adiciona código se não existir
+  if (!formattedTitle.toLowerCase().includes('cod:')) {
+    const randomCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+    formattedTitle += ` Cod:${randomCode}`;
+  }
+  
+  return formattedTitle;
+}
+
 export function generateUniqueThumbnailName(videoFileName: string): string {
   const timestamp = Date.now();
   const random = Math.random().toString(36).substring(2, 15);

@@ -20,7 +20,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { useEquipments } from '@/hooks/useEquipments';
 import { uploadVideo } from '@/services/videoStorage/videoUploadService';
-import { validateVideoFile, formatFileSize } from '@/utils/fileUtils';
+import { validateVideoFile, formatFileSize, formatFileNameToTitle } from '@/utils/fileUtils';
 import { Equipment } from '@/types/equipment';
 
 interface VideoUploadProgress {
@@ -83,9 +83,9 @@ const VideoUploader: React.FC = () => {
     }
     
     setSelectedFile(file);
-    // Auto-fill title from filename (remove extension)
-    const titleFromFile = file.name.replace(/\.[^/.]+$/, "");
-    formik.setFieldValue('title', titleFromFile);
+    // Auto-fill title from filename with formatting
+    const formattedTitle = formatFileNameToTitle(file.name);
+    formik.setFieldValue('title', formattedTitle);
   }, [formik, toast]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
