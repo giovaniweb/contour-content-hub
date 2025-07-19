@@ -44,7 +44,7 @@ const AdminDropdownMenu: React.FC = () => {
     {
       label: "Upload de Fotos",
       icon: Image,
-      action: () => navigate("/photos"),
+      action: () => navigate("/admin/photos/upload"),
     },
     {
       label: "Materiais (PSD/Arquivos)",
