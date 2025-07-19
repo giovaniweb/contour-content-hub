@@ -6,16 +6,28 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { useEquipmentDetailsState } from '@/hooks/useEquipmentDetailsState';
+import { useEquipmentContent } from '@/hooks/useEquipmentContent';
 import AuroraPageLayout from '@/components/layout/AuroraPageLayout';
 import { EquipmentDetailsError } from '@/components/equipment-details/EquipmentDetailsError';
 import { EquipmentDetailsLoading } from '@/components/equipment-details/EquipmentDetailsLoading';
 import { EquipmentDetailsTabsList } from '@/components/equipment-details/EquipmentDetailsTabs';
+import { EquipmentDocuments } from '@/components/equipment-details/EquipmentDocuments';
+import { EquipmentVideos } from '@/components/equipment-details/EquipmentVideos';
+import { EquipmentMaterials } from '@/components/equipment-details/EquipmentMaterials';
 
 const EquipmentDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('details');
   const { equipment, loading, error } = useEquipmentDetailsState(id);
+  
+  // Hook para buscar conteúdo relacionado ao equipamento
+  const { 
+    documents, 
+    videos, 
+    materials, 
+    loading: contentLoading 
+  } = useEquipmentContent(id || '', equipment?.nome || '');
 
   if (loading) {
     return <EquipmentDetailsLoading />;
@@ -268,33 +280,15 @@ const EquipmentDetails: React.FC = () => {
           </TabsContent>
 
           <TabsContent value="articles" className="mt-6">
-            <Card className="aurora-glass border-aurora-emerald/30 aurora-glow-emerald">
-              <CardContent className="p-8 text-center">
-                <div className="text-white/60 mb-4">📄</div>
-                <h3 className="aurora-heading text-xl text-white mb-2">Artigos científicos em breve</h3>
-                <p className="aurora-body text-white/70">Artigos científicos e estudos sobre este equipamento estarão disponíveis em breve.</p>
-              </CardContent>
-            </Card>
+            <EquipmentDocuments documents={documents} loading={contentLoading} />
           </TabsContent>
 
           <TabsContent value="videos" className="mt-6">
-            <Card className="aurora-glass border-aurora-electric-purple/30 aurora-glow">
-              <CardContent className="p-8 text-center">
-                <div className="text-white/60 mb-4">📹</div>
-                <h3 className="aurora-heading text-xl text-white mb-2">Vídeos em breve</h3>
-                <p className="aurora-body text-white/70">Estamos preparando vídeos demonstrativos deste equipamento.</p>
-              </CardContent>
-            </Card>
+            <EquipmentVideos videos={videos} loading={contentLoading} />
           </TabsContent>
 
           <TabsContent value="arts" className="mt-6">
-            <Card className="aurora-glass border-aurora-neon-blue/30 aurora-glow">
-              <CardContent className="p-8 text-center">
-                <div className="text-white/60 mb-4">🎨</div>
-                <h3 className="aurora-heading text-xl text-white mb-2">Artes em breve</h3>
-                <p className="aurora-body text-white/70">Materiais artísticos e criativos sobre este equipamento em desenvolvimento.</p>
-              </CardContent>
-            </Card>
+            <EquipmentMaterials materials={materials} loading={contentLoading} />
           </TabsContent>
         </Tabs>
       </div>
