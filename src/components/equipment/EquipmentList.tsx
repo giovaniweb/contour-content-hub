@@ -23,6 +23,8 @@ const EquipmentList: React.FC<EquipmentListProps> = ({
   const navigate = useNavigate();
 
   const handleEquipmentClick = (equipmentId: string) => {
+    console.log('🔍 EquipmentList - Clicou no equipamento:', equipmentId);
+    console.log('🔍 EquipmentList - Navegando para:', `/equipment/${equipmentId}`);
     // Always navigate to equipment details when clicking the card
     navigate(`/equipment/${equipmentId}`);
   };

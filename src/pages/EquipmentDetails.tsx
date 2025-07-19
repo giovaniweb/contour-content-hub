@@ -23,6 +23,10 @@ const EquipmentDetails: React.FC = () => {
   const [activeTab, setActiveTab] = useState('details');
   const [applicators, setApplicators] = useState<EquipmentApplicator[]>([]);
   const [applicatorsLoading, setApplicatorsLoading] = useState(false);
+  
+  console.log('🔍 EquipmentDetails - Renderizando para ID:', id);
+  console.log('🔍 EquipmentDetails - URL atual:', window.location.href);
+  
   const { equipment, loading, error } = useEquipmentDetailsState(id);
   
   // Hook para buscar conteúdo relacionado ao equipamento
