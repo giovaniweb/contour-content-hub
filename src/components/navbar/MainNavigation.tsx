@@ -16,7 +16,8 @@ import {
   Lightbulb,
   PenTool,
   BarChart3,
-  Users
+  Users,
+  Image as ImageIcon
 } from "lucide-react";
 
 interface MainNavigationProps {
@@ -37,6 +38,7 @@ export const MainNavigation: React.FC<MainNavigationProps> = ({ isAuthenticated 
       <NavLink to={ROUTES.CONTENT.IDEAS} icon={<Lightbulb size={16} />} label="Ideas" />
       <NavLink to={ROUTES.CONTENT.SCRIPTS.ROOT} icon={<PenTool size={16} />} label="Scripts" />
       <NavLink to={ROUTES.VIDEOS.ROOT} icon={<VideoIcon size={16} />} label="Videos" />
+      <NavLink to="/photos" icon={<ImageIcon size={16} />} label="Fotos" />
       <NavLink to={ROUTES.MARKETING.CONSULTANT} icon={<BrainCircuit size={16} />} label="Consultor" />
       <NavLink to={ROUTES.MARKETING.REPORTS} icon={<BarChart3 size={16} />} label="Reports" />
       {canViewConsultantPanel() && (

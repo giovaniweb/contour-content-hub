@@ -979,19 +979,25 @@ export type Database = {
       favoritos: {
         Row: {
           data_favorito: string | null
+          foto_id: string | null
           id: string
+          tipo: string | null
           usuario_id: string | null
           video_id: string | null
         }
         Insert: {
           data_favorito?: string | null
+          foto_id?: string | null
           id?: string
+          tipo?: string | null
           usuario_id?: string | null
           video_id?: string | null
         }
         Update: {
           data_favorito?: string | null
+          foto_id?: string | null
           id?: string
+          tipo?: string | null
           usuario_id?: string | null
           video_id?: string | null
         }
@@ -1011,6 +1017,54 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      fotos: {
+        Row: {
+          categoria: string | null
+          created_at: string
+          data_upload: string
+          descricao_curta: string | null
+          downloads_count: number | null
+          favoritos_count: number | null
+          id: string
+          tags: string[] | null
+          thumbnail_url: string | null
+          titulo: string
+          updated_at: string
+          url_imagem: string
+          user_id: string
+        }
+        Insert: {
+          categoria?: string | null
+          created_at?: string
+          data_upload?: string
+          descricao_curta?: string | null
+          downloads_count?: number | null
+          favoritos_count?: number | null
+          id?: string
+          tags?: string[] | null
+          thumbnail_url?: string | null
+          titulo: string
+          updated_at?: string
+          url_imagem: string
+          user_id: string
+        }
+        Update: {
+          categoria?: string | null
+          created_at?: string
+          data_upload?: string
+          descricao_curta?: string | null
+          downloads_count?: number | null
+          favoritos_count?: number | null
+          id?: string
+          tags?: string[] | null
+          thumbnail_url?: string | null
+          titulo?: string
+          updated_at?: string
+          url_imagem?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       gpt_config: {
         Row: {
