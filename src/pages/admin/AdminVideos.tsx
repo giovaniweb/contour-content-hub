@@ -12,8 +12,8 @@ const AdminVideos: React.FC = () => {
         <div className="flex items-center gap-3">
           <Video className="h-8 w-8 text-primary" />
           <div>
-            <h1 className="text-2xl font-bold text-slate-50">Administração de Vídeos</h1>
-            <p className="text-slate-400">Sistema de upload em massa e gerenciamento de vídeos</p>
+            <h1 className="text-2xl font-bold text-slate-50">Gerenciamento de Vídeos</h1>
+            <p className="text-slate-400">Visualize e gerencie todos os vídeos cadastrados</p>
           </div>
         </div>
 
