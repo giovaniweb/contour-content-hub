@@ -44,7 +44,21 @@ export const photoService = {
 
       const { data, error } = await supabase
         .from('fotos')
-        .select('*')
+        .select(`
+          id,
+          titulo,
+          descricao_curta,
+          categoria,
+          tags,
+          thumbnail_url,
+          url_imagem,
+          downloads_count,
+          favoritos_count,
+          data_upload,
+          created_at,
+          updated_at,
+          user_id
+        `)
         .eq('user_id', userData.user.id)
         .order('created_at', { ascending: false });
 

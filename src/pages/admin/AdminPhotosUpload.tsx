@@ -29,6 +29,7 @@ const AdminPhotosUpload: React.FC = () => {
   const [photos, setPhotos] = useState<PhotoUpload[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [tagInput, setTagInput] = useState('');
+  const [batchEquipment, setBatchEquipment] = useState('');
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || []);
@@ -88,11 +89,57 @@ const AdminPhotosUpload: React.FC = () => {
     }
   };
 
+  const applyBatchEquipment = () => {
+    if (!batchEquipment) return;
+    
+    setPhotos(prev => prev.map(photo => ({ 
+      ...photo, 
+      categoria: batchEquipment 
+    })));
+    
+    toast({
+      title: "Equipamento aplicado",
+      description: `Equipamento "${batchEquipment}" aplicado a todas as fotos.`,
+    });
+  };
+
+  // Função para criar thumbnail
+  const createThumbnail = async (file: File): Promise<string> => {
+    return new Promise((resolve) => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const img = document.createElement('img');
+      
+      img.onload = () => {
+        // Definir tamanho do thumbnail (300x300)
+        const maxSize = 300;
+        const ratio = Math.min(maxSize / img.width, maxSize / img.height);
+        
+        canvas.width = img.width * ratio;
+        canvas.height = img.height * ratio;
+        
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        }
+        
+        canvas.toBlob((blob) => {
+          if (blob) {
+            resolve(URL.createObjectURL(blob));
+          } else {
+            resolve(URL.createObjectURL(file));
+          }
+        }, 'image/jpeg', 0.8);
+      };
+      
+      img.src = URL.createObjectURL(file);
+    });
+  };
+
   const uploadPhoto = async (photo: PhotoUpload): Promise<boolean> => {
     try {
       updatePhoto(photo.id, { status: 'uploading' });
 
-      // Upload da imagem
+      // Upload da imagem original
       const fileExt = photo.file.name.split('.').pop();
       const fileName = `${Date.now()}-${Math.random()}.${fileExt}`;
       const filePath = `${fileName}`;
@@ -103,7 +150,54 @@ const AdminPhotosUpload: React.FC = () => {
 
       if (uploadError) throw uploadError;
 
-      // Obter URL pública
+      // Criar e fazer upload do thumbnail
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const img = document.createElement('img');
+      
+      let thumbnailUrl = '';
+      
+      await new Promise<void>((resolve, reject) => {
+        img.onload = async () => {
+          try {
+            // Redimensionar para thumbnail
+            const maxSize = 300;
+            const ratio = Math.min(maxSize / img.width, maxSize / img.height);
+            
+            canvas.width = img.width * ratio;
+            canvas.height = img.height * ratio;
+            
+            if (ctx) {
+              ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            }
+            
+            canvas.toBlob(async (blob) => {
+              if (blob) {
+                const thumbnailFileName = `thumb_${fileName}`;
+                const { error: thumbError } = await supabase.storage
+                  .from('aesthetical-images')
+                  .upload(thumbnailFileName, blob);
+
+                if (!thumbError) {
+                  const { data: thumbUrlData } = supabase.storage
+                    .from('aesthetical-images')
+                    .getPublicUrl(thumbnailFileName);
+                  
+                  thumbnailUrl = thumbUrlData.publicUrl;
+                }
+              }
+              resolve();
+            }, 'image/jpeg', 0.8);
+          } catch (error) {
+            reject(error);
+          }
+        };
+        
+        img.onerror = reject;
+        img.src = URL.createObjectURL(photo.file);
+      });
+
+      // Obter URL pública da imagem original
       const { data: urlData } = supabase.storage
         .from('aesthetical-images')
         .getPublicUrl(filePath);
@@ -119,7 +213,7 @@ const AdminPhotosUpload: React.FC = () => {
           titulo: photo.titulo,
           descricao_curta: photo.descricao_curta,
           url_imagem: urlData.publicUrl,
-          thumbnail_url: urlData.publicUrl,
+          thumbnail_url: thumbnailUrl || urlData.publicUrl,
           categoria: photo.categoria,
           tags: photo.tags,
           downloads_count: 0,
@@ -248,13 +342,38 @@ const AdminPhotosUpload: React.FC = () => {
               <CardTitle className="text-white">
                 Fotos para Upload ({photos.length})
               </CardTitle>
-              <Button 
-                onClick={handleUploadAll}
-                disabled={isUploading || photos.every(p => p.status !== 'pending')}
-                className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600"
-              >
-                {isUploading ? 'Enviando...' : 'Enviar Todas'}
-              </Button>
+              <div className="flex gap-3 items-center">
+                <div className="flex gap-2 items-center">
+                  <Select value={batchEquipment} onValueChange={setBatchEquipment}>
+                    <SelectTrigger className="w-48 bg-slate-600/50 border-slate-500 text-white">
+                      <SelectValue placeholder="Equipamento em lote" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-slate-700 border-slate-600">
+                      {equipments.map(equipment => (
+                        <SelectItem key={equipment.id} value={equipment.nome} className="text-white">
+                          {equipment.nome}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button 
+                    onClick={applyBatchEquipment}
+                    disabled={!batchEquipment || photos.length === 0}
+                    variant="outline"
+                    size="sm"
+                    className="border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/20"
+                  >
+                    Aplicar a Todas
+                  </Button>
+                </div>
+                <Button 
+                  onClick={handleUploadAll}
+                  disabled={isUploading || photos.every(p => p.status !== 'pending')}
+                  className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600"
+                >
+                  {isUploading ? 'Enviando...' : 'Enviar Todas'}
+                </Button>
+              </div>
             </CardHeader>
             <CardContent className="space-y-6">
               {photos.map((photo) => (
