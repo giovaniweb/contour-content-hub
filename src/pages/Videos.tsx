@@ -83,23 +83,9 @@ const Videos: React.FC = () => {
       const matchesEquipment = !selectedEquipment || selectedEquipment === 'all' || 
                               video.categoria === selectedEquipment;
       
-      const matchesProcedure = !selectedProcedure || selectedProcedure === 'all' ||
-                              video.tags?.some(tag => tag.toLowerCase().includes(selectedProcedure.toLowerCase())) ||
-                              video.categoria?.toLowerCase().includes(selectedProcedure.toLowerCase());
-      
-      return matchesSearch && matchesEquipment && matchesProcedure;
+      return matchesSearch && matchesEquipment;
     });
-  }, [videos, searchTerm, selectedEquipment, selectedProcedure]);
-
-  // Obter procedimentos únicos das tags e categorias
-  const procedures = useMemo(() => {
-    const allProcedures = new Set<string>();
-    videos.forEach(video => {
-      if (video.categoria) allProcedures.add(video.categoria);
-      video.tags?.forEach(tag => allProcedures.add(tag));
-    });
-    return Array.from(allProcedures).sort();
-  }, [videos]);
+  }, [videos, searchTerm, selectedEquipment]);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('pt-BR');
@@ -251,12 +237,6 @@ const Videos: React.FC = () => {
       label: `${filteredVideos.length} Vídeos`,
       variant: 'secondary' as const,
       color: 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30'
-    },
-    {
-      icon: Zap,
-      label: `${procedures.length} Procedimentos`,
-      variant: 'secondary' as const,
-      color: 'bg-purple-500/20 text-purple-400 border-purple-500/30'
     }
   ];
 
@@ -297,53 +277,34 @@ const Videos: React.FC = () => {
                   ))}
                 </SelectContent>
               </Select>
-
-              <Select value={selectedProcedure} onValueChange={setSelectedProcedure}>
-                <SelectTrigger className="w-48 bg-black/20 border-cyan-400/30 text-white rounded-xl">
-                  <SelectValue placeholder="Procedimento" />
-                </SelectTrigger>
-                <SelectContent className="bg-slate-900 border-cyan-400/30">
-                  <SelectItem value="all" className="text-white">Todos Procedimentos</SelectItem>
-                  {procedures.map(procedure => (
-                    <SelectItem key={procedure} value={procedure} className="text-white">
-                      {procedure}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
             </div>
 
             <div className="flex items-center gap-2">
               {selectedVideos.size > 0 && (
-                <div className="flex items-center gap-2 mr-4">
+                <div className="flex items-center gap-2 mr-4 px-3 py-2 bg-cyan-400/20 rounded-xl border border-cyan-400/30">
+                  <span className="text-cyan-400 text-sm font-medium">
+                    {selectedVideos.size} vídeo(s) selecionado(s)
+                  </span>
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={handleMultipleDownload}
                     disabled={isDownloading}
-                    className="aurora-button rounded-xl"
+                    className="aurora-button rounded-xl text-xs"
                   >
                     <Archive className="h-4 w-4 mr-1" />
-                    {isDownloading ? 'Baixando...' : `Baixar ${selectedVideos.size} ZIP`}
+                    {isDownloading ? 'Baixando...' : 'Baixar ZIP'}
                   </Button>
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={clearSelection}
-                    className="rounded-xl border-red-400/30 text-red-400 hover:bg-red-400/20"
+                    className="rounded-xl border-red-400/30 text-red-400 hover:bg-red-400/20 text-xs"
                   >
                     Limpar
                   </Button>
                 </div>
               )}
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={selectedVideos.size > 0 ? clearSelection : selectAllVideos}
-                className="aurora-button rounded-xl mr-2"
-              >
-                {selectedVideos.size > 0 ? 'Desmarcar Todos' : 'Selecionar Todos'}
-              </Button>
               <Button
                 variant={viewMode === 'grid' ? 'default' : 'outline'}
                 size="sm"
