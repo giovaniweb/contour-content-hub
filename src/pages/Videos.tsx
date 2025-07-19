@@ -1,18 +1,21 @@
 
-import React, { useState, useMemo } from 'react';
-import { Video, Search, Filter, Play, Grid, List, Tag, Zap, Heart, Download } from 'lucide-react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { Video, Search, Filter, Play, Grid, List, Tag, Zap, Heart, Download, Archive, Check } from 'lucide-react';
 import AuroraPageLayout from '@/components/layout/AuroraPageLayout';
 import StandardPageHeader from '@/components/layout/StandardPageHeader';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useUserVideos } from '@/hooks/useUserVideos';
 import { useUserEquipments } from '@/hooks/useUserEquipments';
 import { useLikes } from '@/hooks/video-player/use-likes';
 import UserVideoPlayer from '@/components/video-storage/UserVideoPlayer';
 import VideoDownloadMenu from '@/components/video-storage/VideoDownloadMenu';
 import { toast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import JSZip from 'jszip';
 
 interface Video {
   id: string;
@@ -26,6 +29,7 @@ interface Video {
   downloads_count?: number;
   data_upload: string;
   duracao?: string;
+  favoritos_count?: number;
 }
 
 const Videos: React.FC = () => {
@@ -39,6 +43,31 @@ const Videos: React.FC = () => {
   const [selectedProcedure, setSelectedProcedure] = useState('');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [likedVideos, setLikedVideos] = useState<Set<string>>(new Set());
+  const [selectedVideos, setSelectedVideos] = useState<Set<string>>(new Set());
+  const [likesCount, setLikesCount] = useState<Record<string, number>>({});
+  const [isDownloading, setIsDownloading] = useState(false);
+
+  // Carregar contagem de curtidas
+  useEffect(() => {
+    const loadLikesCount = async () => {
+      if (videos.length === 0) return;
+      
+      const { data, error } = await supabase
+        .from('favoritos')
+        .select('video_id')
+        .in('video_id', videos.map(v => v.id));
+      
+      if (!error && data) {
+        const counts: Record<string, number> = {};
+        data.forEach(like => {
+          counts[like.video_id] = (counts[like.video_id] || 0) + 1;
+        });
+        setLikesCount(counts);
+      }
+    };
+    
+    loadLikesCount();
+  }, [videos]);
 
   const handleVideoPlay = (video: Video) => {
     setSelectedVideo(video);
@@ -95,6 +124,10 @@ const Videos: React.FC = () => {
     const success = await saveLike(videoId);
     if (success) {
       setLikedVideos(prev => new Set(prev).add(videoId));
+      setLikesCount(prev => ({
+        ...prev,
+        [videoId]: (prev[videoId] || 0) + 1
+      }));
       toast({
         title: "Vídeo curtido!",
         description: "Obrigado por curtir este vídeo.",
@@ -102,29 +135,114 @@ const Videos: React.FC = () => {
     }
   };
 
-  const handleDownload = (videoUrl: string, videoTitle: string, event: React.MouseEvent) => {
+  const downloadFile = async (url: string, filename: string): Promise<Blob> => {
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`Erro ao baixar ${filename}`);
+    }
+    return response.blob();
+  };
+
+  const handleSingleDownload = async (videoUrl: string, videoTitle: string, event: React.MouseEvent) => {
     event.stopPropagation();
     
     try {
+      setIsDownloading(true);
+      const blob = await downloadFile(videoUrl, videoTitle);
+      
       const link = document.createElement('a');
-      link.href = videoUrl;
+      link.href = URL.createObjectURL(blob);
       link.download = `${videoTitle}.mp4`;
-      link.target = '_blank';
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+      URL.revokeObjectURL(link.href);
       
       toast({
-        title: "Download iniciado",
-        description: "O download do vídeo foi iniciado.",
+        title: "Download concluído",
+        description: "O download do vídeo foi concluído.",
       });
     } catch (error) {
       toast({
         title: "Erro no download",
-        description: "Não foi possível iniciar o download.",
+        description: "Não foi possível baixar o vídeo.",
         variant: "destructive"
       });
+    } finally {
+      setIsDownloading(false);
     }
+  };
+
+  const handleMultipleDownload = async () => {
+    if (selectedVideos.size === 0) {
+      toast({
+        title: "Nenhum vídeo selecionado",
+        description: "Selecione pelo menos um vídeo para download.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      setIsDownloading(true);
+      const zip = new JSZip();
+      
+      const selectedVideosList = videos.filter(v => selectedVideos.has(v.id) && v.url_video);
+      
+      for (const video of selectedVideosList) {
+        try {
+          const blob = await downloadFile(video.url_video!, video.titulo);
+          zip.file(`${video.titulo}.mp4`, blob);
+        } catch (error) {
+          console.error(`Erro ao baixar ${video.titulo}:`, error);
+        }
+      }
+      
+      const zipBlob = await zip.generateAsync({ type: 'blob' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(zipBlob);
+      link.download = `videos_selecionados_${new Date().toISOString().split('T')[0]}.zip`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(link.href);
+      
+      setSelectedVideos(new Set());
+      
+      toast({
+        title: "Download concluído",
+        description: `${selectedVideosList.length} vídeos foram baixados em um arquivo ZIP.`,
+      });
+    } catch (error) {
+      toast({
+        title: "Erro no download",
+        description: "Não foi possível criar o arquivo ZIP.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
+  const toggleVideoSelection = (videoId: string) => {
+    setSelectedVideos(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(videoId)) {
+        newSet.delete(videoId);
+      } else {
+        newSet.add(videoId);
+      }
+      return newSet;
+    });
+  };
+
+  const selectAllVideos = () => {
+    const videosWithUrl = filteredVideos.filter(v => v.url_video).map(v => v.id);
+    setSelectedVideos(new Set(videosWithUrl));
+  };
+
+  const clearSelection = () => {
+    setSelectedVideos(new Set());
   };
 
   const statusBadges = [
@@ -196,6 +314,36 @@ const Videos: React.FC = () => {
             </div>
 
             <div className="flex items-center gap-2">
+              {selectedVideos.size > 0 && (
+                <div className="flex items-center gap-2 mr-4">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleMultipleDownload}
+                    disabled={isDownloading}
+                    className="aurora-button rounded-xl"
+                  >
+                    <Archive className="h-4 w-4 mr-1" />
+                    {isDownloading ? 'Baixando...' : `Baixar ${selectedVideos.size} ZIP`}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={clearSelection}
+                    className="rounded-xl border-red-400/30 text-red-400 hover:bg-red-400/20"
+                  >
+                    Limpar
+                  </Button>
+                </div>
+              )}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={selectedVideos.size > 0 ? clearSelection : selectAllVideos}
+                className="aurora-button rounded-xl mr-2"
+              >
+                {selectedVideos.size > 0 ? 'Desmarcar Todos' : 'Selecionar Todos'}
+              </Button>
               <Button
                 variant={viewMode === 'grid' ? 'default' : 'outline'}
                 size="sm"
@@ -245,6 +393,17 @@ const Videos: React.FC = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {filteredVideos.map((video) => (
               <div key={video.id} className="aurora-card rounded-2xl group hover:scale-105 transition-all duration-300">
+                {/* Selection Checkbox */}
+                {video.url_video && (
+                  <div className="absolute top-3 left-3 z-10">
+                    <Checkbox
+                      checked={selectedVideos.has(video.id)}
+                      onCheckedChange={() => toggleVideoSelection(video.id)}
+                      className="bg-black/50 border-cyan-400/50"
+                    />
+                  </div>
+                )}
+                
                 {/* Thumbnail */}
                 <div 
                   className="relative aspect-video bg-slate-800/50 overflow-hidden rounded-t-2xl cursor-pointer"
@@ -334,14 +493,16 @@ const Videos: React.FC = () => {
                           : 'text-cyan-400 hover:bg-cyan-400/20'
                       }`}
                     >
-                      <Heart className={`h-4 w-4 ${likedVideos.has(video.id) ? 'fill-current' : ''}`} />
+                      <Heart className={`h-4 w-4 mr-1 ${likedVideos.has(video.id) ? 'fill-current' : ''}`} />
+                      {likesCount[video.id] || 0}
                     </Button>
                     
                     {video.url_video && (
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={(e) => handleDownload(video.url_video!, video.titulo, e)}
+                        onClick={(e) => handleSingleDownload(video.url_video!, video.titulo, e)}
+                        disabled={isDownloading}
                         className="rounded-xl border-cyan-400/30 text-cyan-400 hover:bg-cyan-400/20"
                       >
                         <Download className="h-4 w-4" />
@@ -358,6 +519,15 @@ const Videos: React.FC = () => {
               <div key={video.id} className="aurora-card rounded-2xl hover:scale-[1.02] transition-all duration-300">
                 <div className="p-4">
                   <div className="flex items-center gap-4">
+                    {/* Selection Checkbox */}
+                    {video.url_video && (
+                      <Checkbox
+                        checked={selectedVideos.has(video.id)}
+                        onCheckedChange={() => toggleVideoSelection(video.id)}
+                        className="bg-black/50 border-cyan-400/50"
+                      />
+                    )}
+                    
                     {/* Thumbnail */}
                     <div 
                       className="relative w-32 h-18 bg-slate-800/50 rounded-xl overflow-hidden flex-shrink-0 cursor-pointer"
@@ -415,14 +585,16 @@ const Videos: React.FC = () => {
                             : 'text-cyan-400 hover:bg-cyan-400/20'
                         }`}
                       >
-                        <Heart className={`h-4 w-4 ${likedVideos.has(video.id) ? 'fill-current' : ''}`} />
+                        <Heart className={`h-4 w-4 mr-1 ${likedVideos.has(video.id) ? 'fill-current' : ''}`} />
+                        {likesCount[video.id] || 0}
                       </Button>
                       
                       {video.url_video && (
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={(e) => handleDownload(video.url_video!, video.titulo, e)}
+                          onClick={(e) => handleSingleDownload(video.url_video!, video.titulo, e)}
+                          disabled={isDownloading}
                           className="rounded-xl border-cyan-400/30 text-cyan-400 hover:bg-cyan-400/20"
                         >
                           <Download className="h-4 w-4" />
