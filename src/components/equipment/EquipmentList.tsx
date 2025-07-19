@@ -8,13 +8,23 @@ import { Eye } from 'lucide-react';
 
 interface EquipmentListProps {
   equipments: Equipment[];
+  onEquipmentSelect?: (equipmentId: string) => void;
+  selectedEquipment?: string | null;
 }
 
-const EquipmentList: React.FC<EquipmentListProps> = ({ equipments }) => {
+const EquipmentList: React.FC<EquipmentListProps> = ({ 
+  equipments, 
+  onEquipmentSelect, 
+  selectedEquipment 
+}) => {
   const navigate = useNavigate();
 
   const handleEquipmentClick = (equipmentId: string) => {
-    navigate(`/equipments/${equipmentId}`);
+    if (onEquipmentSelect) {
+      onEquipmentSelect(equipmentId);
+    } else {
+      navigate(`/equipments/${equipmentId}`);
+    }
   };
 
   return (
@@ -22,7 +32,11 @@ const EquipmentList: React.FC<EquipmentListProps> = ({ equipments }) => {
       {equipments.map((equipment) => (
         <Card 
           key={equipment.id} 
-          className="aurora-card hover:aurora-glow-blue transition-all duration-500 hover:scale-[1.02] aurora-glass border-aurora-electric-purple/30 cursor-pointer"
+          className={`aurora-card hover:aurora-glow-blue transition-all duration-500 hover:scale-[1.02] aurora-glass cursor-pointer ${
+            selectedEquipment === equipment.id 
+              ? 'border-aurora-emerald/60 aurora-glow-emerald' 
+              : 'border-aurora-electric-purple/30'
+          }`}
           onClick={() => handleEquipmentClick(equipment.id)}
         >
           <CardContent className="p-6">

@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { Wrench, Plus, Sparkles, Zap, FileText, Image, Video } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useEquipments } from '@/hooks/useEquipments';
 import AuroraPageLayout from '@/components/layout/AuroraPageLayout';
@@ -19,6 +20,7 @@ const EquipmentsPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [activeTab, setActiveTab] = useState('equipments');
+  const [selectedEquipment, setSelectedEquipment] = useState<string | null>(null);
   const { equipments, loading, error } = useEquipments();
   const { photos } = useUserPhotos();
   const { videos } = useUserVideos();
@@ -29,22 +31,35 @@ const EquipmentsPage: React.FC = () => {
     equipment.beneficios?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const selectedEquipmentData = selectedEquipment 
+    ? equipments.find(eq => eq.id === selectedEquipment)
+    : null;
+
+  // Filter content by selected equipment
+  const filteredPhotos = selectedEquipment 
+    ? photos.filter(photo => photo.tags?.includes(selectedEquipmentData?.nome || ''))
+    : photos;
+    
+  const filteredVideos = selectedEquipment 
+    ? videos.filter(video => video.tags?.includes(selectedEquipmentData?.nome || ''))
+    : videos;
+
   const statusBadges = [
     {
       icon: Sparkles,
-      label: `${filteredEquipments.length} Equipamentos`,
+      label: selectedEquipment ? '1 Equipamento Selecionado' : `${filteredEquipments.length} Equipamentos`,
       variant: 'secondary' as const,
       color: 'bg-aurora-emerald/20 text-aurora-emerald border-aurora-emerald/30 aurora-glow-emerald'
     },
     {
       icon: Image,
-      label: `${photos.length} Fotos`,
+      label: `${filteredPhotos.length} Fotos`,
       variant: 'secondary' as const,
       color: 'bg-aurora-neon-blue/20 text-aurora-neon-blue border-aurora-neon-blue/30 aurora-glow-blue'
     },
     {
       icon: Video,
-      label: `${videos.length} Vídeos`,
+      label: `${filteredVideos.length} Vídeos`,
       variant: 'secondary' as const,
       color: 'bg-aurora-electric-purple/20 text-aurora-electric-purple border-aurora-electric-purple/30 aurora-glow'
     }
@@ -129,6 +144,27 @@ const EquipmentsPage: React.FC = () => {
                 }
               />
 
+              {selectedEquipment && selectedEquipmentData && (
+                <div className="aurora-glass rounded-xl border border-aurora-emerald/30 p-4 mb-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <Badge className="bg-aurora-emerald/20 text-aurora-emerald border-aurora-emerald/30">
+                        Equipamento Selecionado
+                      </Badge>
+                      <span className="aurora-heading text-white font-medium">{selectedEquipmentData.nome}</span>
+                    </div>
+                    <Button 
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setSelectedEquipment(null)}
+                      className="text-white/70 hover:text-white"
+                    >
+                      Limpar Seleção
+                    </Button>
+                  </div>
+                </div>
+              )}
+
               {loading ? (
                 <div className="aurora-glass rounded-3xl border border-aurora-electric-purple/30 p-8">
                   <div className="text-center py-16">
@@ -157,9 +193,17 @@ const EquipmentsPage: React.FC = () => {
               ) : (
                 <div className="aurora-glass rounded-3xl border border-aurora-electric-purple/30 p-8 aurora-glow backdrop-blur-xl">
                   {viewMode === 'grid' ? (
-                    <EquipmentGrid equipments={filteredEquipments} />
+                    <EquipmentGrid 
+                      equipments={filteredEquipments} 
+                      onEquipmentSelect={setSelectedEquipment}
+                      selectedEquipment={selectedEquipment}
+                    />
                   ) : (
-                    <EquipmentList equipments={filteredEquipments} />
+                    <EquipmentList 
+                      equipments={filteredEquipments}
+                      onEquipmentSelect={setSelectedEquipment}
+                      selectedEquipment={selectedEquipment}
+                    />
                   )}
                 </div>
               )}
@@ -171,21 +215,41 @@ const EquipmentsPage: React.FC = () => {
 
             <TabsContent value="photos">
               <div className="aurora-glass rounded-3xl border border-aurora-electric-purple/30 p-8 aurora-glow backdrop-blur-xl">
-                <iframe 
-                  src="/photos" 
-                  className="w-full h-[800px] rounded-xl border-0"
-                  title="Fotos"
-                />
+                {selectedEquipment && filteredPhotos.length === 0 ? (
+                  <EmptyState
+                    icon={Image}
+                    title="Nenhuma foto encontrada"
+                    description={`Nenhuma foto relacionada ao equipamento "${selectedEquipmentData?.nome}" foi encontrada`}
+                    actionLabel="Ver todas as fotos"
+                    onAction={() => setSelectedEquipment(null)}
+                  />
+                ) : (
+                  <iframe 
+                    src={selectedEquipment ? `/photos?equipment=${encodeURIComponent(selectedEquipmentData?.nome || '')}` : "/photos"} 
+                    className="w-full h-[800px] rounded-xl border-0"
+                    title="Fotos"
+                  />
+                )}
               </div>
             </TabsContent>
 
             <TabsContent value="videos">
               <div className="aurora-glass rounded-3xl border border-aurora-electric-purple/30 p-8 aurora-glow backdrop-blur-xl">
-                <iframe 
-                  src="/videos" 
-                  className="w-full h-[800px] rounded-xl border-0"
-                  title="Vídeos"
-                />
+                {selectedEquipment && filteredVideos.length === 0 ? (
+                  <EmptyState
+                    icon={Video}
+                    title="Nenhum vídeo encontrado"
+                    description={`Nenhum vídeo relacionado ao equipamento "${selectedEquipmentData?.nome}" foi encontrado`}
+                    actionLabel="Ver todos os vídeos"
+                    onAction={() => setSelectedEquipment(null)}
+                  />
+                ) : (
+                  <iframe 
+                    src={selectedEquipment ? `/videos?equipment=${encodeURIComponent(selectedEquipmentData?.nome || '')}` : "/videos"} 
+                    className="w-full h-[800px] rounded-xl border-0"
+                    title="Vídeos"
+                  />
+                )}
               </div>
             </TabsContent>
           </Tabs>

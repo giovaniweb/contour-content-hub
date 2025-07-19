@@ -7,13 +7,23 @@ import { Equipment } from '@/types/equipment';
 
 interface EquipmentGridProps {
   equipments: Equipment[];
+  onEquipmentSelect?: (equipmentId: string) => void;
+  selectedEquipment?: string | null;
 }
 
-const EquipmentGrid: React.FC<EquipmentGridProps> = ({ equipments }) => {
+const EquipmentGrid: React.FC<EquipmentGridProps> = ({ 
+  equipments, 
+  onEquipmentSelect, 
+  selectedEquipment 
+}) => {
   const navigate = useNavigate();
 
   const handleEquipmentClick = (equipmentId: string) => {
-    navigate(`/equipments/${equipmentId}`);
+    if (onEquipmentSelect) {
+      onEquipmentSelect(equipmentId);
+    } else {
+      navigate(`/equipments/${equipmentId}`);
+    }
   };
 
   return (
@@ -21,7 +31,11 @@ const EquipmentGrid: React.FC<EquipmentGridProps> = ({ equipments }) => {
       {equipments.map((equipment) => (
         <Card 
           key={equipment.id} 
-          className="aurora-card hover:aurora-glow transition-all duration-500 hover:scale-105 aurora-glass border-aurora-electric-purple/30 cursor-pointer"
+          className={`aurora-card hover:aurora-glow transition-all duration-500 hover:scale-105 aurora-glass cursor-pointer ${
+            selectedEquipment === equipment.id 
+              ? 'border-aurora-emerald/60 aurora-glow-emerald' 
+              : 'border-aurora-electric-purple/30'
+          }`}
           onClick={() => handleEquipmentClick(equipment.id)}
         >
           <CardContent className="p-6">
