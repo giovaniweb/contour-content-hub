@@ -1,19 +1,20 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { getEquipmentById } from '@/api/equipment';
 import { EquipmentDetailsLoading } from '@/components/equipment-details/EquipmentDetailsLoading';
 import { EquipmentDetailsError } from '@/components/equipment-details/EquipmentDetailsError';
 import { EquipmentDetailsHeader } from '@/components/equipment-details/EquipmentDetailsHeader';
-import { EquipmentDetailsTabsList } from '@/components/equipment-details/EquipmentDetailsTabs';
+import EquipmentPhotosTab from '@/components/equipment-photos/EquipmentPhotosTab';
 import AppLayout from '@/components/layout/AppLayout';
-import { Tabs, TabsContent } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Wrench, Target, Award, Lightbulb } from "lucide-react";
+import { Wrench, Target, Award, Lightbulb, Images, Info } from "lucide-react";
 
 const EquipmentDetailsPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const [activeTab, setActiveTab] = useState('details');
   
   const { data: equipment, isLoading, error } = useQuery({
     queryKey: ['equipment', id],
@@ -35,8 +36,23 @@ const EquipmentDetailsPage: React.FC = () => {
         <div className="max-w-6xl mx-auto space-y-6">
           <EquipmentDetailsHeader equipment={equipment} />
           
-          <Tabs defaultValue="details" className="w-full">
-            <EquipmentDetailsTabsList activeTab="details" setActiveTab={() => {}} />
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="grid w-full grid-cols-2 aurora-glass">
+              <TabsTrigger 
+                value="details"
+                className="flex items-center gap-2 data-[state=active]:bg-aurora-electric-purple/20 data-[state=active]:text-aurora-electric-purple"
+              >
+                <Info className="h-4 w-4" />
+                Detalhes
+              </TabsTrigger>
+              <TabsTrigger 
+                value="photos"
+                className="flex items-center gap-2 data-[state=active]:bg-aurora-electric-purple/20 data-[state=active]:text-aurora-electric-purple"
+              >
+                <Images className="h-4 w-4" />
+                Fotos
+              </TabsTrigger>
+            </TabsList>
             
             <TabsContent value="details" className="space-y-6">
               {/* Overview Card */}
@@ -153,6 +169,10 @@ const EquipmentDetailsPage: React.FC = () => {
                   </Card>
                 )}
               </div>
+            </TabsContent>
+
+            <TabsContent value="photos" className="space-y-6">
+              <EquipmentPhotosTab equipmentId={id!} />
             </TabsContent>
           </Tabs>
         </div>

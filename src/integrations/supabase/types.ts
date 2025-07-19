@@ -976,6 +976,102 @@ export type Database = {
           },
         ]
       }
+      equipment_photo_downloads: {
+        Row: {
+          created_at: string
+          download_type: string | null
+          id: string
+          photo_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          download_type?: string | null
+          id?: string
+          photo_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          download_type?: string | null
+          id?: string
+          photo_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      equipment_photo_likes: {
+        Row: {
+          created_at: string
+          id: string
+          photo_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          photo_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          photo_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      equipment_photos: {
+        Row: {
+          created_at: string
+          description: string | null
+          downloads_count: number | null
+          equipment_id: string
+          file_size: number | null
+          id: string
+          image_url: string
+          is_public: boolean | null
+          likes_count: number | null
+          tags: string[] | null
+          thumbnail_url: string | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          downloads_count?: number | null
+          equipment_id: string
+          file_size?: number | null
+          id?: string
+          image_url: string
+          is_public?: boolean | null
+          likes_count?: number | null
+          tags?: string[] | null
+          thumbnail_url?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          downloads_count?: number | null
+          equipment_id?: string
+          file_size?: number | null
+          id?: string
+          image_url?: string
+          is_public?: boolean | null
+          likes_count?: number | null
+          tags?: string[] | null
+          thumbnail_url?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       favoritos: {
         Row: {
           data_favorito: string | null
