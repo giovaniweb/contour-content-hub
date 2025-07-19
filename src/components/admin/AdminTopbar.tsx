@@ -32,7 +32,7 @@ const AdminTopbar: React.FC = () => {
     {
       label: "Upload de Vídeo",
       icon: Video,
-      action: () => navigate("/admin/videos"),
+      action: () => navigate("/videos/create"),
       color: "text-blue-400 hover:text-blue-300"
     },
     {
