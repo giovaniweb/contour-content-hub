@@ -37,13 +37,13 @@ export const PhotoGrid: React.FC<PhotoGridProps> = ({ photos, onPhotoClick }) =>
         <Card key={photo.id} className="bg-slate-800/50 border-cyan-500/20 overflow-hidden hover:border-cyan-500/40 transition-colors">
           <CardContent className="p-0">
             {/* Image Container */}
-            <div className="relative bg-slate-700/50">
+            <div className="relative">
               <LazyImage
                 src={photo.thumbnail_url || photo.url_imagem}
                 alt={photo.titulo}
                 aspectRatio="video"
-                className="w-full h-full object-cover"
-                containerClassName="w-full"
+                className="object-cover"
+                containerClassName="bg-slate-700/50"
               />
               
               {/* Overlay */}
