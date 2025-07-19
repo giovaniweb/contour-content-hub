@@ -217,55 +217,88 @@ const VideoUploader: React.FC = () => {
   };
 
   return (
-    <div className="container mx-auto py-10">
-      <h2 className="text-2xl font-semibold mb-5">Envio de Vídeo Individual</h2>
-
-      <form onSubmit={formik.handleSubmit} className="space-y-6">
-        {/* Dropzone or File Input */}
+    <div className="aurora-glass-enhanced p-8 animate-aurora-float">
+      <form onSubmit={formik.handleSubmit} className="space-y-8">
+        {/* Aurora Enhanced Dropzone */}
         <div 
           {...getRootProps()} 
-          className={`border-2 border-dashed rounded-md p-6 flex flex-col items-center justify-center transition-colors ${
-            isDragActive ? 'border-primary bg-primary/5' : 'border-muted-foreground hover:border-primary/50'
+          className={`aurora-glass-enhanced border-2 border-dashed rounded-xl p-8 flex flex-col items-center justify-center transition-all duration-300 cursor-pointer group ${
+            isDragActive 
+              ? 'border-aurora-electric-purple bg-aurora-electric-purple/20 animate-aurora-glow' 
+              : 'border-aurora-electric-purple/50 hover:border-aurora-electric-purple hover:bg-aurora-electric-purple/10'
           }`}
         >
           <input {...getInputProps()} />
           {selectedFile ? (
-            <div className="flex flex-col items-center justify-center space-y-2">
-              <Video className="h-10 w-10 text-primary mb-2" />
-              <p className="text-sm font-medium">{selectedFile.name}</p>
-              <p className="text-xs text-muted-foreground">{formatFileSize(selectedFile.size)}</p>
-              <Button type="button" variant="ghost" size="sm" onClick={handleRemoveSelectedFile}>
+            <div className="flex flex-col items-center justify-center space-y-4">
+              <div className="relative">
+                <Video className="h-16 w-16 text-aurora-electric-purple animate-aurora-glow" />
+                <div className="absolute -top-2 -right-2 w-6 h-6 bg-aurora-emerald rounded-full flex items-center justify-center">
+                  <span className="text-xs text-white">✓</span>
+                </div>
+              </div>
+              <div className="text-center">
+                <p className="text-aurora-lavender font-medium mb-1">{selectedFile.name}</p>
+                <p className="text-aurora-lavender/60 text-sm">{formatFileSize(selectedFile.size)}</p>
+              </div>
+              <Button 
+                type="button" 
+                variant="ghost" 
+                size="sm" 
+                onClick={handleRemoveSelectedFile}
+                className="text-aurora-lavender/70 hover:text-white hover:bg-aurora-electric-purple/20"
+              >
                 <X className="h-4 w-4 mr-1" />
-                Remover
+                Remover Arquivo
               </Button>
             </div>
           ) : (
-            <div className="flex flex-col items-center justify-center space-y-2">
-              <Upload className="h-10 w-10 text-primary mb-2" />
-              <p className="text-sm text-muted-foreground text-center">
-                {isDragActive 
-                  ? "Solte o arquivo aqui..." 
-                  : "Arraste e solte um vídeo aqui ou clique para selecionar"
-                }
-              </p>
-              <p className="text-xs text-muted-foreground">
-                MP4, MOV, AVI, MKV, WebM (máx. 500MB)
-              </p>
+            <div className="flex flex-col items-center justify-center space-y-4">
+              <div className="relative">
+                <Upload className="h-16 w-16 text-aurora-electric-purple group-hover:animate-bounce transition-all duration-300" />
+                {isDragActive && (
+                  <div className="absolute inset-0 border-2 border-aurora-electric-purple rounded-full animate-ping"></div>
+                )}
+              </div>
+              <div className="text-center">
+                <p className="text-aurora-lavender font-medium mb-2">
+                  {isDragActive 
+                    ? "✨ Solte o arquivo aqui para processar..." 
+                    : "Arraste seu vídeo ou clique para selecionar"
+                  }
+                </p>
+                <p className="text-aurora-lavender/60 text-sm">
+                  Suporte: MP4, MOV, AVI, MKV, WebM (máx. 500MB)
+                </p>
+                <div className="flex justify-center space-x-2 mt-2">
+                  {['MP4', 'MOV', 'AVI'].map(format => (
+                    <span key={format} className="px-2 py-1 bg-aurora-electric-purple/20 text-aurora-lavender text-xs rounded-full">
+                      {format}
+                    </span>
+                  ))}
+                </div>
+              </div>
             </div>
           )}
         </div>
 
         {/* Title Input */}
-        <div>
-          <Label htmlFor="title">Título *</Label>
+        <div className="aurora-glass-enhanced p-4">
+          <Label htmlFor="title" className="text-aurora-lavender font-medium flex items-center mb-2">
+            🏷️ Título do Vídeo *
+          </Label>
           <Input
             type="text"
             id="title"
-            placeholder="Título do vídeo"
+            placeholder="Ex: Aplicação facial Hydra Plus do Unyque Pro"
             {...formik.getFieldProps('title')}
+            className="bg-aurora-deep-purple/30 border-aurora-electric-purple/30 text-aurora-lavender placeholder:text-aurora-lavender/50 focus:border-aurora-electric-purple focus:ring-aurora-electric-purple/30"
           />
           {formik.touched.title && formik.errors.title ? (
-            <p className="text-red-500 text-sm mt-1">{formik.errors.title}</p>
+            <p className="text-aurora-emerald text-sm mt-2 flex items-center">
+              <span className="mr-2">⚠️</span>
+              {formik.errors.title}
+            </p>
           ) : null}
         </div>
 
@@ -413,21 +446,21 @@ const VideoUploader: React.FC = () => {
           </div>
         )}
 
-        {/* Submit Button */}
+        {/* Aurora Enhanced Submit Button */}
         <Button 
           type="submit" 
           disabled={isUploading || !selectedFile} 
-          className="w-full"
+          className="w-full bg-gradient-to-r from-aurora-electric-purple to-aurora-neon-blue hover:from-aurora-electric-purple/80 hover:to-aurora-neon-blue/80 text-white border-0 h-12 text-lg font-medium transition-all duration-300 hover:scale-105 hover:shadow-aurora-glow disabled:opacity-50 disabled:hover:scale-100"
         >
           {isUploading ? (
             <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Enviando...
+              <Loader2 className="mr-3 h-5 w-5 animate-spin" />
+              🚀 Processando Upload...
             </>
           ) : (
             <>
-              <Upload className="mr-2 h-4 w-4" />
-              Enviar Vídeo
+              <Upload className="mr-3 h-5 w-5" />
+              ✨ Iniciar Upload Inteligente
             </>
           )}
         </Button>

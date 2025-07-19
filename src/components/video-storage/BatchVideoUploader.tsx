@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { 
   Card, 
   CardContent, 
@@ -253,42 +254,54 @@ const BatchVideoUploader: React.FC<BatchVideoUploaderProps> = ({ onUploadComplet
   }
 
   return (
-    <Card className="w-full">
-      <CardHeader>
-        <CardTitle>Upload em Lote (Administrador)</CardTitle>
-        <CardDescription>Envie múltiplos vídeos de uma só vez</CardDescription>
-      </CardHeader>
+    <div className="aurora-glass-enhanced p-8 animate-aurora-wave">
+      <div className="text-center mb-8">
+        <h3 className="text-2xl font-bold bg-gradient-to-r from-aurora-electric-purple to-aurora-emerald bg-clip-text text-transparent mb-2">
+          🚀 Upload em Lote Inteligente
+        </h3>
+        <p className="text-aurora-lavender/80">Processamento paralelo com monitoramento em tempo real</p>
+      </div>
       
-      <CardContent className="space-y-4">
-        <div className="flex gap-4 mb-6">
-          <div className="flex-1">
+      <div className="space-y-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 aurora-glass-enhanced p-6">
+            <Label className="text-aurora-lavender font-medium flex items-center mb-3">
+              📁 Seleção de Arquivos
+            </Label>
             <Input
               ref={fileInputRef}
               type="file"
               accept="video/*"
               multiple
               onChange={handleFileChange}
-              className="mb-2"
+              className="bg-aurora-deep-purple/30 border-aurora-electric-purple/30 text-aurora-lavender file:bg-aurora-electric-purple/20 file:text-aurora-lavender file:border-0 file:rounded-md file:px-4 file:py-2 file:mr-4"
             />
-            <p className="text-xs text-muted-foreground">
-              MP4, MOV, AVI ou MKV. Máximo 100MB por arquivo.
-            </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {['MP4', 'MOV', 'AVI', 'MKV'].map(format => (
+                <span key={format} className="px-2 py-1 bg-aurora-electric-purple/20 text-aurora-lavender text-xs rounded-full">
+                  {format}
+                </span>
+              ))}
+            </div>
           </div>
           
-          <div className="w-1/3">
+          <div className="aurora-glass-enhanced p-6">
+            <Label className="text-aurora-lavender font-medium flex items-center mb-3">
+              ⚙️ Configuração Global
+            </Label>
             <Select value={defaultEquipmentId} onValueChange={handleSetEquipmentForAll}>
-              <SelectTrigger>
+              <SelectTrigger className="bg-aurora-deep-purple/30 border-aurora-electric-purple/30 text-aurora-lavender">
                 <SelectValue placeholder="Equipamento padrão" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-aurora-deep-purple border-aurora-electric-purple/30">
                 <SelectItem value="none">Nenhum equipamento</SelectItem>
                 {equipmentOptions.map(eq => (
                   <SelectItem key={eq.id} value={eq.id}>{eq.nome}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
-            <p className="text-xs text-muted-foreground mt-1">
-              Equipamento padrão para novos arquivos
+            <p className="text-xs text-aurora-lavender/60 mt-2">
+              Aplica para todos novos arquivos
             </p>
           </div>
         </div>
@@ -408,37 +421,54 @@ const BatchVideoUploader: React.FC<BatchVideoUploaderProps> = ({ onUploadComplet
             </div>
           </div>
         ) : (
-          <div className="bg-muted py-12 rounded-lg flex flex-col items-center justify-center">
-            <Upload className="h-12 w-12 text-muted-foreground mb-4" />
-            <p className="text-muted-foreground mb-4">Adicione vídeos para iniciar o upload em lote</p>
-            <Button onClick={() => fileInputRef.current?.click()}>
-              Selecionar arquivos
+          <div className="aurora-glass-enhanced py-16 rounded-xl flex flex-col items-center justify-center animate-aurora-pulse">
+            <div className="relative mb-6">
+              <Upload className="h-20 w-20 text-aurora-electric-purple animate-aurora-float" />
+              <div className="absolute inset-0 border-2 border-aurora-electric-purple/30 rounded-full animate-ping"></div>
+            </div>
+            <h4 className="text-aurora-lavender font-medium text-lg mb-2">Fila de Upload Vazia</h4>
+            <p className="text-aurora-lavender/60 mb-6 text-center max-w-md">
+              Selecione múltiplos vídeos para processar em lote com inteligência Aurora
+            </p>
+            <Button 
+              onClick={() => fileInputRef.current?.click()}
+              className="bg-gradient-to-r from-aurora-electric-purple to-aurora-neon-blue hover:from-aurora-electric-purple/80 hover:to-aurora-neon-blue/80 text-white border-0 px-8 py-3 text-lg transition-all duration-300 hover:scale-105 hover:shadow-aurora-glow"
+            >
+              ✨ Selecionar Vídeos
             </Button>
           </div>
         )}
-      </CardContent>
+      </div>
       
-      <CardFooter className="flex justify-between">
-        <Button variant="outline" onClick={onCancel}>
+      <div className="flex justify-between items-center mt-8 pt-6 border-t border-aurora-electric-purple/30">
+        <Button 
+          variant="outline" 
+          onClick={onCancel}
+          className="bg-aurora-deep-purple/30 border-aurora-electric-purple/50 text-aurora-lavender hover:bg-aurora-electric-purple/20 hover:text-white"
+        >
+          <X className="mr-2 h-4 w-4" />
           Cancelar
         </Button>
         
         <Button 
           onClick={handleBatchUpload} 
           disabled={uploadQueue.length === 0 || isUploading}
+          className="bg-gradient-to-r from-aurora-electric-purple to-aurora-emerald hover:from-aurora-electric-purple/80 hover:to-aurora-emerald/80 text-white border-0 px-8 py-3 text-lg transition-all duration-300 hover:scale-105 hover:shadow-aurora-glow disabled:opacity-50 disabled:hover:scale-100"
         >
           {isUploading ? (
             <>
-              <Upload className="mr-2 h-4 w-4 animate-spin" /> Enviando...
+              <Upload className="mr-3 h-5 w-5 animate-spin" /> 
+              🚀 Processando {uploadQueue.length} vídeos...
             </>
           ) : (
             <>
-              <Upload className="mr-2 h-4 w-4" /> Enviar {uploadQueue.length} {uploadQueue.length === 1 ? 'vídeo' : 'vídeos'}
+              <Upload className="mr-3 h-5 w-5" /> 
+              ✨ Processar {uploadQueue.length} {uploadQueue.length === 1 ? 'vídeo' : 'vídeos'}
             </>
           )}
         </Button>
-      </CardFooter>
-    </Card>
+      </div>
+    </div>
   );
 };
 
