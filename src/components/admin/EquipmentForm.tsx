@@ -38,7 +38,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 
 export interface EquipmentFormProps {
   equipment?: Equipment;
-  onSave: (equipment: Equipment) => Promise<void>;
+  onSave: (equipment: Equipment) => Promise<Equipment | void>;
   onCancel: () => void;
 }
 
@@ -80,7 +80,7 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({ equipment, onSave, onCanc
     } as Equipment
   });
 
-  // Check for draft on component mount
+  // Check for draft on component mount and load applicators if editing
   useEffect(() => {
     // Only check for draft if we're creating a new equipment (not editing)
     if (!equipment) {
@@ -94,6 +94,24 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({ equipment, onSave, onCanc
           setImagePreview(draft.data.image_url as string);
         }
       }
+    } else {
+      // If editing, load existing applicators
+      const loadApplicators = async () => {
+        try {
+          const { data, error } = await supabase
+            .from('equipment_applicators')
+            .select('*')
+            .eq('equipment_id', equipment.id)
+            .order('order_index', { ascending: true });
+          
+          if (error) throw error;
+          setApplicators(data || []);
+        } catch (error) {
+          console.error('Error loading applicators:', error);
+        }
+      };
+      
+      loadApplicators();
     }
   }, [equipment]);
 
@@ -284,7 +302,47 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({ equipment, onSave, onCanc
         data.indicacoes = convertStringToArray(data.indicacoes);
       }
       
-      await onSave(data);
+      // Primeiro, salva o equipamento
+      const savedEquipment = await onSave(data);
+      
+      // Se temos ponteiras para salvar
+      if (applicators.length > 0) {
+        const equipmentId = equipment?.id || (savedEquipment as Equipment)?.id;
+        
+        // Deletar ponteiras existentes se estamos editando
+        if (equipment?.id) {
+          await supabase
+            .from('equipment_applicators')
+            .delete()
+            .eq('equipment_id', equipmentId);
+        }
+        
+        // Inserir novas ponteiras
+        const applicatorsToInsert = applicators.map((applicator, index) => ({
+          equipment_id: equipmentId,
+          name: applicator.name,
+          technology: applicator.technology || null,
+          description: applicator.description || null,
+          image_url: applicator.image_url || null,
+          active: applicator.active,
+          order_index: index,
+        }));
+        
+        if (applicatorsToInsert.length > 0) {
+          const { error: applicatorsError } = await supabase
+            .from('equipment_applicators')
+            .insert(applicatorsToInsert);
+            
+          if (applicatorsError) {
+            console.error('Erro ao salvar ponteiras:', applicatorsError);
+            toast({
+              variant: "destructive",
+              title: "Erro ao salvar ponteiras",
+              description: "O equipamento foi salvo, mas houve erro ao salvar as ponteiras."
+            });
+          }
+        }
+      }
       
       if (!equipment) {
         // Clear draft after successful new equipment creation

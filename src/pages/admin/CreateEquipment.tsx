@@ -15,12 +15,13 @@ const CreateEquipment: React.FC = () => {
 
   const handleSave = async (equipment: Equipment) => {
     try {
-      await createEquipment(equipment);
+      const createdEquipment = await createEquipment(equipment);
       toast({
         title: "Equipamento criado",
         description: `${equipment.nome} foi criado com sucesso.`
       });
       navigate('/admin/equipments');
+      return createdEquipment;
     } catch (error) {
       console.error('Error creating equipment:', error);
       throw error;

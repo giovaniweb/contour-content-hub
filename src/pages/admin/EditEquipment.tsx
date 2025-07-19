@@ -47,12 +47,13 @@ const EditEquipment: React.FC = () => {
     if (!id) return;
     
     try {
-      await updateEquipment(id, updatedEquipment);
+      const savedEquipment = await updateEquipment(id, updatedEquipment);
       toast({
         title: "Equipamento atualizado",
         description: `${updatedEquipment.nome} foi atualizado com sucesso.`
       });
       navigate('/admin/equipments');
+      return savedEquipment;
     } catch (error) {
       console.error('Error updating equipment:', error);
       throw error; // Re-throw so EquipmentForm can handle it
