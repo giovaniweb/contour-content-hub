@@ -50,7 +50,7 @@ export const EquipmentTabs: React.FC<EquipmentTabsProps> = ({
           </TabsContent>
           
           <TabsContent value="videos">
-            <EquipmentVideosTab equipmentName={equipment.nome} />
+            <EquipmentVideosTab equipmentId={equipment.id} equipmentName={equipment.nome} />
           </TabsContent>
         </CardContent>
       </Tabs>

@@ -27,10 +27,11 @@ interface Video {
 }
 
 interface EquipmentVideosTabProps {
+  equipmentId: string;
   equipmentName: string;
 }
 
-export const EquipmentVideosTab: React.FC<EquipmentVideosTabProps> = ({ equipmentName }) => {
+export const EquipmentVideosTab: React.FC<EquipmentVideosTabProps> = ({ equipmentId, equipmentName }) => {
   const { videos, isLoading, error } = useUserVideos();
   const { saveLike } = useLikes();
   const [selectedVideo, setSelectedVideo] = useState<Video | null>(null);
@@ -44,9 +45,10 @@ export const EquipmentVideosTab: React.FC<EquipmentVideosTabProps> = ({ equipmen
   const filteredVideos = useMemo(() => {
     return videos.filter(video => 
       video.tags?.includes(equipmentName) || 
-      video.categoria === equipmentName
+      video.categoria === equipmentName ||
+      (video as any).equipment_id === equipmentId
     );
-  }, [videos, equipmentName]);
+  }, [videos, equipmentName, equipmentId]);
 
   // Carregar contagem de curtidas
   useEffect(() => {
