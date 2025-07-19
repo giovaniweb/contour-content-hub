@@ -3,18 +3,21 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Equipment } from '@/types/equipment';
 import { Eye } from 'lucide-react';
 
 interface EquipmentListProps {
   equipments: Equipment[];
   onEquipmentSelect?: (equipmentId: string) => void;
+  onEquipmentView?: (equipmentId: string) => void;
   selectedEquipment?: string | null;
 }
 
 const EquipmentList: React.FC<EquipmentListProps> = ({ 
   equipments, 
   onEquipmentSelect, 
+  onEquipmentView,
   selectedEquipment 
 }) => {
   const navigate = useNavigate();
@@ -22,8 +25,10 @@ const EquipmentList: React.FC<EquipmentListProps> = ({
   const handleEquipmentClick = (equipmentId: string) => {
     if (onEquipmentSelect) {
       onEquipmentSelect(equipmentId);
+    } else if (onEquipmentView) {
+      onEquipmentView(equipmentId);
     } else {
-      navigate(`/equipments/${equipmentId}`);
+      navigate(`/equipment/${equipmentId}`);
     }
   };
 
@@ -83,9 +88,24 @@ const EquipmentList: React.FC<EquipmentListProps> = ({
               </div>
               
               <div className="flex items-center gap-3">
-                <div className="aurora-floating">
-                  <Eye className="h-5 w-5 text-aurora-electric-purple" />
-                </div>
+                {onEquipmentSelect ? (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/equipment/${equipment.id}`);
+                    }}
+                    className="text-aurora-electric-purple hover:text-white hover:bg-aurora-electric-purple/20 flex items-center gap-2"
+                  >
+                    <Eye className="h-4 w-4" />
+                    Ver Detalhes
+                  </Button>
+                ) : (
+                  <div className="aurora-floating">
+                    <Eye className="h-5 w-5 text-aurora-electric-purple" />
+                  </div>
+                )}
               </div>
             </div>
           </CardContent>

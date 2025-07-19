@@ -3,17 +3,21 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Equipment } from '@/types/equipment';
+import { Eye } from 'lucide-react';
 
 interface EquipmentGridProps {
   equipments: Equipment[];
   onEquipmentSelect?: (equipmentId: string) => void;
+  onEquipmentView?: (equipmentId: string) => void;
   selectedEquipment?: string | null;
 }
 
 const EquipmentGrid: React.FC<EquipmentGridProps> = ({ 
   equipments, 
   onEquipmentSelect, 
+  onEquipmentView,
   selectedEquipment 
 }) => {
   const navigate = useNavigate();
@@ -21,8 +25,10 @@ const EquipmentGrid: React.FC<EquipmentGridProps> = ({
   const handleEquipmentClick = (equipmentId: string) => {
     if (onEquipmentSelect) {
       onEquipmentSelect(equipmentId);
+    } else if (onEquipmentView) {
+      onEquipmentView(equipmentId);
     } else {
-      navigate(`/equipments/${equipmentId}`);
+      navigate(`/equipment/${equipmentId}`);
     }
   };
 
@@ -66,13 +72,27 @@ const EquipmentGrid: React.FC<EquipmentGridProps> = ({
                 <p className="aurora-body text-white/80 text-sm line-clamp-2">{equipment.tecnologia}</p>
               )}
               
-              <div className="flex items-center gap-2">
+              <div className="flex items-center justify-between gap-2">
                 <Badge 
                   variant="outline" 
                   className="text-xs border-aurora-electric-purple/30 text-aurora-electric-purple bg-aurora-electric-purple/10 aurora-pulse"
                 >
                   {equipment.categoria === 'estetico' ? '🌟 Estético' : '🏥 Médico'}
                 </Badge>
+                
+                {onEquipmentSelect && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/equipment/${equipment.id}`);
+                    }}
+                    className="text-aurora-electric-purple hover:text-white hover:bg-aurora-electric-purple/20 p-1 h-auto"
+                  >
+                    <Eye className="h-4 w-4" />
+                  </Button>
+                )}
               </div>
             </div>
           </CardContent>

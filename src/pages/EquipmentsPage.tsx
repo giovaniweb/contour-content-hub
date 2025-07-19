@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Wrench, Plus, Sparkles, Zap, FileText, Image, Video } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -24,6 +25,15 @@ const EquipmentsPage: React.FC = () => {
   const { equipments, loading, error } = useEquipments();
   const { photos } = useUserPhotos();
   const { videos } = useUserVideos();
+  const navigate = useNavigate();
+
+  const handleEquipmentSelect = (equipmentId: string) => {
+    setSelectedEquipment(equipmentId);
+  };
+
+  const handleEquipmentView = (equipmentId: string) => {
+    navigate(`/equipment/${equipmentId}`);
+  };
 
   const filteredEquipments = equipments.filter(equipment =>
     equipment.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -195,13 +205,15 @@ const EquipmentsPage: React.FC = () => {
                   {viewMode === 'grid' ? (
                     <EquipmentGrid 
                       equipments={filteredEquipments} 
-                      onEquipmentSelect={setSelectedEquipment}
+                      onEquipmentSelect={handleEquipmentSelect}
+                      onEquipmentView={handleEquipmentView}
                       selectedEquipment={selectedEquipment}
                     />
                   ) : (
                     <EquipmentList 
                       equipments={filteredEquipments}
-                      onEquipmentSelect={setSelectedEquipment}
+                      onEquipmentSelect={handleEquipmentSelect}
+                      onEquipmentView={handleEquipmentView}
                       selectedEquipment={selectedEquipment}
                     />
                   )}
