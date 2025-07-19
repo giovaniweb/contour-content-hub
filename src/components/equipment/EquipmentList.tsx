@@ -23,13 +23,7 @@ const EquipmentList: React.FC<EquipmentListProps> = ({
   const navigate = useNavigate();
 
   const handleEquipmentClick = (equipmentId: string) => {
-    if (onEquipmentSelect) {
-      onEquipmentSelect(equipmentId);
-    } else if (onEquipmentView) {
-      onEquipmentView(equipmentId);
-    } else {
-      navigate(`/equipment/${equipmentId}`);
-    }
+    navigate(`/equipment/${equipmentId}`);
   };
 
   return (
@@ -94,12 +88,12 @@ const EquipmentList: React.FC<EquipmentListProps> = ({
                     variant="ghost"
                     onClick={(e) => {
                       e.stopPropagation();
-                      navigate(`/equipment/${equipment.id}`);
+                      onEquipmentSelect(equipment.id);
                     }}
                     className="text-aurora-electric-purple hover:text-white hover:bg-aurora-electric-purple/20 flex items-center gap-2"
                   >
                     <Eye className="h-4 w-4" />
-                    Ver Detalhes
+                    Filtrar
                   </Button>
                 ) : (
                   <div className="aurora-floating">

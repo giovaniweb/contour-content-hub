@@ -23,13 +23,7 @@ const EquipmentGrid: React.FC<EquipmentGridProps> = ({
   const navigate = useNavigate();
 
   const handleEquipmentClick = (equipmentId: string) => {
-    if (onEquipmentSelect) {
-      onEquipmentSelect(equipmentId);
-    } else if (onEquipmentView) {
-      onEquipmentView(equipmentId);
-    } else {
-      navigate(`/equipment/${equipmentId}`);
-    }
+    navigate(`/equipment/${equipmentId}`);
   };
 
   return (
@@ -86,7 +80,7 @@ const EquipmentGrid: React.FC<EquipmentGridProps> = ({
                     variant="ghost"
                     onClick={(e) => {
                       e.stopPropagation();
-                      navigate(`/equipment/${equipment.id}`);
+                      onEquipmentSelect(equipment.id);
                     }}
                     className="text-aurora-electric-purple hover:text-white hover:bg-aurora-electric-purple/20 p-1 h-auto"
                   >
