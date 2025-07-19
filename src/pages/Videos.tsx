@@ -47,10 +47,10 @@ const Videos: React.FC = () => {
       const matchesSearch = video.titulo.toLowerCase().includes(searchTerm.toLowerCase()) ||
                            video.descricao_curta?.toLowerCase().includes(searchTerm.toLowerCase());
       
-      const matchesEquipment = !selectedEquipment || 
+      const matchesEquipment = !selectedEquipment || selectedEquipment === 'all' || 
                               video.categoria === selectedEquipment;
       
-      const matchesProcedure = !selectedProcedure || 
+      const matchesProcedure = !selectedProcedure || selectedProcedure === 'all' ||
                               video.tags?.some(tag => tag.toLowerCase().includes(selectedProcedure.toLowerCase())) ||
                               video.categoria?.toLowerCase().includes(selectedProcedure.toLowerCase());
       
@@ -116,7 +116,7 @@ const Videos: React.FC = () => {
                   <SelectValue placeholder="Equipamento" />
                 </SelectTrigger>
                 <SelectContent className="bg-slate-900 border-cyan-400/30">
-                  <SelectItem value="">Todos Equipamentos</SelectItem>
+                  <SelectItem value="all" className="text-white">Todos Equipamentos</SelectItem>
                   {equipments.map(equipment => (
                     <SelectItem key={equipment.id} value={equipment.nome} className="text-white">
                       {equipment.nome}
@@ -130,7 +130,7 @@ const Videos: React.FC = () => {
                   <SelectValue placeholder="Procedimento" />
                 </SelectTrigger>
                 <SelectContent className="bg-slate-900 border-cyan-400/30">
-                  <SelectItem value="">Todos Procedimentos</SelectItem>
+                  <SelectItem value="all" className="text-white">Todos Procedimentos</SelectItem>
                   {procedures.map(procedure => (
                     <SelectItem key={procedure} value={procedure} className="text-white">
                       {procedure}
