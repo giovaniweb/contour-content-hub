@@ -113,7 +113,7 @@ const PhotosPage: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {Array.from({ length: 8 }).map((_, index) => (
               <div key={index} className="bg-slate-800/50 rounded-xl overflow-hidden border border-cyan-500/20">
-                <div className="aspect-square bg-slate-600/50 animate-pulse" />
+                <div className="aspect-video bg-slate-600/50 animate-pulse" />
                 <div className="p-4 space-y-2">
                   <div className="h-4 bg-slate-600/50 rounded animate-pulse" />
                   <div className="h-3 bg-slate-600/50 rounded w-2/3 animate-pulse" />
