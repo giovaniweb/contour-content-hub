@@ -22,11 +22,8 @@ export const ROUTES = {
   
   VIDEOS: {
     ROOT: '/videos',
-    CREATE: '/videos/create',
     PLAYER: '/video-player',
     STORAGE: '/videos/storage',
-    BATCH: '/videos/batch',
-    IMPORT: '/videos/import',
     SWIPE: '/videos/swipe'
   },
 
@@ -71,5 +68,10 @@ export const ROUTES = {
     WORKSPACE: '/admin/workspace'
   },
 
-  ADMIN_VIDEOS: '/admin/videos'
+  ADMIN_VIDEOS: {
+    ROOT: '/admin/videos',
+    CREATE: '/admin/videos/create',
+    BATCH: '/admin/videos/batch',
+    IMPORT: '/admin/videos/import'
+  }
 } as const;

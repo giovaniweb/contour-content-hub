@@ -39,7 +39,7 @@ const AdminDropdownMenu: React.FC = () => {
     {
       label: "Upload de Vídeo",
       icon: Video,
-      action: () => navigate("/admin/videos"),
+      action: () => navigate("/admin/videos/create"),
     },
     {
       label: "Upload de Fotos",

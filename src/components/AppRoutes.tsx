@@ -28,6 +28,7 @@ const Photos = React.lazy(() => import('@/pages/Photos'));
 const Arts = React.lazy(() => import('@/pages/Arts'));
 const AdminPanel = React.lazy(() => import('@/pages/admin/AdminPanel'));
 const AdminEquipments = React.lazy(() => import('@/pages/admin/AdminEquipments'));
+const AdminVideos = React.lazy(() => import('@/pages/admin/AdminVideos'));
 const EditEquipment = React.lazy(() => import('@/pages/admin/EditEquipment'));
 const VideoCreatePage = React.lazy(() => import('@/pages/videos/VideoCreatePage'));
 
@@ -127,16 +128,6 @@ const AppRoutes: React.FC = () => {
           } 
         />
 
-        <Route 
-          path="/videos/create" 
-          element={
-            <AppLayout>
-              <Suspense fallback={<AuroraLoadingSkeleton />}>
-                <VideoCreatePage />
-              </Suspense>
-            </AppLayout>
-          } 
-        />
 
         <Route 
           path="/marketing-consultant" 
@@ -289,6 +280,28 @@ const AppRoutes: React.FC = () => {
               <AppLayout requireAdmin={true}>
                 <Suspense fallback={<AuroraLoadingSkeleton />}>
                   <EditEquipment />
+                </Suspense>
+              </AppLayout>
+            } 
+          />
+
+          <Route 
+            path="/admin/videos"
+            element={
+              <AppLayout requireAdmin={true}>
+                <Suspense fallback={<AuroraLoadingSkeleton />}>
+                  <AdminVideos />
+                </Suspense>
+              </AppLayout>
+            } 
+          />
+
+          <Route 
+            path="/admin/videos/create"
+            element={
+              <AppLayout requireAdmin={true}>
+                <Suspense fallback={<AuroraLoadingSkeleton />}>
+                  <VideoCreatePage />
                 </Suspense>
               </AppLayout>
             } 

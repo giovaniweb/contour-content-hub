@@ -120,14 +120,6 @@ const VideosPage: React.FC = () => {
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-400 mx-auto mb-4"></div>
             <p className="text-slate-300">Carregando vídeos...</p>
           </div>
-        ) : videos.length === 0 ? (
-          <EmptyState
-            icon={Video}
-            title="Nenhum vídeo encontrado"
-            description="Comece enviando seus primeiros vídeos"
-            actionLabel="Enviar Primeiro Vídeo"
-            onAction={() => console.log('Upload video')}
-          />
         ) : (
           <div className="rounded-2xl bg-slate-800/30 backdrop-blur-sm border border-cyan-500/20 p-6">
             <UserVideoGrid

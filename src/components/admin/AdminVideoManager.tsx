@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
-import { Upload, Search, Filter } from 'lucide-react';
+import { Upload, Search, Filter, Plus } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -26,6 +27,7 @@ const filterValidEquipments = (equipments: any[]) => {
 };
 
 const AdminVideoManager: React.FC = () => {
+  const navigate = useNavigate();
   const { toast } = useToast();
   const {
     videos,
@@ -150,7 +152,15 @@ const AdminVideoManager: React.FC = () => {
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
         <div className="flex items-center gap-2">
           <Button 
+            onClick={() => navigate('/admin/videos/create')}
+            className="flex items-center gap-2"
+          >
+            <Plus className="h-4 w-4" />
+            Novo Vídeo
+          </Button>
+          <Button 
             onClick={() => setShowUploader(true)}
+            variant="outline"
             className="flex items-center gap-2"
           >
             <Upload className="h-4 w-4" />
