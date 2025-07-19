@@ -22,7 +22,6 @@ const Photos: React.FC = () => {
   const [selectedPhoto, setSelectedPhoto] = useState<Photo | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedEquipment, setSelectedEquipment] = useState('');
-  const [selectedProcedure, setSelectedProcedure] = useState('');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [likedPhotos, setLikedPhotos] = useState<Set<string>>(new Set());
   const [selectedPhotos, setSelectedPhotos] = useState<Set<string>>(new Set());
@@ -61,23 +60,10 @@ const Photos: React.FC = () => {
       const matchesEquipment = !selectedEquipment || selectedEquipment === 'all' || 
                               photo.categoria === selectedEquipment;
       
-      const matchesProcedure = !selectedProcedure || selectedProcedure === 'all' ||
-                              photo.tags?.some(tag => tag.toLowerCase().includes(selectedProcedure.toLowerCase())) ||
-                              photo.categoria?.toLowerCase().includes(selectedProcedure.toLowerCase());
-      
-      return matchesSearch && matchesEquipment && matchesProcedure;
+      return matchesSearch && matchesEquipment;
     });
-  }, [photos, searchTerm, selectedEquipment, selectedProcedure]);
+  }, [photos, searchTerm, selectedEquipment]);
 
-  // Obter procedimentos únicos das tags e categorias
-  const procedures = useMemo(() => {
-    const allProcedures = new Set<string>();
-    photos.forEach(photo => {
-      if (photo.categoria) allProcedures.add(photo.categoria);
-      photo.tags?.forEach(tag => allProcedures.add(tag));
-    });
-    return Array.from(allProcedures).sort();
-  }, [photos]);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('pt-BR');
@@ -229,12 +215,6 @@ const Photos: React.FC = () => {
       label: `${filteredPhotos.length} Fotos`,
       variant: 'secondary' as const,
       color: 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30'
-    },
-    {
-      icon: Zap,
-      label: `${procedures.length} Procedimentos`,
-      variant: 'secondary' as const,
-      color: 'bg-purple-500/20 text-purple-400 border-purple-500/30'
     }
   ];
 
@@ -271,20 +251,6 @@ const Photos: React.FC = () => {
                   {equipments.map(equipment => (
                     <SelectItem key={equipment.id} value={equipment.nome} className="text-white">
                       {equipment.nome}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <Select value={selectedProcedure} onValueChange={setSelectedProcedure}>
-                <SelectTrigger className="w-48 bg-black/20 border-cyan-400/30 text-white rounded-xl">
-                  <SelectValue placeholder="Procedimento" />
-                </SelectTrigger>
-                <SelectContent className="bg-slate-900 border-cyan-400/30">
-                  <SelectItem value="all" className="text-white">Todos Procedimentos</SelectItem>
-                  {procedures.map(procedure => (
-                    <SelectItem key={procedure} value={procedure} className="text-white">
-                      {procedure}
                     </SelectItem>
                   ))}
                 </SelectContent>
