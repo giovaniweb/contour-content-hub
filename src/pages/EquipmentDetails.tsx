@@ -1,12 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Wrench, Star, Zap, Users, CheckCircle } from 'lucide-react';
+import { ArrowLeft, Wrench, Star, Zap, Users, CheckCircle, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { useEquipmentDetailsState } from '@/hooks/useEquipmentDetailsState';
 import { useEquipmentContent } from '@/hooks/useEquipmentContent';
+import { supabase } from '@/integrations/supabase/client';
+import type { EquipmentApplicator } from '@/types/equipment';
 import AuroraPageLayout from '@/components/layout/AuroraPageLayout';
 import { EquipmentDetailsError } from '@/components/equipment-details/EquipmentDetailsError';
 import { EquipmentDetailsLoading } from '@/components/equipment-details/EquipmentDetailsLoading';
@@ -19,6 +21,8 @@ const EquipmentDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('details');
+  const [applicators, setApplicators] = useState<EquipmentApplicator[]>([]);
+  const [applicatorsLoading, setApplicatorsLoading] = useState(false);
   const { equipment, loading, error } = useEquipmentDetailsState(id);
   
   // Hook para buscar conteúdo relacionado ao equipamento
@@ -28,6 +32,32 @@ const EquipmentDetails: React.FC = () => {
     materials, 
     loading: contentLoading 
   } = useEquipmentContent(id || '', equipment?.nome || '');
+
+  // Fetch applicators
+  useEffect(() => {
+    const fetchApplicators = async () => {
+      if (!id) return;
+      
+      setApplicatorsLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from('equipment_applicators')
+          .select('*')
+          .eq('equipment_id', id)
+          .eq('active', true)
+          .order('order_index', { ascending: true });
+        
+        if (error) throw error;
+        setApplicators(data || []);
+      } catch (err) {
+        console.error('Error fetching applicators:', err);
+      } finally {
+        setApplicatorsLoading(false);
+      }
+    };
+
+    fetchApplicators();
+  }, [id]);
 
   if (loading) {
     return <EquipmentDetailsLoading />;
@@ -60,7 +90,8 @@ const EquipmentDetails: React.FC = () => {
     );
   }
 
-  const benefits = equipment.beneficios ? equipment.beneficios.split('\n').filter(b => b.trim()) : [];
+  const benefits = equipment.beneficios ? 
+    equipment.beneficios.split(/[;\n]/).map(b => b.trim()).filter(Boolean) : [];
   const indications = typeof equipment.indicacoes === 'string' 
     ? equipment.indicacoes.split('\n').filter(i => i.trim())
     : Array.isArray(equipment.indicacoes) ? equipment.indicacoes : [];
@@ -272,6 +303,46 @@ const EquipmentDetails: React.FC = () => {
                           </li>
                         ))}
                       </ul>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Applicators/Ponteiras */}
+                {applicators.length > 0 && (
+                  <Card className="aurora-glass border-aurora-electric-purple/30 aurora-glow">
+                    <CardContent className="p-6">
+                      <div className="flex items-center gap-3 mb-4">
+                        <Settings className="h-5 w-5 text-aurora-electric-purple" />
+                        <h3 className="aurora-heading text-xl text-white">Ponteiras</h3>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {applicators.map((applicator) => (
+                          <div key={applicator.id} className="bg-aurora-electric-purple/10 rounded-lg p-4 border border-aurora-electric-purple/20">
+                            <div className="flex items-start gap-3">
+                              {applicator.image_url && (
+                                <img 
+                                  src={applicator.image_url} 
+                                  alt={applicator.name}
+                                  className="w-16 h-16 object-cover rounded-lg border border-aurora-electric-purple/30"
+                                />
+                              )}
+                              <div className="flex-1">
+                                <h4 className="font-semibold text-white mb-1">{applicator.name}</h4>
+                                {applicator.technology && (
+                                  <p className="text-aurora-electric-purple text-sm mb-1">
+                                    {applicator.technology}
+                                  </p>
+                                )}
+                                {applicator.description && (
+                                  <p className="text-white/70 text-sm">
+                                    {applicator.description}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     </CardContent>
                   </Card>
                 )}
