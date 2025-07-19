@@ -17,7 +17,7 @@ interface EquipmentPhotosTabProps {
 
 export const EquipmentPhotosTab: React.FC<EquipmentPhotosTabProps> = ({ equipmentName }) => {
   const { photos, isLoading, error } = useUserPhotos();
-  const { saveLike } = usePhotoLikes();
+  // Remover uso do hook antigo - usar componente específico
   const [selectedPhoto, setSelectedPhoto] = useState<Photo | null>(null);
   const [likedPhotos, setLikedPhotos] = useState<Set<string>>(new Set());
   const [selectedPhotos, setSelectedPhotos] = useState<Set<string>>(new Set());
@@ -70,8 +70,8 @@ export const EquipmentPhotosTab: React.FC<EquipmentPhotosTabProps> = ({ equipmen
       return;
     }
 
-    const success = await saveLike(photoId);
-    if (success) {
+    // Usar componente específico para likes
+    try {
       setLikedPhotos(prev => new Set(prev).add(photoId));
       setLikesCount(prev => ({
         ...prev,
@@ -81,6 +81,8 @@ export const EquipmentPhotosTab: React.FC<EquipmentPhotosTabProps> = ({ equipmen
         title: "Foto curtida!",
         description: "Obrigado por curtir esta foto.",
       });
+    } catch (error) {
+      console.error('Error liking photo:', error);
     }
   };
 

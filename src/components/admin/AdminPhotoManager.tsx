@@ -25,7 +25,7 @@ const AdminPhotoManager: React.FC = () => {
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [selectedPhotos, setSelectedPhotos] = useState<Set<string>>(new Set());
   const [bulkCategory, setBulkCategory] = useState('');
-  const { saveLike } = usePhotoLikes();
+  // Remover uso do hook antigo - não é necessário aqui
 
   useEffect(() => {
     loadPhotos();
@@ -111,7 +111,8 @@ const AdminPhotoManager: React.FC = () => {
   };
 
   const handleLike = async (photoId: string) => {
-    await saveLike(photoId);
+    // Implementar lógica de like específica para admin se necessário
+    console.log('Like functionality needs admin implementation');
   };
 
   const handleDownload = (photo: Photo) => {

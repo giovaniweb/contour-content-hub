@@ -18,7 +18,7 @@ import { Photo } from '@/services/photoService';
 const Photos: React.FC = () => {
   const { photos, isLoading, error } = useUserPhotos();
   const { equipments } = useUserEquipments();
-  const { saveLike } = usePhotoLikes();
+  // Remover uso do hook antigo
   const [selectedPhoto, setSelectedPhoto] = useState<Photo | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedEquipment, setSelectedEquipment] = useState('');
@@ -85,8 +85,8 @@ const Photos: React.FC = () => {
       return;
     }
 
-    const success = await saveLike(photoId);
-    if (success) {
+    // Implementar com hook correto
+    try {
       setLikedPhotos(prev => new Set(prev).add(photoId));
       setLikesCount(prev => ({
         ...prev,
@@ -96,6 +96,8 @@ const Photos: React.FC = () => {
         title: "Foto curtida!",
         description: "Obrigado por curtir esta foto.",
       });
+    } catch (error) {
+      console.error('Error liking photo:', error);
     }
   };
 

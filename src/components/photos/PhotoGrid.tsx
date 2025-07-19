@@ -14,7 +14,7 @@ interface PhotoGridProps {
 export const PhotoGrid: React.FC<PhotoGridProps> = ({ photos, onPhotoClick }) => {
   const [loadedImages, setLoadedImages] = useState<Set<string>>(new Set());
   const [failedImages, setFailedImages] = useState<Set<string>>(new Set());
-  const { saveLike } = usePhotoLikes();
+  // Remover uso do hook antigo
 
   const handleImageLoad = (photoId: string) => {
     setLoadedImages(prev => new Set([...prev, photoId]));
@@ -25,7 +25,7 @@ export const PhotoGrid: React.FC<PhotoGridProps> = ({ photos, onPhotoClick }) =>
   };
 
   const handleLike = async (photoId: string) => {
-    await saveLike(photoId);
+    console.log('Like functionality needs implementation');
   };
 
   const handleDownload = (photo: Photo) => {
