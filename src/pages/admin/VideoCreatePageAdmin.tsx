@@ -19,13 +19,13 @@ const VideoCreatePageAdmin: React.FC = () => {
 
   return (
     <ContentLayout
-      title="🎬 Sistema de Upload Aurora"
-      subtitle="Plataforma avançada de upload com processamento inteligente e visual Aurora Boreal"
+      title="Upload de Vídeos"
+      subtitle="Sistema profissional de upload com processamento automático"
       actions={
         <Button 
           variant="outline" 
           onClick={() => navigate(ROUTES.ADMIN_VIDEOS.ROOT)}
-          className="flex items-center bg-aurora-deep-purple/20 border-aurora-electric-purple/50 hover:bg-aurora-electric-purple/20 backdrop-blur-sm"
+          className="flex items-center"
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
           Voltar para Vídeos
@@ -33,28 +33,28 @@ const VideoCreatePageAdmin: React.FC = () => {
       }
     >
       {/* Main Upload Container */}
-      <div className="aurora-glass-enhanced max-w-7xl mx-auto p-8 mb-8 animate-aurora-float">
+      <div className="max-w-7xl mx-auto bg-card border rounded-lg p-8 mb-8">
         <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold bg-gradient-to-r from-aurora-electric-purple to-aurora-neon-blue bg-clip-text text-transparent mb-4">
-            Central de Upload Avançado
+          <h2 className="text-3xl font-bold text-foreground mb-4">
+            Central de Upload de Vídeos
           </h2>
-          <p className="text-aurora-lavender/80 text-lg">
+          <p className="text-muted-foreground text-lg">
             Sistema inteligente com geração automática de thumbnails e processamento em tempo real
           </p>
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-2 bg-aurora-deep-purple/30 border border-aurora-electric-purple/30 backdrop-blur-md">
+          <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger 
               value="individual" 
-              className="flex items-center gap-2 data-[state=active]:bg-aurora-electric-purple/40 data-[state=active]:text-white transition-all duration-300"
+              className="flex items-center gap-2"
             >
               <Upload className="h-5 w-5" />
               Upload Individual
             </TabsTrigger>
             <TabsTrigger 
               value="batch" 
-              className="flex items-center gap-2 data-[state=active]:bg-aurora-electric-purple/40 data-[state=active]:text-white transition-all duration-300"
+              className="flex items-center gap-2"
             >
               <Users className="h-5 w-5" />
               Upload em Lote
@@ -63,12 +63,12 @@ const VideoCreatePageAdmin: React.FC = () => {
           
           <TabsContent value="individual" className="mt-8">
             <div className="space-y-6">
-              <div className="text-center aurora-glass-enhanced p-6 animate-aurora-pulse">
-                <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-aurora-electric-purple to-aurora-neon-blue rounded-full mb-4 animate-aurora-glow">
-                  <Upload className="h-8 w-8 text-white" />
+              <div className="text-center bg-card border rounded-lg p-6">
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-primary rounded-full mb-4">
+                  <Upload className="h-8 w-8 text-primary-foreground" />
                 </div>
-                <h3 className="text-xl font-semibold mb-2 text-aurora-lavender">Upload Individual Avançado</h3>
-                <p className="text-aurora-lavender/70">
+                <h3 className="text-xl font-semibold mb-2 text-foreground">Upload Individual</h3>
+                <p className="text-muted-foreground">
                   Sistema completo com IA para thumbnails, extração de metadados e formatação inteligente
                 </p>
               </div>
@@ -78,12 +78,12 @@ const VideoCreatePageAdmin: React.FC = () => {
           
           <TabsContent value="batch" className="mt-8">
             <div className="space-y-6">
-              <div className="text-center aurora-glass-enhanced p-6 animate-aurora-pulse">
-                <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-aurora-electric-purple to-aurora-emerald rounded-full mb-4 animate-aurora-glow">
-                  <Users className="h-8 w-8 text-white" />
+              <div className="text-center bg-card border rounded-lg p-6">
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-primary rounded-full mb-4">
+                  <Users className="h-8 w-8 text-primary-foreground" />
                 </div>
-                <h3 className="text-xl font-semibold mb-2 text-aurora-lavender">Upload em Lote Otimizado</h3>
-                <p className="text-aurora-lavender/70">
+                <h3 className="text-xl font-semibold mb-2 text-foreground">Upload em Lote</h3>
+                <p className="text-muted-foreground">
                   Processamento paralelo de múltiplos vídeos com monitoramento em tempo real
                 </p>
               </div>
@@ -97,19 +97,19 @@ const VideoCreatePageAdmin: React.FC = () => {
       </div>
       
       {/* Features Showcase */}
-      <div className="aurora-glass-enhanced max-w-7xl mx-auto p-8 animate-aurora-wave">
+      <div className="max-w-7xl mx-auto bg-card border rounded-lg p-8">
         <div className="text-center mb-8">
-          <h3 className="text-2xl font-bold bg-gradient-to-r from-aurora-emerald to-aurora-cyan bg-clip-text text-transparent mb-4">
-            🚀 Sistema Aurora Intelligence
+          <h3 className="text-2xl font-bold text-foreground mb-4">
+            Recursos do Sistema
           </h3>
         </div>
         
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Implemented Features */}
-          <div className="aurora-glass-enhanced p-6 hover:bg-aurora-electric-purple/10 transition-all duration-300">
+          <div className="bg-card border rounded-lg p-6">
             <div className="flex items-center mb-4">
-              <div className="w-3 h-3 bg-aurora-emerald rounded-full mr-3 animate-pulse"></div>
-              <h4 className="font-semibold text-aurora-emerald text-lg">Recursos Ativos</h4>
+              <div className="w-3 h-3 bg-green-500 rounded-full mr-3"></div>
+              <h4 className="font-semibold text-foreground text-lg">Recursos Ativos</h4>
             </div>
             <div className="space-y-3">
               {[
@@ -122,7 +122,7 @@ const VideoCreatePageAdmin: React.FC = () => {
                 { icon: "🔄", text: "Sistema de recuperação automática" },
                 { icon: "⚡", text: "Upload paralelo otimizado" }
               ].map((feature, index) => (
-                <div key={index} className="flex items-center text-sm text-aurora-lavender/90 hover:text-white transition-colors duration-200">
+                <div key={index} className="flex items-center text-sm text-muted-foreground">
                   <span className="mr-3 text-base">{feature.icon}</span>
                   <span>{feature.text}</span>
                 </div>
@@ -131,29 +131,29 @@ const VideoCreatePageAdmin: React.FC = () => {
           </div>
           
           {/* Title Pattern Example */}
-          <div className="aurora-glass-enhanced p-6 hover:bg-aurora-neon-blue/10 transition-all duration-300">
+          <div className="bg-card border rounded-lg p-6">
             <div className="flex items-center mb-4">
-              <div className="w-3 h-3 bg-aurora-neon-blue rounded-full mr-3 animate-pulse"></div>
-              <h4 className="font-semibold text-aurora-neon-blue text-lg">Padrão de Nomenclatura IA</h4>
+              <div className="w-3 h-3 bg-blue-500 rounded-full mr-3"></div>
+              <h4 className="font-semibold text-foreground text-lg">Padrão de Nomenclatura IA</h4>
             </div>
             <div className="space-y-4">
-              <div className="bg-aurora-deep-purple/30 p-4 rounded-lg border border-aurora-electric-purple/30">
-                <p className="text-xs text-aurora-lavender/70 mb-1">Entrada do arquivo:</p>
-                <code className="text-aurora-cyan text-sm">aplicação_abdominal_cryorfmax_do_unyquepro-_1 (2160p)-2</code>
+              <div className="bg-muted p-4 rounded-lg border">
+                <p className="text-xs text-muted-foreground mb-1">Entrada do arquivo:</p>
+                <code className="text-foreground text-sm">aplicação_abdominal_cryorfmax_do_unyquepro-_1 (2160p)-2</code>
               </div>
               
               <div className="text-center">
-                <div className="inline-flex items-center justify-center w-8 h-8 bg-gradient-to-r from-aurora-electric-purple to-aurora-neon-blue rounded-full animate-aurora-shimmer">
-                  <span className="text-white text-lg">⚡</span>
+                <div className="inline-flex items-center justify-center w-8 h-8 bg-primary rounded-full">
+                  <span className="text-primary-foreground text-lg">⚡</span>
                 </div>
               </div>
               
-              <div className="bg-aurora-electric-purple/20 p-4 rounded-lg border border-aurora-emerald/30">
-                <p className="text-xs text-aurora-lavender/70 mb-1">Saída formatada:</p>
-                <code className="text-aurora-emerald text-sm">Aplicação abdominal Cryo Rf Max do Unyque Pro Cod:ABC123</code>
+              <div className="bg-muted p-4 rounded-lg border">
+                <p className="text-xs text-muted-foreground mb-1">Saída formatada:</p>
+                <code className="text-foreground text-sm">Aplicação abdominal Cryo Rf Max do Unyque Pro Cod:ABC123</code>
               </div>
               
-              <div className="text-xs text-aurora-lavender/60 space-y-1">
+              <div className="text-xs text-muted-foreground space-y-1">
                 <p>✨ Remove informações de resolução automaticamente</p>
                 <p>🔄 Converte underscores para espaços inteligentes</p>
                 <p>📝 Aplica capitalização contextual</p>
@@ -166,14 +166,14 @@ const VideoCreatePageAdmin: React.FC = () => {
         {/* Performance Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
           {[
-            { title: "Processamento", value: "< 2s", desc: "Thumbnail gerado", color: "aurora-emerald" },
-            { title: "Precisão IA", value: "98.5%", desc: "Formatação correta", color: "aurora-neon-blue" },
-            { title: "Velocidade", value: "50MB/s", desc: "Upload médio", color: "aurora-electric-purple" }
+            { title: "Processamento", value: "< 2s", desc: "Thumbnail gerado" },
+            { title: "Precisão IA", value: "98.5%", desc: "Formatação correta" },
+            { title: "Velocidade", value: "50MB/s", desc: "Upload médio" }
           ].map((stat, index) => (
-            <div key={index} className="aurora-glass-enhanced p-4 text-center hover:scale-105 transition-transform duration-300">
-              <div className={`text-2xl font-bold text-${stat.color} mb-2`}>{stat.value}</div>
-              <div className="text-sm text-aurora-lavender font-medium">{stat.title}</div>
-              <div className="text-xs text-aurora-lavender/60">{stat.desc}</div>
+            <div key={index} className="bg-card border rounded-lg p-4 text-center">
+              <div className="text-2xl font-bold text-primary mb-2">{stat.value}</div>
+              <div className="text-sm text-foreground font-medium">{stat.title}</div>
+              <div className="text-xs text-muted-foreground">{stat.desc}</div>
             </div>
           ))}
         </div>
