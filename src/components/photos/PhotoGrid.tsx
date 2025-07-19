@@ -4,6 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Heart, Download, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { LazyImage } from '@/components/ui/lazy-image';
 
 interface PhotoGridProps {
   photos: Photo[];
@@ -36,33 +37,14 @@ export const PhotoGrid: React.FC<PhotoGridProps> = ({ photos, onPhotoClick }) =>
         <Card key={photo.id} className="bg-slate-800/50 border-cyan-500/20 overflow-hidden hover:border-cyan-500/40 transition-colors">
           <CardContent className="p-0">
             {/* Image Container */}
-            <div className="relative aspect-video bg-slate-700/50 overflow-hidden">
-              {!failedImages.has(photo.id) && (
-                <>
-                  {/* Thumbnail primeiro */}
-                  <img
-                    src={photo.thumbnail_url || photo.url_imagem}
-                    alt={photo.titulo}
-                    className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ${
-                      loadedImages.has(photo.id) ? 'opacity-100' : 'opacity-0'
-                    }`}
-                    onLoad={() => handleImageLoad(photo.id)}
-                    onError={() => handleImageError(photo.id)}
-                    loading="lazy"
-                  />
-                  
-                  {/* Loading skeleton */}
-                  {!loadedImages.has(photo.id) && (
-                    <div className="absolute inset-0 bg-slate-600/50 animate-pulse" />
-                  )}
-                </>
-              )}
-              
-              {failedImages.has(photo.id) && (
-                <div className="absolute inset-0 flex items-center justify-center bg-slate-600/50">
-                  <span className="text-slate-400 text-sm">Erro ao carregar</span>
-                </div>
-              )}
+            <div className="relative bg-slate-700/50">
+              <LazyImage
+                src={photo.thumbnail_url || photo.url_imagem}
+                alt={photo.titulo}
+                aspectRatio="video"
+                className="w-full h-full object-cover"
+                containerClassName="w-full"
+              />
               
               {/* Overlay */}
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4">
