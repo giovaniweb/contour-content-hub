@@ -23,6 +23,7 @@ import { batchUploadVideos } from '@/services/videoStorage/videoUploadService';
 import { Textarea } from '@/components/ui/textarea';
 import { v4 as uuidv4 } from 'uuid';
 import { formatFileNameToTitle } from '@/utils/fileUtils';
+import VideoUploadQueue from './VideoUploadQueue';
 
 interface BatchVideoUploaderProps {
   onUploadComplete?: () => void;
@@ -437,6 +438,9 @@ const BatchVideoUploader: React.FC<BatchVideoUploaderProps> = ({ onUploadComplet
             </Button>
           </div>
         )}
+        
+        {/* Fila de Uploads Persistente */}
+        <VideoUploadQueue onClearCompleted={() => console.log('Concluídos removidos')} />
       </div>
       
       <div className="flex justify-between items-center mt-8 pt-6 border-t border-aurora-electric-purple/30">
