@@ -1,11 +1,9 @@
-
 import React, { useState } from 'react';
-import { Play, Search, Filter, Grid, List, Flame, Sparkles } from 'lucide-react';
+import { Play, Download, Flame, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
 import VideoDownloadMenu from './VideoDownloadMenu';
 
 interface Video {
@@ -32,22 +30,66 @@ const UserVideoGrid: React.FC<UserVideoGridProps> = ({
   onVideoPlay,
   isLoading = false
 }) => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('');
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [selectedVideos, setSelectedVideos] = useState<string[]>([]);
 
   console.log('🎬 UserVideoGrid recebeu:', videos.length, 'vídeos');
 
-  // Filtrar vídeos
-  const filteredVideos = videos.filter(video => {
-    const matchesSearch = video.titulo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         video.descricao_curta?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = !selectedCategory || video.categoria === selectedCategory;
-    return matchesSearch && matchesCategory;
-  });
+  const handleVideoSelect = (videoId: string, checked: boolean) => {
+    if (checked) {
+      setSelectedVideos(prev => [...prev, videoId]);
+    } else {
+      setSelectedVideos(prev => prev.filter(id => id !== videoId));
+    }
+  };
 
-  // Obter categorias únicas
-  const categories = [...new Set(videos.map(v => v.categoria).filter(Boolean))];
+  const handleSelectAll = () => {
+    if (selectedVideos.length === videos.length) {
+      setSelectedVideos([]);
+    } else {
+      setSelectedVideos(videos.map(v => v.id));
+    }
+  };
+
+  const handleDownloadSelected = async () => {
+    const selectedVideoData = videos.filter(video => selectedVideos.includes(video.id));
+    
+    if (selectedVideoData.length === 1) {
+      // Download único
+      const video = selectedVideoData[0];
+      if (video.url_video) {
+        const link = document.createElement('a');
+        link.href = video.url_video;
+        link.download = `${video.titulo}.mp4`;
+        link.click();
+      }
+    } else if (selectedVideoData.length > 1) {
+      // Download múltiplo - ZIP
+      const JSZip = (await import('jszip')).default;
+      const zip = new JSZip();
+      
+      for (const video of selectedVideoData) {
+        if (video.url_video) {
+          try {
+            const response = await fetch(video.url_video);
+            const blob = await response.blob();
+            zip.file(`${video.titulo}.mp4`, blob);
+          } catch (error) {
+            console.error(`Erro ao baixar ${video.titulo}:`, error);
+          }
+        }
+      }
+      
+      const zipBlob = await zip.generateAsync({ type: 'blob' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(zipBlob);
+      link.download = `videos_selecionados.zip`;
+      link.click();
+    }
+  };
+
+  const clearSelection = () => {
+    setSelectedVideos([]);
+  };
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('pt-BR');
@@ -82,254 +124,171 @@ const UserVideoGrid: React.FC<UserVideoGridProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* Controles */}
-      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-        <div className="flex items-center gap-4 w-full sm:w-auto">
-          <div className="relative flex-1 sm:w-80">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-cyan-400" />
-            <Input
-              placeholder="Buscar vídeos..."
-              className="pl-10 bg-slate-700/50 border-cyan-500/30 text-slate-100 placeholder:text-slate-400 rounded-xl"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
+      {/* Controles de Seleção */}
+      {selectedVideos.length > 0 && (
+        <div className="bg-slate-700/50 border border-cyan-500/30 rounded-xl p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <Badge variant="secondary" className="bg-cyan-500/20 text-cyan-400 border-cyan-500/30">
+                {selectedVideos.length} vídeo(s) selecionado(s)
+              </Badge>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={handleSelectAll}
+                className="border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/20 rounded-xl"
+              >
+                {selectedVideos.length === videos.length ? 'Desmarcar Todos' : 'Selecionar Todos'}
+              </Button>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button 
+                onClick={handleDownloadSelected}
+                className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white rounded-xl"
+              >
+                <Download className="h-4 w-4 mr-2" />
+                Download {selectedVideos.length > 1 ? 'ZIP' : ''}
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={clearSelection}
+                className="border-red-500/30 text-red-400 hover:bg-red-500/20 rounded-xl"
+              >
+                Limpar
+              </Button>
+            </div>
           </div>
-          
-          {categories.length > 0 && (
-            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-              <SelectTrigger className="w-48 bg-slate-700/50 border-cyan-500/30 text-slate-100 rounded-xl">
-                <SelectValue placeholder="Categoria" />
-              </SelectTrigger>
-              <SelectContent className="bg-slate-800 border-cyan-500/30">
-                <SelectItem value="">Todas</SelectItem>
-                {categories.map(category => (
-                  <SelectItem key={category} value={category}>
-                    {category}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
         </div>
-
-        <div className="flex items-center gap-2">
-          <Button
-            variant={viewMode === 'grid' ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setViewMode('grid')}
-            className="rounded-xl"
-          >
-            <Grid className="h-4 w-4" />
-          </Button>
-          <Button
-            variant={viewMode === 'list' ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setViewMode('list')}
-            className="rounded-xl"
-          >
-            <List className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
+      )}
 
       {/* Resultados */}
       <div className="text-sm text-slate-400">
-        {filteredVideos.length} vídeo(s) encontrado(s)
+        {videos.length} vídeo(s) encontrado(s)
       </div>
 
-      {/* Grid/Lista de vídeos */}
-      {viewMode === 'grid' ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {filteredVideos.map((video) => (
-            <Card key={video.id} className="group hover:shadow-xl transition-all duration-300 bg-slate-800/50 border-cyan-500/20 rounded-xl overflow-hidden backdrop-blur-sm">
-              {/* Thumbnail */}
-              <div 
-                className="relative aspect-video bg-slate-700/50 overflow-hidden cursor-pointer"
-                onClick={() => onVideoPlay(video)}
-              >
-                {video.thumbnail_url ? (
-                  <img
-                    src={video.thumbnail_url}
-                    alt={video.titulo}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-700 to-slate-800">
-                    <Play className="h-12 w-12 text-cyan-400" />
+      {/* Grid de vídeos */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {videos.map((video) => (
+          <Card key={video.id} className="group hover:shadow-xl transition-all duration-300 bg-slate-800/50 border-cyan-500/20 rounded-xl overflow-hidden backdrop-blur-sm relative">
+            {/* Checkbox de seleção */}
+            <div className="absolute top-2 right-2 z-10">
+              <div className="bg-black/70 rounded-lg p-1 backdrop-blur-sm">
+                <Checkbox
+                  checked={selectedVideos.includes(video.id)}
+                  onCheckedChange={(checked) => handleVideoSelect(video.id, checked as boolean)}
+                  className="data-[state=checked]:bg-cyan-500 data-[state=checked]:border-cyan-500"
+                />
+              </div>
+            </div>
+            
+            {/* Thumbnail */}
+            <div 
+              className="relative aspect-video bg-slate-700/50 overflow-hidden cursor-pointer"
+              onClick={() => onVideoPlay(video)}
+            >
+              {video.thumbnail_url ? (
+                <img
+                  src={video.thumbnail_url}
+                  alt={video.titulo}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-700 to-slate-800">
+                  <Play className="h-12 w-12 text-cyan-400" />
+                </div>
+              )}
+              
+              {/* Play overlay */}
+              <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                <div className="bg-cyan-400/90 rounded-full p-3">
+                  <Play className="h-6 w-6 text-slate-900" />
+                </div>
+              </div>
+
+              {/* Tags sobre o vídeo */}
+              <div className="absolute top-2 left-2 flex gap-2">
+                {isDownloadingVideo(video) && (
+                  <div className="bg-orange-500/90 rounded-full p-2 backdrop-blur-sm">
+                    <Flame className="h-4 w-4 text-white" />
                   </div>
                 )}
-                
-                {/* Play overlay */}
-                <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                  <div className="bg-cyan-400/90 rounded-full p-3">
-                    <Play className="h-6 w-6 text-slate-900" />
-                  </div>
-                </div>
-
-                {/* Tags sobre o vídeo */}
-                <div className="absolute top-2 left-2 flex gap-2">
-                  {isDownloadingVideo(video) && (
-                    <div className="bg-orange-500/90 rounded-full p-2 backdrop-blur-sm">
-                      <Flame className="h-4 w-4 text-white" />
-                    </div>
-                  )}
-                  {isNewVideo(video.data_upload) && (
-                    <div className="bg-green-500/90 rounded-full p-2 backdrop-blur-sm">
-                      <Sparkles className="h-4 w-4 text-white" />
-                    </div>
-                  )}
-                </div>
-
-                {/* Duração */}
-                {video.duracao && (
-                  <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded-lg">
-                    {video.duracao}
+                {isNewVideo(video.data_upload) && (
+                  <div className="bg-green-500/90 rounded-full p-2 backdrop-blur-sm">
+                    <Sparkles className="h-4 w-4 text-white" />
                   </div>
                 )}
               </div>
 
-              <CardContent className="p-4">
-                <h3 className="font-medium text-sm mb-2 line-clamp-2 text-slate-100">{video.titulo}</h3>
-                
-                {video.descricao_curta && (
-                  <p className="text-xs text-slate-400 mb-3 line-clamp-2">
-                    {video.descricao_curta}
-                  </p>
-                )}
-
-                <div className="flex items-center justify-between text-xs text-slate-400 mb-3">
-                  <span>{formatDate(video.data_upload)}</span>
-                  <span>{video.downloads_count || 0} downloads</span>
+              {/* Duração */}
+              {video.duracao && (
+                <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded-lg">
+                  {video.duracao}
                 </div>
+              )}
+            </div>
 
-                {/* Tags */}
-                {video.tags && video.tags.length > 0 && (
-                  <div className="flex flex-wrap gap-1 mb-3">
-                    {video.tags.slice(0, 2).map((tag, index) => (
-                      <Badge key={index} variant="secondary" className="text-xs bg-cyan-500/20 text-cyan-400">
-                        {tag}
-                      </Badge>
-                    ))}
-                    {video.tags.length > 2 && (
-                      <Badge variant="outline" className="text-xs border-cyan-500/30 text-cyan-400">
-                        +{video.tags.length - 2}
-                      </Badge>
-                    )}
-                  </div>
-                )}
+            <CardContent className="p-4">
+              <h3 className="font-medium text-sm mb-2 line-clamp-2 text-slate-100">{video.titulo}</h3>
+              
+              {video.descricao_curta && (
+                <p className="text-xs text-slate-400 mb-3 line-clamp-2">
+                  {video.descricao_curta}
+                </p>
+              )}
 
-                {/* Ações */}
-                <div className="flex items-center justify-between">
-                  <Button 
-                    size="sm" 
-                    onClick={() => onVideoPlay(video)}
-                    className="flex-1 mr-2 bg-gradient-to-r from-cyan-500 to-purple-500 text-white hover:from-cyan-600 hover:to-purple-600 rounded-xl"
-                  >
-                    <Play className="h-4 w-4 mr-1" />
-                    Assistir
-                  </Button>
-                  
-                  {video.url_video && (
-                    <VideoDownloadMenu
-                      downloads={[{ quality: 'Original', link: video.url_video }]}
-                      videoId={video.id}
-                    />
+              <div className="flex items-center justify-between text-xs text-slate-400 mb-3">
+                <span>{formatDate(video.data_upload)}</span>
+                <span>{video.downloads_count || 0} downloads</span>
+              </div>
+
+              {/* Tags */}
+              {video.tags && video.tags.length > 0 && (
+                <div className="flex flex-wrap gap-1 mb-3">
+                  {video.tags.slice(0, 2).map((tag, index) => (
+                    <Badge key={index} variant="secondary" className="text-xs bg-cyan-500/20 text-cyan-400">
+                      {tag}
+                    </Badge>
+                  ))}
+                  {video.tags.length > 2 && (
+                    <Badge variant="outline" className="text-xs border-cyan-500/30 text-cyan-400">
+                      +{video.tags.length - 2}
+                    </Badge>
                   )}
                 </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      ) : (
-        <div className="space-y-4">
-          {filteredVideos.map((video) => (
-            <Card key={video.id} className="hover:shadow-md transition-shadow bg-slate-800/50 border-cyan-500/20 rounded-xl">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-4">
-                  {/* Thumbnail */}
-                  <div 
-                    className="relative w-32 h-18 bg-slate-700/50 rounded-lg overflow-hidden flex-shrink-0 cursor-pointer"
-                    onClick={() => onVideoPlay(video)}
-                  >
-                    {video.thumbnail_url ? (
-                      <img
-                        src={video.thumbnail_url}
-                        alt={video.titulo}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <Play className="h-6 w-6 text-cyan-400" />
-                      </div>
-                    )}
+              )}
 
-                    {/* Tags sobre o vídeo na lista */}
-                    <div className="absolute top-1 left-1 flex gap-1">
-                      {isDownloadingVideo(video) && (
-                        <div className="bg-orange-500/90 rounded-full p-1 backdrop-blur-sm">
-                          <Flame className="h-3 w-3 text-white" />
-                        </div>
-                      )}
-                      {isNewVideo(video.data_upload) && (
-                        <div className="bg-green-500/90 rounded-full p-1 backdrop-blur-sm">
-                          <Sparkles className="h-3 w-3 text-white" />
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Conteúdo */}
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-medium mb-1 truncate text-slate-100">{video.titulo}</h3>
-                    {video.descricao_curta && (
-                      <p className="text-sm text-slate-400 mb-2 line-clamp-2">
-                        {video.descricao_curta}
-                      </p>
-                    )}
-                    <div className="flex items-center gap-4 text-xs text-slate-400">
-                      <span>{formatDate(video.data_upload)}</span>
-                      <span>{video.downloads_count || 0} downloads</span>
-                      {video.duracao && <span>{video.duracao}</span>}
-                    </div>
-                  </div>
-
-                  {/* Ações */}
-                  <div className="flex items-center gap-2">
-                    <Button 
-                      size="sm" 
-                      onClick={() => onVideoPlay(video)}
-                      className="bg-gradient-to-r from-cyan-500 to-purple-500 text-white hover:from-cyan-600 hover:to-purple-600 rounded-xl"
-                    >
-                      <Play className="h-4 w-4 mr-1" />
-                      Assistir
-                    </Button>
-                    
-                    {video.url_video && (
-                      <VideoDownloadMenu
-                        downloads={[{ quality: 'Original', link: video.url_video }]}
-                        videoId={video.id}
-                      />
-                    )}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
+              {/* Ações */}
+              <div className="flex items-center justify-between">
+                <Button 
+                  size="sm" 
+                  onClick={() => onVideoPlay(video)}
+                  className="flex-1 mr-2 bg-gradient-to-r from-cyan-500 to-purple-500 text-white hover:from-cyan-600 hover:to-purple-600 rounded-xl"
+                >
+                  <Play className="h-4 w-4 mr-1" />
+                  Assistir
+                </Button>
+                
+                {video.url_video && (
+                  <VideoDownloadMenu
+                    downloads={[{ quality: 'Original', link: video.url_video }]}
+                    videoId={video.id}
+                  />
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
 
       {/* Empty state */}
-      {filteredVideos.length === 0 && !isLoading && (
+      {videos.length === 0 && !isLoading && (
         <div className="text-center py-12">
           <div className="mx-auto h-12 w-12 text-slate-400 mb-4 flex items-center justify-center">
             <Play className="h-12 w-12" />
           </div>
           <h3 className="text-lg font-medium mb-2 text-slate-200">Nenhum vídeo encontrado</h3>
           <p className="text-slate-400">
-            {searchTerm || selectedCategory 
-              ? 'Tente ajustar seus filtros de busca'
-              : 'Ainda não há vídeos disponíveis'
-            }
+            Ainda não há vídeos disponíveis
           </p>
         </div>
       )}
