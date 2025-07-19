@@ -206,14 +206,12 @@ const EquipmentsPage: React.FC = () => {
                     <EquipmentGrid 
                       equipments={filteredEquipments} 
                       onEquipmentSelect={handleEquipmentSelect}
-                      onEquipmentView={handleEquipmentView}
                       selectedEquipment={selectedEquipment}
                     />
                   ) : (
                     <EquipmentList 
                       equipments={filteredEquipments}
                       onEquipmentSelect={handleEquipmentSelect}
-                      onEquipmentView={handleEquipmentView}
                       selectedEquipment={selectedEquipment}
                     />
                   )}
