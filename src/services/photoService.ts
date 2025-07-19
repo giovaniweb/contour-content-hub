@@ -74,6 +74,39 @@ export const photoService = {
     }
   },
 
+  async getAllPhotos(): Promise<{ data: Photo[] | null; error: string | null }> {
+    try {
+      const { data, error } = await supabase
+        .from('fotos')
+        .select(`
+          id,
+          titulo,
+          descricao_curta,
+          categoria,
+          tags,
+          thumbnail_url,
+          url_imagem,
+          downloads_count,
+          favoritos_count,
+          data_upload,
+          created_at,
+          updated_at,
+          user_id
+        `)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Erro ao buscar fotos:', error);
+        return { data: null, error: error.message };
+      }
+
+      return { data: data || [], error: null };
+    } catch (error) {
+      console.error('Erro inesperado:', error);
+      return { data: null, error: 'Erro inesperado ao buscar fotos' };
+    }
+  },
+
   async createPhoto(photoData: CreatePhotoData): Promise<{ data: Photo | null; error: string | null }> {
     try {
       const { data: userData, error: userError } = await supabase.auth.getUser();

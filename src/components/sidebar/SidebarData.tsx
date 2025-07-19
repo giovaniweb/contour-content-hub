@@ -46,6 +46,7 @@ export const adminItems = [
   { name: "Artigos Científicos", icon: BookOpen, path: "/admin/scientific-articles", highlight: false },
   { name: "Conteúdo", icon: File, path: "/admin/content", highlight: false },
   { name: "Vídeos", icon: Film, path: "/admin/videos", highlight: false },
+  { name: "Fotos", icon: Image, path: "/admin/photos", highlight: false },
   { name: "IA do Sistema", icon: Brain, path: "/admin/ai", highlight: false },
   { name: "Integrações", icon: LinkIcon, path: "/admin/integrations", highlight: false },
   { name: "Config. Vimeo", icon: Video, path: "/admin/vimeo", highlight: false },

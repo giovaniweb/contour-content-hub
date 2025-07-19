@@ -73,5 +73,11 @@ export const ROUTES = {
     CREATE: '/admin/videos/create',
     BATCH: '/admin/videos/batch',
     IMPORT: '/admin/videos/import'
+  },
+
+  ADMIN_PHOTOS: {
+    ROOT: '/admin/photos',
+    UPLOAD: '/admin/photos/upload',
+    EDIT: (id: string = ':id') => `/admin/photos/edit/${id}`
   }
 } as const;
