@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Plus, Edit, Trash2, Save, X, Upload, Image as ImageIcon } from 'lucide-react';
 import { EquipmentApplicator } from '@/types/equipment';
+import ImageUpload from '@/components/ui/ImageUpload';
 
 interface ApplicatorsTabProps {
   applicators: EquipmentApplicator[];
@@ -132,28 +133,14 @@ const ApplicatorsTab: React.FC<ApplicatorsTabProps> = ({
           />
         </div>
 
-        <div>
-          <Label htmlFor="applicator-image" className="text-white">URL da Imagem</Label>
-          <Input
-            id="applicator-image"
-            value={formData.image_url}
-            onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
-            placeholder="https://..."
-            className="bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-400"
-          />
-          {formData.image_url && (
-            <div className="mt-2">
-              <img 
-                src={formData.image_url} 
-                alt="Preview" 
-                className="w-16 h-16 object-cover rounded border border-slate-600"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).style.display = 'none';
-                }}
-              />
-            </div>
-          )}
-        </div>
+        <ImageUpload
+          label="Imagem da Ponteira"
+          value={formData.image_url}
+          onChange={(url) => setFormData({ ...formData, image_url: url })}
+          bucket="aesthetical-images"
+          folder="applicators"
+          maxSizeMB={2}
+        />
 
         <div className="flex gap-2">
           <Button onClick={saveApplicator} size="sm" className="bg-blue-600 hover:bg-blue-700 text-white">
