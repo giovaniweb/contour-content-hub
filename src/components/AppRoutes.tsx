@@ -29,6 +29,7 @@ const Arts = React.lazy(() => import('@/pages/Arts'));
 const AdminPanel = React.lazy(() => import('@/pages/admin/AdminPanel'));
 const AdminEquipments = React.lazy(() => import('@/pages/admin/AdminEquipments'));
 const EditEquipment = React.lazy(() => import('@/pages/admin/EditEquipment'));
+const VideoCreatePage = React.lazy(() => import('@/pages/videos/VideoCreatePage'));
 
 const AppRoutes: React.FC = () => {
   return (
@@ -121,6 +122,17 @@ const AppRoutes: React.FC = () => {
             <AppLayout>
               <Suspense fallback={<AuroraLoadingSkeleton />}>
                 <Videos />
+              </Suspense>
+            </AppLayout>
+          } 
+        />
+
+        <Route 
+          path="/videos/create" 
+          element={
+            <AppLayout>
+              <Suspense fallback={<AuroraLoadingSkeleton />}>
+                <VideoCreatePage />
               </Suspense>
             </AppLayout>
           } 
