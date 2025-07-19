@@ -4,7 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Heart, Download, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { LazyImage } from '@/components/ui/lazy-image';
+import { usePhotoLikes } from '@/hooks/usePhotoLikes';
 
 interface PhotoGridProps {
   photos: Photo[];
@@ -14,6 +14,7 @@ interface PhotoGridProps {
 export const PhotoGrid: React.FC<PhotoGridProps> = ({ photos, onPhotoClick }) => {
   const [loadedImages, setLoadedImages] = useState<Set<string>>(new Set());
   const [failedImages, setFailedImages] = useState<Set<string>>(new Set());
+  const { saveLike } = usePhotoLikes();
 
   const handleImageLoad = (photoId: string) => {
     setLoadedImages(prev => new Set([...prev, photoId]));
@@ -21,6 +22,17 @@ export const PhotoGrid: React.FC<PhotoGridProps> = ({ photos, onPhotoClick }) =>
 
   const handleImageError = (photoId: string) => {
     setFailedImages(prev => new Set([...prev, photoId]));
+  };
+
+  const handleLike = async (photoId: string) => {
+    await saveLike(photoId);
+  };
+
+  const handleDownload = (photo: Photo) => {
+    const link = document.createElement('a');
+    link.href = photo.url_imagem;
+    link.download = `${photo.titulo}.jpg`;
+    link.click();
   };
 
   if (photos.length === 0) {
@@ -34,7 +46,7 @@ export const PhotoGrid: React.FC<PhotoGridProps> = ({ photos, onPhotoClick }) =>
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
       {photos.map((photo) => (
-        <Card key={photo.id} className="bg-slate-800/50 border-cyan-500/20 overflow-hidden hover:border-cyan-500/40 transition-colors">
+        <Card key={photo.id} className="bg-slate-800/50 border-cyan-500/20 overflow-hidden hover:border-cyan-500/40 transition-colors group">
           <CardContent className="p-0">
             {/* Image Container */}
             <div className="relative aspect-video bg-slate-700/50 overflow-hidden">
@@ -45,24 +57,32 @@ export const PhotoGrid: React.FC<PhotoGridProps> = ({ photos, onPhotoClick }) =>
                 loading="lazy"
               />
               
-              {/* Overlay */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4">
-                <div className="flex justify-between items-end">
-                  <div className="text-white">
-                    <h3 className="font-semibold text-sm truncate">{photo.titulo}</h3>
-                    {photo.categoria && (
-                      <p className="text-xs text-slate-300">{photo.categoria}</p>
-                    )}
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => onPhotoClick?.(photo)}
-                    className="text-white hover:bg-white/20"
-                  >
-                    <Eye className="h-4 w-4" />
-                  </Button>
-                </div>
+              {/* Overlay com ações */}
+              <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleLike(photo.id)}
+                  className="text-pink-400 border-pink-400/20 hover:bg-pink-400/20"
+                >
+                  <Heart className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => onPhotoClick?.(photo)}
+                  className="text-white border-white/20 hover:bg-white/20"
+                >
+                  <Eye className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleDownload(photo)}
+                  className="text-green-400 border-green-400/20 hover:bg-green-400/20"
+                >
+                  <Download className="h-4 w-4" />
+                </Button>
               </div>
             </div>
             

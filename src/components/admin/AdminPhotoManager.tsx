@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Filter, Plus, Edit, Trash2, Eye, Camera } from 'lucide-react';
+import { Search, Filter, Plus, Edit, Trash2, Eye, Camera, Heart, Download, Check, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { photoService, Photo } from '@/services/photoService';
+import { usePhotoLikes } from '@/hooks/usePhotoLikes';
 
 const AdminPhotoManager: React.FC = () => {
   const navigate = useNavigate();
@@ -21,6 +23,9 @@ const AdminPhotoManager: React.FC = () => {
   const [filteredPhotos, setFilteredPhotos] = useState<Photo[]>([]);
   const [selectedPhoto, setSelectedPhoto] = useState<Photo | null>(null);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+  const [selectedPhotos, setSelectedPhotos] = useState<Set<string>>(new Set());
+  const [bulkCategory, setBulkCategory] = useState('');
+  const { saveLike } = usePhotoLikes();
 
   useEffect(() => {
     loadPhotos();
@@ -103,6 +108,75 @@ const AdminPhotoManager: React.FC = () => {
   const handleView = (photo: Photo) => {
     setSelectedPhoto(photo);
     setIsViewDialogOpen(true);
+  };
+
+  const handleLike = async (photoId: string) => {
+    await saveLike(photoId);
+  };
+
+  const handleDownload = (photo: Photo) => {
+    const link = document.createElement('a');
+    link.href = photo.url_imagem;
+    link.download = `${photo.titulo}.jpg`;
+    link.click();
+  };
+
+  const handleSelectPhoto = (photoId: string, checked: boolean) => {
+    const newSelected = new Set(selectedPhotos);
+    if (checked) {
+      newSelected.add(photoId);
+    } else {
+      newSelected.delete(photoId);
+    }
+    setSelectedPhotos(newSelected);
+  };
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedPhotos(new Set(filteredPhotos.map(photo => photo.id)));
+    } else {
+      setSelectedPhotos(new Set());
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    try {
+      await Promise.all(Array.from(selectedPhotos).map(photoId => photoService.deletePhoto(photoId)));
+      toast({
+        title: "Fotos excluídas",
+        description: `${selectedPhotos.size} fotos foram excluídas com sucesso.`
+      });
+      setSelectedPhotos(new Set());
+      loadPhotos();
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Ocorreu um erro ao excluir as fotos.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleBulkCategoryChange = async () => {
+    if (!bulkCategory) return;
+    try {
+      await Promise.all(Array.from(selectedPhotos).map(photoId => 
+        photoService.updatePhoto(photoId, { categoria: bulkCategory })
+      ));
+      toast({
+        title: "Categoria atualizada",
+        description: `${selectedPhotos.size} fotos foram atualizadas.`
+      });
+      setSelectedPhotos(new Set());
+      setBulkCategory('');
+      loadPhotos();
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Ocorreu um erro ao atualizar as categorias.",
+        variant: "destructive"
+      });
+    }
   };
 
   const uniqueCategories = Array.from(new Set(photos.map(photo => photo.categoria).filter(Boolean)));
@@ -194,66 +268,168 @@ const AdminPhotoManager: React.FC = () => {
         </Card>
       </div>
 
+      {/* Ações em lote */}
+      {selectedPhotos.size > 0 && (
+        <Card className="bg-slate-800/50 border-cyan-500/20 p-4">
+          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+            <div className="text-sm text-slate-300">
+              {selectedPhotos.size} foto(s) selecionada(s)
+            </div>
+            <div className="flex flex-col sm:flex-row gap-2">
+              <div className="flex gap-2">
+                <Select value={bulkCategory} onValueChange={setBulkCategory}>
+                  <SelectTrigger className="w-48">
+                    <SelectValue placeholder="Nova categoria" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {uniqueCategories.map((category) => (
+                      <SelectItem key={category} value={category!}>
+                        {category}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Button
+                  onClick={handleBulkCategoryChange}
+                  disabled={!bulkCategory}
+                  variant="outline"
+                  size="sm"
+                >
+                  Alterar Categoria
+                </Button>
+              </div>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="destructive" size="sm">
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Excluir Selecionadas
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Confirmar exclusão em lote</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Tem certeza que deseja excluir {selectedPhotos.size} foto(s)? Esta ação não pode ser desfeita.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleBulkDelete}>
+                      Excluir
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+              <Button
+                onClick={() => setSelectedPhotos(new Set())}
+                variant="ghost"
+                size="sm"
+              >
+                <X className="h-4 w-4 mr-2" />
+                Cancelar
+              </Button>
+            </div>
+          </div>
+        </Card>
+      )}
+
       {/* Grid de fotos */}
       {filteredPhotos.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {filteredPhotos.map((photo) => (
-            <Card key={photo.id} className="bg-slate-800/50 border-cyan-500/20 overflow-hidden hover:border-cyan-500/40 transition-colors group">
-              <CardContent className="p-0">
-                {/* Image Container */}
-                <div className="relative aspect-video bg-slate-700/50 overflow-hidden">
-                  <img
-                    src={photo.thumbnail_url || photo.url_imagem}
-                    alt={photo.titulo}
-                    className="w-full h-full object-cover"
-                    loading="lazy"
-                  />
-                  
-                  {/* Overlay com ações */}
-                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleView(photo)}
-                      className="text-white border-white/20 hover:bg-white/20"
-                    >
-                      <Eye className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => navigate(`/admin/photos/edit/${photo.id}`)}
-                      className="text-white border-white/20 hover:bg-white/20"
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="text-red-400 border-red-400/20 hover:bg-red-400/20"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            Tem certeza que deseja excluir a foto "{photo.titulo}"? Esta ação não pode ser desfeita.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                          <AlertDialogAction onClick={() => handleDelete(photo.id)}>
-                            Excluir
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
+        <div className="space-y-4">
+          {/* Header com seleção */}
+          <div className="flex items-center gap-2">
+            <Checkbox
+              checked={selectedPhotos.size === filteredPhotos.length && filteredPhotos.length > 0}
+              onCheckedChange={handleSelectAll}
+            />
+            <span className="text-sm text-slate-300">
+              Selecionar todas ({filteredPhotos.length})
+            </span>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {filteredPhotos.map((photo) => (
+              <Card key={photo.id} className="bg-slate-800/50 border-cyan-500/20 overflow-hidden hover:border-cyan-500/40 transition-colors group">
+                <CardContent className="p-0">
+                  {/* Checkbox de seleção */}
+                  <div className="absolute top-2 left-2 z-10">
+                    <Checkbox
+                      checked={selectedPhotos.has(photo.id)}
+                      onCheckedChange={(checked) => handleSelectPhoto(photo.id, checked as boolean)}
+                      className="bg-white/20 border-white/50"
+                    />
                   </div>
-                </div>
+                  
+                  {/* Image Container */}
+                  <div className="relative aspect-video bg-slate-700/50 overflow-hidden">
+                    <img
+                      src={photo.thumbnail_url || photo.url_imagem}
+                      alt={photo.titulo}
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                    />
+                    
+                    {/* Overlay com ações */}
+                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleLike(photo.id)}
+                        className="text-pink-400 border-pink-400/20 hover:bg-pink-400/20"
+                      >
+                        <Heart className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleView(photo)}
+                        className="text-white border-white/20 hover:bg-white/20"
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleDownload(photo)}
+                        className="text-green-400 border-green-400/20 hover:bg-green-400/20"
+                      >
+                        <Download className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => navigate(`/admin/photos/edit/${photo.id}`)}
+                        className="text-blue-400 border-blue-400/20 hover:bg-blue-400/20"
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="text-red-400 border-red-400/20 hover:bg-red-400/20"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Tem certeza que deseja excluir a foto "{photo.titulo}"? Esta ação não pode ser desfeita.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => handleDelete(photo.id)}>
+                              Excluir
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
+                  </div>
                 
                 {/* Content */}
                 <div className="p-4">
@@ -296,8 +472,9 @@ const AdminPhotoManager: React.FC = () => {
                   </div>
                 </div>
               </CardContent>
-            </Card>
-          ))}
+              </Card>
+            ))}
+          </div>
         </div>
       ) : (
         <div className="text-center py-12">
