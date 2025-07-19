@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Upload, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import AdminLayout from '@/components/layout/AdminLayout';
+import ContentLayout from '@/components/layout/ContentLayout';
+import GlassContainer from '@/components/ui/GlassContainer';
 import VideoUploader from '@/components/video-storage/VideoUploader';
 import BatchVideoUploader from '@/components/video-storage/BatchVideoUploader';
 import { ROUTES } from '@/routes';
@@ -21,75 +22,70 @@ const VideoCreatePageAdmin: React.FC = () => {
   };
 
   return (
-    <AdminLayout>
-      <div className="aurora-dark-bg min-h-screen">
-        <div className="aurora-particles">
-          {[...Array(20)].map((_, i) => (
-            <div
-              key={i}
-              className="aurora-particle"
-              style={{
-                left: `${Math.random() * 100}%`,
-                animationDuration: `${10 + Math.random() * 20}s`,
-                animationDelay: `${Math.random() * 10}s`
-              }}
-            />
-          ))}
-        </div>
-        <div className="container mx-auto py-8 px-4 relative z-10">
-          <div className="mb-6">
-            <Button
-              variant="outline"
-              onClick={handleCancel}
-              className="aurora-glass border-aurora-electric-purple/30 hover:bg-aurora-electric-purple/20"
+    <ContentLayout
+      title="Upload de Vídeos"
+      subtitle="Sistema profissional de upload com processamento automático de thumbnails e metadados"
+      actions={
+        <Button 
+          variant="outline" 
+          onClick={handleCancel}
+          className="flex items-center"
+        >
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Voltar para Vídeos
+        </Button>
+      }
+    >
+      <GlassContainer className="max-w-5xl mx-auto p-6">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-2 mb-8">
+            <TabsTrigger 
+              value="individual" 
+              className="flex items-center gap-2"
             >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Voltar para Vídeos
-            </Button>
-          </div>
-          <div className="aurora-glass rounded-3xl p-8 backdrop-blur-2xl border border-aurora-electric-purple/20">
-            <div className="mb-8">
-              <h1 className="aurora-text-gradient text-3xl font-light mb-2">
-                Upload de Vídeos
-              </h1>
-              <p className="aurora-body text-white/70">
-                Sistema profissional de upload com processamento automático de thumbnails e metadados.
+              <Upload className="h-5 w-5" />
+              Upload Individual
+            </TabsTrigger>
+            <TabsTrigger 
+              value="batch" 
+              className="flex items-center gap-2"
+            >
+              <Users className="h-5 w-5" />
+              Upload em Lote
+            </TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="individual" className="space-y-6">
+            <div className="text-center mb-6">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-primary rounded-full mb-4">
+                <Upload className="h-8 w-8 text-primary-foreground" />
+              </div>
+              <h3 className="text-xl font-semibold mb-2">Upload Individual</h3>
+              <p className="text-muted-foreground">
+                Sistema completo com IA para thumbnails, extração de metadados e formatação inteligente
               </p>
             </div>
-
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-2 mb-8">
-                <TabsTrigger 
-                  value="individual" 
-                  className="flex items-center gap-2"
-                >
-                  <Upload className="h-5 w-5" />
-                  Upload Individual
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="batch" 
-                  className="flex items-center gap-2"
-                >
-                  <Users className="h-5 w-5" />
-                  Upload em Lote
-                </TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="individual">
-                <VideoUploader />
-              </TabsContent>
-              
-              <TabsContent value="batch">
-                <BatchVideoUploader 
-                  onUploadComplete={handleUploadComplete}
-                  onCancel={handleCancel}
-                />
-              </TabsContent>
-            </Tabs>
-          </div>
-        </div>
-      </div>
-    </AdminLayout>
+            <VideoUploader />
+          </TabsContent>
+          
+          <TabsContent value="batch" className="space-y-6">
+            <div className="text-center mb-6">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-primary rounded-full mb-4">
+                <Users className="h-8 w-8 text-primary-foreground" />
+              </div>
+              <h3 className="text-xl font-semibold mb-2">Upload em Lote</h3>
+              <p className="text-muted-foreground">
+                Processamento paralelo de múltiplos vídeos com monitoramento em tempo real
+              </p>
+            </div>
+            <BatchVideoUploader 
+              onUploadComplete={handleUploadComplete}
+              onCancel={handleCancel}
+            />
+          </TabsContent>
+        </Tabs>
+      </GlassContainer>
+    </ContentLayout>
   );
 };
 
