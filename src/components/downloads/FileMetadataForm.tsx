@@ -1,5 +1,5 @@
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -7,11 +7,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import useAuth from "@/hooks/useAuth";
-import { Upload, Image, FileText, Palette, Printer, Sparkles, Images } from "lucide-react";
+import { Upload, Image, FileText, Palette, Printer, Sparkles, Images, Monitor } from "lucide-react";
 import CaptionGenerator from "./CaptionGenerator";
+
+interface Equipment {
+  id: string;
+  nome: string;
+}
 
 interface FileMetadataFormProps {
   uploadedFiles: { file: File; url: string | null }[];
@@ -21,6 +27,9 @@ interface FileMetadataFormProps {
 const FileMetadataForm: React.FC<FileMetadataFormProps> = ({ uploadedFiles, onFinish }) => {
   // Detectar se é um carrossel (múltiplos arquivos de imagem)
   const isCarousel = uploadedFiles.length > 1 && uploadedFiles.every(f => f.file.type.includes("image"));
+  
+  const [equipments, setEquipments] = useState<Equipment[]>([]);
+  const [loadingEquipments, setLoadingEquipments] = useState(true);
   
   const [formData, setFormData] = useState(
     isCarousel 
@@ -34,7 +43,8 @@ const FileMetadataForm: React.FC<FileMetadataFormProps> = ({ uploadedFiles, onFi
           thumbnail_url: uploadedFiles[0].url, // Thumbnail é a primeira imagem
           custom_thumbnail: null as string | null,
           is_carousel: true,
-          carousel_images: uploadedFiles.map(f => f.url).filter(Boolean) as string[]
+          carousel_images: uploadedFiles.map(f => f.url).filter(Boolean) as string[],
+          equipment_ids: [] as string[]
         }]
       : uploadedFiles.map((up) => ({
           title: up.file.name.replace(/\.[^/.]+$/, ""),
@@ -52,7 +62,8 @@ const FileMetadataForm: React.FC<FileMetadataFormProps> = ({ uploadedFiles, onFi
           thumbnail_url: up.file.type.includes("image") ? up.url : null,
           custom_thumbnail: null as string | null,
           is_carousel: false,
-          carousel_images: []
+          carousel_images: [],
+          equipment_ids: [] as string[]
         }))
   );
   const [saving, setSaving] = useState(false);
@@ -61,9 +72,51 @@ const FileMetadataForm: React.FC<FileMetadataFormProps> = ({ uploadedFiles, onFi
   const { user } = useAuth();
   const thumbnailInputRefs = useRef<{ [key: number]: HTMLInputElement | null }>({});
 
-  const handleChange = (idx: number, field: string, value: string) => {
+  // Buscar equipamentos disponíveis
+  useEffect(() => {
+    const fetchEquipments = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('equipamentos')
+          .select('id, nome')
+          .eq('ativo', true)
+          .order('nome');
+        
+        if (error) throw error;
+        setEquipments(data || []);
+      } catch (error) {
+        console.error('Error fetching equipments:', error);
+        toast({
+          variant: "destructive",
+          title: "Erro ao carregar equipamentos",
+          description: "Não foi possível carregar a lista de equipamentos.",
+        });
+      } finally {
+        setLoadingEquipments(false);
+      }
+    };
+
+    fetchEquipments();
+  }, [toast]);
+
+  const handleChange = (idx: number, field: string, value: string | string[]) => {
     setFormData((prev) =>
       prev.map((f, i) => (i === idx ? { ...f, [field]: value } : f))
+    );
+  };
+
+  const handleEquipmentToggle = (idx: number, equipmentId: string, checked: boolean) => {
+    setFormData((prev) =>
+      prev.map((f, i) => {
+        if (i === idx) {
+          const currentIds = f.equipment_ids || [];
+          const newIds = checked 
+            ? [...currentIds, equipmentId]
+            : currentIds.filter(id => id !== equipmentId);
+          return { ...f, equipment_ids: newIds };
+        }
+        return f;
+      })
     );
   };
 
@@ -138,7 +191,8 @@ const FileMetadataForm: React.FC<FileMetadataFormProps> = ({ uploadedFiles, onFi
         metadata: {},
         owner_id: user.id,
         is_carousel: item.is_carousel || false,
-        carousel_images: item.carousel_images || []
+        carousel_images: item.carousel_images || [],
+        equipment_ids: item.equipment_ids || []
       }));
 
       const { error } = await supabase
@@ -327,6 +381,50 @@ const FileMetadataForm: React.FC<FileMetadataFormProps> = ({ uploadedFiles, onFi
                 />
               </div>
             )}
+
+            {/* Equipamentos relacionados */}
+            <div className="space-y-3">
+              <Label className="text-white font-medium flex items-center gap-2">
+                <Monitor className="h-4 w-4 text-aurora-neon-blue" />
+                Equipamentos relacionados
+              </Label>
+              {loadingEquipments ? (
+                <div className="text-white/60 text-sm">Carregando equipamentos...</div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-40 overflow-y-auto">
+                  {equipments.map((equipment) => (
+                    <div key={equipment.id} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`equipment-${idx}-${equipment.id}`}
+                        checked={meta.equipment_ids?.includes(equipment.id) || false}
+                        onCheckedChange={(checked) => 
+                          handleEquipmentToggle(idx, equipment.id, checked as boolean)
+                        }
+                        className="border-aurora-electric-purple/30 data-[state=checked]:bg-aurora-electric-purple data-[state=checked]:border-aurora-electric-purple"
+                      />
+                      <Label 
+                        htmlFor={`equipment-${idx}-${equipment.id}`}
+                        className="text-sm text-white/80 cursor-pointer hover:text-white transition-colors"
+                      >
+                        {equipment.nome}
+                      </Label>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {meta.equipment_ids && meta.equipment_ids.length > 0 && (
+                <div className="flex flex-wrap gap-1 mt-2">
+                  {meta.equipment_ids.map((equipId) => {
+                    const equipment = equipments.find(e => e.id === equipId);
+                    return equipment ? (
+                      <Badge key={equipId} variant="outline" className="text-aurora-neon-blue border-aurora-neon-blue/30 text-xs">
+                        {equipment.nome}
+                      </Badge>
+                    ) : null;
+                  })}
+                </div>
+              )}
+            </div>
 
             {/* Info Footer */}
             <div className="flex items-center justify-between pt-4 border-t border-aurora-electric-purple/20">

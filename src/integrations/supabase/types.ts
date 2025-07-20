@@ -815,6 +815,7 @@ export type Database = {
           category: string | null
           created_at: string | null
           description: string | null
+          equipment_ids: string[] | null
           file_type: string
           file_url: string
           id: string
@@ -833,6 +834,7 @@ export type Database = {
           category?: string | null
           created_at?: string | null
           description?: string | null
+          equipment_ids?: string[] | null
           file_type: string
           file_url: string
           id?: string
@@ -851,6 +853,7 @@ export type Database = {
           category?: string | null
           created_at?: string | null
           description?: string | null
+          equipment_ids?: string[] | null
           file_type?: string
           file_url?: string
           id?: string

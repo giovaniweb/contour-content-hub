@@ -9,6 +9,7 @@ import CarouselViewer from '@/components/downloads/CarouselViewer';
 
 const Arts: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [equipments, setEquipments] = useState<any[]>([]);
 
   const { data: materials = [], isLoading } = useQuery({
     queryKey: ['arts_materials'],
@@ -24,11 +25,39 @@ const Arts: React.FC = () => {
     },
   });
 
+  // Buscar equipamentos para mostrar nomes
+  const { data: equipmentsData } = useQuery({
+    queryKey: ['equipments_list'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('equipamentos')
+        .select('id, nome')
+        .eq('ativo', true);
+      
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
+  React.useEffect(() => {
+    if (equipmentsData) {
+      setEquipments(equipmentsData);
+    }
+  }, [equipmentsData]);
+
   const filteredMaterials = materials.filter(material =>
     material.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
     material.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     material.tags?.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
   );
+
+  const getEquipmentNames = (equipmentIds: string[]) => {
+    if (!equipmentIds || equipmentIds.length === 0) return [];
+    return equipmentIds.map(id => {
+      const equipment = equipments.find(eq => eq.id === id);
+      return equipment?.nome || 'Equipamento';
+    });
+  };
 
   const handleDownload = (material: any) => {
     const link = document.createElement('a');
@@ -164,6 +193,27 @@ const Arts: React.FC = () => {
                           {new Date(material.created_at).toLocaleDateString()}
                         </span>
                       </div>
+                      
+                      {/* Equipamentos relacionados */}
+                      {material.equipment_ids && material.equipment_ids.length > 0 && (
+                        <div className="mt-2">
+                          <div className="flex flex-wrap gap-1">
+                            {getEquipmentNames(material.equipment_ids).slice(0, 2).map((equipName, index) => (
+                              <span
+                                key={index}
+                                className="px-2 py-1 text-xs bg-aurora-neon-blue/20 text-aurora-neon-blue rounded-full"
+                              >
+                                {equipName}
+                              </span>
+                            ))}
+                            {material.equipment_ids.length > 2 && (
+                              <span className="px-2 py-1 text-xs bg-slate-700/50 text-slate-400 rounded-full">
+                                +{material.equipment_ids.length - 2}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))}
