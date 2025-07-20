@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import AppLayout from '@/components/layout/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -26,8 +27,11 @@ import {
   Upload,
   Grid3X3,
   List,
-  Plus
+  Plus,
+  Monitor,
+  Sparkles
 } from 'lucide-react';
+import CaptionGenerator from '@/components/downloads/CaptionGenerator';
 import CarouselViewer from '@/components/downloads/CarouselViewer';
 import {
   DropdownMenu,
@@ -60,15 +64,40 @@ const DownloadsManager: React.FC = () => {
   const [fileTypeFilter, setFileTypeFilter] = useState<string>('all');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [editingMaterial, setEditingMaterial] = useState<DownloadMaterial | null>(null);
+  const [equipments, setEquipments] = useState<{ id: string; nome: string }[]>([]);
+  const [uploadingThumbnail, setUploadingThumbnail] = useState(false);
+  const thumbnailInputRef = useRef<HTMLInputElement | null>(null);
   const [editForm, setEditForm] = useState({
     title: '',
     description: '',
     category: '',
     tags: '',
+    equipment_ids: [] as string[],
+    custom_thumbnail: null as string | null,
   });
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  // Buscar equipamentos disponíveis
+  useEffect(() => {
+    const fetchEquipments = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('equipamentos')
+          .select('id, nome')
+          .eq('ativo', true)
+          .order('nome');
+        
+        if (error) throw error;
+        setEquipments(data || []);
+      } catch (error) {
+        console.error('Error fetching equipments:', error);
+      }
+    };
+
+    fetchEquipments();
+  }, []);
 
   // Fetch materials
   const { data: materials = [], isLoading, refetch } = useQuery({
@@ -179,7 +208,61 @@ const DownloadsManager: React.FC = () => {
       description: material.description,
       category: material.category,
       tags: material.tags.join(', '),
+      equipment_ids: (material as any).equipment_ids || [],
+      custom_thumbnail: null,
     });
+  };
+
+  const handleEquipmentToggle = (equipmentId: string, checked: boolean) => {
+    setEditForm(prev => ({
+      ...prev,
+      equipment_ids: checked 
+        ? [...prev.equipment_ids, equipmentId]
+        : prev.equipment_ids.filter(id => id !== equipmentId)
+    }));
+  };
+
+  const handleThumbnailUpload = async (file: File) => {
+    setUploadingThumbnail(true);
+    
+    try {
+      const storagePath = `thumbnails/${Date.now()}_${file.name}`;
+      const { data, error } = await supabase.storage
+        .from("downloads")
+        .upload(storagePath, file, { upsert: false });
+
+      if (error) {
+        toast({
+          variant: "destructive",
+          title: "Erro no upload da thumbnail",
+          description: error.message,
+        });
+        return;
+      }
+
+      setEditForm(prev => ({ ...prev, custom_thumbnail: data.path }));
+
+      toast({
+        title: "Thumbnail enviada",
+        description: "Thumbnail carregada com sucesso!",
+      });
+    } catch (error) {
+      console.error('Error uploading thumbnail:', error);
+      toast({
+        variant: "destructive",
+        title: "Erro no upload",
+        description: "Falha ao enviar thumbnail.",
+      });
+    } finally {
+      setUploadingThumbnail(false);
+    }
+  };
+
+  const handleThumbnailSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      handleThumbnailUpload(file);
+    }
   };
 
   const handleSaveEdit = () => {
@@ -192,7 +275,12 @@ const DownloadsManager: React.FC = () => {
         description: editForm.description,
         category: editForm.category,
         tags: editForm.tags.split(',').map(tag => tag.trim()).filter(Boolean),
+        thumbnail_url: editForm.custom_thumbnail || (editingMaterial as any).thumbnail_url,
         updated_at: new Date().toISOString(),
+        metadata: {
+          ...(editingMaterial.metadata || {}),
+          equipment_ids: editForm.equipment_ids
+        }
       }
     });
   };
@@ -639,56 +727,185 @@ const DownloadsManager: React.FC = () => {
 
         {/* Edit Modal */}
         <Dialog open={!!editingMaterial} onOpenChange={() => setEditingMaterial(null)}>
-          <DialogContent className="max-w-md bg-slate-800 border-aurora-electric-purple/30">
+          <DialogContent className="max-w-4xl bg-slate-800 border-aurora-electric-purple/30 max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle className="text-white">Editar Material</DialogTitle>
+              <DialogTitle className="text-white flex items-center gap-2">
+                <Edit className="h-5 w-5 text-aurora-electric-purple" />
+                Editar Material
+              </DialogTitle>
             </DialogHeader>
             
             {editingMaterial && (
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label className="text-white">Título</Label>
-                  <Input
-                    value={editForm.title}
-                    onChange={(e) => setEditForm(prev => ({ ...prev, title: e.target.value }))}
-                    className="bg-slate-700 border-aurora-electric-purple/30 text-white"
-                  />
+              <div className="space-y-6">
+                {/* Thumbnail Section */}
+                <div className="space-y-3">
+                  <Label className="text-white font-medium">Thumbnail</Label>
+                  <div className="flex items-center gap-4">
+                    {(editForm.custom_thumbnail || editingMaterial.thumbnail_url) && (
+                      <div className="relative">
+                        <img
+                          src={editForm.custom_thumbnail 
+                            ? `https://mksvzhgqnsjfolvskibq.supabase.co/storage/v1/object/public/downloads/${editForm.custom_thumbnail}`
+                            : `https://mksvzhgqnsjfolvskibq.supabase.co/storage/v1/object/public/downloads/${editingMaterial.thumbnail_url}`
+                          }
+                          alt="Thumbnail"
+                          className="w-24 h-24 object-cover rounded-lg border border-aurora-electric-purple/30"
+                        />
+                        <Badge 
+                          variant="secondary" 
+                          className="absolute -top-2 -right-2 bg-aurora-electric-purple/20 text-aurora-electric-purple text-xs"
+                        >
+                          {editForm.custom_thumbnail ? 'Custom' : 'Auto'}
+                        </Badge>
+                      </div>
+                    )}
+                    
+                    <div className="flex-1">
+                      <input
+                        type="file"
+                        ref={thumbnailInputRef}
+                        onChange={handleThumbnailSelect}
+                        accept="image/*"
+                        className="hidden"
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => thumbnailInputRef.current?.click()}
+                        disabled={uploadingThumbnail}
+                        className="border-aurora-electric-purple/30 text-aurora-electric-purple hover:bg-aurora-electric-purple/20"
+                      >
+                        <Upload className="h-4 w-4 mr-2" />
+                        {uploadingThumbnail ? 'Enviando...' : editForm.custom_thumbnail ? 'Alterar Thumbnail' : 'Enviar Thumbnail'}
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Basic Info Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-white font-medium">Título</Label>
+                    <Input
+                      value={editForm.title}
+                      onChange={(e) => setEditForm(prev => ({ ...prev, title: e.target.value }))}
+                      className="bg-slate-700 border-aurora-electric-purple/30 text-white"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-white font-medium">Categoria</Label>
+                    <Select value={editForm.category} onValueChange={(value) => setEditForm(prev => ({ ...prev, category: value }))}>
+                      <SelectTrigger className="bg-slate-700 border-aurora-electric-purple/30 text-white">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-slate-800 border-aurora-electric-purple/30 z-50">
+                        <SelectItem value="arte-digital" className="text-white hover:bg-aurora-electric-purple/20">
+                          <div className="flex items-center gap-2">
+                            <Palette className="h-4 w-4 text-aurora-electric-purple" />
+                            Arte Digital
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="para-impressao" className="text-white hover:bg-aurora-electric-purple/20">
+                          <div className="flex items-center gap-2">
+                            <Printer className="h-4 w-4 text-aurora-emerald" />
+                            Para Impressão
+                          </div>
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="text-white">Descrição</Label>
+                  <Label className="text-white font-medium">Descrição</Label>
                   <Textarea
                     value={editForm.description}
                     onChange={(e) => setEditForm(prev => ({ ...prev, description: e.target.value }))}
+                    placeholder="Descreva o material e como ele pode ser usado"
                     className="bg-slate-700 border-aurora-electric-purple/30 text-white"
                     rows={3}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="text-white">Categoria</Label>
-                  <Select value={editForm.category} onValueChange={(value) => setEditForm(prev => ({ ...prev, category: value }))}>
-                    <SelectTrigger className="bg-slate-700 border-aurora-electric-purple/30 text-white">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="bg-slate-800 border-aurora-electric-purple/30">
-                      <SelectItem value="arte-digital">Arte Digital</SelectItem>
-                      <SelectItem value="para-impressao">Para Impressão</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label className="text-white">Tags</Label>
+                  <Label className="text-white font-medium">Tags</Label>
                   <Input
                     value={editForm.tags}
                     onChange={(e) => setEditForm(prev => ({ ...prev, tags: e.target.value }))}
-                    placeholder="Separe por vírgula"
+                    placeholder="social media, instagram, post, banner (separe por vírgula)"
                     className="bg-slate-700 border-aurora-electric-purple/30 text-white"
                   />
                 </div>
 
-                <div className="flex justify-end gap-2 pt-4">
+                {/* Caption Generator for images */}
+                {editingMaterial.file_type === 'image' && editingMaterial.thumbnail_url && (
+                  <div className="space-y-3">
+                    <Label className="text-white font-medium flex items-center gap-2">
+                      <Sparkles className="h-4 w-4 text-aurora-electric-purple" />
+                      Gerar Legenda para Instagram
+                    </Label>
+                    <CaptionGenerator
+                      imageUrl={editForm.custom_thumbnail || editingMaterial.thumbnail_url}
+                      equipments={editForm.equipment_ids.map(id => {
+                        const equipment = equipments.find(eq => eq.id === id);
+                        return equipment ? { id: equipment.id, nome: equipment.nome } : null;
+                      }).filter(Boolean) as { id: string; nome: string }[]}
+                      onCaptionGenerated={(caption, hashtags) => {
+                        // Atualizar descrição com a legenda
+                        setEditForm(prev => ({ ...prev, description: caption }));
+                        // Adicionar hashtags às tags existentes
+                        const newTags = hashtags.replace(/#/g, '').split(/\s+/).filter(Boolean);
+                        const existingTags = editForm.tags ? editForm.tags.split(',').map(tag => tag.trim()).filter(Boolean) : [];
+                        const allTags = [...new Set([...existingTags, ...newTags])];
+                        setEditForm(prev => ({ ...prev, tags: allTags.join(', ') }));
+                      }}
+                    />
+                  </div>
+                )}
+
+                {/* Equipamentos relacionados */}
+                <div className="space-y-3">
+                  <Label className="text-white font-medium flex items-center gap-2">
+                    <Monitor className="h-4 w-4 text-aurora-neon-blue" />
+                    Equipamentos relacionados
+                  </Label>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-40 overflow-y-auto p-2 border border-aurora-electric-purple/30 rounded-lg bg-slate-700/50">
+                    {equipments.map((equipment) => (
+                      <div key={equipment.id} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`equipment-edit-${equipment.id}`}
+                          checked={editForm.equipment_ids.includes(equipment.id)}
+                          onCheckedChange={(checked) => 
+                            handleEquipmentToggle(equipment.id, checked as boolean)
+                          }
+                          className="border-aurora-electric-purple/30 data-[state=checked]:bg-aurora-electric-purple data-[state=checked]:border-aurora-electric-purple"
+                        />
+                        <Label 
+                          htmlFor={`equipment-edit-${equipment.id}`}
+                          className="text-sm text-white/80 cursor-pointer hover:text-white transition-colors"
+                        >
+                          {equipment.nome}
+                        </Label>
+                      </div>
+                    ))}
+                  </div>
+                  {editForm.equipment_ids.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mt-2">
+                      {editForm.equipment_ids.map((equipId) => {
+                        const equipment = equipments.find(e => e.id === equipId);
+                        return equipment ? (
+                          <Badge key={equipId} variant="outline" className="text-aurora-neon-blue border-aurora-neon-blue/30 text-xs">
+                            {equipment.nome}
+                          </Badge>
+                        ) : null;
+                      })}
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex justify-end gap-2 pt-4 border-t border-aurora-electric-purple/30">
                   <Button variant="outline" onClick={() => setEditingMaterial(null)}>
                     Cancelar
                   </Button>
@@ -697,7 +914,7 @@ const DownloadsManager: React.FC = () => {
                     disabled={updateMutation.isPending}
                     className="aurora-button aurora-glow hover:aurora-glow-intense"
                   >
-                    {updateMutation.isPending ? 'Salvando...' : 'Salvar'}
+                    {updateMutation.isPending ? 'Salvando...' : 'Salvar Alterações'}
                   </Button>
                 </div>
               </div>
