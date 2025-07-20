@@ -10,7 +10,7 @@ import AppLayout from '@/components/layout/AppLayout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Wrench, Target, Award, Lightbulb, Images, Info, Video, FileText, Palette } from "lucide-react";
+import { Wrench, Target, Award, Lightbulb, Images, Info, Video, FileText, Palette, MessageCircle } from "lucide-react";
 import { EquipmentVideosTab } from '@/components/equipment/tabs/EquipmentVideosTab';
 import { EquipmentArticlesTab } from '@/components/equipment/tabs/EquipmentArticlesTab';
 import { EquipmentArtsTab } from '@/components/equipment/tabs/EquipmentArtsTab';
@@ -40,7 +40,7 @@ const EquipmentDetailsPage: React.FC = () => {
           <EquipmentDetailsHeader equipment={equipment} />
           
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-5 aurora-glass">
+            <TabsList className="grid w-full grid-cols-6 aurora-glass">
               <TabsTrigger 
                 value="details"
                 className="flex items-center gap-2 data-[state=active]:bg-aurora-electric-purple/20 data-[state=active]:text-aurora-electric-purple"
@@ -75,6 +75,13 @@ const EquipmentDetailsPage: React.FC = () => {
               >
                 <Palette className="h-4 w-4" />
                 Artes
+              </TabsTrigger>
+              <TabsTrigger 
+                value="chat"
+                className="flex items-center gap-2 data-[state=active]:bg-aurora-electric-purple/20 data-[state=active]:text-aurora-electric-purple"
+              >
+                <MessageCircle className="h-4 w-4" />
+                Chat IA
               </TabsTrigger>
             </TabsList>
             
@@ -209,6 +216,30 @@ const EquipmentDetailsPage: React.FC = () => {
 
             <TabsContent value="arts" className="space-y-6">
               <EquipmentArtsTab equipmentId={id!} equipmentName={equipment.nome} />
+            </TabsContent>
+
+            <TabsContent value="chat" className="space-y-6">
+              <div className="aurora-glass rounded-3xl border border-aurora-electric-purple/30 p-8">
+                <div className="flex items-center gap-3 mb-6">
+                  <MessageCircle className="h-6 w-6 text-aurora-electric-purple" />
+                  <div>
+                    <h2 className="aurora-heading text-xl text-white">Chat Inteligente do {equipment.nome}</h2>
+                    <p className="aurora-body text-white/70">Converse com a IA sobre este equipamento usando todos os documentos e artigos relacionados</p>
+                  </div>
+                </div>
+                
+                <div className="bg-aurora-electric-purple/10 rounded-xl p-6 text-center">
+                  <MessageCircle className="h-12 w-12 text-aurora-electric-purple mx-auto mb-4" />
+                  <h3 className="aurora-heading text-lg text-white mb-2">Chat em Desenvolvimento</h3>
+                  <p className="aurora-body text-white/70 mb-4">
+                    Esta funcionalidade irá integrar todos os artigos científicos, documentos técnicos e informações 
+                    do {equipment.nome} com inteligência artificial para responder suas perguntas.
+                  </p>
+                  <div className="flex items-center justify-center gap-2 text-sm text-aurora-electric-purple">
+                    <span>Em breve disponível</span>
+                  </div>
+                </div>
+              </div>
             </TabsContent>
           </Tabs>
         </div>
