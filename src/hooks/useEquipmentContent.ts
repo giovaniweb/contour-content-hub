@@ -21,6 +21,8 @@ export interface EquipmentVideo {
   categoria?: string;
   data_upload: string;
   tags?: string[];
+  favoritos_count?: number;
+  downloads_count?: number;
 }
 
 export interface EquipmentMaterial {
@@ -60,7 +62,7 @@ export const useEquipmentContent = (equipmentId: string, equipmentName: string) 
         // Buscar vídeos relacionados
         const { data: videosData, error: videosError } = await supabase
           .from('videos')
-          .select('*')
+          .select('id, titulo, descricao, url_video, thumbnail_url, categoria, data_upload, tags, favoritos_count, downloads_count')
           .or(`titulo.ilike.%${equipmentName}%,descricao.ilike.%${equipmentName}%,tags.cs.{${equipmentName}}`);
 
         if (videosError) throw videosError;

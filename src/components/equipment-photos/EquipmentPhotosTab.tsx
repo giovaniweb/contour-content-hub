@@ -104,8 +104,26 @@ const EquipmentPhotosTab: React.FC<EquipmentPhotosTabProps> = ({ equipmentId }) 
     }
   };
 
-  const handleDownloadPhoto = (photoId: string) => {
-    downloadMutation.mutate({ photoId, downloadType: 'single' });
+  const handleDownloadPhoto = async (photoId: string) => {
+    try {
+      // Get photo data to download actual file
+      const photo = photos.find(p => p.id === photoId);
+      if (photo?.image_url) {
+        // Create download link
+        const link = document.createElement('a');
+        link.href = photo.image_url;
+        link.download = `${photo.title || 'photo'}.jpg`;
+        link.target = '_blank';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+      
+      // Record download
+      downloadMutation.mutate({ photoId, downloadType: 'single' });
+    } catch (error) {
+      console.error('Download error:', error);
+    }
   };
 
   if (isLoading) {
