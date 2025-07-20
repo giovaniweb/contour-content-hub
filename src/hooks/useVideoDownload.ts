@@ -13,15 +13,32 @@ export const useVideoDownload = () => {
       }
       return result;
     },
-    onSuccess: (result) => {
+    onSuccess: async (result) => {
       if (result.downloadUrl) {
-        // Trigger the actual download
-        const link = document.createElement('a');
-        link.href = result.downloadUrl;
-        link.download = `video-${Date.now()}.mp4`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        try {
+          // Force download by fetching the video and creating blob
+          const response = await fetch(result.downloadUrl);
+          const blob = await response.blob();
+          const url = window.URL.createObjectURL(blob);
+          
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = `video-${Date.now()}.mp4`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          
+          // Clean up the blob URL
+          window.URL.revokeObjectURL(url);
+        } catch (error) {
+          // Fallback to direct link
+          const link = document.createElement('a');
+          link.href = result.downloadUrl;
+          link.download = `video-${Date.now()}.mp4`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        }
       }
       
       toast({

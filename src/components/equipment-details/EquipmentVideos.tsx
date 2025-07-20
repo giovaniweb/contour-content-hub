@@ -45,7 +45,7 @@ const VideoCard: React.FC<{ video: EquipmentVideo; index: number }> = ({ video, 
       <Card className="aurora-glass border-aurora-electric-purple/30 aurora-glow hover:border-aurora-electric-purple/50 transition-colors group">
         <CardContent className="p-0">
           {/* Video Thumbnail - 16:9 aspect ratio */}
-          <div className="relative aspect-[16/9] rounded-t-lg overflow-hidden bg-black/20">
+          <div className="relative aspect-[16/9] h-40 rounded-t-lg overflow-hidden bg-black/20">
             {video.thumbnail_url ? (
               <img 
                 src={video.thumbnail_url} 
@@ -173,14 +173,26 @@ const VideoCard: React.FC<{ video: EquipmentVideo; index: number }> = ({ video, 
                 )}
               </div>
               <div className="p-6 bg-aurora-dark-blue rounded-b-lg">
-                <h3 className="aurora-heading text-xl font-semibold text-white mb-2">
-                  {selectedVideo.titulo}
-                </h3>
-                {selectedVideo.descricao && (
-                  <p className="aurora-body text-white/80 mb-4">
-                    {selectedVideo.descricao}
-                  </p>
-                )}
+                <div className="flex justify-between items-start mb-4">
+                  <div>
+                    <h3 className="aurora-heading text-xl font-semibold text-white mb-2">
+                      {selectedVideo.titulo}
+                    </h3>
+                    {selectedVideo.descricao && (
+                      <p className="aurora-body text-white/80 mb-4">
+                        {selectedVideo.descricao}
+                      </p>
+                    )}
+                  </div>
+                  <Button
+                    onClick={() => downloadVideo(selectedVideo.id)}
+                    disabled={isDownloading}
+                    className="aurora-button aurora-glow hover:aurora-glow-intense"
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    Download
+                  </Button>
+                </div>
                 <div className="flex flex-wrap gap-2">
                   {selectedVideo.tags?.map(tag => (
                     <Badge key={tag} variant="outline" className="text-aurora-electric-purple border-aurora-electric-purple/30">

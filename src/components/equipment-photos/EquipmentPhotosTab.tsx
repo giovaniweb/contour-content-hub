@@ -109,14 +109,20 @@ const EquipmentPhotosTab: React.FC<EquipmentPhotosTabProps> = ({ equipmentId }) 
       // Get photo data to download actual file
       const photo = photos.find(p => p.id === photoId);
       if (photo?.image_url) {
-        // Create download link
+        // Force download by fetching the image and creating blob
+        const response = await fetch(photo.image_url);
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        
         const link = document.createElement('a');
-        link.href = photo.image_url;
+        link.href = url;
         link.download = `${photo.title || 'photo'}.jpg`;
-        link.target = '_blank';
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
+        
+        // Clean up the blob URL
+        window.URL.revokeObjectURL(url);
       }
       
       // Record download
@@ -318,14 +324,25 @@ const EquipmentPhotosTab: React.FC<EquipmentPhotosTabProps> = ({ equipmentId }) 
                 className="w-full h-auto max-h-[80vh] object-contain"
               />
               <div className="p-6 bg-aurora-dark-blue">
-                <h3 className="aurora-heading text-xl font-semibold text-white mb-2">
-                  {selectedPhoto.title}
-                </h3>
-                {selectedPhoto.description && (
-                  <p className="aurora-body text-white/80 mb-4">
-                    {selectedPhoto.description}
-                  </p>
-                )}
+                <div className="flex justify-between items-start mb-4">
+                  <div>
+                    <h3 className="aurora-heading text-xl font-semibold text-white mb-2">
+                      {selectedPhoto.title}
+                    </h3>
+                    {selectedPhoto.description && (
+                      <p className="aurora-body text-white/80 mb-4">
+                        {selectedPhoto.description}
+                      </p>
+                    )}
+                  </div>
+                  <Button
+                    onClick={() => handleDownloadPhoto(selectedPhoto.id)}
+                    className="aurora-button aurora-glow hover:aurora-glow-intense"
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    Download
+                  </Button>
+                </div>
                 <div className="flex flex-wrap gap-2">
                   {selectedPhoto.tags.map(tag => (
                     <Badge key={tag} variant="outline" className="text-aurora-electric-purple border-aurora-electric-purple/30">
