@@ -1,12 +1,12 @@
 
 "use client"
 
-import * as React from "react"
+import React, { useEffect } from "react"
 import { ThemeProvider as NextThemesProvider } from "next-themes"
 import { type ThemeProviderProps } from "next-themes/dist/types"
 
 export function ThemeProvider({ children, ...props }: ThemeProviderProps) {
-  React.useEffect(() => {
+  useEffect(() => {
     // Add Montserrat font to the document
     const link = document.createElement('link');
     link.rel = 'stylesheet';
