@@ -4,35 +4,22 @@ import { useNavigate } from 'react-router-dom';
 import { Wrench, Plus, Sparkles, Zap, FileText, Image, Video } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useEquipments } from '@/hooks/useEquipments';
 import AuroraPageLayout from '@/components/layout/AuroraPageLayout';
 import StandardPageHeader from '@/components/layout/StandardPageHeader';
 import SearchAndFilters from '@/components/layout/SearchAndFilters';
 import EquipmentGrid from '@/components/equipment/EquipmentGrid';
 import EquipmentList from '@/components/equipment/EquipmentList';
-import ScientificArticlesUserManager from '@/components/scientific-articles/ScientificArticlesUserManager';
-import { useUserPhotos } from '@/hooks/useUserPhotos';
-import { useUserVideos } from '@/hooks/useUserVideos';
-import { useUserEquipments } from '@/hooks/useUserEquipments';
 import { EmptyState } from '@/components/ui/empty-state';
 
 const EquipmentsPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const [activeTab, setActiveTab] = useState('equipments');
-  const [selectedEquipment, setSelectedEquipment] = useState<string | null>(null);
   const { equipments, loading, error } = useEquipments();
-  const { photos } = useUserPhotos();
-  const { videos } = useUserVideos();
   const navigate = useNavigate();
 
-  const handleEquipmentSelect = (equipmentId: string) => {
-    setSelectedEquipment(equipmentId);
-  };
-
   const handleEquipmentView = (equipmentId: string) => {
-    navigate(`/equipment/${equipmentId}`);
+    navigate(`/equipments/${equipmentId}`);
   };
 
   const filteredEquipments = equipments.filter(equipment =>
@@ -41,37 +28,12 @@ const EquipmentsPage: React.FC = () => {
     equipment.beneficios?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const selectedEquipmentData = selectedEquipment 
-    ? equipments.find(eq => eq.id === selectedEquipment)
-    : null;
-
-  // Filter content by selected equipment
-  const filteredPhotos = selectedEquipment 
-    ? photos.filter(photo => photo.tags?.includes(selectedEquipmentData?.nome || ''))
-    : photos;
-    
-  const filteredVideos = selectedEquipment 
-    ? videos.filter(video => video.tags?.includes(selectedEquipmentData?.nome || ''))
-    : videos;
-
   const statusBadges = [
     {
       icon: Sparkles,
-      label: selectedEquipment ? '1 Equipamento Selecionado' : `${filteredEquipments.length} Equipamentos`,
+      label: `${filteredEquipments.length} Equipamentos`,
       variant: 'secondary' as const,
       color: 'bg-aurora-emerald/20 text-aurora-emerald border-aurora-emerald/30 aurora-glow-emerald'
-    },
-    {
-      icon: Image,
-      label: `${filteredPhotos.length} Fotos`,
-      variant: 'secondary' as const,
-      color: 'bg-aurora-neon-blue/20 text-aurora-neon-blue border-aurora-neon-blue/30 aurora-glow-blue'
-    },
-    {
-      icon: Video,
-      label: `${filteredVideos.length} Vídeos`,
-      variant: 'secondary' as const,
-      color: 'bg-aurora-electric-purple/20 text-aurora-electric-purple border-aurora-electric-purple/30 aurora-glow'
     }
   ];
 
@@ -120,149 +82,57 @@ const EquipmentsPage: React.FC = () => {
         />
 
         <div className="container mx-auto px-6 py-8">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid grid-cols-4 lg:grid-cols-4 mb-6 aurora-glass rounded-xl">
-              <TabsTrigger value="equipments" className="aurora-tab-trigger">
-                <Wrench className="h-4 w-4 mr-2" />
-                Equipamentos
-              </TabsTrigger>
-              <TabsTrigger value="articles" className="aurora-tab-trigger">
-                <FileText className="h-4 w-4 mr-2" />
-                Artigos
-              </TabsTrigger>
-              <TabsTrigger value="photos" className="aurora-tab-trigger">
-                <Image className="h-4 w-4 mr-2" />
-                Fotos
-              </TabsTrigger>
-              <TabsTrigger value="videos" className="aurora-tab-trigger">
-                <Video className="h-4 w-4 mr-2" />
-                Vídeos
-              </TabsTrigger>
-            </TabsList>
+          <SearchAndFilters
+            searchValue={searchTerm}
+            onSearchChange={setSearchTerm}
+            onViewModeChange={setViewMode}
+            viewMode={viewMode}
+            additionalControls={
+              <Button className="aurora-button aurora-glow hover:aurora-glow-intense rounded-xl flex items-center gap-2">
+                <Plus className="h-4 w-4" />
+                Novo Equipamento
+              </Button>
+            }
+          />
 
-            <TabsContent value="equipments">
-              <SearchAndFilters
-                searchValue={searchTerm}
-                onSearchChange={setSearchTerm}
-                onViewModeChange={setViewMode}
-                viewMode={viewMode}
-                additionalControls={
-                  <Button className="aurora-button aurora-glow hover:aurora-glow-intense rounded-xl flex items-center gap-2">
-                    <Plus className="h-4 w-4" />
-                    Novo Equipamento
-                  </Button>
-                }
-              />
-
-              {selectedEquipment && selectedEquipmentData && (
-                <div className="aurora-glass rounded-xl border border-aurora-emerald/30 p-4 mb-6">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <Badge className="bg-aurora-emerald/20 text-aurora-emerald border-aurora-emerald/30">
-                        Equipamento Selecionado
-                      </Badge>
-                      <span className="aurora-heading text-white font-medium">{selectedEquipmentData.nome}</span>
-                    </div>
-                    <Button 
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setSelectedEquipment(null)}
-                      className="text-white/70 hover:text-white"
-                    >
-                      Limpar Seleção
-                    </Button>
-                  </div>
-                </div>
-              )}
-
-              {loading ? (
-                <div className="aurora-glass rounded-3xl border border-aurora-electric-purple/30 p-8">
-                  <div className="text-center py-16">
-                    <div className="relative w-16 h-16 mx-auto mb-6">
-                      <div className="aurora-sphere-outer w-16 h-16 rounded-full relative">
-                        <div className="aurora-sphere-middle absolute inset-2 rounded-full bg-gradient-to-r from-aurora-electric-purple to-aurora-neon-blue animate-spin">
-                          <div className="aurora-sphere-core absolute inset-2 rounded-full bg-gradient-to-r from-aurora-neon-blue to-aurora-emerald">
-                            <div className="aurora-sphere-nucleus absolute inset-4 rounded-full bg-white animate-pulse"></div>
-                          </div>
-                        </div>
+          {loading ? (
+            <div className="aurora-glass rounded-3xl border border-aurora-electric-purple/30 p-8">
+              <div className="text-center py-16">
+                <div className="relative w-16 h-16 mx-auto mb-6">
+                  <div className="aurora-sphere-outer w-16 h-16 rounded-full relative">
+                    <div className="aurora-sphere-middle absolute inset-2 rounded-full bg-gradient-to-r from-aurora-electric-purple to-aurora-neon-blue animate-spin">
+                      <div className="aurora-sphere-core absolute inset-2 rounded-full bg-gradient-to-r from-aurora-neon-blue to-aurora-emerald">
+                        <div className="aurora-sphere-nucleus absolute inset-4 rounded-full bg-white animate-pulse"></div>
                       </div>
                     </div>
-                    <p className="aurora-body text-white/80 aurora-shimmer">Carregando equipamentos...</p>
                   </div>
                 </div>
-              ) : filteredEquipments.length === 0 ? (
-                <div className="aurora-glass rounded-3xl border border-aurora-electric-purple/30 p-8">
-                  <EmptyState
-                    icon={Wrench}
-                    title={searchTerm ? "Nenhum equipamento encontrado" : "Nenhum equipamento disponível"}
-                    description={searchTerm ? `Não encontramos equipamentos para "${searchTerm}"` : "Comece adicionando seus primeiros equipamentos"}
-                    actionLabel={searchTerm ? "Limpar busca" : "Adicionar Primeiro Equipamento"}
-                    onAction={() => searchTerm ? setSearchTerm('') : console.log('Add equipment')}
-                  />
-                </div>
+                <p className="aurora-body text-white/80 aurora-shimmer">Carregando equipamentos...</p>
+              </div>
+            </div>
+          ) : filteredEquipments.length === 0 ? (
+            <div className="aurora-glass rounded-3xl border border-aurora-electric-purple/30 p-8">
+              <EmptyState
+                icon={Wrench}
+                title={searchTerm ? "Nenhum equipamento encontrado" : "Nenhum equipamento disponível"}
+                description={searchTerm ? `Não encontramos equipamentos para "${searchTerm}"` : "Comece adicionando seus primeiros equipamentos"}
+                actionLabel={searchTerm ? "Limpar busca" : "Adicionar Primeiro Equipamento"}
+                onAction={() => searchTerm ? setSearchTerm('') : console.log('Add equipment')}
+              />
+            </div>
+          ) : (
+            <div className="aurora-glass rounded-3xl border border-aurora-electric-purple/30 p-8 aurora-glow backdrop-blur-xl">
+              {viewMode === 'grid' ? (
+                <EquipmentGrid 
+                  equipments={filteredEquipments} 
+                />
               ) : (
-                <div className="aurora-glass rounded-3xl border border-aurora-electric-purple/30 p-8 aurora-glow backdrop-blur-xl">
-                  {viewMode === 'grid' ? (
-                    <EquipmentGrid 
-                      equipments={filteredEquipments} 
-                      onEquipmentSelect={handleEquipmentSelect}
-                      selectedEquipment={selectedEquipment}
-                    />
-                  ) : (
-                    <EquipmentList 
-                      equipments={filteredEquipments}
-                      onEquipmentSelect={handleEquipmentSelect}
-                      selectedEquipment={selectedEquipment}
-                    />
-                  )}
-                </div>
+                <EquipmentList 
+                  equipments={filteredEquipments}
+                />
               )}
-            </TabsContent>
-
-            <TabsContent value="articles">
-              <ScientificArticlesUserManager />
-            </TabsContent>
-
-            <TabsContent value="photos">
-              <div className="aurora-glass rounded-3xl border border-aurora-electric-purple/30 p-8 aurora-glow backdrop-blur-xl">
-                {selectedEquipment && filteredPhotos.length === 0 ? (
-                  <EmptyState
-                    icon={Image}
-                    title="Nenhuma foto encontrada"
-                    description={`Nenhuma foto relacionada ao equipamento "${selectedEquipmentData?.nome}" foi encontrada`}
-                    actionLabel="Ver todas as fotos"
-                    onAction={() => setSelectedEquipment(null)}
-                  />
-                ) : (
-                  <iframe 
-                    src={selectedEquipment ? `/photos?equipment=${encodeURIComponent(selectedEquipmentData?.nome || '')}` : "/photos"} 
-                    className="w-full h-[800px] rounded-xl border-0"
-                    title="Fotos"
-                  />
-                )}
-              </div>
-            </TabsContent>
-
-            <TabsContent value="videos">
-              <div className="aurora-glass rounded-3xl border border-aurora-electric-purple/30 p-8 aurora-glow backdrop-blur-xl">
-                {selectedEquipment && filteredVideos.length === 0 ? (
-                  <EmptyState
-                    icon={Video}
-                    title="Nenhum vídeo encontrado"
-                    description={`Nenhum vídeo relacionado ao equipamento "${selectedEquipmentData?.nome}" foi encontrado`}
-                    actionLabel="Ver todos os vídeos"
-                    onAction={() => setSelectedEquipment(null)}
-                  />
-                ) : (
-                  <iframe 
-                    src={selectedEquipment ? `/videos?equipment=${encodeURIComponent(selectedEquipmentData?.nome || '')}` : "/videos"} 
-                    className="w-full h-[800px] rounded-xl border-0"
-                    title="Vídeos"
-                  />
-                )}
-              </div>
-            </TabsContent>
-          </Tabs>
+            </div>
+          )}
         </div>
       </div>
     </AuroraPageLayout>
