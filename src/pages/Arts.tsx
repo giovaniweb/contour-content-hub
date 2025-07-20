@@ -149,6 +149,8 @@ const Arts: React.FC = () => {
                         <CarouselViewer 
                           images={material.carousel_images || []} 
                           title={material.title}
+                          material={material}
+                          equipments={equipments}
                         />
                       ) : (
                         <>
@@ -174,74 +176,43 @@ const Arts: React.FC = () => {
                       )}
                     </div>
                     
-                    <div className="mt-3">
+                    <div className="mt-3 space-y-3">
                       <h3 className="font-medium text-slate-200 group-hover:text-aurora-electric-purple transition-colors duration-200 line-clamp-1">
                         {material.title}
                       </h3>
-                      <p className="text-sm text-slate-400 mt-1 line-clamp-2">
-                        {material.description}
-                      </p>
-                      <div className="flex items-center justify-between mt-2">
-                        <div className="flex gap-1 flex-wrap">
-                          {material.tags?.slice(0, 2).map((tag, index) => (
+                      
+                      {/* Equipamentos relacionados */}
+                      {material.equipment_ids && material.equipment_ids.length > 0 && (
+                        <div className="flex flex-wrap gap-1">
+                          {getEquipmentNames(material.equipment_ids).slice(0, 2).map((equipName, index) => (
                             <span
                               key={index}
-                              className="px-2 py-1 text-xs bg-aurora-electric-purple/20 text-aurora-electric-purple rounded-full"
+                              className="px-2 py-1 text-xs bg-aurora-neon-blue/20 text-aurora-neon-blue rounded-full"
                             >
-                              {tag}
+                              {equipName}
                             </span>
                           ))}
+                          {material.equipment_ids.length > 2 && (
+                            <span className="px-2 py-1 text-xs bg-slate-700/50 text-slate-400 rounded-full">
+                              +{material.equipment_ids.length - 2}
+                            </span>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Ações principais */}
+                      <div className="flex items-center justify-between">
+                        <div className="flex gap-2">
+                          <Button size="sm" onClick={() => handleDownload(material)} className="aurora-button">
+                            <Download className="h-4 w-4" />
+                          </Button>
+                          <Button size="sm" variant="outline" className="bg-white/10 border-white/20 text-white hover:bg-white/20">
+                            <Eye className="h-4 w-4" />
+                          </Button>
                         </div>
                         <span className="text-xs text-slate-500">
                           {new Date(material.created_at).toLocaleDateString()}
                         </span>
-                      </div>
-                      
-                      {/* Equipamentos relacionados */}
-                      {material.equipment_ids && material.equipment_ids.length > 0 && (
-                        <div className="mt-2">
-                          <div className="flex flex-wrap gap-1">
-                            {getEquipmentNames(material.equipment_ids).slice(0, 2).map((equipName, index) => (
-                              <span
-                                key={index}
-                                className="px-2 py-1 text-xs bg-aurora-neon-blue/20 text-aurora-neon-blue rounded-full"
-                              >
-                                {equipName}
-                              </span>
-                            ))}
-                            {material.equipment_ids.length > 2 && (
-                              <span className="px-2 py-1 text-xs bg-slate-700/50 text-slate-400 rounded-full">
-                                +{material.equipment_ids.length - 2}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Legenda */}
-                      {material.metadata && typeof material.metadata === 'object' && 'caption' in material.metadata && (
-                        <div className="mt-2 p-2 bg-slate-800/50 rounded-lg border border-slate-700/50">
-                          <div className="flex items-start gap-2">
-                            <FileText className="h-4 w-4 text-aurora-electric-purple mt-0.5 flex-shrink-0" />
-                            <p className="text-sm text-slate-300 line-clamp-3">
-                              {String(material.metadata.caption)}
-                            </p>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Gerador de Legenda */}
-                      <div className="mt-2">
-                        <CaptionGenerator
-                          imageUrl={material.file_url}
-                          equipments={material.equipment_ids ? 
-                            equipments.filter(eq => material.equipment_ids.includes(eq.id)) : []
-                          }
-                          onCaptionGenerated={(caption) => {
-                            // Atualizar a legenda no material (você pode implementar a lógica de salvar)
-                            console.log('Caption generated:', caption);
-                          }}
-                        />
                       </div>
                     </div>
                   </div>
