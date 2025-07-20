@@ -42,10 +42,10 @@ const VideoCard: React.FC<{ video: EquipmentVideo; index: number }> = ({ video, 
 
   return (
     <>
-      <Card className="aurora-glass border-aurora-electric-purple/30 aurora-glow hover:border-aurora-electric-purple/50 transition-colors group">
-        <CardContent className="p-0">
+      <Card className="aurora-glass border-aurora-electric-purple/30 aurora-glow hover:border-aurora-electric-purple/50 transition-colors group h-full flex flex-col">
+        <CardContent className="p-0 flex flex-col h-full">
           {/* Video Thumbnail - 16:9 aspect ratio */}
-          <div className="relative aspect-[16/9] h-48 rounded-t-lg overflow-hidden bg-black/20">
+          <div className="relative aspect-[16/9] rounded-t-lg overflow-hidden bg-black/20">
             {video.thumbnail_url ? (
               <img 
                 src={video.thumbnail_url} 
@@ -71,20 +71,20 @@ const VideoCard: React.FC<{ video: EquipmentVideo; index: number }> = ({ video, 
             </div>
           </div>
 
-          {/* Video Info */}
-          <div className="p-4">
-            <h3 className="aurora-heading text-lg text-white mb-2 line-clamp-2">
+          {/* Video Info - flex-1 to fill remaining space */}
+          <div className="p-4 flex flex-col flex-1">
+            <h3 className="aurora-heading text-lg text-white mb-2 line-clamp-2 flex-shrink-0">
               {video.titulo}
             </h3>
             
             {video.descricao && (
-              <p className="aurora-body text-white/80 text-sm mb-3 line-clamp-2">
+              <p className="aurora-body text-white/80 text-sm mb-3 line-clamp-2 flex-shrink-0">
                 {video.descricao}
               </p>
             )}
 
             {/* Video stats */}
-            <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center justify-between mb-3 flex-shrink-0">
               <div className="flex items-center gap-4 text-sm text-white/60">
                 <span className="flex items-center gap-1">
                   <Heart className="h-3 w-3" />
@@ -101,8 +101,8 @@ const VideoCard: React.FC<{ video: EquipmentVideo; index: number }> = ({ video, 
               </div>
             </div>
 
-            {/* Action buttons */}
-            <div className="flex items-center justify-between">
+            {/* Action buttons and tags - pushed to bottom */}
+            <div className="flex items-center justify-between mt-auto">
               <div className="flex items-center gap-2">
                 <Button
                   size="sm"
