@@ -34,13 +34,14 @@ export const EquipmentArtsTab: React.FC<EquipmentArtsTabProps> = ({
   const [selectedArt, setSelectedArt] = useState<Photo | null>(null);
 
   const { data: arts, isLoading, error } = useQuery({
-    queryKey: ['equipment-arts', equipmentId],
+    queryKey: ['equipment-arts', equipmentId, equipmentName],
     queryFn: async () => {
-      // Buscar fotos que tenham categoria "arte" ou tags relacionadas
+      // Buscar fotos que tenham categoria "arte" ou "design" e que tenham o nome do equipamento nas tags
       const { data, error } = await supabase
         .from('fotos')
         .select('*')
-        .or(`categoria.eq.arte,categoria.eq.design,tags.cs.{"arte","design","criativo"}`)
+        .or(`categoria.eq.arte,categoria.eq.design,categoria.eq.marketing`)
+        .or(`tags.cs.{"${equipmentName}"},tags.cs.{"arte"},tags.cs.{"design"},tags.cs.{"marketing"}`)
         .order('data_upload', { ascending: false });
 
       if (error) throw error;
