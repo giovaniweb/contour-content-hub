@@ -16,29 +16,27 @@ interface EquipmentArtsTabProps {
   equipmentName: string;
 }
 
-interface MaterialArt {
+interface Photo {
   id: string;
   titulo: string;
-  descricao?: string;
+  descricao_curta?: string;
   categoria?: string;
   tags?: string[];
-  arquivo_url: string;
-  preview_url?: string;
+  url_imagem: string;
+  thumbnail_url?: string;
   downloads_count?: number;
   favoritos_count?: number;
   data_upload: string;
-  file_type?: string;
-  size?: number;
-  // Campos da tabela materiais
-  nome?: string;
-  tipo?: string;
+  user_id: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export const EquipmentArtsTab: React.FC<EquipmentArtsTabProps> = ({ 
   equipmentId, 
   equipmentName 
 }) => {
-  const [selectedArt, setSelectedArt] = useState<MaterialArt | null>(null);
+  const [selectedArt, setSelectedArt] = useState<Photo | null>(null);
   const [likedArts, setLikedArts] = useState<Set<string>>(new Set());
   const [selectedArts, setSelectedArts] = useState<Set<string>>(new Set());
   const [likesCount, setLikesCount] = useState<Record<string, number>>({});
@@ -47,50 +45,20 @@ export const EquipmentArtsTab: React.FC<EquipmentArtsTabProps> = ({
   const { data: arts, isLoading, error } = useQuery({
     queryKey: ['equipment-arts', equipmentId, equipmentName],
     queryFn: async () => {
-      console.log('🎨 Buscando artes para equipamento:', equipmentName);
-      
-      // Buscar fotos que tenham categoria igual ao nome do equipamento ou categorias de arte/design/marketing
+      // Busca simples: fotos com categoria igual ao nome do equipamento
       const { data, error } = await supabase
         .from('fotos')
         .select('*')
-        .or(`categoria.eq.${equipmentName},categoria.eq.arte,categoria.eq.design,categoria.eq.marketing,tags.cs.{"${equipmentName}"},tags.cs.{"arte"},tags.cs.{"design"},tags.cs.{"marketing"}`)
+        .eq('categoria', equipmentName)
         .order('data_upload', { ascending: false });
 
-      console.log('🎨 Query result:', { data, error, equipmentName });
-
       if (error) throw error;
-      
-      const mappedData = data?.map((item: any) => ({
-        ...item,
-        titulo: item.titulo || item.nome || 'Sem título',
-        downloads_count: item.downloads_count || 0,
-        favoritos_count: item.favoritos_count || 0,
-        arquivo_url: item.url_imagem, // usar url_imagem como arquivo_url
-        preview_url: item.thumbnail_url
-      })) as MaterialArt[];
-      
-      console.log('🎨 Mapped data:', mappedData);
-      return mappedData;
+      return data || [];
     },
   });
 
-  // Filtrar artes pelo equipamento
-  const filteredArts = useMemo(() => {
-    if (!arts) return [];
-    
-    console.log('🎨 Filtering arts:', { arts, equipmentName });
-    
-    const filtered = arts.filter(art => 
-      art.categoria === equipmentName ||
-      art.tags?.includes(equipmentName) || 
-      art.categoria === 'arte' ||
-      art.categoria === 'design' ||
-      art.categoria === 'marketing'
-    );
-    
-    console.log('🎨 Filtered arts result:', filtered);
-    return filtered;
-  }, [arts, equipmentName]);
+  // Usar as artes diretamente, sem filtro adicional
+  const filteredArts = arts || [];
 
   // Carregar contagem de curtidas
   useEffect(() => {
@@ -201,10 +169,10 @@ export const EquipmentArtsTab: React.FC<EquipmentArtsTabProps> = ({
       
       for (const art of selectedArtsList) {
         try {
-          const blob = await downloadFile(art.arquivo_url, art.titulo || art.nome || 'arquivo');
-          zip.file(`${art.titulo || art.nome || 'arquivo'}`, blob);
+          const blob = await downloadFile(art.url_imagem, art.titulo);
+          zip.file(`${art.titulo}`, blob);
         } catch (error) {
-          console.error(`Erro ao baixar ${art.titulo || art.nome}:`, error);
+          console.error(`Erro ao baixar ${art.titulo}:`, error);
         }
       }
       
@@ -343,8 +311,8 @@ export const EquipmentArtsTab: React.FC<EquipmentArtsTabProps> = ({
 
             <div className="aspect-square relative overflow-hidden">
               <img
-                src={art.preview_url || art.arquivo_url}
-                alt={art.titulo || art.nome || 'Arte'}
+                src={art.thumbnail_url || art.url_imagem}
+                alt={art.titulo}
                 className="w-full h-full object-cover transition-transform hover:scale-105"
               />
               <div className="absolute inset-0 bg-black/50 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
@@ -361,16 +329,16 @@ export const EquipmentArtsTab: React.FC<EquipmentArtsTabProps> = ({
                   </DialogTrigger>
                   <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto">
                     <DialogHeader>
-                      <DialogTitle>{art.titulo || art.nome}</DialogTitle>
+                      <DialogTitle>{art.titulo}</DialogTitle>
                     </DialogHeader>
                     <div className="space-y-4">
                       <img
-                        src={art.arquivo_url}
-                        alt={art.titulo || art.nome || 'Arte'}
+                        src={art.url_imagem}
+                        alt={art.titulo}
                         className="w-full h-auto max-h-[60vh] object-contain"
                       />
-                      {art.descricao && (
-                        <p className="text-muted-foreground">{art.descricao}</p>
+                      {art.descricao_curta && (
+                        <p className="text-muted-foreground">{art.descricao_curta}</p>
                       )}
                       {art.tags && art.tags.length > 0 && (
                         <div className="flex flex-wrap gap-1">
@@ -397,7 +365,7 @@ export const EquipmentArtsTab: React.FC<EquipmentArtsTabProps> = ({
                 <Button
                   variant="secondary"
                   size="sm"
-                  onClick={(e) => handleSingleDownload(art.arquivo_url, art.titulo || art.nome || 'arquivo', e)}
+                  onClick={(e) => handleSingleDownload(art.url_imagem, art.titulo, e)}
                   className="h-8 w-8 p-0"
                 >
                   <Download className="h-3 w-3" />
@@ -407,7 +375,7 @@ export const EquipmentArtsTab: React.FC<EquipmentArtsTabProps> = ({
             
             <CardHeader className="p-3">
               <CardTitle className="text-sm leading-tight line-clamp-2">
-                {art.titulo || art.nome}
+                {art.titulo}
               </CardTitle>
               <CardDescription className="text-xs">
                 <div className="flex items-center gap-2">
@@ -450,16 +418,16 @@ export const EquipmentArtsTab: React.FC<EquipmentArtsTabProps> = ({
                   </DialogTrigger>
                   <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto">
                     <DialogHeader>
-                      <DialogTitle>{art.titulo || art.nome}</DialogTitle>
+                      <DialogTitle>{art.titulo}</DialogTitle>
                     </DialogHeader>
                     <div className="space-y-4">
                       <img
-                        src={art.arquivo_url}
-                        alt={art.titulo || art.nome || 'Arte'}
+                        src={art.url_imagem}
+                        alt={art.titulo}
                         className="w-full h-auto max-h-[60vh] object-contain"
                       />
-                      {art.descricao && (
-                        <p className="text-muted-foreground">{art.descricao}</p>
+                      {art.descricao_curta && (
+                        <p className="text-muted-foreground">{art.descricao_curta}</p>
                       )}
                       {art.tags && art.tags.length > 0 && (
                         <div className="flex flex-wrap gap-1">
