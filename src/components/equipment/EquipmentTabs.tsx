@@ -8,6 +8,7 @@ import { FilesTab } from "./tabs/FilesTab";
 import { VideosTab } from "./tabs/VideosTab";
 import { EquipmentPhotosTab } from "./tabs/EquipmentPhotosTab";
 import { EquipmentVideosTab } from "./tabs/EquipmentVideosTab";
+import { EquipmentArtsTab } from "./tabs/EquipmentArtsTab";
 
 interface EquipmentTabsProps {
   equipment: Equipment;
@@ -28,11 +29,12 @@ export const EquipmentTabs: React.FC<EquipmentTabsProps> = ({
     <Card>
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <CardHeader>
-          <TabsList className="grid grid-cols-4 mb-4">
+          <TabsList className="grid grid-cols-5 mb-4">
             <TabsTrigger value="info">Informações</TabsTrigger>
             <TabsTrigger value="files">Arquivos</TabsTrigger>
             <TabsTrigger value="photos">Fotos</TabsTrigger>
             <TabsTrigger value="videos">Vídeos</TabsTrigger>
+            <TabsTrigger value="arts">Artes</TabsTrigger>
           </TabsList>
         </CardHeader>
         
@@ -51,6 +53,10 @@ export const EquipmentTabs: React.FC<EquipmentTabsProps> = ({
           
           <TabsContent value="videos">
             <EquipmentVideosTab equipmentId={equipment.id} equipmentName={equipment.nome} />
+          </TabsContent>
+          
+          <TabsContent value="arts">
+            <EquipmentArtsTab equipmentId={equipment.id} equipmentName={equipment.nome} />
           </TabsContent>
         </CardContent>
       </Tabs>
