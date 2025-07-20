@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Wrench, Star, Zap, Users, CheckCircle, Settings } from 'lucide-react';
+import { ArrowLeft, Wrench, Star, Zap, Users, CheckCircle, Settings, Images, MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
@@ -364,6 +364,54 @@ const EquipmentDetails: React.FC = () => {
 
           <TabsContent value="arts" className="mt-6">
             <EquipmentMaterials materials={materials} loading={contentLoading} />
+          </TabsContent>
+
+          <TabsContent value="photos" className="mt-6">
+            <div className="aurora-glass rounded-3xl border border-aurora-electric-purple/30 p-8">
+              <div className="flex items-center gap-3 mb-6">
+                <Images className="h-6 w-6 text-aurora-electric-purple" />
+                <div>
+                  <h2 className="aurora-heading text-xl text-white">Fotos do {equipment.nome}</h2>
+                  <p className="aurora-body text-white/70">Galeria de fotos relacionadas a este equipamento</p>
+                </div>
+              </div>
+              
+              <div className="bg-aurora-electric-purple/10 rounded-xl p-6 text-center">
+                <Images className="h-12 w-12 text-aurora-electric-purple mx-auto mb-4" />
+                <h3 className="aurora-heading text-lg text-white mb-2">Fotos em Desenvolvimento</h3>
+                <p className="aurora-body text-white/70 mb-4">
+                  Esta seção irá mostrar todas as fotos relacionadas ao {equipment.nome}, 
+                  incluindo fotos do equipamento, antes/depois de procedimentos e materiais técnicos.
+                </p>
+                <div className="flex items-center justify-center gap-2 text-sm text-aurora-electric-purple">
+                  <span>Em breve disponível</span>
+                </div>
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="chat" className="mt-6">
+            <div className="aurora-glass rounded-3xl border border-aurora-electric-purple/30 p-8">
+              <div className="flex items-center gap-3 mb-6">
+                <MessageCircle className="h-6 w-6 text-aurora-electric-purple" />
+                <div>
+                  <h2 className="aurora-heading text-xl text-white">Chat Inteligente do {equipment.nome}</h2>
+                  <p className="aurora-body text-white/70">Converse com a IA sobre este equipamento usando todos os documentos e artigos relacionados</p>
+                </div>
+              </div>
+              
+              <div className="bg-aurora-electric-purple/10 rounded-xl p-6 text-center">
+                <MessageCircle className="h-12 w-12 text-aurora-electric-purple mx-auto mb-4" />
+                <h3 className="aurora-heading text-lg text-white mb-2">Chat em Desenvolvimento</h3>
+                <p className="aurora-body text-white/70 mb-4">
+                  Esta funcionalidade irá integrar todos os artigos científicos, documentos técnicos e informações 
+                  do {equipment.nome} com inteligência artificial para responder suas perguntas.
+                </p>
+                <div className="flex items-center justify-center gap-2 text-sm text-aurora-electric-purple">
+                  <span>🤖 Integrará OpenAI + Base de Conhecimento</span>
+                </div>
+              </div>
+            </div>
           </TabsContent>
         </Tabs>
       </div>
