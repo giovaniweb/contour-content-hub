@@ -120,7 +120,7 @@ const CarouselViewer: React.FC<CarouselViewerProps> = ({
                   </DialogTitle>
                 </DialogHeader>
                 
-                <div className="grid lg:grid-cols-2 gap-6">
+                <div className="grid lg:grid-cols-2 gap-6 h-[80vh]">
                   {/* Lado esquerdo - Imagens */}
                   <div className="space-y-4">
                     {/* Carrossel principal */}
@@ -195,7 +195,8 @@ const CarouselViewer: React.FC<CarouselViewerProps> = ({
                   </div>
 
                   {/* Lado direito - Informações e Legenda */}
-                  <div className="space-y-4">
+                  <div className="flex flex-col h-full overflow-hidden">
+                    <div className="flex-1 overflow-y-auto aurora-scroll space-y-4 pr-2">
                     {/* Informações do material */}
                     {material && (
                       <div className="aurora-glass p-6 space-y-4 backdrop-blur-md bg-slate-800/30 border border-white/10 rounded-lg">
@@ -267,6 +268,7 @@ const CarouselViewer: React.FC<CarouselViewerProps> = ({
                         }}
                       />
                     )}
+                    </div>
                   </div>
                 </div>
               </DialogContent>
