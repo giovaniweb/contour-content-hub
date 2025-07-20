@@ -811,12 +811,14 @@ export type Database = {
       }
       downloads_storage: {
         Row: {
+          carousel_images: string[] | null
           category: string | null
           created_at: string | null
           description: string | null
           file_type: string
           file_url: string
           id: string
+          is_carousel: boolean | null
           metadata: Json | null
           owner_id: string
           size: number | null
@@ -827,12 +829,14 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          carousel_images?: string[] | null
           category?: string | null
           created_at?: string | null
           description?: string | null
           file_type: string
           file_url: string
           id?: string
+          is_carousel?: boolean | null
           metadata?: Json | null
           owner_id: string
           size?: number | null
@@ -843,12 +847,14 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          carousel_images?: string[] | null
           category?: string | null
           created_at?: string | null
           description?: string | null
           file_type?: string
           file_url?: string
           id?: string
+          is_carousel?: boolean | null
           metadata?: Json | null
           owner_id?: string
           size?: number | null

@@ -28,6 +28,7 @@ import {
   List,
   Plus
 } from 'lucide-react';
+import CarouselViewer from '@/components/downloads/CarouselViewer';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -49,6 +50,8 @@ interface DownloadMaterial {
   updated_at: string;
   size: number;
   metadata: any;
+  is_carousel: boolean;
+  carousel_images: string[];
 }
 
 const DownloadsManager: React.FC = () => {
@@ -347,77 +350,85 @@ const DownloadsManager: React.FC = () => {
                   >
                     <Card className="aurora-glass border-aurora-electric-purple/30 aurora-glow hover:border-aurora-electric-purple/50 transition-all duration-300 hover:scale-105 group">
                       <CardContent className="p-0">
-                        {/* Thumbnail */}
-                        <div className="relative aspect-[16/9] rounded-t-lg overflow-hidden bg-black/20">
-                          {material.thumbnail_url ? (
-                            <img 
-                              src={`https://mksvzhgqnsjfolvskibq.supabase.co/storage/v1/object/public/downloads/${material.thumbnail_url}`}
-                              alt={material.title}
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center">
-                              <FileText className="h-12 w-12 text-white/40" />
-                            </div>
-                          )}
-                          
-                          {/* Actions overlay */}
-                          <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-2">
-                            <Button
-                              size="sm"
-                              onClick={() => handleDownload(material)}
-                              className="aurora-button aurora-glow hover:aurora-glow-intense"
-                            >
-                              <Download className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => handleEdit(material)}
-                              className="border-white/30 text-white hover:bg-white/20"
-                            >
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                          </div>
-
-                          {/* Category badge */}
-                          <div className="absolute top-2 right-2">
-                            <Badge className={categoryInfo.color}>
-                              <div className="flex items-center gap-1">
-                                {categoryInfo.icon}
-                                {categoryInfo.label}
+                        {/* Thumbnail/Carousel */}
+                        {material.is_carousel && material.carousel_images?.length > 0 ? (
+                          <CarouselViewer
+                            images={material.carousel_images}
+                            title={material.title}
+                            className="aspect-[16/9] rounded-t-lg overflow-hidden bg-black/20"
+                          />
+                        ) : (
+                          <div className="relative aspect-[16/9] rounded-t-lg overflow-hidden bg-black/20">
+                            {material.thumbnail_url ? (
+                              <img 
+                                src={`https://mksvzhgqnsjfolvskibq.supabase.co/storage/v1/object/public/downloads/${material.thumbnail_url}`}
+                                alt={material.title}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center">
+                                <FileText className="h-12 w-12 text-white/40" />
                               </div>
-                            </Badge>
-                          </div>
+                            )}
+                            
+                            {/* Actions overlay */}
+                            <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-2">
+                              <Button
+                                size="sm"
+                                onClick={() => handleDownload(material)}
+                                className="aurora-button aurora-glow hover:aurora-glow-intense"
+                              >
+                                <Download className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleEdit(material)}
+                                className="border-white/30 text-white hover:bg-white/20"
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                            </div>
 
-                          {/* Actions menu */}
-                          <div className="absolute top-2 left-2">
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button size="sm" variant="ghost" className="h-8 w-8 p-0 bg-black/50 hover:bg-black/70">
-                                  <MoreVertical className="h-4 w-4 text-white" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent className="bg-slate-800 border-aurora-electric-purple/30">
-                                <DropdownMenuItem onClick={() => handleEdit(material)} className="text-white hover:bg-aurora-electric-purple/20">
-                                  <Edit className="h-4 w-4 mr-2" />
-                                  Editar
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => handleDownload(material)} className="text-white hover:bg-aurora-emerald/20">
-                                  <Download className="h-4 w-4 mr-2" />
-                                  Download
-                                </DropdownMenuItem>
-                                <DropdownMenuItem 
-                                  onClick={() => deleteMutation.mutate(material.id)}
-                                  className="text-red-400 hover:bg-red-500/20"
-                                >
-                                  <Trash2 className="h-4 w-4 mr-2" />
-                                  Excluir
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
+                            {/* Category badge */}
+                            <div className="absolute top-2 right-2">
+                              <Badge className={categoryInfo.color}>
+                                <div className="flex items-center gap-1">
+                                  {categoryInfo.icon}
+                                  {categoryInfo.label}
+                                </div>
+                              </Badge>
+                            </div>
+
+                            {/* Actions menu */}
+                            <div className="absolute top-2 left-2">
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button size="sm" variant="ghost" className="h-8 w-8 p-0 bg-black/50 hover:bg-black/70">
+                                    <MoreVertical className="h-4 w-4 text-white" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent className="bg-slate-800 border-aurora-electric-purple/30">
+                                  <DropdownMenuItem onClick={() => handleEdit(material)} className="text-white hover:bg-aurora-electric-purple/20">
+                                    <Edit className="h-4 w-4 mr-2" />
+                                    Editar
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem onClick={() => handleDownload(material)} className="text-white hover:bg-aurora-emerald/20">
+                                    <Download className="h-4 w-4 mr-2" />
+                                    Download
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem 
+                                    onClick={() => deleteMutation.mutate(material.id)}
+                                    className="text-red-400 hover:bg-red-500/20"
+                                  >
+                                    <Trash2 className="h-4 w-4 mr-2" />
+                                    Excluir
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </div>
                           </div>
-                        </div>
+                        )}
 
                         {/* Content */}
                         <div className="p-4">

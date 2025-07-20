@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { Download, Palette, Printer, FileText, Eye, Calendar, Images, Upload as UploadIcon } from "lucide-react";
 import CarouselUploader from "@/components/downloads/CarouselUploader";
+import CarouselViewer from "@/components/downloads/CarouselViewer";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const ListDownloads: React.FC = () => {
@@ -78,54 +79,62 @@ const ListDownloads: React.FC = () => {
           const categoryInfo = getCategoryInfo(material.category);
           
           return (
-            <Card key={material.id} className="aurora-glass border-aurora-electric-purple/30 aurora-glow hover:border-aurora-electric-purple/50 transition-all duration-300 hover:scale-105 group">
-              <CardContent className="p-0">
-                {/* Thumbnail */}
-                <div className="relative aspect-[16/9] rounded-t-lg overflow-hidden bg-black/20">
-                  {material.thumbnail_url ? (
-                    <img 
-                      src={`https://mksvzhgqnsjfolvskibq.supabase.co/storage/v1/object/public/downloads/${material.thumbnail_url}`}
-                      alt={material.title}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <FileText className="h-12 w-12 text-white/40" />
-                    </div>
-                  )}
-                  
-                  {/* Download overlay */}
-                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                    <Button
-                      size="sm"
-                      className="aurora-button aurora-glow hover:aurora-glow-intense"
-                      onClick={() => {
-                        const link = document.createElement('a');
-                        link.href = `https://mksvzhgqnsjfolvskibq.supabase.co/storage/v1/object/public/downloads/${material.file_url}`;
-                        link.download = material.title;
-                        document.body.appendChild(link);
-                        link.click();
-                        document.body.removeChild(link);
-                      }}
-                    >
-                      <Download className="h-4 w-4 mr-2" />
-                      Download
-                    </Button>
+        <Card key={material.id} className="aurora-glass border-aurora-electric-purple/30 aurora-glow hover:border-aurora-electric-purple/50 transition-all duration-300 hover:scale-105 group">
+          <CardContent className="p-0">
+            {/* Thumbnail/Carousel */}
+            {material.is_carousel && material.carousel_images?.length > 0 ? (
+              <CarouselViewer
+                images={material.carousel_images}
+                title={material.title}
+                className="aspect-[16/9] rounded-t-lg overflow-hidden bg-black/20"
+              />
+            ) : (
+              <div className="relative aspect-[16/9] rounded-t-lg overflow-hidden bg-black/20">
+                {material.thumbnail_url ? (
+                  <img 
+                    src={`https://mksvzhgqnsjfolvskibq.supabase.co/storage/v1/object/public/downloads/${material.thumbnail_url}`}
+                    alt={material.title}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <FileText className="h-12 w-12 text-white/40" />
                   </div>
-
-                  {/* Category badge */}
-                  <div className="absolute top-2 right-2">
-                    <Badge 
-                      variant="outline" 
-                      className={`${categoryInfo.color} bg-black/50 backdrop-blur-sm`}
-                    >
-                      <div className="flex items-center gap-1">
-                        {categoryInfo.icon}
-                        {categoryInfo.label}
-                      </div>
-                    </Badge>
-                  </div>
+                )}
+                
+                {/* Download overlay */}
+                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                  <Button
+                    size="sm"
+                    className="aurora-button aurora-glow hover:aurora-glow-intense"
+                    onClick={() => {
+                      const link = document.createElement('a');
+                      link.href = `https://mksvzhgqnsjfolvskibq.supabase.co/storage/v1/object/public/downloads/${material.file_url}`;
+                      link.download = material.title;
+                      document.body.appendChild(link);
+                      link.click();
+                      document.body.removeChild(link);
+                    }}
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    Download
+                  </Button>
                 </div>
+
+                {/* Category badge */}
+                <div className="absolute top-2 right-2">
+                  <Badge 
+                    variant="outline" 
+                    className={`${categoryInfo.color} bg-black/50 backdrop-blur-sm`}
+                  >
+                    <div className="flex items-center gap-1">
+                      {categoryInfo.icon}
+                      {categoryInfo.label}
+                    </div>
+                  </Badge>
+                </div>
+              </div>
+            )}
 
                 {/* Content */}
                 <div className="p-4">

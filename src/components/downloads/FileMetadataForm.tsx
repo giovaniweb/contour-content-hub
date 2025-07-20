@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import useAuth from "@/hooks/useAuth";
-import { Upload, Image, FileText, Palette, Printer, Sparkles } from "lucide-react";
+import { Upload, Image, FileText, Palette, Printer, Sparkles, Images } from "lucide-react";
 import CaptionGenerator from "./CaptionGenerator";
 
 interface FileMetadataFormProps {
@@ -19,23 +19,41 @@ interface FileMetadataFormProps {
 }
 
 const FileMetadataForm: React.FC<FileMetadataFormProps> = ({ uploadedFiles, onFinish }) => {
+  // Detectar se é um carrossel (múltiplos arquivos de imagem)
+  const isCarousel = uploadedFiles.length > 1 && uploadedFiles.every(f => f.file.type.includes("image"));
+  
   const [formData, setFormData] = useState(
-    uploadedFiles.map((up) => ({
-      title: up.file.name.replace(/\.[^/.]+$/, ""),
-      description: "",
-      category: "arte-digital", // Default category
-      url: up.url,
-      file_type: up.file.type.includes("video")
-        ? "video"
-        : up.file.type.includes("image")
-        ? "image"
-        : up.file.type.endsWith("pdf")
-        ? "pdf"
-        : "file",
-      tags: "",
-      thumbnail_url: up.file.type.includes("image") ? up.url : null, // Auto-set thumbnail if it's an image
-      custom_thumbnail: null as string | null,
-    }))
+    isCarousel 
+      ? [{
+          title: `Carrossel - ${uploadedFiles.length} imagens`,
+          description: "",
+          category: "arte-digital",
+          url: uploadedFiles[0].url, // URL principal (primeira imagem)
+          file_type: "image",
+          tags: "",
+          thumbnail_url: uploadedFiles[0].url, // Thumbnail é a primeira imagem
+          custom_thumbnail: null as string | null,
+          is_carousel: true,
+          carousel_images: uploadedFiles.map(f => f.url).filter(Boolean) as string[]
+        }]
+      : uploadedFiles.map((up) => ({
+          title: up.file.name.replace(/\.[^/.]+$/, ""),
+          description: "",
+          category: "arte-digital",
+          url: up.url,
+          file_type: up.file.type.includes("video")
+            ? "video"
+            : up.file.type.includes("image")
+            ? "image"
+            : up.file.type.endsWith("pdf")
+            ? "pdf"
+            : "file",
+          tags: "",
+          thumbnail_url: up.file.type.includes("image") ? up.url : null,
+          custom_thumbnail: null as string | null,
+          is_carousel: false,
+          carousel_images: []
+        }))
   );
   const [saving, setSaving] = useState(false);
   const [uploadingThumbnails, setUploadingThumbnails] = useState<{ [key: number]: boolean }>({});
@@ -119,6 +137,8 @@ const FileMetadataForm: React.FC<FileMetadataFormProps> = ({ uploadedFiles, onFi
         size: null,
         metadata: {},
         owner_id: user.id,
+        is_carousel: item.is_carousel || false,
+        carousel_images: item.carousel_images || []
       }));
 
       const { error } = await supabase
@@ -173,8 +193,8 @@ const FileMetadataForm: React.FC<FileMetadataFormProps> = ({ uploadedFiles, onFi
         <Card key={idx} className="aurora-glass border-aurora-electric-purple/30">
           <CardHeader className="pb-4">
             <CardTitle className="flex items-center gap-2 text-white">
-              <FileText className="h-5 w-5 text-aurora-electric-purple" />
-              Material {idx + 1}
+              {meta.is_carousel ? <Images className="h-5 w-5 text-aurora-electric-purple" /> : <FileText className="h-5 w-5 text-aurora-electric-purple" />}
+              {meta.is_carousel ? `Carrossel ${idx + 1} (${meta.carousel_images.length} imagens)` : `Material ${idx + 1}`}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
