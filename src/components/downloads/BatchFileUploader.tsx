@@ -72,36 +72,50 @@ const BatchFileUploader: React.FC<BatchFileUploaderProps> = ({ onComplete }) => 
 
   return (
     <div className="space-y-4">
-      <div>
+      <div className="space-y-2">
+        <p className="text-white font-medium">Selecionar Materiais</p>
+        <p className="text-white/60 text-sm">
+          Aceitos: PSD, PDF, JPG, PNG (máximo 500MB por arquivo)
+        </p>
         <Input
           multiple
           type="file"
           ref={fileInputRef}
-          accept="video/*,image/*,.pdf,.zip"
+          accept=".psd,.pdf,.jpg,.jpeg,.png,image/jpeg,image/png,application/pdf"
           onChange={handleSelectFiles}
           disabled={uploading}
+          className="bg-slate-800/50 border-aurora-electric-purple/30 text-white file:bg-aurora-electric-purple/20 file:text-white file:border-0 file:rounded-md"
         />
       </div>
       <Button
         onClick={handleUploadAll}
         disabled={uploading || files.length === 0}
-        className="flex items-center gap-2"
+        className="flex items-center gap-2 aurora-button aurora-glow hover:aurora-glow-intense"
       >
         {uploading ? <Loader2 className="animate-spin h-4 w-4" /> : <Upload className="h-4 w-4" />}
-        {uploading ? "Enviando arquivos..." : "Enviar Selecionados"}
+        {uploading ? "Enviando materiais..." : `Enviar ${files.length} ${files.length === 1 ? 'Material' : 'Materiais'}`}
       </Button>
       {files.length > 0 && (
-        <div className="mt-4 space-y-2">
+        <div className="mt-6 space-y-2">
+          <p className="text-white font-medium">Arquivos Selecionados:</p>
           {files.map((f, idx) => (
-            <div key={idx} className="rounded border px-3 py-2 flex items-center bg-muted/20">
-              <span className="flex-1 truncate">{f.file.name}</span>
-              {f.error ? (
-                <span className="text-red-500 ml-2">{f.error}</span>
-              ) : f.url ? (
-                <span className="text-green-600 ml-2">✓</span>
-              ) : (
-                <span className="text-muted-foreground ml-2">Aguardando</span>
-              )}
+            <div key={idx} className="rounded-lg border border-aurora-electric-purple/30 px-4 py-3 flex items-center justify-between bg-slate-800/30">
+              <div className="flex items-center gap-3">
+                <div className="w-2 h-2 rounded-full bg-aurora-electric-purple"></div>
+                <span className="text-white truncate flex-1">{f.file.name}</span>
+                <span className="text-xs text-white/60">
+                  {(f.file.size / 1024 / 1024).toFixed(1)} MB
+                </span>
+              </div>
+              <div className="ml-4">
+                {f.error ? (
+                  <span className="text-red-400 text-sm">❌ {f.error}</span>
+                ) : f.url ? (
+                  <span className="text-aurora-emerald text-sm">✅ Enviado</span>
+                ) : (
+                  <span className="text-white/60 text-sm">⏳ Aguardando</span>
+                )}
+              </div>
             </div>
           ))}
         </div>
