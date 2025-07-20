@@ -198,13 +198,26 @@ const BatchDownloadManager: React.FC = () => {
   return (
     <AppLayout>
       <div className="container mx-auto py-8 space-y-8">
-        <div className="text-center">
-          <h1 className="aurora-heading text-3xl font-bold text-white mb-4">
-            Materiais de Marketing
-          </h1>
-          <p className="aurora-body text-white/70 text-lg">
-            Gerencie seus materiais PSD, PDF, JPG e PNG para campanhas e redes sociais
-          </p>
+        <div className="flex flex-col lg:flex-row justify-between items-center gap-4">
+          <div className="text-center lg:text-left">
+            <h1 className="aurora-heading text-3xl font-bold text-white mb-4">
+              Materiais de Marketing
+            </h1>
+            <p className="aurora-body text-white/70 text-lg">
+              Gerencie seus materiais PSD, PDF, JPG e PNG para campanhas e redes sociais
+            </p>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <Button 
+              onClick={() => window.location.href = '/downloads/manage'}
+              variant="outline"
+              className="border-aurora-electric-purple/30 text-aurora-electric-purple hover:bg-aurora-electric-purple/20"
+            >
+              <FileText className="h-4 w-4 mr-2" />
+              Gerenciar Materiais
+            </Button>
+          </div>
         </div>
 
         <Card className="aurora-glass border-aurora-electric-purple/30">

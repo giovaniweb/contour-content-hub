@@ -50,6 +50,11 @@ const AdminDropdownMenu: React.FC = () => {
       label: "Materiais (PSD/Arquivos)",
       icon: Palette,
       action: () => navigate("/downloads/batch"),
+    },
+    {
+      label: "Gerenciar Materiais",
+      icon: FileText,
+      action: () => navigate("/downloads/manage"),
     }
   ];
 

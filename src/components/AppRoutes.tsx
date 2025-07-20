@@ -35,6 +35,7 @@ const EditEquipment = React.lazy(() => import('@/pages/admin/EditEquipment'));
 const VideoCreatePage = React.lazy(() => import('@/pages/videos/VideoCreatePage'));
 const VideoCreatePageAdmin = React.lazy(() => import('@/pages/admin/VideoCreatePageAdmin'));
 const BatchDownloadManager = React.lazy(() => import('@/pages/downloads/BatchDownloadManager'));
+const DownloadsManager = React.lazy(() => import('@/pages/downloads/DownloadsManager'));
 
 const AppRoutes: React.FC = () => {
   return (
@@ -238,6 +239,17 @@ const AppRoutes: React.FC = () => {
             <AppLayout>
               <Suspense fallback={<AuroraLoadingSkeleton />}>
                 <BatchDownloadManager />
+              </Suspense>
+            </AppLayout>
+          } 
+        />
+
+        <Route 
+          path="/downloads/manage" 
+          element={
+            <AppLayout>
+              <Suspense fallback={<AuroraLoadingSkeleton />}>
+                <DownloadsManager />
               </Suspense>
             </AppLayout>
           } 
