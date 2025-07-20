@@ -155,9 +155,29 @@ const Arts: React.FC = () => {
                       ) : (
                         <>
                           <img
-                            src={material.thumbnail_url || material.file_url}
+                            src={material.thumbnail_url?.includes('http') 
+                              ? material.thumbnail_url 
+                              : material.thumbnail_url 
+                                ? `https://mksvzhgqnsjfolvskibq.supabase.co/storage/v1/object/public/downloads/${material.thumbnail_url}`
+                                : material.file_url?.includes('http')
+                                  ? material.file_url
+                                  : `https://mksvzhgqnsjfolvskibq.supabase.co/storage/v1/object/public/downloads/${material.file_url}`
+                            }
                             alt={material.title}
                             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              // Se thumbnail falhar, tenta file_url
+                              if (target.src.includes(material.thumbnail_url || '')) {
+                                const fallbackUrl = material.file_url?.includes('http') 
+                                  ? material.file_url
+                                  : `https://mksvzhgqnsjfolvskibq.supabase.co/storage/v1/object/public/downloads/${material.file_url}`;
+                                target.src = fallbackUrl;
+                              } else {
+                                // Se tudo falhar, usar imagem placeholder
+                                target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIwIiBoZWlnaHQ9IjE4MCIgdmlld0JveD0iMCAwIDMyMCAxODAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzMjAiIGhlaWdodD0iMTgwIiBmaWxsPSIjMzMzIi8+CjxwYXRoIGQ9Ik0xNDQgNzJMMTc2IDEwOEgxMTJMMTQ0IDcyWiIgZmlsbD0iIzU1NSIvPgo8Y2lyY2xlIGN4PSIxMzYiIGN5PSI2NCIgcj0iMTIiIGZpbGw9IiM1NTUiLz4KPHN2Zz4K';
+                              }
+                            }}
                           />
                           
                           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
