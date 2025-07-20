@@ -8,7 +8,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
-import { Download, Palette, Printer, FileText, Eye, Calendar } from "lucide-react";
+import { Download, Palette, Printer, FileText, Eye, Calendar, Images, Upload as UploadIcon } from "lucide-react";
+import CarouselUploader from "@/components/downloads/CarouselUploader";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const ListDownloads: React.FC = () => {
   const { data, refetch, isLoading } = useQuery({
@@ -194,6 +196,7 @@ const ListDownloads: React.FC = () => {
 const BatchDownloadManager: React.FC = () => {
   const [uploadedFiles, setUploadedFiles] = useState<any[]>([]);
   const [showMetadataForm, setShowMetadataForm] = useState(false);
+  const [uploadMode, setUploadMode] = useState<'single' | 'carousel'>('single');
 
   return (
     <AppLayout>
@@ -229,12 +232,37 @@ const BatchDownloadManager: React.FC = () => {
           </CardHeader>
           <CardContent>
             {!showMetadataForm ? (
-              <BatchFileUploader
-                onComplete={(files) => {
-                  setUploadedFiles(files.filter((f) => f.url));
-                  setShowMetadataForm(true);
-                }}
-              />
+              <Tabs value={uploadMode} onValueChange={(value) => setUploadMode(value as 'single' | 'carousel')} className="w-full">
+                <TabsList className="grid w-full grid-cols-2 bg-slate-800/50">
+                  <TabsTrigger value="single" className="flex items-center gap-2">
+                    <UploadIcon className="h-4 w-4" />
+                    Upload Individual
+                  </TabsTrigger>
+                  <TabsTrigger value="carousel" className="flex items-center gap-2">
+                    <Images className="h-4 w-4" />
+                    Carrossel
+                  </TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="single" className="mt-6">
+                  <BatchFileUploader
+                    onComplete={(files) => {
+                      setUploadedFiles(files.filter((f) => f.url));
+                      setShowMetadataForm(true);
+                    }}
+                  />
+                </TabsContent>
+                
+                <TabsContent value="carousel" className="mt-6">
+                  <CarouselUploader
+                    onComplete={(files) => {
+                      setUploadedFiles(files.filter((f) => f.url));
+                      setShowMetadataForm(true);
+                    }}
+                    maxFiles={10}
+                  />
+                </TabsContent>
+              </Tabs>
             ) : (
               <FileMetadataForm
                 uploadedFiles={uploadedFiles}

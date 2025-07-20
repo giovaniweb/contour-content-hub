@@ -10,7 +10,8 @@ import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import useAuth from "@/hooks/useAuth";
-import { Upload, Image, FileText, Palette, Printer } from "lucide-react";
+import { Upload, Image, FileText, Palette, Printer, Sparkles } from "lucide-react";
+import CaptionGenerator from "./CaptionGenerator";
 
 interface FileMetadataFormProps {
   uploadedFiles: { file: File; url: string | null }[];
@@ -284,6 +285,28 @@ const FileMetadataForm: React.FC<FileMetadataFormProps> = ({ uploadedFiles, onFi
                 className="bg-slate-800/50 border-aurora-electric-purple/30 text-white placeholder:text-white/40"
               />
             </div>
+
+            {/* Caption Generator for images */}
+            {meta.file_type === 'image' && (meta.custom_thumbnail || meta.thumbnail_url) && (
+              <div className="space-y-2">
+                <Label className="text-white font-medium flex items-center gap-2">
+                  <Sparkles className="h-4 w-4 text-aurora-electric-purple" />
+                  Gerar Legenda para Instagram
+                </Label>
+                <CaptionGenerator
+                  imageUrl={meta.custom_thumbnail || meta.thumbnail_url || ''}
+                  onCaptionGenerated={(caption, hashtags) => {
+                    // Atualizar descrição com a legenda
+                    handleChange(idx, "description", caption);
+                    // Adicionar hashtags às tags existentes
+                    const newTags = hashtags.replace(/#/g, '').split(/\s+/).filter(Boolean);
+                    const existingTags = meta.tags ? meta.tags.split(',').map(tag => tag.trim()).filter(Boolean) : [];
+                    const allTags = [...new Set([...existingTags, ...newTags])];
+                    handleChange(idx, "tags", allTags.join(', '));
+                  }}
+                />
+              </div>
+            )}
 
             {/* Info Footer */}
             <div className="flex items-center justify-between pt-4 border-t border-aurora-electric-purple/20">
