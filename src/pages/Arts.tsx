@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Palette, Upload, Grid, Search, Filter, Brush, Download, Eye, FileText, Wand2 } from 'lucide-react';
+import { Palette, Upload, Grid, Search, Filter, Brush, Download, Eye, FileText, Wand2, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useQuery } from '@tanstack/react-query';
@@ -11,6 +11,7 @@ import CaptionGenerator from '@/components/downloads/CaptionGenerator';
 const Arts: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [equipments, setEquipments] = useState<any[]>([]);
+  const [likedMaterials, setLikedMaterials] = useState<Set<string>>(new Set());
 
   const { data: materials = [], isLoading } = useQuery({
     queryKey: ['arts_materials'],
@@ -88,6 +89,18 @@ const Arts: React.FC = () => {
 
   const getFileExtension = (filename: string) => {
     return filename?.split('.').pop() || 'jpg';
+  };
+
+  const handleLike = (materialId: string) => {
+    setLikedMaterials(prev => {
+      const newLiked = new Set(prev);
+      if (newLiked.has(materialId)) {
+        newLiked.delete(materialId);
+      } else {
+        newLiked.add(materialId);
+      }
+      return newLiked;
+    });
   };
 
   return (
@@ -241,20 +254,32 @@ const Arts: React.FC = () => {
                         </div>
                       )}
 
-                      {/* Ações principais */}
-                      <div className="flex items-center justify-between">
-                        <div className="flex gap-2">
-                          <Button size="sm" onClick={() => handleDownload(material)} className="aurora-button">
-                            <Download className="h-4 w-4" />
-                          </Button>
-                          <Button size="sm" variant="outline" className="bg-white/10 border-white/20 text-white hover:bg-white/20">
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                        </div>
-                        <span className="text-xs text-slate-500">
-                          {new Date(material.created_at).toLocaleDateString()}
-                        </span>
-                      </div>
+                       {/* Ações principais */}
+                       <div className="flex items-center justify-between">
+                         <div className="flex gap-2">
+                           <Button size="sm" onClick={() => handleDownload(material)} className="aurora-button">
+                             <Download className="h-4 w-4" />
+                           </Button>
+                           <Button size="sm" variant="outline" className="bg-white/10 border-white/20 text-white hover:bg-white/20">
+                             <Eye className="h-4 w-4" />
+                           </Button>
+                           <Button 
+                             size="sm" 
+                             variant="outline"
+                             onClick={() => handleLike(material.id)}
+                             className={`transition-all duration-200 ${
+                               likedMaterials.has(material.id)
+                                 ? 'bg-aurora-electric-purple/30 border-aurora-electric-purple/50 text-aurora-electric-purple hover:bg-aurora-electric-purple/40'
+                                 : 'bg-white/10 border-white/20 text-white hover:bg-aurora-electric-purple/20 hover:text-aurora-electric-purple'
+                             }`}
+                           >
+                             <Heart className={`h-4 w-4 ${likedMaterials.has(material.id) ? 'fill-current' : ''}`} />
+                           </Button>
+                         </div>
+                         <span className="text-xs text-slate-500">
+                           {new Date(material.created_at).toLocaleDateString()}
+                         </span>
+                       </div>
                     </div>
                   </div>
                 ))}
