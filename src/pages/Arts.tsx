@@ -60,13 +60,34 @@ const Arts: React.FC = () => {
     });
   };
 
-  const handleDownload = (material: any) => {
-    const link = document.createElement('a');
-    link.href = material.file_url;
-    link.download = material.title;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  const handleDownload = async (material: any) => {
+    try {
+      // Determinar a URL correta da imagem
+      const imageUrl = material.file_url?.includes('http') 
+        ? material.file_url
+        : `https://mksvzhgqnsjfolvskibq.supabase.co/storage/v1/object/public/downloads/${material.file_url}`;
+      
+      // Fetch da imagem como blob para forçar download
+      const response = await fetch(imageUrl);
+      const blob = await response.blob();
+      
+      // Criar link de download forçado
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${material.title}.${getFileExtension(material.file_url)}`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      
+    } catch (error) {
+      console.error('Erro ao baixar arquivo:', error);
+    }
+  };
+
+  const getFileExtension = (filename: string) => {
+    return filename?.split('.').pop() || 'jpg';
   };
 
   return (

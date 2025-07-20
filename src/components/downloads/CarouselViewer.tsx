@@ -43,26 +43,70 @@ const CarouselViewer: React.FC<CarouselViewerProps> = ({
   onDownload,
   className = ""
 }) => {
-  const handleDownload = (imageUrl: string, index: number) => {
+  const handleDownload = async (imageUrl: string, index: number) => {
     if (onDownload) {
       onDownload(imageUrl, index);
     } else {
-      // Download padrão
-      const link = document.createElement('a');
-      link.href = `https://mksvzhgqnsjfolvskibq.supabase.co/storage/v1/object/public/downloads/${imageUrl}`;
-      link.download = `${title}-${index + 1}`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      // Download individual forçado
+      try {
+        const fullUrl = `https://mksvzhgqnsjfolvskibq.supabase.co/storage/v1/object/public/downloads/${imageUrl}`;
+        const response = await fetch(fullUrl);
+        const blob = await response.blob();
+        
+        // Criar link de download forçado
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `${title}-${index + 1}.${getFileExtension(imageUrl)}`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      } catch (error) {
+        console.error('Erro ao baixar imagem:', error);
+      }
     }
   };
 
-  const downloadAll = () => {
-    images.forEach((imageUrl, index) => {
-      setTimeout(() => {
-        handleDownload(imageUrl, index);
-      }, index * 500); // Delay para evitar muitos downloads simultâneos
-    });
+  const getFileExtension = (filename: string) => {
+    return filename.split('.').pop() || 'jpg';
+  };
+
+  const downloadAll = async () => {
+    try {
+      // Importar JSZip dinamicamente
+      const JSZip = (await import('jszip')).default;
+      const zip = new JSZip();
+      
+      // Adicionar cada imagem ao ZIP
+      for (let i = 0; i < images.length; i++) {
+        const imageUrl = images[i];
+        const fullUrl = `https://mksvzhgqnsjfolvskibq.supabase.co/storage/v1/object/public/downloads/${imageUrl}`;
+        
+        try {
+          const response = await fetch(fullUrl);
+          const blob = await response.blob();
+          const filename = `${title}-${i + 1}.${getFileExtension(imageUrl)}`;
+          zip.file(filename, blob);
+        } catch (error) {
+          console.error(`Erro ao baixar imagem ${i + 1}:`, error);
+        }
+      }
+      
+      // Gerar e baixar o ZIP
+      const zipBlob = await zip.generateAsync({ type: 'blob' });
+      const url = window.URL.createObjectURL(zipBlob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${title}-todas-imagens.zip`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      
+    } catch (error) {
+      console.error('Erro ao criar ZIP:', error);
+    }
   };
 
   if (images.length === 0) {
