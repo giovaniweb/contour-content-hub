@@ -43,16 +43,23 @@ export const EquipmentArtsTab: React.FC<EquipmentArtsTabProps> = ({
   const [isDownloading, setIsDownloading] = useState(false);
 
   const { data: arts, isLoading, error } = useQuery({
-    queryKey: ['equipment-arts', equipmentId, equipmentName],
+    queryKey: ['equipment-arts', equipmentName],
     queryFn: async () => {
-      // Busca simples: fotos com categoria igual ao nome do equipamento
+      console.log('🎨 Buscando artes para:', equipmentName);
+      
       const { data, error } = await supabase
         .from('fotos')
         .select('*')
-        .eq('categoria', equipmentName)
-        .order('data_upload', { ascending: false });
+        .eq('categoria', equipmentName);
 
-      if (error) throw error;
+      console.log('🎨 Resultado:', data, error);
+      
+      if (error) {
+        console.error('🎨 Erro:', error);
+        throw error;
+      }
+      
+      console.log('🎨 Total encontrado:', data?.length);
       return data || [];
     },
   });
