@@ -198,7 +198,7 @@ const CarouselViewer: React.FC<CarouselViewerProps> = ({
                   <div className="space-y-4">
                     {/* Informações do material */}
                     {material && (
-                      <div className="aurora-card p-4 space-y-4">
+                      <div className="aurora-glass p-6 space-y-4 backdrop-blur-md bg-slate-800/30 border border-white/10 rounded-lg">
                         <div>
                           <h3 className="text-lg font-medium text-slate-200 mb-2">{material.title}</h3>
                           {material.description && (
