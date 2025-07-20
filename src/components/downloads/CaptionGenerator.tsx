@@ -111,8 +111,8 @@ const CaptionGenerator: React.FC<CaptionGeneratorProps> = ({
   };
 
   return (
-    <Card className="aurora-glass border-aurora-electric-purple/30">
-      <CardHeader>
+    <Card className="aurora-glass backdrop-blur-md bg-slate-800/70 border-2 border-aurora-electric-purple/50 rounded-lg shadow-lg shadow-aurora-electric-purple/20">
+      <CardHeader className="pb-4">
         <CardTitle className="text-white flex items-center gap-2">
           <Instagram className="h-5 w-5 text-aurora-electric-purple" />
           Gerador de Legenda IA
@@ -122,14 +122,14 @@ const CaptionGenerator: React.FC<CaptionGeneratorProps> = ({
         {/* Settings */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label className="text-white">Estilo da Legenda</Label>
+            <Label className="text-white font-medium">Estilo da Legenda</Label>
             <Select value={style} onValueChange={setStyle}>
-              <SelectTrigger className="bg-slate-800/50 border-aurora-electric-purple/30 text-white">
-                <SelectValue />
+              <SelectTrigger className="bg-slate-800/70 border-aurora-electric-purple/30 text-white hover:bg-slate-800/90">
+                <SelectValue placeholder="Selecione o estilo" />
               </SelectTrigger>
               <SelectContent className="bg-slate-800 border-aurora-electric-purple/30">
                 {styleOptions.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
+                  <SelectItem key={option.value} value={option.value} className="text-white hover:bg-slate-700">
                     <div className="flex items-center gap-2">
                       {option.icon}
                       {option.label}
@@ -141,14 +141,14 @@ const CaptionGenerator: React.FC<CaptionGeneratorProps> = ({
           </div>
 
           <div className="space-y-2">
-            <Label className="text-white">Público-Alvo</Label>
+            <Label className="text-white font-medium">Público-Alvo</Label>
             <Select value={audience} onValueChange={setAudience}>
-              <SelectTrigger className="bg-slate-800/50 border-aurora-electric-purple/30 text-white">
-                <SelectValue />
+              <SelectTrigger className="bg-slate-800/70 border-aurora-electric-purple/30 text-white hover:bg-slate-800/90">
+                <SelectValue placeholder="Selecione o público" />
               </SelectTrigger>
               <SelectContent className="bg-slate-800 border-aurora-electric-purple/30">
                 {audienceOptions.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
+                  <SelectItem key={option.value} value={option.value} className="text-white hover:bg-slate-700">
                     {option.label}
                   </SelectItem>
                 ))}
@@ -197,7 +197,7 @@ const CaptionGenerator: React.FC<CaptionGeneratorProps> = ({
                 <Textarea
                   value={caption}
                   onChange={(e) => setCaption(e.target.value)}
-                  className="bg-slate-800/50 border-aurora-electric-purple/30 text-white resize-none"
+                  className="bg-slate-800/70 border-aurora-electric-purple/30 text-white resize-none min-h-[100px]"
                   rows={4}
                   placeholder="Sua legenda aparecerá aqui..."
                 />
