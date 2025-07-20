@@ -47,19 +47,21 @@ export const EquipmentArtsTab: React.FC<EquipmentArtsTabProps> = ({
   const { data: arts, isLoading, error } = useQuery({
     queryKey: ['equipment-arts', equipmentId, equipmentName],
     queryFn: async () => {
-      // Buscar materiais que tenham categoria "arte", "design", "marketing" ou que tenham o nome do equipamento nas tags
+      // Buscar fotos que tenham categoria igual ao nome do equipamento ou categorias de arte/design/marketing
       const { data, error } = await supabase
-        .from('materiais')
+        .from('fotos')
         .select('*')
-        .or(`categoria.eq.arte,categoria.eq.design,categoria.eq.marketing,tags.cs.{"${equipmentName}"},tags.cs.{"arte"},tags.cs.{"design"},tags.cs.{"marketing"}`)
+        .or(`categoria.eq.${equipmentName},categoria.eq.arte,categoria.eq.design,categoria.eq.marketing,tags.cs.{"${equipmentName}"},tags.cs.{"arte"},tags.cs.{"design"},tags.cs.{"marketing"}`)
         .order('data_upload', { ascending: false });
 
       if (error) throw error;
       return data?.map((item: any) => ({
         ...item,
-        titulo: item.nome || item.titulo || 'Sem título',
+        titulo: item.titulo || item.nome || 'Sem título',
         downloads_count: item.downloads_count || 0,
-        favoritos_count: item.favoritos_count || 0
+        favoritos_count: item.favoritos_count || 0,
+        arquivo_url: item.url_imagem, // usar url_imagem como arquivo_url
+        preview_url: item.thumbnail_url
       })) as MaterialArt[];
     },
   });
@@ -68,8 +70,8 @@ export const EquipmentArtsTab: React.FC<EquipmentArtsTabProps> = ({
   const filteredArts = useMemo(() => {
     if (!arts) return [];
     return arts.filter(art => 
-      art.tags?.includes(equipmentName) || 
       art.categoria === equipmentName ||
+      art.tags?.includes(equipmentName) || 
       art.categoria === 'arte' ||
       art.categoria === 'design' ||
       art.categoria === 'marketing'
