@@ -188,7 +188,7 @@ const CaptionGenerator: React.FC<CaptionGeneratorProps> = ({
                     size="sm"
                     variant="outline"
                     onClick={() => copyToClipboard(caption, 'Legenda')}
-                    className="h-8 px-3 border-aurora-electric-purple/30 text-white"
+                    className="h-8 px-3 bg-aurora-electric-purple/20 border-aurora-electric-purple/50 text-aurora-electric-purple hover:bg-aurora-electric-purple/30 hover:text-white transition-all duration-200"
                   >
                     <Copy className="h-3 w-3 mr-1" />
                     Copiar
@@ -213,7 +213,7 @@ const CaptionGenerator: React.FC<CaptionGeneratorProps> = ({
                     size="sm"
                     variant="outline"
                     onClick={() => copyToClipboard(hashtags, 'Hashtags')}
-                    className="h-8 px-3 border-aurora-emerald/30 text-white"
+                    className="h-8 px-3 bg-aurora-emerald/20 border-aurora-emerald/50 text-aurora-emerald hover:bg-aurora-emerald/30 hover:text-white transition-all duration-200"
                   >
                     <Copy className="h-3 w-3 mr-1" />
                     Copiar
