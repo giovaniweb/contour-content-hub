@@ -1,11 +1,12 @@
 
 import React, { useState } from 'react';
-import { Palette, Upload, Grid, Search, Filter, Brush, Download, Eye } from 'lucide-react';
+import { Palette, Upload, Grid, Search, Filter, Brush, Download, Eye, FileText, Wand2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import CarouselViewer from '@/components/downloads/CarouselViewer';
+import CaptionGenerator from '@/components/downloads/CaptionGenerator';
 
 const Arts: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -150,25 +151,27 @@ const Arts: React.FC = () => {
                           title={material.title}
                         />
                       ) : (
-                        <img
-                          src={material.thumbnail_url || material.file_url}
-                          alt={material.title}
-                          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                        />
+                        <>
+                          <img
+                            src={material.thumbnail_url || material.file_url}
+                            alt={material.title}
+                            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                          />
+                          
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                          
+                          <div className="absolute bottom-4 left-4 right-4 transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300 opacity-0 group-hover:opacity-100">
+                            <div className="flex gap-2">
+                              <Button size="sm" onClick={() => handleDownload(material)} className="aurora-button">
+                                <Download className="h-4 w-4" />
+                              </Button>
+                              <Button size="sm" variant="outline" className="bg-white/10 border-white/20 text-white hover:bg-white/20">
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        </>
                       )}
-                      
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                      
-                      <div className="absolute bottom-4 left-4 right-4 transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300 opacity-0 group-hover:opacity-100">
-                        <div className="flex gap-2">
-                          <Button size="sm" onClick={() => handleDownload(material)} className="aurora-button">
-                            <Download className="h-4 w-4" />
-                          </Button>
-                          <Button size="sm" variant="outline" className="bg-white/10 border-white/20 text-white hover:bg-white/20">
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
                     </div>
                     
                     <div className="mt-3">
@@ -214,6 +217,32 @@ const Arts: React.FC = () => {
                           </div>
                         </div>
                       )}
+
+                      {/* Legenda */}
+                      {material.metadata && typeof material.metadata === 'object' && 'caption' in material.metadata && (
+                        <div className="mt-2 p-2 bg-slate-800/50 rounded-lg border border-slate-700/50">
+                          <div className="flex items-start gap-2">
+                            <FileText className="h-4 w-4 text-aurora-electric-purple mt-0.5 flex-shrink-0" />
+                            <p className="text-sm text-slate-300 line-clamp-3">
+                              {String(material.metadata.caption)}
+                            </p>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Gerador de Legenda */}
+                      <div className="mt-2">
+                        <CaptionGenerator
+                          imageUrl={material.file_url}
+                          equipments={material.equipment_ids ? 
+                            equipments.filter(eq => material.equipment_ids.includes(eq.id)) : []
+                          }
+                          onCaptionGenerated={(caption) => {
+                            // Atualizar a legenda no material (você pode implementar a lógica de salvar)
+                            console.log('Caption generated:', caption);
+                          }}
+                        />
+                      </div>
                     </div>
                   </div>
                 ))}
