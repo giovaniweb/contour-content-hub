@@ -18,13 +18,20 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
+interface Equipment {
+  id: string;
+  nome: string;
+}
+
 interface CaptionGeneratorProps {
   imageUrl: string;
+  equipments?: Equipment[];
   onCaptionGenerated?: (caption: string, hashtags: string) => void;
 }
 
 const CaptionGenerator: React.FC<CaptionGeneratorProps> = ({ 
   imageUrl, 
+  equipments = [],
   onCaptionGenerated 
 }) => {
   const [generating, setGenerating] = useState(false);
@@ -56,7 +63,8 @@ const CaptionGenerator: React.FC<CaptionGeneratorProps> = ({
         body: {
           imageUrl: `https://mksvzhgqnsjfolvskibq.supabase.co/storage/v1/object/public/downloads/${imageUrl}`,
           style,
-          audience
+          audience,
+          equipments: equipments.map(eq => eq.nome)
         }
       });
 
@@ -240,6 +248,21 @@ const CaptionGenerator: React.FC<CaptionGeneratorProps> = ({
                 {audienceOptions.find(a => a.value === audience)?.label}
               </Badge>
             </div>
+          </div>
+        )}
+
+        {/* Equipment info */}
+        {equipments.length > 0 && (
+          <div className="text-sm text-white/60 bg-aurora-neon-blue/10 rounded-lg p-3">
+            <p className="mb-2">🏥 <strong>Equipamentos relacionados:</strong></p>
+            <div className="flex flex-wrap gap-1">
+              {equipments.map((equipment) => (
+                <Badge key={equipment.id} variant="outline" className="text-aurora-neon-blue border-aurora-neon-blue/30 text-xs">
+                  {equipment.nome}
+                </Badge>
+              ))}
+            </div>
+            <p className="mt-2 text-xs">A IA utilizará essas informações para criar legendas mais específicas.</p>
           </div>
         )}
 

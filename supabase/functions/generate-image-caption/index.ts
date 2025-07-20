@@ -18,7 +18,7 @@ serve(async (req) => {
       throw new Error('OPENAI_API_KEY not configured');
     }
 
-    const { imageUrl, style = 'criativo', audience = 'geral' } = await req.json();
+    const { imageUrl, style = 'criativo', audience = 'geral', equipments = [] } = await req.json();
 
     if (!imageUrl) {
       throw new Error('imageUrl is required');
@@ -39,16 +39,33 @@ serve(async (req) => {
       lifestyle: "para audiência interessada em estilo de vida"
     };
 
-    const systemPrompt = `Você é um especialista em marketing digital e criação de conteúdo para Instagram. 
+    // Construir prompt adicional para equipamentos
+    let equipmentContext = '';
+    if (equipments && equipments.length > 0) {
+      equipmentContext = `
+      
+CONTEXTO IMPORTANTE: Esta imagem está relacionada aos seguintes equipamentos estéticos/médicos:
+${equipments.map((eq: string) => `- ${eq}`).join('\n')}
+
+Ao criar a legenda:
+- Mencione os benefícios específicos desses equipamentos quando relevante
+- Use terminologia técnica apropriada para o público
+- Inclua hashtags relacionadas aos equipamentos e procedimentos
+- Foque nos resultados e transformações que esses equipamentos proporcionam
+`;
+    }
+
+    const systemPrompt = `Você é um especialista em marketing digital e criação de conteúdo para Instagram especializado em estética e equipamentos médicos. 
     Analise a imagem fornecida e ${stylePrompts[style as keyof typeof stylePrompts] || stylePrompts.criativo} 
-    ${audiencePrompts[audience as keyof typeof audiencePrompts] || audiencePrompts.geral}.
+    ${audiencePrompts[audience as keyof typeof audiencePrompts] || audiencePrompts.geral}.${equipmentContext}
 
     Regras importantes:
-    - Máximo 150 palavras
-    - Inclua 3-5 hashtags relevantes
-    - Use emojis apropriados
+    - Máximo 150 palavras na legenda
+    - Inclua 8-12 hashtags relevantes (misture hashtags gerais e específicas dos equipamentos)
+    - Use emojis apropriados para o contexto estético/médico
     - Seja autêntico e engajante
-    - Inclua uma call-to-action sutil
+    - Inclua uma call-to-action sutil (ex: "Agende sua consulta", "Saiba mais nos comentários")
+    - Se houver equipamentos mencionados, destaque os benefícios e resultados
     
     Formato da resposta:
     [LEGENDA]

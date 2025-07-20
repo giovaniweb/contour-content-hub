@@ -369,6 +369,10 @@ const FileMetadataForm: React.FC<FileMetadataFormProps> = ({ uploadedFiles, onFi
                 </Label>
                 <CaptionGenerator
                   imageUrl={meta.custom_thumbnail || meta.thumbnail_url || ''}
+                  equipments={meta.equipment_ids?.map(id => {
+                    const equipment = equipments.find(eq => eq.id === id);
+                    return equipment ? { id: equipment.id, nome: equipment.nome } : null;
+                  }).filter(Boolean) as { id: string; nome: string }[]}
                   onCaptionGenerated={(caption, hashtags) => {
                     // Atualizar descrição com a legenda
                     handleChange(idx, "description", caption);
