@@ -16,6 +16,7 @@ import { EquipmentDetailsTabsList } from '@/components/equipment-details/Equipme
 import { EquipmentDocuments } from '@/components/equipment-details/EquipmentDocuments';
 import { EquipmentVideos } from '@/components/equipment-details/EquipmentVideos';
 import { EquipmentMaterials } from '@/components/equipment-details/EquipmentMaterials';
+import EquipmentPhotosTab from '@/components/equipment-photos/EquipmentPhotosTab';
 
 const EquipmentDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -367,27 +368,7 @@ const EquipmentDetails: React.FC = () => {
           </TabsContent>
 
           <TabsContent value="photos" className="mt-6">
-            <div className="aurora-glass rounded-3xl border border-aurora-electric-purple/30 p-8">
-              <div className="flex items-center gap-3 mb-6">
-                <Images className="h-6 w-6 text-aurora-electric-purple" />
-                <div>
-                  <h2 className="aurora-heading text-xl text-white">Fotos do {equipment.nome}</h2>
-                  <p className="aurora-body text-white/70">Galeria de fotos relacionadas a este equipamento</p>
-                </div>
-              </div>
-              
-              <div className="bg-aurora-electric-purple/10 rounded-xl p-6 text-center">
-                <Images className="h-12 w-12 text-aurora-electric-purple mx-auto mb-4" />
-                <h3 className="aurora-heading text-lg text-white mb-2">Fotos em Desenvolvimento</h3>
-                <p className="aurora-body text-white/70 mb-4">
-                  Esta seção irá mostrar todas as fotos relacionadas ao {equipment.nome}, 
-                  incluindo fotos do equipamento, antes/depois de procedimentos e materiais técnicos.
-                </p>
-                <div className="flex items-center justify-center gap-2 text-sm text-aurora-electric-purple">
-                  <span>Em breve disponível</span>
-                </div>
-              </div>
-            </div>
+            <EquipmentPhotosTab equipmentId={id!} />
           </TabsContent>
 
           <TabsContent value="chat" className="mt-6">
