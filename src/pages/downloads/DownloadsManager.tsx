@@ -727,9 +727,9 @@ const DownloadsManager: React.FC = () => {
 
         {/* Edit Modal */}
         <Dialog open={!!editingMaterial} onOpenChange={() => setEditingMaterial(null)}>
-          <DialogContent className="max-w-4xl bg-slate-800 border-aurora-electric-purple/30 max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-4xl aurora-glass border-aurora-electric-purple/30 max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle className="text-white flex items-center gap-2">
+              <DialogTitle className="aurora-text-gradient flex items-center gap-2 text-xl font-medium">
                 <Edit className="h-5 w-5 text-aurora-electric-purple" />
                 Editar Material
               </DialogTitle>
@@ -739,7 +739,10 @@ const DownloadsManager: React.FC = () => {
               <div className="space-y-6">
                 {/* Thumbnail Section */}
                 <div className="space-y-3">
-                  <Label className="text-white font-medium">Thumbnail</Label>
+                  <Label className="aurora-text font-medium flex items-center gap-2">
+                    <Upload className="h-4 w-4 text-aurora-electric-purple" />
+                    Thumbnail
+                  </Label>
                   <div className="flex items-center gap-4">
                     {(editForm.custom_thumbnail || editingMaterial.thumbnail_url) && (
                       <div className="relative">
@@ -749,11 +752,11 @@ const DownloadsManager: React.FC = () => {
                             : `https://mksvzhgqnsjfolvskibq.supabase.co/storage/v1/object/public/downloads/${editingMaterial.thumbnail_url}`
                           }
                           alt="Thumbnail"
-                          className="w-24 h-24 object-cover rounded-lg border border-aurora-electric-purple/30"
+                          className="w-24 h-24 object-cover rounded-lg border border-aurora-electric-purple/30 aurora-glass"
                         />
                         <Badge 
                           variant="secondary" 
-                          className="absolute -top-2 -right-2 bg-aurora-electric-purple/20 text-aurora-electric-purple text-xs"
+                          className="absolute -top-2 -right-2 bg-aurora-electric-purple/20 text-aurora-electric-purple text-xs border-aurora-electric-purple/30"
                         >
                           {editForm.custom_thumbnail ? 'Custom' : 'Auto'}
                         </Badge>
@@ -774,7 +777,7 @@ const DownloadsManager: React.FC = () => {
                         size="sm"
                         onClick={() => thumbnailInputRef.current?.click()}
                         disabled={uploadingThumbnail}
-                        className="border-aurora-electric-purple/30 text-aurora-electric-purple hover:bg-aurora-electric-purple/20"
+                        className="border-aurora-electric-purple/30 text-aurora-electric-purple hover:bg-aurora-electric-purple/20 aurora-glass"
                       >
                         <Upload className="h-4 w-4 mr-2" />
                         {uploadingThumbnail ? 'Enviando...' : editForm.custom_thumbnail ? 'Alterar Thumbnail' : 'Enviar Thumbnail'}
@@ -786,28 +789,28 @@ const DownloadsManager: React.FC = () => {
                 {/* Basic Info Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label className="text-white font-medium">Título</Label>
+                    <Label className="aurora-text font-medium">Título</Label>
                     <Input
                       value={editForm.title}
                       onChange={(e) => setEditForm(prev => ({ ...prev, title: e.target.value }))}
-                      className="bg-slate-700 border-aurora-electric-purple/30 text-white"
+                      className="aurora-input"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label className="text-white font-medium">Categoria</Label>
+                    <Label className="aurora-text font-medium">Categoria</Label>
                     <Select value={editForm.category} onValueChange={(value) => setEditForm(prev => ({ ...prev, category: value }))}>
-                      <SelectTrigger className="bg-slate-700 border-aurora-electric-purple/30 text-white">
+                      <SelectTrigger className="aurora-input">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent className="bg-slate-800 border-aurora-electric-purple/30 z-50">
-                        <SelectItem value="arte-digital" className="text-white hover:bg-aurora-electric-purple/20">
+                      <SelectContent className="aurora-glass border-aurora-electric-purple/30 z-50">
+                        <SelectItem value="arte-digital" className="aurora-text hover:bg-aurora-electric-purple/20 focus:bg-aurora-electric-purple/20">
                           <div className="flex items-center gap-2">
                             <Palette className="h-4 w-4 text-aurora-electric-purple" />
                             Arte Digital
                           </div>
                         </SelectItem>
-                        <SelectItem value="para-impressao" className="text-white hover:bg-aurora-electric-purple/20">
+                        <SelectItem value="para-impressao" className="aurora-text hover:bg-aurora-emerald/20 focus:bg-aurora-emerald/20">
                           <div className="flex items-center gap-2">
                             <Printer className="h-4 w-4 text-aurora-emerald" />
                             Para Impressão
@@ -819,30 +822,30 @@ const DownloadsManager: React.FC = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="text-white font-medium">Descrição</Label>
+                  <Label className="aurora-text font-medium">Descrição</Label>
                   <Textarea
                     value={editForm.description}
                     onChange={(e) => setEditForm(prev => ({ ...prev, description: e.target.value }))}
                     placeholder="Descreva o material e como ele pode ser usado"
-                    className="bg-slate-700 border-aurora-electric-purple/30 text-white"
+                    className="aurora-input"
                     rows={3}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="text-white font-medium">Tags</Label>
+                  <Label className="aurora-text font-medium">Tags</Label>
                   <Input
                     value={editForm.tags}
                     onChange={(e) => setEditForm(prev => ({ ...prev, tags: e.target.value }))}
                     placeholder="social media, instagram, post, banner (separe por vírgula)"
-                    className="bg-slate-700 border-aurora-electric-purple/30 text-white"
+                    className="aurora-input"
                   />
                 </div>
 
                 {/* Caption Generator for images */}
                 {editingMaterial.file_type === 'image' && editingMaterial.thumbnail_url && (
-                  <div className="space-y-3">
-                    <Label className="text-white font-medium flex items-center gap-2">
+                  <div className="space-y-3 p-4 aurora-glass rounded-lg border border-aurora-electric-purple/30">
+                    <Label className="aurora-text font-medium flex items-center gap-2">
                       <Sparkles className="h-4 w-4 text-aurora-electric-purple" />
                       Gerar Legenda para Instagram
                     </Label>
@@ -853,9 +856,7 @@ const DownloadsManager: React.FC = () => {
                         return equipment ? { id: equipment.id, nome: equipment.nome } : null;
                       }).filter(Boolean) as { id: string; nome: string }[]}
                       onCaptionGenerated={(caption, hashtags) => {
-                        // Atualizar descrição com a legenda
                         setEditForm(prev => ({ ...prev, description: caption }));
-                        // Adicionar hashtags às tags existentes
                         const newTags = hashtags.replace(/#/g, '').split(/\s+/).filter(Boolean);
                         const existingTags = editForm.tags ? editForm.tags.split(',').map(tag => tag.trim()).filter(Boolean) : [];
                         const allTags = [...new Set([...existingTags, ...newTags])];
@@ -867,11 +868,11 @@ const DownloadsManager: React.FC = () => {
 
                 {/* Equipamentos relacionados */}
                 <div className="space-y-3">
-                  <Label className="text-white font-medium flex items-center gap-2">
+                  <Label className="aurora-text font-medium flex items-center gap-2">
                     <Monitor className="h-4 w-4 text-aurora-neon-blue" />
                     Equipamentos relacionados
                   </Label>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-40 overflow-y-auto p-2 border border-aurora-electric-purple/30 rounded-lg bg-slate-700/50">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-40 overflow-y-auto p-4 border border-aurora-electric-purple/30 rounded-lg aurora-glass">
                     {equipments.map((equipment) => (
                       <div key={equipment.id} className="flex items-center space-x-2">
                         <Checkbox
@@ -884,7 +885,7 @@ const DownloadsManager: React.FC = () => {
                         />
                         <Label 
                           htmlFor={`equipment-edit-${equipment.id}`}
-                          className="text-sm text-white/80 cursor-pointer hover:text-white transition-colors"
+                          className="text-sm aurora-text cursor-pointer hover:text-aurora-electric-purple transition-colors"
                         >
                           {equipment.nome}
                         </Label>
@@ -896,7 +897,7 @@ const DownloadsManager: React.FC = () => {
                       {editForm.equipment_ids.map((equipId) => {
                         const equipment = equipments.find(e => e.id === equipId);
                         return equipment ? (
-                          <Badge key={equipId} variant="outline" className="text-aurora-neon-blue border-aurora-neon-blue/30 text-xs">
+                          <Badge key={equipId} variant="outline" className="text-aurora-neon-blue border-aurora-neon-blue/30 text-xs bg-aurora-neon-blue/10">
                             {equipment.nome}
                           </Badge>
                         ) : null;
@@ -905,8 +906,12 @@ const DownloadsManager: React.FC = () => {
                   )}
                 </div>
 
-                <div className="flex justify-end gap-2 pt-4 border-t border-aurora-electric-purple/30">
-                  <Button variant="outline" onClick={() => setEditingMaterial(null)}>
+                <div className="flex justify-end gap-2 pt-6 border-t border-aurora-electric-purple/30">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setEditingMaterial(null)}
+                    className="border-aurora-electric-purple/30 text-aurora-electric-purple hover:bg-aurora-electric-purple/20 aurora-glass"
+                  >
                     Cancelar
                   </Button>
                   <Button 
