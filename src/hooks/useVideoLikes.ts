@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -7,6 +7,25 @@ export const useVideoLikes = (videoId: string) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isLiked, setIsLiked] = useState(false);
+
+  // Check if video is liked on component mount
+  useEffect(() => {
+    const checkLikeStatus = async () => {
+      const { data: user } = await supabase.auth.getUser();
+      if (user?.user) {
+        const { data } = await supabase
+          .from('favoritos')
+          .select('id')
+          .eq('video_id', videoId)
+          .eq('usuario_id', user.user.id)
+          .maybeSingle();
+        
+        setIsLiked(!!data);
+      }
+    };
+    
+    checkLikeStatus();
+  }, [videoId]);
 
   const toggleLikeMutation = useMutation({
     mutationFn: async () => {

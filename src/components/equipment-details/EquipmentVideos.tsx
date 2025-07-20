@@ -45,7 +45,7 @@ const VideoCard: React.FC<{ video: EquipmentVideo; index: number }> = ({ video, 
       <Card className="aurora-glass border-aurora-electric-purple/30 aurora-glow hover:border-aurora-electric-purple/50 transition-colors group">
         <CardContent className="p-0">
           {/* Video Thumbnail - 16:9 aspect ratio */}
-          <div className="relative aspect-[16/9] h-40 rounded-t-lg overflow-hidden bg-black/20">
+          <div className="relative aspect-[16/9] h-48 rounded-t-lg overflow-hidden bg-black/20">
             {video.thumbnail_url ? (
               <img 
                 src={video.thumbnail_url} 
