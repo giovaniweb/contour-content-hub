@@ -3072,18 +3072,7 @@ export type Database = {
       }
     }
     Views: {
-      database_documentation: {
-        Row: {
-          column_default: string | null
-          column_name: unknown | null
-          column_type: string | null
-          data_type: string | null
-          description: string | null
-          is_nullable: string | null
-          table_name: unknown | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       binary_quantize: {
