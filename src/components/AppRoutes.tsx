@@ -19,6 +19,11 @@ const EquipmentDetails = React.lazy(() => import('@/pages/EquipmentDetails'));
 const MestreDaBelezaPage = React.lazy(() => import('@/pages/MestreDaBelezaPage'));
 const FluidaRoteiristsPage = React.lazy(() => import('@/pages/FluidaRoteiristsPage'));
 
+// Páginas institucionais
+const OQueE = React.lazy(() => import('@/pages/Institucional/OQueE'));
+const Contato = React.lazy(() => import('@/pages/Institucional/Contato'));
+const Suporte = React.lazy(() => import('@/pages/Institucional/Suporte'));
+
 const Videos = React.lazy(() => import('@/pages/Videos'));
 const MarketingConsultant = React.lazy(() => import('@/pages/MarketingConsultant'));
 const DiagnosticHistory = React.lazy(() => import('@/pages/DiagnosticHistory'));
@@ -67,6 +72,40 @@ const AppRoutes: React.FC = () => {
           <Suspense fallback={<AuroraLoadingSkeleton />}>
             <Register />
           </Suspense>
+        } 
+      />
+
+      {/* Páginas Institucionais - Públicas */}
+      <Route 
+        path="/institucional/o-que-e" 
+        element={
+          <AppLayout>
+            <Suspense fallback={<AuroraLoadingSkeleton />}>
+              <OQueE />
+            </Suspense>
+          </AppLayout>
+        } 
+      />
+
+      <Route 
+        path="/institucional/contato" 
+        element={
+          <AppLayout>
+            <Suspense fallback={<AuroraLoadingSkeleton />}>
+              <Contato />
+            </Suspense>
+          </AppLayout>
+        } 
+      />
+
+      <Route 
+        path="/institucional/suporte" 
+        element={
+          <AppLayout>
+            <Suspense fallback={<AuroraLoadingSkeleton />}>
+              <Suporte />
+            </Suspense>
+          </AppLayout>
         } 
       />
 
