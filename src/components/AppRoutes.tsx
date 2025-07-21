@@ -37,6 +37,17 @@ const VideoCreatePageAdmin = React.lazy(() => import('@/pages/admin/VideoCreateP
 const BatchDownloadManager = React.lazy(() => import('@/pages/downloads/BatchDownloadManager'));
 const DownloadsManager = React.lazy(() => import('@/pages/downloads/DownloadsManager'));
 
+// Lazy loading das novas páginas do perfil
+const ApprovedScripts = React.lazy(() => import('@/pages/ApprovedScripts'));
+const ProfileDashboard = React.lazy(() => import('@/pages/ProfileDashboard'));
+const BeforeAfter = React.lazy(() => import('@/pages/BeforeAfter'));
+const VideoStorage = React.lazy(() => import('@/pages/VideoStorage'));
+const MyDocuments = React.lazy(() => import('@/pages/MyDocuments'));
+const InstagramIntegration = React.lazy(() => import('@/pages/InstagramIntegration'));
+const Gamification = React.lazy(() => import('@/pages/Gamification'));
+const WorkspaceSettings = React.lazy(() => import('@/pages/WorkspaceSettings'));
+const Profile = React.lazy(() => import('@/pages/Profile'));
+
 const AppRoutes: React.FC = () => {
   return (
     <Routes>
@@ -250,6 +261,106 @@ const AppRoutes: React.FC = () => {
             <AppLayout>
               <Suspense fallback={<AuroraLoadingSkeleton />}>
                 <DownloadsManager />
+              </Suspense>
+            </AppLayout>
+          } 
+        />
+
+        {/* Profile Menu Routes */}
+        <Route 
+          path="/approved-scripts" 
+          element={
+            <AppLayout>
+              <Suspense fallback={<AuroraLoadingSkeleton />}>
+                <ApprovedScripts />
+              </Suspense>
+            </AppLayout>
+          } 
+        />
+
+        <Route 
+          path="/profile-dashboard" 
+          element={
+            <AppLayout>
+              <Suspense fallback={<AuroraLoadingSkeleton />}>
+                <ProfileDashboard />
+              </Suspense>
+            </AppLayout>
+          } 
+        />
+
+        <Route 
+          path="/before-after" 
+          element={
+            <AppLayout>
+              <Suspense fallback={<AuroraLoadingSkeleton />}>
+                <BeforeAfter />
+              </Suspense>
+            </AppLayout>
+          } 
+        />
+
+        <Route 
+          path="/video-storage" 
+          element={
+            <AppLayout>
+              <Suspense fallback={<AuroraLoadingSkeleton />}>
+                <VideoStorage />
+              </Suspense>
+            </AppLayout>
+          } 
+        />
+
+        <Route 
+          path="/my-documents" 
+          element={
+            <AppLayout>
+              <Suspense fallback={<AuroraLoadingSkeleton />}>
+                <MyDocuments />
+              </Suspense>
+            </AppLayout>
+          } 
+        />
+
+        <Route 
+          path="/integrations/instagram" 
+          element={
+            <AppLayout>
+              <Suspense fallback={<AuroraLoadingSkeleton />}>
+                <InstagramIntegration />
+              </Suspense>
+            </AppLayout>
+          } 
+        />
+
+        <Route 
+          path="/gamification" 
+          element={
+            <AppLayout>
+              <Suspense fallback={<AuroraLoadingSkeleton />}>
+                <Gamification />
+              </Suspense>
+            </AppLayout>
+          } 
+        />
+
+        <Route 
+          path="/profile" 
+          element={
+            <AppLayout>
+              <Suspense fallback={<AuroraLoadingSkeleton />}>
+                <Profile />
+              </Suspense>
+            </AppLayout>
+          } 
+        />
+
+        <Route 
+          path="/workspace-settings" 
+          element={
+            <AppLayout>
+              <Suspense fallback={<AuroraLoadingSkeleton />}>
+                <WorkspaceSettings />
               </Suspense>
             </AppLayout>
           } 
