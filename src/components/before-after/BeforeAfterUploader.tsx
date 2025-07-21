@@ -7,7 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { Upload, Image as ImageIcon, X, Camera, Sparkles } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Upload, Image as ImageIcon, X, Camera, Sparkles, ClipboardList, Settings, Target } from "lucide-react";
 import { toast } from 'sonner';
 import { beforeAfterService } from '@/services/beforeAfterService';
 import { BeforeAfterUploadData } from '@/types/before-after';
@@ -32,7 +34,19 @@ const BeforeAfterUploader: React.FC<BeforeAfterUploaderProps> = ({ onUploadSucce
     description: '',
     equipment_used: [],
     procedure_date: '',
-    is_public: false
+    is_public: false,
+    equipment_parameters: {
+      intensity: '',
+      frequency: '',
+      time: '',
+      other: ''
+    },
+    treated_areas: [],
+    treatment_objective: '',
+    associated_therapies: [],
+    session_interval: undefined,
+    session_count: undefined,
+    session_notes: ''
   });
 
   const beforeInputRef = useRef<HTMLInputElement>(null);
@@ -125,7 +139,19 @@ const BeforeAfterUploader: React.FC<BeforeAfterUploaderProps> = ({ onUploadSucce
         description: '',
         equipment_used: [],
         procedure_date: '',
-        is_public: false
+        is_public: false,
+        equipment_parameters: {
+          intensity: '',
+          frequency: '',
+          time: '',
+          other: ''
+        },
+        treated_areas: [],
+        treatment_objective: '',
+        associated_therapies: [],
+        session_interval: undefined,
+        session_count: undefined,
+        session_notes: ''
       });
 
       if (onUploadSuccess) {
@@ -165,173 +191,363 @@ const BeforeAfterUploader: React.FC<BeforeAfterUploaderProps> = ({ onUploadSucce
         
         <CardContent className="space-y-6">
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Image Upload Section */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Before Image */}
-              <div className="space-y-3">
-                <Label className="text-white font-medium">Foto ANTES</Label>
-                <div
-                  className="border-2 border-dashed border-aurora-electric-purple/50 rounded-lg p-6 text-center hover:border-aurora-electric-purple/70 transition-colors cursor-pointer"
-                  onClick={() => beforeInputRef.current?.click()}
-                >
-                  {beforePreview ? (
-                    <div className="relative">
-                      <img
-                        src={beforePreview}
-                        alt="Antes"
-                        className="w-full h-48 object-cover rounded-lg"
-                      />
-                      <Button
-                        type="button"
-                        variant="destructive"
-                        size="sm"
-                        className="absolute top-2 right-2"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          removeImage('before');
-                        }}
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
+            <Tabs defaultValue="images" className="w-full">
+              <TabsList className="grid w-full grid-cols-4 bg-slate-800/50">
+                <TabsTrigger value="images" className="flex items-center gap-2">
+                  <Camera className="h-4 w-4" />
+                  Imagens
+                </TabsTrigger>
+                <TabsTrigger value="basic" className="flex items-center gap-2">
+                  <ClipboardList className="h-4 w-4" />
+                  Básico
+                </TabsTrigger>
+                <TabsTrigger value="protocol" className="flex items-center gap-2">
+                  <Settings className="h-4 w-4" />
+                  Protocolo
+                </TabsTrigger>
+                <TabsTrigger value="objectives" className="flex items-center gap-2">
+                  <Target className="h-4 w-4" />
+                  Objetivos
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="images" className="space-y-6 mt-6">
+                {/* Image Upload Section */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Before Image */}
+                  <div className="space-y-3">
+                    <Label className="text-white font-medium">Foto ANTES</Label>
+                    <div
+                      className="border-2 border-dashed border-aurora-electric-purple/50 rounded-lg p-6 text-center hover:border-aurora-electric-purple/70 transition-colors cursor-pointer"
+                      onClick={() => beforeInputRef.current?.click()}
+                    >
+                      {beforePreview ? (
+                        <div className="relative">
+                          <img
+                            src={beforePreview}
+                            alt="Antes"
+                            className="w-full h-48 object-cover rounded-lg"
+                          />
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            size="sm"
+                            className="absolute top-2 right-2"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              removeImage('before');
+                            }}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="space-y-3">
+                          <Upload className="h-12 w-12 text-aurora-electric-purple mx-auto" />
+                          <p className="text-white">Clique para selecionar a foto ANTES</p>
+                        </div>
+                      )}
                     </div>
-                  ) : (
-                    <div className="space-y-3">
-                      <Upload className="h-12 w-12 text-aurora-electric-purple mx-auto" />
-                      <p className="text-white">Clique para selecionar a foto ANTES</p>
+                    <input
+                      ref={beforeInputRef}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) handleImageSelect(file, 'before');
+                      }}
+                    />
+                  </div>
+
+                  {/* After Image */}
+                  <div className="space-y-3">
+                    <Label className="text-white font-medium">Foto DEPOIS</Label>
+                    <div
+                      className="border-2 border-dashed border-aurora-electric-purple/50 rounded-lg p-6 text-center hover:border-aurora-electric-purple/70 transition-colors cursor-pointer"
+                      onClick={() => afterInputRef.current?.click()}
+                    >
+                      {afterPreview ? (
+                        <div className="relative">
+                          <img
+                            src={afterPreview}
+                            alt="Depois"
+                            className="w-full h-48 object-cover rounded-lg"
+                          />
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            size="sm"
+                            className="absolute top-2 right-2"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              removeImage('after');
+                            }}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="space-y-3">
+                          <Upload className="h-12 w-12 text-aurora-electric-purple mx-auto" />
+                          <p className="text-white">Clique para selecionar a foto DEPOIS</p>
+                        </div>
+                      )}
                     </div>
-                  )}
+                    <input
+                      ref={afterInputRef}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) handleImageSelect(file, 'after');
+                      }}
+                    />
+                  </div>
                 </div>
-                <input
-                  ref={beforeInputRef}
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) handleImageSelect(file, 'before');
-                  }}
-                />
-              </div>
+              </TabsContent>
 
-              {/* After Image */}
-              <div className="space-y-3">
-                <Label className="text-white font-medium">Foto DEPOIS</Label>
-                <div
-                  className="border-2 border-dashed border-aurora-electric-purple/50 rounded-lg p-6 text-center hover:border-aurora-electric-purple/70 transition-colors cursor-pointer"
-                  onClick={() => afterInputRef.current?.click()}
-                >
-                  {afterPreview ? (
-                    <div className="relative">
-                      <img
-                        src={afterPreview}
-                        alt="Depois"
-                        className="w-full h-48 object-cover rounded-lg"
-                      />
-                      <Button
-                        type="button"
-                        variant="destructive"
-                        size="sm"
-                        className="absolute top-2 right-2"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          removeImage('after');
-                        }}
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  ) : (
-                    <div className="space-y-3">
-                      <Upload className="h-12 w-12 text-aurora-electric-purple mx-auto" />
-                      <p className="text-white">Clique para selecionar a foto DEPOIS</p>
-                    </div>
-                  )}
+              <TabsContent value="basic" className="space-y-4 mt-6">
+                {/* Basic Information */}
+                <div>
+                  <Label htmlFor="title" className="text-white font-medium">
+                    Título *
+                  </Label>
+                  <Input
+                    id="title"
+                    type="text"
+                    placeholder="Ex: Tratamento com Microagulhamento"
+                    value={formData.title}
+                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                    className="bg-slate-800/50 border-aurora-electric-purple/30 text-white"
+                    required
+                  />
                 </div>
-                <input
-                  ref={afterInputRef}
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) handleImageSelect(file, 'after');
-                  }}
-                />
-              </div>
-            </div>
 
-            {/* Form Fields */}
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="title" className="text-white font-medium">
-                  Título *
-                </Label>
-                <Input
-                  id="title"
-                  type="text"
-                  placeholder="Ex: Tratamento com Microagulhamento"
-                  value={formData.title}
-                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  className="bg-slate-800/50 border-aurora-electric-purple/30 text-white"
-                  required
-                />
-              </div>
+                <div>
+                  <Label htmlFor="description" className="text-white font-medium">
+                    Descrição
+                  </Label>
+                  <Textarea
+                    id="description"
+                    placeholder="Descreva o procedimento, resultados observados..."
+                    value={formData.description}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    className="bg-slate-800/50 border-aurora-electric-purple/30 text-white"
+                    rows={3}
+                  />
+                </div>
 
-              <div>
-                <Label htmlFor="description" className="text-white font-medium">
-                  Descrição
-                </Label>
-                <Textarea
-                  id="description"
-                  placeholder="Descreva o procedimento, resultados observados..."
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  className="bg-slate-800/50 border-aurora-electric-purple/30 text-white"
-                  rows={3}
-                />
-              </div>
+                <div>
+                  <Label htmlFor="equipment" className="text-white font-medium">
+                    Equipamentos Utilizados
+                  </Label>
+                  <Input
+                    id="equipment"
+                    type="text"
+                    placeholder="Ex: Microagulhamento DermaPen"
+                    value={formData.equipment_used.join(', ')}
+                    onChange={(e) => setFormData({ 
+                      ...formData, 
+                      equipment_used: e.target.value.split(',').map(item => item.trim()).filter(Boolean)
+                    })}
+                    className="bg-slate-800/50 border-aurora-electric-purple/30 text-white"
+                  />
+                </div>
 
-              <div>
-                <Label htmlFor="equipment" className="text-white font-medium">
-                  Equipamentos Utilizados
-                </Label>
-                <Input
-                  id="equipment"
-                  type="text"
-                  placeholder="Ex: Microagulhamento DermaPen"
-                  value={formData.equipment_used.join(', ')}
-                  onChange={(e) => setFormData({ 
-                    ...formData, 
-                    equipment_used: e.target.value.split(',').map(item => item.trim()).filter(Boolean)
-                  })}
-                  className="bg-slate-800/50 border-aurora-electric-purple/30 text-white"
-                />
-              </div>
+                <div>
+                  <Label htmlFor="procedure_date" className="text-white font-medium">
+                    Data do Procedimento
+                  </Label>
+                  <Input
+                    id="procedure_date"
+                    type="date"
+                    value={formData.procedure_date}
+                    onChange={(e) => setFormData({ ...formData, procedure_date: e.target.value })}
+                    className="bg-slate-800/50 border-aurora-electric-purple/30 text-white"
+                  />
+                </div>
 
-              <div>
-                <Label htmlFor="procedure_date" className="text-white font-medium">
-                  Data do Procedimento
-                </Label>
-                <Input
-                  id="procedure_date"
-                  type="date"
-                  value={formData.procedure_date}
-                  onChange={(e) => setFormData({ ...formData, procedure_date: e.target.value })}
-                  className="bg-slate-800/50 border-aurora-electric-purple/30 text-white"
-                />
-              </div>
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="is_public"
+                    checked={formData.is_public}
+                    onCheckedChange={(checked) => setFormData({ ...formData, is_public: checked })}
+                  />
+                  <Label htmlFor="is_public" className="text-white">
+                    Tornar público (outros usuários poderão ver)
+                  </Label>
+                </div>
+              </TabsContent>
 
-              <div className="flex items-center space-x-2">
-                <Switch
-                  id="is_public"
-                  checked={formData.is_public}
-                  onCheckedChange={(checked) => setFormData({ ...formData, is_public: checked })}
-                />
-                <Label htmlFor="is_public" className="text-white">
-                  Tornar público (outros usuários poderão ver)
-                </Label>
-              </div>
-            </div>
+              <TabsContent value="protocol" className="space-y-4 mt-6">
+                {/* Equipment Parameters */}
+                <div className="space-y-4">
+                  <h3 className="text-white font-medium text-lg">Parâmetros do Equipamento</h3>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label className="text-white font-medium">Intensidade</Label>
+                      <Input
+                        placeholder="Ex: 70%, Nível 8, etc."
+                        value={formData.equipment_parameters?.intensity || ''}
+                        onChange={(e) => setFormData({ 
+                          ...formData, 
+                          equipment_parameters: { 
+                            ...formData.equipment_parameters, 
+                            intensity: e.target.value 
+                          }
+                        })}
+                        className="bg-slate-800/50 border-aurora-electric-purple/30 text-white"
+                      />
+                    </div>
+
+                    <div>
+                      <Label className="text-white font-medium">Frequência</Label>
+                      <Input
+                        placeholder="Ex: 2MHz, 40Hz, etc."
+                        value={formData.equipment_parameters?.frequency || ''}
+                        onChange={(e) => setFormData({ 
+                          ...formData, 
+                          equipment_parameters: { 
+                            ...formData.equipment_parameters, 
+                            frequency: e.target.value 
+                          }
+                        })}
+                        className="bg-slate-800/50 border-aurora-electric-purple/30 text-white"
+                      />
+                    </div>
+
+                    <div>
+                      <Label className="text-white font-medium">Tempo</Label>
+                      <Input
+                        placeholder="Ex: 20 minutos, 5 min por área"
+                        value={formData.equipment_parameters?.time || ''}
+                        onChange={(e) => setFormData({ 
+                          ...formData, 
+                          equipment_parameters: { 
+                            ...formData.equipment_parameters, 
+                            time: e.target.value 
+                          }
+                        })}
+                        className="bg-slate-800/50 border-aurora-electric-purple/30 text-white"
+                      />
+                    </div>
+
+                    <div>
+                      <Label className="text-white font-medium">Outros Parâmetros</Label>
+                      <Input
+                        placeholder="Ex: Profundidade, Tipo de onda, etc."
+                        value={formData.equipment_parameters?.other || ''}
+                        onChange={(e) => setFormData({ 
+                          ...formData, 
+                          equipment_parameters: { 
+                            ...formData.equipment_parameters, 
+                            other: e.target.value 
+                          }
+                        })}
+                        className="bg-slate-800/50 border-aurora-electric-purple/30 text-white"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <Label className="text-white font-medium">Áreas Tratadas</Label>
+                  <Input
+                    placeholder="Ex: Face, Pescoço, Colo (separar por vírgula)"
+                    value={formData.treated_areas?.join(', ') || ''}
+                    onChange={(e) => setFormData({ 
+                      ...formData, 
+                      treated_areas: e.target.value.split(',').map(item => item.trim()).filter(Boolean)
+                    })}
+                    className="bg-slate-800/50 border-aurora-electric-purple/30 text-white"
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-white font-medium">Número de Sessões</Label>
+                    <Input
+                      type="number"
+                      placeholder="Ex: 6"
+                      value={formData.session_count || ''}
+                      onChange={(e) => setFormData({ 
+                        ...formData, 
+                        session_count: e.target.value ? parseInt(e.target.value) : undefined
+                      })}
+                      className="bg-slate-800/50 border-aurora-electric-purple/30 text-white"
+                    />
+                  </div>
+
+                  <div>
+                    <Label className="text-white font-medium">Intervalo entre Sessões (dias)</Label>
+                    <Input
+                      type="number"
+                      placeholder="Ex: 7, 15, 30"
+                      value={formData.session_interval || ''}
+                      onChange={(e) => setFormData({ 
+                        ...formData, 
+                        session_interval: e.target.value ? parseInt(e.target.value) : undefined
+                      })}
+                      className="bg-slate-800/50 border-aurora-electric-purple/30 text-white"
+                    />
+                  </div>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="objectives" className="space-y-4 mt-6">
+                <div>
+                  <Label className="text-white font-medium">Objetivo do Tratamento</Label>
+                  <Select 
+                    value={formData.treatment_objective || ''} 
+                    onValueChange={(value) => setFormData({ ...formData, treatment_objective: value })}
+                  >
+                    <SelectTrigger className="bg-slate-800/50 border-aurora-electric-purple/30 text-white">
+                      <SelectValue placeholder="Selecione o objetivo principal" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="rejuvenescimento">Rejuvenescimento</SelectItem>
+                      <SelectItem value="acne">Tratamento de Acne</SelectItem>
+                      <SelectItem value="manchas">Remoção de Manchas</SelectItem>
+                      <SelectItem value="cicatrizes">Tratamento de Cicatrizes</SelectItem>
+                      <SelectItem value="flacidez">Flacidez</SelectItem>
+                      <SelectItem value="rugas">Rugas e Linhas de Expressão</SelectItem>
+                      <SelectItem value="melasma">Melasma</SelectItem>
+                      <SelectItem value="olheiras">Olheiras</SelectItem>
+                      <SelectItem value="estrias">Estrias</SelectItem>
+                      <SelectItem value="celulite">Celulite</SelectItem>
+                      <SelectItem value="outro">Outro</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label className="text-white font-medium">Associações Feitas (outras terapias/cosmetologia)</Label>
+                  <Input
+                    placeholder="Ex: Radiofrequência, Peeling químico, Cosmecêuticos (separar por vírgula)"
+                    value={formData.associated_therapies?.join(', ') || ''}
+                    onChange={(e) => setFormData({ 
+                      ...formData, 
+                      associated_therapies: e.target.value.split(',').map(item => item.trim()).filter(Boolean)
+                    })}
+                    className="bg-slate-800/50 border-aurora-electric-purple/30 text-white"
+                  />
+                </div>
+
+                <div>
+                  <Label className="text-white font-medium">Observações das Sessões</Label>
+                  <Textarea
+                    placeholder="Anotações sobre evolução, reações, ajustes realizados..."
+                    value={formData.session_notes || ''}
+                    onChange={(e) => setFormData({ ...formData, session_notes: e.target.value })}
+                    className="bg-slate-800/50 border-aurora-electric-purple/30 text-white"
+                    rows={4}
+                  />
+                </div>
+              </TabsContent>
+            </Tabs>
 
             {/* Submit Button */}
             <Button
@@ -342,12 +558,12 @@ const BeforeAfterUploader: React.FC<BeforeAfterUploaderProps> = ({ onUploadSucce
               {isUploading ? (
                 <div className="flex items-center gap-2">
                   <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full" />
-                  Salvando fotos...
+                  Salvando protocolo completo...
                 </div>
               ) : (
                 <div className="flex items-center gap-2">
                   <ImageIcon className="h-5 w-5" />
-                  Salvar Antes & Depois (+25 XP)
+                  Salvar Protocolo Completo (+25 XP)
                 </div>
               )}
             </Button>
