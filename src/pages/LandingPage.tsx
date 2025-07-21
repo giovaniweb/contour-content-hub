@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { motion, useScroll, useTransform, useInView } from 'framer-motion';
+import { motion, useScroll, useTransform, useMotionValue } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -11,82 +11,107 @@ import {
   Video, 
   TrendingUp, 
   Zap, 
-  Shield, 
   Users, 
   Star,
-  ChevronRight,
   Play,
   ArrowRight,
   Rocket,
   Trophy,
-  Download,
-  Eye
+  Eye,
+  Palette,
+  Camera
 } from 'lucide-react';
 
 const LandingPage = () => {
   const navigate = useNavigate();
   const containerRef = useRef<HTMLDivElement>(null);
-  const [realVideos, setRealVideos] = useState<any[]>([]);
-  const [realPhotos, setRealPhotos] = useState<any[]>([]);
-  const [realArts, setRealArts] = useState<any[]>([]);
-  const [contentCounts, setContentCounts] = useState({ videos: 157, photos: 129, arts: 25 });
+  const [featuredContent, setFeaturedContent] = useState({
+    video: null as any,
+    photo: null as any,
+    art: null as any
+  });
+  const [contentCounts, setContentCounts] = useState({ videos: 0, photos: 0, arts: 0 });
   
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ["start start", "end start"]
   });
 
-  const heroRef = useRef<HTMLDivElement>(null);
-  const heroInView = useInView(heroRef, { once: true });
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
 
-  const featuresRef = useRef<HTMLDivElement>(null);
-  const featuresInView = useInView(featuresRef, { once: true });
+  // Advanced parallax transforms
+  const backgroundY = useTransform(scrollYProgress, [0, 1], [0, -400]);
+  const midgroundY = useTransform(scrollYProgress, [0, 1], [0, -200]);
+  const foregroundY = useTransform(scrollYProgress, [0, 1], [0, -100]);
+  const opacity1 = useTransform(scrollYProgress, [0, 0.3, 0.7, 1], [1, 0.8, 0.4, 0]);
+  const opacity2 = useTransform(scrollYProgress, [0, 0.5, 1], [0.8, 0.6, 0]);
+  const scale = useTransform(scrollYProgress, [0, 0.5], [1, 1.2]);
+  const rotate = useTransform(scrollYProgress, [0, 1], [0, 360]);
 
-  const statsRef = useRef<HTMLDivElement>(null);
-  const statsInView = useInView(statsRef, { once: true });
-
-  // Parallax transforms
-  const y1 = useTransform(scrollYProgress, [0, 1], [0, -300]);
-  const y2 = useTransform(scrollYProgress, [0, 1], [0, -150]);
-  const y3 = useTransform(scrollYProgress, [0, 1], [0, -200]);
-  const opacity = useTransform(scrollYProgress, [0, 0.3], [1, 0.7]);
-
-  // Fetch real content on mount
+  // Mouse tracking for interactive effects
   useEffect(() => {
-    const fetchRealContent = async () => {
+    const handleMouseMove = (e: MouseEvent) => {
+      mouseX.set(e.clientX);
+      mouseY.set(e.clientY);
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, [mouseX, mouseY]);
+
+  // Fetch featured content
+  useEffect(() => {
+    const fetchFeaturedContent = async () => {
       try {
-        // Fetch videos
-        const { data: videos } = await supabase
-          .from('videos')
-          .select('id, titulo, thumbnail_url, url_video')
-          .order('data_upload', { ascending: false })
-          .limit(4);
+        // Get counts
+        const [videosCount, photosCount, artsCount] = await Promise.all([
+          supabase.from('videos').select('id', { count: 'exact', head: true }),
+          supabase.from('equipment_photos').select('id', { count: 'exact', head: true }).eq('is_public', true),
+          supabase.from('downloads_storage').select('id', { count: 'exact', head: true }).eq('status', 'active')
+        ]);
 
-        // Fetch photos
-        const { data: photos } = await supabase
-          .from('equipment_photos')
-          .select('id, title, thumbnail_url, image_url')
-          .eq('is_public', true)
-          .order('created_at', { ascending: false })
-          .limit(4);
+        setContentCounts({
+          videos: videosCount.count || 0,
+          photos: photosCount.count || 0,
+          arts: artsCount.count || 0
+        });
 
-        // Fetch arts
-        const { data: arts } = await supabase
-          .from('downloads_storage')
-          .select('id, title, thumbnail_url, file_url')
-          .eq('status', 'active')
-          .order('created_at', { ascending: false })
-          .limit(4);
+        // Fetch one featured item from each category
+        const [videoData, photoData, artData] = await Promise.all([
+          supabase
+            .from('videos')
+            .select('id, titulo, thumbnail_url, url_video')
+            .order('data_upload', { ascending: false })
+            .limit(1)
+            .single(),
+          supabase
+            .from('equipment_photos')
+            .select('id, title, thumbnail_url, image_url')
+            .eq('is_public', true)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .single(),
+          supabase
+            .from('downloads_storage')
+            .select('id, title, thumbnail_url, file_url')
+            .eq('status', 'active')
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .single()
+        ]);
 
-        if (videos) setRealVideos(videos);
-        if (photos) setRealPhotos(photos);
-        if (arts) setRealArts(arts);
+        setFeaturedContent({
+          video: videoData.data,
+          photo: photoData.data,
+          art: artData.data
+        });
       } catch (error) {
-        console.error('Error fetching real content:', error);
+        console.error('Error fetching content:', error);
       }
     };
 
-    fetchRealContent();
+    fetchFeaturedContent();
   }, []);
 
   const handleGetStarted = () => {
@@ -127,23 +152,47 @@ const LandingPage = () => {
 
   return (
     <div ref={containerRef} className="min-h-screen bg-aurora-space-black relative overflow-hidden">
-      {/* Aurora Background Effects */}
+      {/* Advanced Aurora Background Effects */}
       <div className="fixed inset-0 pointer-events-none">
+        {/* Background Layer */}
         <motion.div
-          style={{ y: y1, opacity }}
-          className="absolute -top-40 -left-40 w-80 h-80 bg-aurora-electric-purple/30 rounded-full blur-3xl"
+          style={{ 
+            y: backgroundY, 
+            opacity: opacity1,
+            scale,
+            x: useTransform(mouseX, [0, typeof window !== 'undefined' ? window.innerWidth : 1920], [-50, 50]),
+            rotate: useTransform(mouseY, [0, typeof window !== 'undefined' ? window.innerHeight : 1080], [-10, 10])
+          }}
+          className="absolute -top-96 -left-96 w-[120vw] h-[120vh] bg-gradient-radial from-aurora-electric-purple/20 via-aurora-neon-blue/10 to-transparent rounded-full blur-3xl"
         />
+        
+        {/* Midground Layer */}
         <motion.div
-          style={{ y: y2, opacity }}
-          className="absolute top-1/4 -right-20 w-96 h-96 bg-aurora-neon-blue/20 rounded-full blur-3xl"
+          style={{ 
+            y: midgroundY, 
+            opacity: opacity2,
+            x: useTransform(mouseX, [0, typeof window !== 'undefined' ? window.innerWidth : 1920], [30, -30]),
+            rotate: useTransform(scrollYProgress, [0, 1], [0, 180])
+          }}
+          className="absolute top-1/4 -right-48 w-[80vw] h-[80vh] bg-gradient-radial from-aurora-emerald/15 via-aurora-electric-purple/8 to-transparent rounded-full blur-2xl"
         />
+        
+        {/* Foreground Interactive Orbs */}
         <motion.div
-          style={{ y: y3, opacity }}
-          className="absolute bottom-1/4 left-1/4 w-72 h-72 bg-aurora-emerald/20 rounded-full blur-3xl"
+          style={{ 
+            y: foregroundY,
+            x: useTransform(mouseX, [0, typeof window !== 'undefined' ? window.innerWidth : 1920], [-20, 20])
+          }}
+          className="absolute bottom-1/3 left-1/3 w-96 h-96 bg-aurora-neon-blue/20 rounded-full blur-2xl"
         />
+        
+        {/* Rotating Aurora Ring */}
         <motion.div
-          style={{ y: y1, opacity }}
-          className="absolute bottom-0 right-0 w-64 h-64 bg-aurora-electric-purple/20 rounded-full blur-3xl"
+          style={{ 
+            rotate,
+            scale: useTransform(scrollYProgress, [0, 1], [0.8, 1.4])
+          }}
+          className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[150vw] h-[150vh] border border-aurora-electric-purple/10 rounded-full"
         />
       </div>
 
@@ -175,422 +224,460 @@ const LandingPage = () => {
       </nav>
 
       {/* Hero Section */}
-      <section ref={heroRef} className="relative z-10 min-h-screen flex items-center justify-center px-6">
-        <div className="max-w-6xl mx-auto text-center">
+      <section className="relative z-10 min-h-screen flex items-center justify-center px-6">
+        <div className="max-w-7xl mx-auto">
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={heroInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.8 }}
-            className="mb-8"
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1.2, ease: "easeOut" }}
+            className="text-center mb-16"
           >
-            <Badge className="bg-aurora-electric-purple/20 text-aurora-electric-purple border-aurora-electric-purple/30 mb-6">
-              <Sparkles className="h-4 w-4 mr-2" />
-              Revolução no Marketing Médico
-            </Badge>
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.8, delay: 0.2 }}
+            >
+              <Badge className="bg-gradient-to-r from-aurora-electric-purple/20 to-aurora-neon-blue/20 text-white border-aurora-electric-purple/40 mb-8 px-6 py-2 text-lg">
+                <Sparkles className="h-5 w-5 mr-2" />
+                Revolução no Marketing Médico
+              </Badge>
+            </motion.div>
             
-            <h1 className="text-6xl md:text-8xl font-bold mb-6 text-white leading-tight">
+            <motion.h1 
+              className="text-7xl md:text-9xl font-bold mb-8 text-white leading-[0.9]"
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 1, delay: 0.4 }}
+            >
               A Primeira Plataforma
               <br />
-              <span className="aurora-text-gradient">Verdadeiramente</span>
+              <motion.span 
+                className="aurora-text-gradient inline-block"
+                initial={{ backgroundPosition: "0% 50%" }}
+                animate={{ backgroundPosition: "100% 50%" }}
+                transition={{ duration: 3, repeat: Infinity, repeatType: "reverse" }}
+                style={{ backgroundSize: "200% 200%" }}
+              >
+                Verdadeiramente
+              </motion.span>
               <br />
-              <span className="aurora-text-gradient">Inteligente</span>
-            </h1>
+              <motion.span 
+                className="aurora-text-gradient inline-block"
+                initial={{ backgroundPosition: "100% 50%" }}
+                animate={{ backgroundPosition: "0% 50%" }}
+                transition={{ duration: 3, repeat: Infinity, repeatType: "reverse", delay: 1.5 }}
+                style={{ backgroundSize: "200% 200%" }}
+              >
+                Inteligente
+              </motion.span>
+            </motion.h1>
             
-            <p className="text-xl md:text-2xl text-white/90 max-w-4xl mx-auto leading-relaxed mb-8">
-              Transforme sua clínica de estética em uma <span className="text-aurora-electric-purple font-semibold">máquina de conversão</span> 
+            <motion.p 
+              className="text-2xl md:text-3xl text-white/90 max-w-5xl mx-auto leading-relaxed mb-12"
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 1, delay: 0.8 }}
+            >
+              Transforme sua clínica de estética em uma{' '}
+              <span className="text-aurora-electric-purple font-semibold">máquina de conversão</span>{' '}
               através da união perfeita entre ciência, tecnologia e criatividade.
-            </p>
+            </motion.p>
 
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+            <motion.div 
+              className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-20"
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 1, delay: 1.2 }}
+            >
               <Button 
                 size="lg" 
                 onClick={handleGetStarted}
-                className="bg-gradient-to-r from-aurora-electric-purple to-aurora-neon-blue hover:shadow-xl hover:shadow-aurora-electric-purple/30 text-lg px-8 py-6"
+                className="bg-gradient-to-r from-aurora-electric-purple to-aurora-neon-blue hover:shadow-2xl hover:shadow-aurora-electric-purple/40 text-xl px-12 py-8 rounded-2xl group"
               >
                 Começar Gratuitamente
-                <ArrowRight className="ml-2 h-5 w-5" />
+                <ArrowRight className="ml-3 h-6 w-6 group-hover:translate-x-1 transition-transform" />
               </Button>
               
               <Button 
                 size="lg" 
                 variant="outline"
-                className="border-aurora-electric-purple/30 text-white hover:bg-aurora-electric-purple/20 text-lg px-8 py-6"
+                className="border-2 border-aurora-electric-purple/40 text-white hover:bg-aurora-electric-purple/20 text-xl px-12 py-8 rounded-2xl backdrop-blur-sm"
               >
-                <Play className="mr-2 h-5 w-5" />
+                <Play className="mr-3 h-6 w-6" />
                 Ver Demo
               </Button>
-            </div>
+            </motion.div>
           </motion.div>
 
-          {/* Hero Stats */}
+          {/* Floating Stats with Enhanced Animations */}
           <motion.div
-            initial={{ opacity: 0, y: 40 }}
-            animate={heroInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.8, delay: 0.4 }}
-            className="grid grid-cols-2 md:grid-cols-4 gap-8 mt-16"
+            initial={{ opacity: 0, y: 60 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1, delay: 1.6 }}
+            className="grid grid-cols-2 md:grid-cols-4 gap-8"
           >
             {stats.map((stat, index) => (
-              <div key={index} className="text-center">
-                <div className="text-3xl md:text-4xl font-bold text-white mb-2">
+              <motion.div 
+                key={index} 
+                className="text-center group cursor-pointer"
+                whileHover={{ scale: 1.05, y: -5 }}
+                transition={{ type: "spring", stiffness: 300 }}
+              >
+                <motion.div 
+                  className="text-4xl md:text-6xl font-bold text-white mb-3 group-hover:text-aurora-electric-purple transition-colors duration-300"
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ 
+                    type: "spring", 
+                    stiffness: 200, 
+                    delay: 1.8 + (index * 0.1) 
+                  }}
+                >
                   {stat.value}
+                </motion.div>
+                <div className="text-white/80 text-base md:text-lg font-medium group-hover:text-white transition-colors duration-300">
+                  {stat.label}
                 </div>
-                <div className="text-white/80 text-sm md:text-base font-medium">{stat.label}</div>
-              </div>
+              </motion.div>
             ))}
           </motion.div>
         </div>
       </section>
 
-      {/* Features Section */}
-      <section ref={featuresRef} className="relative z-10 py-32 px-6">
-        <div className="max-w-6xl mx-auto">
+      {/* Features Section with Advanced Parallax */}
+      <section className="relative z-10 py-40 px-6">
+        <motion.div 
+          style={{ y: useTransform(scrollYProgress, [0.2, 0.6], [50, -50]) }}
+          className="max-w-7xl mx-auto"
+        >
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={featuresInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.8 }}
-            className="text-center mb-16"
+            initial={{ opacity: 0, y: 60 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1.2 }}
+            viewport={{ once: true, margin: "-100px" }}
+            className="text-center mb-20"
           >
-            <h2 className="text-4xl md:text-6xl font-bold text-white mb-6">
+            <h2 className="text-6xl md:text-8xl font-bold text-white mb-8 leading-tight">
               🧠 3 Inteligências
               <br />
               <span className="aurora-text-gradient">Especializadas</span>
             </h2>
-            <p className="text-xl text-white/70 max-w-3xl mx-auto">
+            <p className="text-2xl text-white/80 max-w-4xl mx-auto leading-relaxed">
               Cada IA foi treinada especificamente para uma função, garantindo expertise máxima em cada área do marketing médico.
             </p>
           </motion.div>
 
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-3 gap-12">
             {features.map((feature, index) => (
               <motion.div
                 key={index}
-                initial={{ opacity: 0, y: 40 }}
-                animate={featuresInView ? { opacity: 1, y: 0 } : {}}
-                transition={{ duration: 0.8, delay: index * 0.2 }}
+                initial={{ opacity: 0, y: 80, scale: 0.9 }}
+                whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ 
+                  duration: 0.8, 
+                  delay: index * 0.2,
+                  type: "spring",
+                  stiffness: 100
+                }}
+                viewport={{ once: true }}
+                whileHover={{ 
+                  y: -10, 
+                  scale: 1.02,
+                  transition: { type: "spring", stiffness: 300 }
+                }}
               >
-                <Card className="bg-aurora-space-black/40 border-aurora-electric-purple/30 hover:border-aurora-electric-purple/60 transition-all duration-300 h-full group">
-                  <CardContent className="p-8">
-                    <div className={`w-16 h-16 bg-gradient-to-r ${feature.gradient} rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300`}>
-                      <feature.icon className="h-8 w-8 text-white" />
-                    </div>
+                <Card className="bg-gradient-to-br from-aurora-space-black/60 to-aurora-space-black/40 border-aurora-electric-purple/30 hover:border-aurora-electric-purple/80 transition-all duration-500 h-full group backdrop-blur-xl">
+                  <CardContent className="p-10">
+                    <motion.div 
+                      className={`w-20 h-20 bg-gradient-to-r ${feature.gradient} rounded-3xl flex items-center justify-center mb-8 mx-auto group-hover:rotate-6 transition-all duration-300`}
+                      whileHover={{ rotate: 12, scale: 1.1 }}
+                    >
+                      <feature.icon className="h-10 w-10 text-white" />
+                    </motion.div>
                     
-                    <h3 className="text-2xl font-bold text-white mb-4">{feature.title}</h3>
-                    <p className="text-white/70 leading-relaxed">{feature.description}</p>
-                    
-                    <div className="mt-6 flex items-center text-aurora-electric-purple group-hover:text-aurora-neon-blue transition-colors">
-                      <span className="text-sm font-medium">Saiba mais</span>
-                      <ChevronRight className="ml-1 h-4 w-4 group-hover:translate-x-1 transition-transform" />
-                    </div>
+                    <h3 className="text-3xl font-bold text-white mb-6 text-center group-hover:text-aurora-electric-purple transition-colors duration-300">
+                      {feature.title}
+                    </h3>
+                    <p className="text-white/80 leading-relaxed text-lg text-center">
+                      {feature.description}
+                    </p>
                   </CardContent>
                 </Card>
               </motion.div>
             ))}
           </div>
-        </div>
+        </motion.div>
       </section>
 
-      {/* Gallery Section - Photos and Videos */}
-      <section className="relative z-10 py-32 px-6 bg-aurora-space-black/40">
-        <div className="max-w-6xl mx-auto">
+      {/* Modern Content Showcase */}
+      <section className="relative z-10 py-40 px-6">
+        <motion.div 
+          style={{ y: useTransform(scrollYProgress, [0.4, 0.8], [80, -80]) }}
+          className="max-w-7xl mx-auto"
+        >
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: 60 }}
             whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
+            transition={{ duration: 1.2 }}
             viewport={{ once: true }}
-            className="text-center mb-16"
+            className="text-center mb-20"
           >
-            <h2 className="text-4xl md:text-6xl font-bold text-white mb-6">
+            <h2 className="text-6xl md:text-8xl font-bold text-white mb-8">
               📸 Biblioteca de
               <br />
               <span className="aurora-text-gradient">Conteúdo</span>
             </h2>
-            <p className="text-xl text-white/70 max-w-3xl mx-auto">
+            <p className="text-2xl text-white/80 max-w-4xl mx-auto leading-relaxed">
               Acesse nossa vasta coleção de fotos, vídeos e artes prontas para download e uso em suas campanhas.
             </p>
           </motion.div>
 
-          <div className="grid md:grid-cols-3 gap-8 mb-12">
+          {/* Featured Content Cards with Real Data */}
+          <div className="grid md:grid-cols-3 gap-12">
+            {/* Featured Video */}
             <motion.div
-              initial={{ opacity: 0, y: 40 }}
-              whileInView={{ opacity: 1, y: 0 }}
+              initial={{ opacity: 0, x: -60 }}
+              whileInView={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8, delay: 0.1 }}
               viewport={{ once: true }}
+              whileHover={{ y: -15, scale: 1.02 }}
             >
-              <Card className="bg-gradient-to-br from-pink-500/20 to-purple-500/20 border-pink-200/20 overflow-hidden group">
-                <div className="aspect-video bg-gradient-to-br from-pink-500/30 to-purple-500/30 flex items-center justify-center">
-                  <Play className="h-16 w-16 text-white group-hover:scale-110 transition-transform duration-300" />
+              <Card className="bg-gradient-to-br from-pink-500/10 to-purple-500/10 border-pink-300/30 overflow-hidden group backdrop-blur-xl">
+                <div className="aspect-video relative overflow-hidden">
+                  {featuredContent.video ? (
+                    <>
+                      <img 
+                        src={featuredContent.video.thumbnail_url} 
+                        alt={featuredContent.video.titulo}
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                      <motion.div 
+                        className="absolute inset-0 flex items-center justify-center"
+                        whileHover={{ scale: 1.2 }}
+                      >
+                        <Play className="h-16 w-16 text-white" />
+                      </motion.div>
+                    </>
+                  ) : (
+                    <div className="bg-gradient-to-br from-pink-500/30 to-purple-500/30 flex items-center justify-center h-full">
+                      <Video className="h-16 w-16 text-white" />
+                    </div>
+                  )}
                 </div>
-                <CardContent className="p-6">
-                  <h3 className="text-xl font-bold text-white mb-2">Vídeos Exclusivos</h3>
-                  <p className="text-white/70 mb-4">
-                    Demonstrações de equipamentos, depoimentos e tutoriais profissionais
+                <CardContent className="p-8">
+                  <h3 className="text-2xl font-bold text-white mb-3">Vídeos Exclusivos</h3>
+                  <p className="text-white/80 mb-6 text-lg">
+                    Demonstrações profissionais e tutoriais especializados
                   </p>
-                  <Badge className="bg-pink-500/20 text-pink-300 border-pink-500/30">
+                  <Badge className="bg-pink-500/20 text-pink-300 border-pink-500/30 text-lg px-4 py-2">
                     {contentCounts.videos}+ Vídeos
                   </Badge>
                 </CardContent>
               </Card>
             </motion.div>
 
+            {/* Featured Photo */}
             <motion.div
-              initial={{ opacity: 0, y: 40 }}
+              initial={{ opacity: 0, y: 60 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
               viewport={{ once: true }}
+              whileHover={{ y: -15, scale: 1.02 }}
             >
-              <Card className="bg-gradient-to-br from-blue-500/20 to-cyan-500/20 border-blue-200/20 overflow-hidden group">
-                <div className="aspect-video bg-gradient-to-br from-blue-500/30 to-cyan-500/30 flex items-center justify-center">
-                  <Users className="h-16 w-16 text-white group-hover:scale-110 transition-transform duration-300" />
+              <Card className="bg-gradient-to-br from-blue-500/10 to-cyan-500/10 border-blue-300/30 overflow-hidden group backdrop-blur-xl">
+                <div className="aspect-video relative overflow-hidden">
+                  {featuredContent.photo ? (
+                    <>
+                      <img 
+                        src={featuredContent.photo.thumbnail_url || featuredContent.photo.image_url} 
+                        alt={featuredContent.photo.title}
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                      <motion.div 
+                        className="absolute top-4 right-4"
+                        whileHover={{ scale: 1.2 }}
+                      >
+                        <Eye className="h-8 w-8 text-white" />
+                      </motion.div>
+                    </>
+                  ) : (
+                    <div className="bg-gradient-to-br from-blue-500/30 to-cyan-500/30 flex items-center justify-center h-full">
+                      <Camera className="h-16 w-16 text-white" />
+                    </div>
+                  )}
                 </div>
-                <CardContent className="p-6">
-                  <h3 className="text-xl font-bold text-white mb-2">Fotos Profissionais</h3>
-                  <p className="text-white/70 mb-4">
+                <CardContent className="p-8">
+                  <h3 className="text-2xl font-bold text-white mb-3">Fotos Profissionais</h3>
+                  <p className="text-white/80 mb-6 text-lg">
                     Antes e depois, procedimentos e imagens de alta qualidade
                   </p>
-                  <Badge className="bg-blue-500/20 text-blue-300 border-blue-500/30">
+                  <Badge className="bg-blue-500/20 text-blue-300 border-blue-500/30 text-lg px-4 py-2">
                     {contentCounts.photos}+ Fotos
                   </Badge>
                 </CardContent>
               </Card>
             </motion.div>
 
+            {/* Featured Art */}
             <motion.div
-              initial={{ opacity: 0, y: 40 }}
-              whileInView={{ opacity: 1, y: 0 }}
+              initial={{ opacity: 0, x: 60 }}
+              whileInView={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8, delay: 0.3 }}
               viewport={{ once: true }}
+              whileHover={{ y: -15, scale: 1.02 }}
             >
-              <Card className="bg-gradient-to-br from-emerald-500/20 to-green-500/20 border-emerald-200/20 overflow-hidden group">
-                <div className="aspect-video bg-gradient-to-br from-emerald-500/30 to-green-500/30 flex items-center justify-center">
-                  <Sparkles className="h-16 w-16 text-white group-hover:scale-110 transition-transform duration-300" />
+              <Card className="bg-gradient-to-br from-emerald-500/10 to-green-500/10 border-emerald-300/30 overflow-hidden group backdrop-blur-xl">
+                <div className="aspect-video relative overflow-hidden">
+                  {featuredContent.art ? (
+                    <>
+                      <img 
+                        src={featuredContent.art.thumbnail_url} 
+                        alt={featuredContent.art.title}
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                      <motion.div 
+                        className="absolute top-4 right-4"
+                        whileHover={{ scale: 1.2 }}
+                      >
+                        <Palette className="h-8 w-8 text-white" />
+                      </motion.div>
+                    </>
+                  ) : (
+                    <div className="bg-gradient-to-br from-emerald-500/30 to-green-500/30 flex items-center justify-center h-full">
+                      <Palette className="h-16 w-16 text-white" />
+                    </div>
+                  )}
                 </div>
-                <CardContent className="p-6">
-                  <h3 className="text-xl font-bold text-white mb-2">Artes & Templates</h3>
-                  <p className="text-white/70 mb-4">
+                <CardContent className="p-8">
+                  <h3 className="text-2xl font-bold text-white mb-3">Artes & Templates</h3>
+                  <p className="text-white/80 mb-6 text-lg">
                     Posts para redes sociais, banners e materiais gráficos prontos
                   </p>
-                  <Badge className="bg-emerald-500/20 text-emerald-300 border-emerald-500/30">
+                  <Badge className="bg-emerald-500/20 text-emerald-300 border-emerald-500/30 text-lg px-4 py-2">
                     {contentCounts.arts}+ Artes
                   </Badge>
                 </CardContent>
               </Card>
             </motion.div>
           </div>
-
-          {/* Content Preview Grid - Real Content */}
-          <motion.div
-            initial={{ opacity: 0, y: 40 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.4 }}
-            viewport={{ once: true }}
-            className="space-y-8"
-          >
-            {/* Videos Section */}
-            <div>
-              <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-                <Play className="h-5 w-5 text-pink-500" />
-                Vídeos Recentes
-              </h3>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {realVideos.map((video) => (
-                  <div
-                    key={video.id}
-                    className="group relative aspect-video bg-gradient-to-br from-aurora-electric-purple/20 to-aurora-neon-blue/20 rounded-xl border border-aurora-electric-purple/20 overflow-hidden hover:border-aurora-electric-purple/40 transition-all duration-300"
-                  >
-                    <img 
-                      src={video.thumbnail_url} 
-                      alt={video.titulo}
-                      className="w-full h-full object-cover"
-                    />
-                    <div className="absolute inset-0 bg-black/30 group-hover:bg-black/20 transition-all duration-300 flex items-center justify-center">
-                      <Play className="h-8 w-8 text-white group-hover:scale-110 transition-transform duration-300" />
-                    </div>
-                    <div className="absolute bottom-2 left-2 right-2">
-                      <div className="text-xs text-white/90 font-medium truncate bg-black/50 px-2 py-1 rounded">
-                        {video.titulo}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Photos Section */}
-            <div>
-              <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-                <Eye className="h-5 w-5 text-blue-500" />
-                Fotos Recentes
-              </h3>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {realPhotos.map((photo) => (
-                  <div
-                    key={photo.id}
-                    className="group relative aspect-square bg-gradient-to-br from-aurora-electric-purple/20 to-aurora-neon-blue/20 rounded-xl border border-aurora-electric-purple/20 overflow-hidden hover:border-aurora-electric-purple/40 transition-all duration-300"
-                  >
-                    <img 
-                      src={photo.thumbnail_url || photo.image_url} 
-                      alt={photo.title}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                    />
-                    <div className="absolute bottom-2 left-2 right-2">
-                      <div className="text-xs text-white/90 font-medium truncate bg-black/50 px-2 py-1 rounded">
-                        {photo.title}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Arts Section */}
-            <div>
-              <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-                <Download className="h-5 w-5 text-emerald-500" />
-                Artes Recentes
-              </h3>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {realArts.map((art) => (
-                  <div
-                    key={art.id}
-                    className="group relative aspect-square bg-gradient-to-br from-aurora-electric-purple/20 to-aurora-neon-blue/20 rounded-xl border border-aurora-electric-purple/20 overflow-hidden hover:border-aurora-electric-purple/40 transition-all duration-300"
-                  >
-                    <img 
-                      src={art.thumbnail_url || art.file_url} 
-                      alt={art.title}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                    />
-                    <div className="absolute bottom-2 left-2 right-2">
-                      <div className="text-xs text-white/90 font-medium truncate bg-black/50 px-2 py-1 rounded">
-                        {art.title}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.6 }}
-            viewport={{ once: true }}
-            className="text-center mt-12"
-          >
-            <Button 
-              size="lg"
-              className="bg-gradient-to-r from-aurora-electric-purple to-aurora-neon-blue hover:shadow-xl hover:shadow-aurora-electric-purple/30 text-lg px-8 py-6"
-            >
-              <ArrowRight className="mr-2 h-5 w-5" />
-              Explorar Biblioteca Completa
-            </Button>
-          </motion.div>
-        </div>
+        </motion.div>
       </section>
 
-      {/* Results Section */}
-      <section ref={statsRef} className="relative z-10 py-32 px-6">
-        <div className="max-w-6xl mx-auto">
+      {/* Final CTA Section with Parallax */}
+      <section className="relative z-10 py-40 px-6">
+        <motion.div 
+          style={{ 
+            y: useTransform(scrollYProgress, [0.7, 1], [100, -100]),
+            scale: useTransform(scrollYProgress, [0.7, 1], [0.9, 1.1])
+          }}
+          className="max-w-5xl mx-auto text-center"
+        >
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={statsInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.8 }}
-            className="text-center mb-16"
+            initial={{ opacity: 0, y: 60 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1.2 }}
+            viewport={{ once: true }}
           >
-            <h2 className="text-4xl md:text-6xl font-bold text-white mb-6">
-              🏆 Resultados
+            <h2 className="text-6xl md:text-8xl font-bold text-white mb-8 leading-tight">
+              Pronto para Revolucionar
               <br />
-              <span className="aurora-text-gradient">Comprovados</span>
+              <span className="aurora-text-gradient">Sua Clínica?</span>
             </h2>
-            <p className="text-xl text-white/70 max-w-3xl mx-auto">
-              Nossos clientes experimentam transformações reais em seus negócios em questão de semanas.
+            
+            <p className="text-2xl text-white/90 mb-16 max-w-4xl mx-auto leading-relaxed">
+              Junte-se a centenas de clínicas que já transformaram seus resultados com a Fluida. 
+              Comece gratuitamente hoje mesmo!
             </p>
-          </motion.div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {stats.map((stat, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 40 }}
-                animate={statsInView ? { opacity: 1, y: 0 } : {}}
-                transition={{ duration: 0.8, delay: index * 0.1 }}
+            <motion.div 
+              className="flex flex-col sm:flex-row gap-8 justify-center items-center mb-20"
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.4 }}
+              viewport={{ once: true }}
+            >
+              <Button 
+                size="lg" 
+                onClick={handleGetStarted}
+                className="bg-gradient-to-r from-aurora-electric-purple to-aurora-neon-blue hover:shadow-2xl hover:shadow-aurora-electric-purple/40 text-xl px-12 py-8 rounded-2xl group"
               >
-                <Card className="bg-aurora-space-black/40 border-aurora-electric-purple/30 text-center p-8 hover:border-aurora-electric-purple/60 transition-all duration-300 group">
-                  <CardContent className="p-0">
-                    <div className="mb-4">
-                      <stat.icon className="h-12 w-12 text-aurora-electric-purple mx-auto group-hover:scale-110 transition-transform duration-300" />
-                    </div>
-                    <div className="text-4xl md:text-5xl font-bold text-white mb-2 group-hover:text-aurora-electric-purple transition-colors">
-                      {stat.value}
-                    </div>
-                    <div className="text-white/70">{stat.label}</div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="relative z-10 py-32 px-6">
-        <div className="max-w-4xl mx-auto text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            viewport={{ once: true }}
-          >
-            <div className="bg-gradient-to-r from-aurora-electric-purple/20 via-aurora-neon-blue/20 to-aurora-emerald/20 rounded-3xl p-12 border border-aurora-electric-purple/30">
-              <Trophy className="h-16 w-16 text-aurora-electric-purple mx-auto mb-6" />
+                <Rocket className="mr-3 h-6 w-6 group-hover:rotate-12 transition-transform duration-300" />
+                Começar Agora
+              </Button>
               
-              <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
-                Pronto para Transformar
-                <br />
-                <span className="aurora-text-gradient">Sua Clínica?</span>
-              </h2>
-              
-              <p className="text-xl text-white/70 mb-8 max-w-2xl mx-auto">
-                Junte-se às centenas de clínicas que já descobriram o poder da Fluida. 
-                Comece gratuitamente e veja os resultados em 30 dias.
-              </p>
+              <Button 
+                size="lg" 
+                variant="outline"
+                onClick={handleLogin}
+                className="border-2 border-aurora-electric-purple/40 text-white hover:bg-aurora-electric-purple/20 text-xl px-12 py-8 rounded-2xl backdrop-blur-sm"
+              >
+                Já tenho conta
+              </Button>
+            </motion.div>
 
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button 
-                  size="lg" 
-                  onClick={handleGetStarted}
-                  className="bg-gradient-to-r from-aurora-electric-purple to-aurora-neon-blue hover:shadow-xl hover:shadow-aurora-electric-purple/30 text-lg px-8 py-6"
-                >
-                  <Rocket className="mr-2 h-5 w-5" />
-                  Começar Gratuitamente
-                </Button>
-                
-                <Button 
-                  size="lg" 
-                  variant="outline"
-                  onClick={() => navigate('/institucional/contato')}
-                  className="border-aurora-electric-purple/30 text-white hover:bg-aurora-electric-purple/20 text-lg px-8 py-6"
-                >
-                  Falar com Especialista
-                </Button>
+            {/* Enhanced Trust Indicators */}
+            <motion.div 
+              className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto"
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.6 }}
+              viewport={{ once: true }}
+            >
+              <div className="flex flex-col items-center gap-3 p-6 rounded-2xl bg-aurora-space-black/40 border border-aurora-electric-purple/20 backdrop-blur-sm">
+                <div className="w-12 h-12 bg-gradient-to-br from-aurora-electric-purple/20 to-aurora-neon-blue/20 rounded-xl flex items-center justify-center">
+                  <Trophy className="h-6 w-6 text-aurora-electric-purple" />
+                </div>
+                <span className="text-white font-semibold">Conformidade CFM</span>
+                <span className="text-white/70 text-sm text-center">Todo conteúdo segue diretrizes médicas</span>
               </div>
-            </div>
+              
+              <div className="flex flex-col items-center gap-3 p-6 rounded-2xl bg-aurora-space-black/40 border border-aurora-electric-purple/20 backdrop-blur-sm">
+                <div className="w-12 h-12 bg-gradient-to-br from-aurora-electric-purple/20 to-aurora-neon-blue/20 rounded-xl flex items-center justify-center">
+                  <Users className="h-6 w-6 text-aurora-electric-purple" />
+                </div>
+                <span className="text-white font-semibold">Suporte 24/7</span>
+                <span className="text-white/70 text-sm text-center">Atendimento especializado sempre disponível</span>
+              </div>
+              
+              <div className="flex flex-col items-center gap-3 p-6 rounded-2xl bg-aurora-space-black/40 border border-aurora-electric-purple/20 backdrop-blur-sm">
+                <div className="w-12 h-12 bg-gradient-to-br from-aurora-electric-purple/20 to-aurora-neon-blue/20 rounded-xl flex items-center justify-center">
+                  <Star className="h-6 w-6 text-aurora-electric-purple" />
+                </div>
+                <span className="text-white font-semibold">98% Satisfação</span>
+                <span className="text-white/70 text-sm text-center">Aprovado pelos usuários</span>
+              </div>
+            </motion.div>
           </motion.div>
-        </div>
+        </motion.div>
       </section>
 
       {/* Footer */}
-      <footer className="relative z-10 border-t border-aurora-electric-purple/20 py-8 px-6">
+      <footer className="relative z-10 border-t border-aurora-electric-purple/20 py-16 px-6 bg-aurora-space-black/80 backdrop-blur-xl">
         <div className="max-w-6xl mx-auto text-center">
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <div className="w-8 h-8 bg-gradient-to-br from-aurora-electric-purple to-aurora-neon-blue rounded-lg flex items-center justify-center">
-              <Sparkles className="h-5 w-5 text-white" />
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            viewport={{ once: true }}
+          >
+            <div className="flex items-center justify-center gap-3 mb-8">
+              <div className="w-10 h-10 bg-gradient-to-br from-aurora-electric-purple to-aurora-neon-blue rounded-xl flex items-center justify-center">
+                <Sparkles className="h-6 w-6 text-white" />
+              </div>
+              <span className="text-2xl font-bold text-white">Fluida</span>
             </div>
-            <span className="text-xl font-bold text-white">Fluida</span>
-          </div>
-          <p className="text-white/60 text-sm">
-            © 2024 Fluida. Transformando o marketing médico através da inteligência artificial.
-          </p>
+            
+            <p className="text-white/80 mb-6 text-lg">
+              A primeira plataforma de marketing médico verdadeiramente inteligente
+            </p>
+            
+            <p className="text-white/50 text-sm">
+              © 2024 Fluida. Todos os direitos reservados.
+            </p>
+          </motion.div>
         </div>
       </footer>
     </div>
