@@ -459,7 +459,7 @@ const BeforeAfterBuilder: React.FC = () => {
                         <img
                           src={beforeImage}
                           alt="Antes"
-                          className="w-full h-full object-cover cursor-move select-none"
+                          className="w-full h-full object-contain cursor-move select-none"
                           style={{
                             transform: `scale(${beforeImageScale[0] / 100}) translate(${beforeImageX[0]}px, ${beforeImageY[0]}px) rotate(${beforeImageRotation[0]}deg)`,
                             transition: isDragging === 'before' ? 'none' : 'transform 0.2s ease'
@@ -486,7 +486,7 @@ const BeforeAfterBuilder: React.FC = () => {
                         <img
                           src={afterImage}
                           alt="Depois"
-                          className="w-full h-full object-cover cursor-move select-none"
+                          className="w-full h-full object-contain cursor-move select-none"
                           style={{
                             transform: `scale(${afterImageScale[0] / 100}) translate(${afterImageX[0]}px, ${afterImageY[0]}px) rotate(${afterImageRotation[0]}deg)`,
                             transition: isDragging === 'after' ? 'none' : 'transform 0.2s ease'
