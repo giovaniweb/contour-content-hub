@@ -119,7 +119,7 @@ const LandingPage = () => {
   };
 
   const handleLogin = () => {
-    navigate('/');
+    navigate('/login');
   };
 
   const stats = [
