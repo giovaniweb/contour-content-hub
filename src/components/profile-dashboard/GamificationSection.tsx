@@ -29,11 +29,11 @@ const GamificationSection: React.FC = () => {
   // Fallback se não há dados
   if (!userProgress) {
     return (
-      <Card className="bg-gradient-to-br from-purple-50 to-blue-50 border-purple-200">
+      <Card className="aurora-glass border-white/10">
         <CardHeader>
           <CardTitle className="flex items-center gap-3">
             <Trophy className="h-5 w-5 text-amber-600" />
-            <span className="bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+            <span className="text-white">
               Meu Progresso
             </span>
           </CardTitle>
@@ -82,11 +82,11 @@ const GamificationSection: React.FC = () => {
   };
 
   return (
-    <Card className="bg-gradient-to-br from-purple-50 to-blue-50 border-purple-200">
+    <Card className="aurora-glass border-white/10">
       <CardHeader>
         <CardTitle className="flex items-center gap-3">
           {getLevelIcon(userProgress.nivel)}
-          <span className="bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+          <span className="text-white">
             Meu Progresso
           </span>
         </CardTitle>
@@ -136,12 +136,12 @@ const GamificationSection: React.FC = () => {
         )}
 
         {/* Dicas para Ganhar XP */}
-        <div className="bg-white/50 rounded-lg p-4 space-y-2">
+        <div className="bg-white/10 rounded-lg p-4 space-y-2">
           <h4 className="font-semibold text-sm flex items-center gap-2">
             <Zap className="h-4 w-4 text-yellow-500" />
             Como Ganhar XP
           </h4>
-          <div className="space-y-1 text-sm text-muted-foreground">
+          <div className="space-y-1 text-sm text-white/70">
             <p>• Assistir vídeos: +10 XP</p>
             <p>• Fazer downloads: +5 XP</p>
             <p>• Upload de fotos: +25 XP</p>
