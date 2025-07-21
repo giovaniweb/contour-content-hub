@@ -24,15 +24,27 @@ const BeforeAfterManager: React.FC = () => {
     >
       <Tabs defaultValue="gallery" className="w-full">
         <TabsList className="grid w-full grid-cols-3 bg-slate-800/50">
-          <TabsTrigger value="gallery" className="flex items-center gap-2">
+          <TabsTrigger 
+            value="gallery" 
+            className="flex items-center gap-2"
+            onClick={() => console.log('🖱️ Clicou na aba Galeria')}
+          >
             <ImageIcon className="h-4 w-4" />
             Galeria
           </TabsTrigger>
-          <TabsTrigger value="builder" className="flex items-center gap-2">
+          <TabsTrigger 
+            value="builder" 
+            className="flex items-center gap-2"
+            onClick={() => console.log('🖱️ Clicou na aba Montador')}
+          >
             <Layers className="h-4 w-4" />
             Montador
           </TabsTrigger>
-          <TabsTrigger value="upload" className="flex items-center gap-2">
+          <TabsTrigger 
+            value="upload" 
+            className="flex items-center gap-2"
+            onClick={() => console.log('🖱️ Clicou na aba Upload')}
+          >
             <Upload className="h-4 w-4" />
             Upload
           </TabsTrigger>

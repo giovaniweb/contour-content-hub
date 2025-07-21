@@ -81,6 +81,7 @@ const BeforeAfterUploader: React.FC<BeforeAfterUploaderProps> = ({ onUploadSucce
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
+    console.log('🚀 Iniciando submit do formulário...');
     e.preventDefault();
     
     if (!beforeImage || !afterImage) {
@@ -219,7 +220,10 @@ const BeforeAfterUploader: React.FC<BeforeAfterUploaderProps> = ({ onUploadSucce
                     <Label className="text-white font-medium">Foto ANTES</Label>
                     <div
                       className="border-2 border-dashed border-aurora-electric-purple/50 rounded-lg p-6 text-center hover:border-aurora-electric-purple/70 transition-colors cursor-pointer"
-                      onClick={() => beforeInputRef.current?.click()}
+                      onClick={() => {
+                        console.log('🖱️ Clicou para selecionar foto ANTES');
+                        beforeInputRef.current?.click();
+                      }}
                     >
                       {beforePreview ? (
                         <div className="relative">
@@ -265,7 +269,10 @@ const BeforeAfterUploader: React.FC<BeforeAfterUploaderProps> = ({ onUploadSucce
                     <Label className="text-white font-medium">Foto DEPOIS</Label>
                     <div
                       className="border-2 border-dashed border-aurora-electric-purple/50 rounded-lg p-6 text-center hover:border-aurora-electric-purple/70 transition-colors cursor-pointer"
-                      onClick={() => afterInputRef.current?.click()}
+                      onClick={() => {
+                        console.log('🖱️ Clicou para selecionar foto DEPOIS');
+                        afterInputRef.current?.click();
+                      }}
                     >
                       {afterPreview ? (
                         <div className="relative">
