@@ -244,7 +244,7 @@ const LandingPage = () => {
             </motion.div>
             
             <motion.h1 
-              className="text-7xl md:text-9xl font-bold mb-8 text-white leading-[0.9]"
+              className="text-4xl md:text-6xl lg:text-7xl font-bold mb-8 text-white leading-[0.9] px-4 md:px-8"
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 1, delay: 0.4 }}
@@ -273,7 +273,7 @@ const LandingPage = () => {
             </motion.h1>
             
             <motion.p 
-              className="text-2xl md:text-3xl text-white/90 max-w-5xl mx-auto leading-relaxed mb-12"
+              className="text-lg md:text-xl lg:text-2xl text-white/90 max-w-5xl mx-auto leading-relaxed mb-12 px-4 md:px-8"
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 1, delay: 0.8 }}
@@ -357,12 +357,12 @@ const LandingPage = () => {
             viewport={{ once: true, margin: "-100px" }}
             className="text-center mb-20"
           >
-            <h2 className="text-6xl md:text-8xl font-bold text-white mb-8 leading-tight">
+            <h2 className="text-3xl md:text-5xl lg:text-6xl font-bold text-white mb-8 leading-tight px-4 md:px-8">
               🧠 3 Inteligências
               <br />
               <span className="aurora-text-gradient">Especializadas</span>
             </h2>
-            <p className="text-2xl text-white/80 max-w-4xl mx-auto leading-relaxed">
+            <p className="text-lg md:text-xl lg:text-2xl text-white/80 max-w-4xl mx-auto leading-relaxed px-4 md:px-8">
               Cada IA foi treinada especificamente para uma função, garantindo expertise máxima em cada área do marketing médico.
             </p>
           </motion.div>
@@ -422,12 +422,12 @@ const LandingPage = () => {
             viewport={{ once: true }}
             className="text-center mb-20"
           >
-            <h2 className="text-6xl md:text-8xl font-bold text-white mb-8">
+            <h2 className="text-3xl md:text-5xl lg:text-6xl font-bold text-white mb-8 px-4 md:px-8">
               📸 Biblioteca de
               <br />
               <span className="aurora-text-gradient">Conteúdo</span>
             </h2>
-            <p className="text-2xl text-white/80 max-w-4xl mx-auto leading-relaxed">
+            <p className="text-lg md:text-xl lg:text-2xl text-white/80 max-w-4xl mx-auto leading-relaxed px-4 md:px-8">
               Acesse nossa vasta coleção de fotos, vídeos e artes prontas para download e uso em suas campanhas.
             </p>
           </motion.div>
