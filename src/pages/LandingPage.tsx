@@ -142,15 +142,15 @@ const LandingPage = () => {
               Revolução no Marketing Médico
             </Badge>
             
-            <h1 className="text-6xl md:text-8xl font-bold mb-6 aurora-text-gradient leading-tight">
+            <h1 className="text-6xl md:text-8xl font-bold mb-6 text-white leading-tight">
               A Primeira Plataforma
               <br />
-              <span className="text-white">Verdadeiramente</span>
+              <span className="aurora-text-gradient">Verdadeiramente</span>
               <br />
-              Inteligente
+              <span className="aurora-text-gradient">Inteligente</span>
             </h1>
             
-            <p className="text-xl md:text-2xl text-white/80 max-w-4xl mx-auto leading-relaxed mb-8">
+            <p className="text-xl md:text-2xl text-white/90 max-w-4xl mx-auto leading-relaxed mb-8">
               Transforme sua clínica de estética em uma <span className="text-aurora-electric-purple font-semibold">máquina de conversão</span> 
               através da união perfeita entre ciência, tecnologia e criatividade.
             </p>
@@ -185,10 +185,10 @@ const LandingPage = () => {
           >
             {stats.map((stat, index) => (
               <div key={index} className="text-center">
-                <div className="text-3xl md:text-4xl font-bold text-aurora-electric-purple mb-2">
+                <div className="text-3xl md:text-4xl font-bold text-white mb-2">
                   {stat.value}
                 </div>
-                <div className="text-white/70 text-sm md:text-base">{stat.label}</div>
+                <div className="text-white/80 text-sm md:text-base font-medium">{stat.label}</div>
               </div>
             ))}
           </motion.div>
@@ -240,6 +240,135 @@ const LandingPage = () => {
               </motion.div>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* Gallery Section - Photos and Videos */}
+      <section className="relative z-10 py-32 px-6 bg-aurora-space-black/40">
+        <div className="max-w-6xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            viewport={{ once: true }}
+            className="text-center mb-16"
+          >
+            <h2 className="text-4xl md:text-6xl font-bold text-white mb-6">
+              📸 Biblioteca de
+              <br />
+              <span className="aurora-text-gradient">Conteúdo</span>
+            </h2>
+            <p className="text-xl text-white/70 max-w-3xl mx-auto">
+              Acesse nossa vasta coleção de fotos, vídeos e artes prontas para download e uso em suas campanhas.
+            </p>
+          </motion.div>
+
+          <div className="grid md:grid-cols-3 gap-8 mb-12">
+            <motion.div
+              initial={{ opacity: 0, y: 40 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.1 }}
+              viewport={{ once: true }}
+            >
+              <Card className="bg-gradient-to-br from-pink-500/20 to-purple-500/20 border-pink-200/20 overflow-hidden group">
+                <div className="aspect-video bg-gradient-to-br from-pink-500/30 to-purple-500/30 flex items-center justify-center">
+                  <Play className="h-16 w-16 text-white group-hover:scale-110 transition-transform duration-300" />
+                </div>
+                <CardContent className="p-6">
+                  <h3 className="text-xl font-bold text-white mb-2">Vídeos Exclusivos</h3>
+                  <p className="text-white/70 mb-4">
+                    Demonstrações de equipamentos, depoimentos e tutoriais profissionais
+                  </p>
+                  <Badge className="bg-pink-500/20 text-pink-300 border-pink-500/30">
+                    50+ Vídeos
+                  </Badge>
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 40 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.2 }}
+              viewport={{ once: true }}
+            >
+              <Card className="bg-gradient-to-br from-blue-500/20 to-cyan-500/20 border-blue-200/20 overflow-hidden group">
+                <div className="aspect-video bg-gradient-to-br from-blue-500/30 to-cyan-500/30 flex items-center justify-center">
+                  <Users className="h-16 w-16 text-white group-hover:scale-110 transition-transform duration-300" />
+                </div>
+                <CardContent className="p-6">
+                  <h3 className="text-xl font-bold text-white mb-2">Fotos Profissionais</h3>
+                  <p className="text-white/70 mb-4">
+                    Antes e depois, procedimentos e imagens de alta qualidade
+                  </p>
+                  <Badge className="bg-blue-500/20 text-blue-300 border-blue-500/30">
+                    200+ Fotos
+                  </Badge>
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 40 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.3 }}
+              viewport={{ once: true }}
+            >
+              <Card className="bg-gradient-to-br from-emerald-500/20 to-green-500/20 border-emerald-200/20 overflow-hidden group">
+                <div className="aspect-video bg-gradient-to-br from-emerald-500/30 to-green-500/30 flex items-center justify-center">
+                  <Sparkles className="h-16 w-16 text-white group-hover:scale-110 transition-transform duration-300" />
+                </div>
+                <CardContent className="p-6">
+                  <h3 className="text-xl font-bold text-white mb-2">Artes & Templates</h3>
+                  <p className="text-white/70 mb-4">
+                    Posts para redes sociais, banners e materiais gráficos prontos
+                  </p>
+                  <Badge className="bg-emerald-500/20 text-emerald-300 border-emerald-500/30">
+                    100+ Artes
+                  </Badge>
+                </CardContent>
+              </Card>
+            </motion.div>
+          </div>
+
+          {/* Content Preview Grid */}
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.4 }}
+            viewport={{ once: true }}
+            className="grid grid-cols-2 md:grid-cols-4 gap-4"
+          >
+            {[1, 2, 3, 4, 5, 6, 7, 8].map((item) => (
+              <div
+                key={item}
+                className="aspect-square bg-gradient-to-br from-aurora-electric-purple/20 to-aurora-neon-blue/20 rounded-xl border border-aurora-electric-purple/20 flex items-center justify-center group hover:border-aurora-electric-purple/40 transition-all duration-300"
+              >
+                <div className="text-center">
+                  <div className="w-8 h-8 bg-aurora-electric-purple/30 rounded-lg flex items-center justify-center mx-auto mb-2 group-hover:scale-110 transition-transform duration-300">
+                    <Zap className="h-4 w-4 text-aurora-electric-purple" />
+                  </div>
+                  <div className="text-xs text-white/60">Conteúdo {item}</div>
+                </div>
+              </div>
+            ))}
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.6 }}
+            viewport={{ once: true }}
+            className="text-center mt-12"
+          >
+            <Button 
+              size="lg"
+              className="bg-gradient-to-r from-aurora-electric-purple to-aurora-neon-blue hover:shadow-xl hover:shadow-aurora-electric-purple/30 text-lg px-8 py-6"
+            >
+              <ArrowRight className="mr-2 h-5 w-5" />
+              Explorar Biblioteca Completa
+            </Button>
+          </motion.div>
         </div>
       </section>
 
