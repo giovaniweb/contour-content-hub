@@ -347,46 +347,234 @@ const BeforeAfterBuilder: React.FC = () => {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="max-w-7xl mx-auto space-y-6"
+      className="max-w-6xl mx-auto p-6"
     >
-      <Card className="aurora-glass border-aurora-electric-purple/30">
-        <CardHeader>
-          <CardTitle className="text-white flex items-center gap-3">
-            <Layers className="h-6 w-6 text-aurora-electric-purple" />
-            🎨 Montador Antes & Depois
-          </CardTitle>
-        </CardHeader>
-        
-        <CardContent>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Controls Panel */}
-            <div className="lg:col-span-1 space-y-6">
-              <Tabs defaultValue="images" className="w-full">
-                <TabsList className="grid w-full grid-cols-4 bg-slate-800/50">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Preview Area */}
+        <div className="order-2 lg:order-1">
+          <Card>
+            <CardHeader>
+              <CardTitle>Resultado Final</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div
+                ref={canvasRef}
+                className="bg-white p-8 rounded-lg shadow-lg"
+                style={{ 
+                  width: '400px', 
+                  height: '600px',
+                  backgroundColor: backgroundColor 
+                }}
+              >
+                {/* Título e Descrição */}
+                {showTitle && (
+                  <div className="text-center mb-8">
+                    <h1 className="text-2xl font-bold text-gray-800 mb-2">
+                      {title || 'TITULO'}
+                    </h1>
+                    <p className="text-gray-600">
+                      {description || 'DESCRICAO'}
+                    </p>
+                  </div>
+                )}
+
+                {/* Imagens Antes e Depois */}
+                <div className="flex gap-4 mb-8">
+                  {/* Imagem Antes */}
+                  <div className="flex-1">
+                    <div 
+                      className="relative w-full h-64 bg-gray-100 rounded-2xl overflow-hidden"
+                      style={{ aspectRatio: '3/4' }}
+                    >
+                      {beforeImage && (
+                        <img
+                          src={beforeImage}
+                          alt="Antes"
+                          className="w-full h-full object-cover"
+                          style={{
+                            transform: `scale(${beforeImageScale[0] / 100}) translate(${beforeImageX[0]}px, ${beforeImageY[0]}px) rotate(${beforeImageRotation[0]}deg)`,
+                          }}
+                        />
+                      )}
+                    </div>
+                    {showLabels && (
+                      <p className="text-center text-gray-700 font-semibold mt-2" style={{ fontSize: `${fontSize[0]}px`, color: labelColor }}>
+                        {beforeLabel}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Imagem Depois */}
+                  <div className="flex-1">
+                    <div 
+                      className="relative w-full h-64 bg-gray-100 rounded-2xl overflow-hidden"
+                      style={{ aspectRatio: '3/4' }}
+                    >
+                      {afterImage && (
+                        <img
+                          src={afterImage}
+                          alt="Depois"
+                          className="w-full h-full object-cover"
+                          style={{
+                            transform: `scale(${afterImageScale[0] / 100}) translate(${afterImageX[0]}px, ${afterImageY[0]}px) rotate(${afterImageRotation[0]}deg)`,
+                          }}
+                        />
+                      )}
+                    </div>
+                    {showLabels && (
+                      <p className="text-center text-gray-700 font-semibold mt-2" style={{ fontSize: `${fontSize[0]}px`, color: labelColor }}>
+                        {afterLabel}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Logo */}
+                {showLogo && (
+                  <div className="text-center">
+                    {logoImage ? (
+                      <img
+                        src={logoImage}
+                        alt="Logo"
+                        className="mx-auto"
+                        style={{
+                          width: `${logoSize[0]}px`,
+                          transform: logoPosition === 'bottom-right' ? 'translate(50px, 0)' : 
+                                   logoPosition === 'bottom-left' ? 'translate(-50px, 0)' :
+                                   logoPosition === 'top-right' ? 'translate(50px, -200px)' :
+                                   logoPosition === 'top-left' ? 'translate(-50px, -200px)' : 'none'
+                        }}
+                      />
+                    ) : (
+                      <div className="text-xl font-bold text-gray-400 border-2 border-dashed border-gray-300 p-4 rounded">
+                        [LOGO]
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Controls Area */}
+        <div className="order-1 lg:order-2">
+          <Card>
+            <CardHeader>
+              <CardTitle>Configurações</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Tabs defaultValue="content" className="w-full">
+                <TabsList className="grid w-full grid-cols-4">
+                  <TabsTrigger value="content">Conteúdo</TabsTrigger>
                   <TabsTrigger value="images">Imagens</TabsTrigger>
                   <TabsTrigger value="position">Posição</TabsTrigger>
-                  <TabsTrigger value="style">Estilo</TabsTrigger>
                   <TabsTrigger value="export">Exportar</TabsTrigger>
                 </TabsList>
 
-                <TabsContent value="images" className="space-y-4">
-                  {/* Image Upload */}
-                  <div className="space-y-4">
-                    <div>
-                      <Label className="text-white mb-2">Imagem ANTES</Label>
-                      <div
-                        className="border-2 border-dashed border-aurora-electric-purple/50 rounded-lg p-4 text-center hover:border-aurora-electric-purple/70 transition-colors cursor-pointer"
-                        onClick={() => beforeInputRef.current?.click()}
-                      >
-                        {beforeImage ? (
-                          <img src={beforeImage} alt="Antes" className="w-full h-24 object-cover rounded" />
-                        ) : (
-                          <div className="space-y-2">
-                            <Upload className="h-8 w-8 text-aurora-electric-purple mx-auto" />
-                            <p className="text-white text-sm">Clique para adicionar</p>
-                          </div>
-                        )}
+                <TabsContent value="content" className="space-y-4">
+                  <div className="flex items-center space-x-2">
+                    <Switch
+                      id="show-title"
+                      checked={showTitle}
+                      onCheckedChange={setShowTitle}
+                    />
+                    <Label htmlFor="show-title">Mostrar título</Label>
+                  </div>
+                  
+                  {showTitle && (
+                    <>
+                      <div>
+                        <Label htmlFor="title">Título</Label>
+                        <Input
+                          id="title"
+                          value={title}
+                          onChange={(e) => setTitle(e.target.value)}
+                          placeholder="Digite o título"
+                        />
                       </div>
+                      <div>
+                        <Label htmlFor="description">Descrição</Label>
+                        <Input
+                          id="description"
+                          value={description}
+                          onChange={(e) => setDescription(e.target.value)}
+                          placeholder="Digite a descrição"
+                        />
+                      </div>
+                    </>
+                  )}
+
+                  <div className="flex items-center space-x-2">
+                    <Switch
+                      id="show-labels"
+                      checked={showLabels}
+                      onCheckedChange={setShowLabels}
+                    />
+                    <Label htmlFor="show-labels">Mostrar labels</Label>
+                  </div>
+
+                  {showLabels && (
+                    <>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="before-label">Label Antes</Label>
+                          <Input
+                            id="before-label"
+                            value={beforeLabel}
+                            onChange={(e) => setBeforeLabel(e.target.value)}
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="after-label">Label Depois</Label>
+                          <Input
+                            id="after-label"
+                            value={afterLabel}
+                            onChange={(e) => setAfterLabel(e.target.value)}
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <Label>Tamanho da fonte: {fontSize[0]}px</Label>
+                        <Slider
+                          value={fontSize}
+                          onValueChange={setFontSize}
+                          min={12}
+                          max={32}
+                          step={1}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="label-color">Cor das labels</Label>
+                        <Input
+                          id="label-color"
+                          type="color"
+                          value={labelColor}
+                          onChange={(e) => setLabelColor(e.target.value)}
+                        />
+                      </div>
+                    </>
+                  )}
+
+                  <div>
+                    <Label htmlFor="bg-color">Cor de fundo</Label>
+                    <Input
+                      id="bg-color"
+                      type="color"
+                      value={backgroundColor}
+                      onChange={(e) => setBackgroundColor(e.target.value)}
+                    />
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="images" className="space-y-6">
+                  {/* Upload Antes */}
+                  <div className="space-y-2">
+                    <Label>Imagem "Antes"</Label>
+                    <div
+                      className="border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors border-gray-300 hover:border-gray-400"
+                      onClick={() => beforeInputRef.current?.click()}
+                    >
                       <input
                         ref={beforeInputRef}
                         type="file"
@@ -397,50 +585,27 @@ const BeforeAfterBuilder: React.FC = () => {
                           if (file) handleImageUpload(file, 'before');
                         }}
                       />
-                     </div>
+                      {beforeImage ? (
+                        <div className="space-y-2">
+                          <img src={beforeImage} alt="Before" className="w-20 h-20 object-cover mx-auto rounded" />
+                          <p className="text-sm text-gray-600">Imagem carregada</p>
+                        </div>
+                      ) : (
+                        <div className="space-y-2">
+                          <Upload className="w-8 h-8 mx-auto text-gray-400" />
+                          <p className="text-sm text-gray-600">Clique para fazer upload</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
 
-                     <div>
-                       <Label className="text-white mb-2">Logo da Clínica</Label>
-                       <div
-                         className="border-2 border-dashed border-green-500/50 rounded-lg p-4 text-center hover:border-green-500/70 transition-colors cursor-pointer"
-                         onClick={() => logoInputRef.current?.click()}
-                       >
-                         {logoImage ? (
-                           <img src={logoImage} alt="Logo" className="w-full h-24 object-contain rounded" />
-                         ) : (
-                           <div className="space-y-2">
-                             <Upload className="h-8 w-8 text-green-500 mx-auto" />
-                             <p className="text-white text-sm">Clique para adicionar logo</p>
-                           </div>
-                         )}
-                       </div>
-                       <input
-                         ref={logoInputRef}
-                         type="file"
-                         accept="image/*"
-                         className="hidden"
-                         onChange={(e) => {
-                           const file = e.target.files?.[0];
-                           if (file) handleImageUpload(file, 'logo');
-                         }}
-                       />
-                     </div>
-
-                     <div>
-                       <Label className="text-white mb-2">Imagem DEPOIS</Label>
-                      <div
-                        className="border-2 border-dashed border-aurora-electric-purple/50 rounded-lg p-4 text-center hover:border-aurora-electric-purple/70 transition-colors cursor-pointer"
-                        onClick={() => afterInputRef.current?.click()}
-                      >
-                        {afterImage ? (
-                          <img src={afterImage} alt="Depois" className="w-full h-24 object-cover rounded" />
-                        ) : (
-                          <div className="space-y-2">
-                            <Upload className="h-8 w-8 text-aurora-electric-purple mx-auto" />
-                            <p className="text-white text-sm">Clique para adicionar</p>
-                          </div>
-                        )}
-                      </div>
+                  {/* Upload Depois */}
+                  <div className="space-y-2">
+                    <Label>Imagem "Depois"</Label>
+                    <div
+                      className="border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors border-gray-300 hover:border-gray-400"
+                      onClick={() => afterInputRef.current?.click()}
+                    >
                       <input
                         ref={afterInputRef}
                         type="file"
@@ -451,108 +616,139 @@ const BeforeAfterBuilder: React.FC = () => {
                           if (file) handleImageUpload(file, 'after');
                         }}
                       />
+                      {afterImage ? (
+                        <div className="space-y-2">
+                          <img src={afterImage} alt="After" className="w-20 h-20 object-cover mx-auto rounded" />
+                          <p className="text-sm text-gray-600">Imagem carregada</p>
+                        </div>
+                      ) : (
+                        <div className="space-y-2">
+                          <Upload className="w-8 h-8 mx-auto text-gray-400" />
+                          <p className="text-sm text-gray-600">Clique para fazer upload</p>
+                        </div>
+                      )}
                     </div>
                   </div>
 
-                  {/* Template Selection */}
-                  <div>
-                    <Label className="text-white mb-2">Template</Label>
-                    <Select 
-                      value={template.id} 
-                      onValueChange={(value) => {
-                        const newTemplate = templates.find(t => t.id === value) || templates[0];
-                        setTemplate(newTemplate);
-                      }}
-                    >
-                      <SelectTrigger className="bg-slate-800/50 border-aurora-electric-purple/30 text-white">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {templates.map((tmpl) => (
-                          <SelectItem key={tmpl.id} value={tmpl.id}>
-                            {tmpl.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {/* Slider Controls */}
-                  {(template.layout === 'slider' || template.layout === 'overlay') && (
-                    <div>
-                      <Label className="text-white mb-2">
-                        {template.layout === 'slider' ? 'Posição do Slider' : 'Opacidade'}
-                      </Label>
-                      <Slider
-                        value={sliderPosition}
-                        onValueChange={setSliderPosition}
-                        max={100}
-                        step={1}
-                        className="w-full"
+                  {/* Upload Logo */}
+                  <div className="space-y-2">
+                    <div className="flex items-center space-x-2">
+                      <Switch
+                        id="show-logo"
+                        checked={showLogo}
+                        onCheckedChange={setShowLogo}
                       />
-                      <div className="text-xs text-gray-400 mt-1">{sliderPosition[0]}%</div>
+                      <Label htmlFor="show-logo">Mostrar logo</Label>
                     </div>
-                  )}
+
+                    {showLogo && (
+                      <>
+                        <Label>Logo da Clínica</Label>
+                        <div
+                          className="border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors border-gray-300 hover:border-gray-400"
+                          onClick={() => logoInputRef.current?.click()}
+                        >
+                          <input
+                            ref={logoInputRef}
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) handleImageUpload(file, 'logo');
+                            }}
+                          />
+                          {logoImage ? (
+                            <div className="space-y-2">
+                              <img src={logoImage} alt="Logo" className="w-20 h-20 object-contain mx-auto" />
+                              <p className="text-sm text-gray-600">Logo carregado</p>
+                            </div>
+                          ) : (
+                            <div className="space-y-2">
+                              <Upload className="w-8 h-8 mx-auto text-gray-400" />
+                              <p className="text-sm text-gray-600">Clique para fazer upload do logo</p>
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="space-y-4">
+                          <div>
+                            <Label>Tamanho do logo: {logoSize[0]}px</Label>
+                            <Slider
+                              value={logoSize}
+                              onValueChange={setLogoSize}
+                              min={40}
+                              max={120}
+                              step={5}
+                            />
+                          </div>
+                          <div>
+                            <Label>Posição do logo</Label>
+                            <Select value={logoPosition} onValueChange={setLogoPosition}>
+                              <SelectTrigger>
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="center">Centro</SelectItem>
+                                <SelectItem value="bottom-left">Inferior Esquerda</SelectItem>
+                                <SelectItem value="bottom-right">Inferior Direita</SelectItem>
+                                <SelectItem value="top-left">Superior Esquerda</SelectItem>
+                                <SelectItem value="top-right">Superior Direita</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+                      </>
+                    )}
+                  </div>
                 </TabsContent>
 
-                <TabsContent value="position" className="space-y-4">
+                <TabsContent value="position" className="space-y-6">
                   {beforeImage && (
-                    <div className="space-y-4 p-4 bg-slate-800/30 rounded-lg">
-                      <h4 className="text-white font-medium">Imagem ANTES</h4>
-                      
-                      <div>
-                        <Label className="text-white mb-2">Escala</Label>
+                    <div className="space-y-4 p-4 bg-gray-50 rounded-lg">
+                      <h4 className="font-medium">Ajustar Posição - Antes</h4>
+                      <div className="space-y-2">
+                        <Label>Escala: {beforeImageScale[0]}%</Label>
                         <Slider
                           value={beforeImageScale}
                           onValueChange={setBeforeImageScale}
                           min={50}
                           max={200}
                           step={5}
-                          className="w-full"
                         />
-                        <div className="text-xs text-gray-400 mt-1">{beforeImageScale[0]}%</div>
                       </div>
-
-                      <div className="grid grid-cols-2 gap-3">
-                        <div>
-                          <Label className="text-white mb-2">Posição X</Label>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label>Posição X: {beforeImageX[0]}</Label>
                           <Slider
                             value={beforeImageX}
                             onValueChange={setBeforeImageX}
                             min={-100}
                             max={100}
-                            step={5}
-                            className="w-full"
+                            step={1}
                           />
-                          <div className="text-xs text-gray-400 mt-1">{beforeImageX[0]}px</div>
                         </div>
-                        <div>
-                          <Label className="text-white mb-2">Posição Y</Label>
+                        <div className="space-y-2">
+                          <Label>Posição Y: {beforeImageY[0]}</Label>
                           <Slider
                             value={beforeImageY}
                             onValueChange={setBeforeImageY}
                             min={-100}
                             max={100}
-                            step={5}
-                            className="w-full"
+                            step={1}
                           />
-                          <div className="text-xs text-gray-400 mt-1">{beforeImageY[0]}px</div>
                         </div>
                       </div>
-
-                      <div>
-                        <Label className="text-white mb-2">Rotação</Label>
+                      <div className="space-y-2">
+                        <Label>Rotação: {beforeImageRotation[0]}°</Label>
                         <Slider
                           value={beforeImageRotation}
                           onValueChange={setBeforeImageRotation}
-                          min={-180}
-                          max={180}
-                          step={5}
-                          className="w-full"
+                          min={-45}
+                          max={45}
+                          step={1}
                         />
-                        <div className="text-xs text-gray-400 mt-1">{beforeImageRotation[0]}°</div>
                       </div>
-
                       <Button
                         variant="outline"
                         size="sm"
@@ -562,71 +758,58 @@ const BeforeAfterBuilder: React.FC = () => {
                           setBeforeImageY([0]);
                           setBeforeImageRotation([0]);
                         }}
-                        className="w-full text-xs"
                       >
-                        <RotateCcw className="h-3 w-3 mr-1" />
+                        <RotateCcw className="w-4 h-4 mr-2" />
                         Resetar Posição
                       </Button>
                     </div>
                   )}
 
                   {afterImage && (
-                    <div className="space-y-4 p-4 bg-slate-800/30 rounded-lg">
-                      <h4 className="text-white font-medium">Imagem DEPOIS</h4>
-                      
-                      <div>
-                        <Label className="text-white mb-2">Escala</Label>
+                    <div className="space-y-4 p-4 bg-gray-50 rounded-lg">
+                      <h4 className="font-medium">Ajustar Posição - Depois</h4>
+                      <div className="space-y-2">
+                        <Label>Escala: {afterImageScale[0]}%</Label>
                         <Slider
                           value={afterImageScale}
                           onValueChange={setAfterImageScale}
                           min={50}
                           max={200}
                           step={5}
-                          className="w-full"
                         />
-                        <div className="text-xs text-gray-400 mt-1">{afterImageScale[0]}%</div>
                       </div>
-
-                      <div className="grid grid-cols-2 gap-3">
-                        <div>
-                          <Label className="text-white mb-2">Posição X</Label>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label>Posição X: {afterImageX[0]}</Label>
                           <Slider
                             value={afterImageX}
                             onValueChange={setAfterImageX}
                             min={-100}
                             max={100}
-                            step={5}
-                            className="w-full"
+                            step={1}
                           />
-                          <div className="text-xs text-gray-400 mt-1">{afterImageX[0]}px</div>
                         </div>
-                        <div>
-                          <Label className="text-white mb-2">Posição Y</Label>
+                        <div className="space-y-2">
+                          <Label>Posição Y: {afterImageY[0]}</Label>
                           <Slider
                             value={afterImageY}
                             onValueChange={setAfterImageY}
                             min={-100}
                             max={100}
-                            step={5}
-                            className="w-full"
+                            step={1}
                           />
-                          <div className="text-xs text-gray-400 mt-1">{afterImageY[0]}px</div>
                         </div>
                       </div>
-
-                      <div>
-                        <Label className="text-white mb-2">Rotação</Label>
+                      <div className="space-y-2">
+                        <Label>Rotação: {afterImageRotation[0]}°</Label>
                         <Slider
                           value={afterImageRotation}
                           onValueChange={setAfterImageRotation}
-                          min={-180}
-                          max={180}
-                          step={5}
-                          className="w-full"
+                          min={-45}
+                          max={45}
+                          step={1}
                         />
-                        <div className="text-xs text-gray-400 mt-1">{afterImageRotation[0]}°</div>
                       </div>
-
                       <Button
                         variant="outline"
                         size="sm"
@@ -636,267 +819,34 @@ const BeforeAfterBuilder: React.FC = () => {
                           setAfterImageY([0]);
                           setAfterImageRotation([0]);
                         }}
-                        className="w-full text-xs"
                       >
-                        <RotateCcw className="h-3 w-3 mr-1" />
+                        <RotateCcw className="w-4 h-4 mr-2" />
                         Resetar Posição
                       </Button>
                     </div>
                   )}
-
-                  {!beforeImage && !afterImage && (
-                    <div className="text-center py-8 text-gray-400">
-                      Adicione as imagens primeiro para ajustar a posição
-                    </div>
-                  )}
-                </TabsContent>
-
-                <TabsContent value="style" className="space-y-4">
-                  {/* Title and Description */}
-                  <div>
-                    <Label className="text-white mb-2">Título</Label>
-                    <Input
-                      value={title}
-                      onChange={(e) => setTitle(e.target.value)}
-                      placeholder="Ex: Resultado do tratamento"
-                      className="bg-slate-800/50 border-aurora-electric-purple/30 text-white"
-                    />
-                  </div>
-
-                  <div>
-                    <Label className="text-white mb-2">Descrição</Label>
-                    <Textarea
-                      value={description}
-                      onChange={(e) => setDescription(e.target.value)}
-                      placeholder="Descrição do procedimento..."
-                      className="bg-slate-800/50 border-aurora-electric-purple/30 text-white"
-                      rows={3}
-                    />
-                  </div>
-
-                  {/* Labels */}
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <Label className="text-white mb-2">Label ANTES</Label>
-                      <Input
-                        value={beforeLabel}
-                        onChange={(e) => setBeforeLabel(e.target.value)}
-                        className="bg-slate-800/50 border-aurora-electric-purple/30 text-white"
-                      />
-                    </div>
-                    <div>
-                      <Label className="text-white mb-2">Label DEPOIS</Label>
-                      <Input
-                        value={afterLabel}
-                        onChange={(e) => setAfterLabel(e.target.value)}
-                        className="bg-slate-800/50 border-aurora-electric-purple/30 text-white"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Style Options */}
-                  <div className="flex items-center space-x-2">
-                    <Switch
-                      checked={showLabels}
-                      onCheckedChange={setShowLabels}
-                    />
-                    <Label className="text-white">Mostrar labels</Label>
-                  </div>
-
-                   <div className="flex items-center space-x-2">
-                     <Switch
-                       checked={showTitle}
-                       onCheckedChange={setShowTitle}
-                     />
-                     <Label className="text-white">Mostrar título</Label>
-                   </div>
-
-                   <div className="flex items-center space-x-2">
-                     <Switch
-                       checked={showLogo}
-                       onCheckedChange={setShowLogo}
-                     />
-                     <Label className="text-white">Mostrar logo</Label>
-                   </div>
-
-                   {showLogo && logoImage && (
-                     <>
-                       <div>
-                         <Label className="text-white mb-2">Tamanho do Logo</Label>
-                         <Slider
-                           value={logoSize}
-                           onValueChange={setLogoSize}
-                           min={30}
-                           max={120}
-                           step={5}
-                           className="w-full"
-                         />
-                         <div className="text-xs text-gray-400 mt-1">{logoSize[0]}px</div>
-                       </div>
-
-                       <div>
-                         <Label className="text-white mb-2">Posição do Logo</Label>
-                         <Select value={logoPosition} onValueChange={setLogoPosition}>
-                           <SelectTrigger className="bg-slate-800/50 border-aurora-electric-purple/30 text-white">
-                             <SelectValue />
-                           </SelectTrigger>
-                           <SelectContent>
-                             <SelectItem value="top-left">Superior Esquerda</SelectItem>
-                             <SelectItem value="top-right">Superior Direita</SelectItem>
-                             <SelectItem value="bottom-left">Inferior Esquerda</SelectItem>
-                             <SelectItem value="bottom-right">Inferior Direita</SelectItem>
-                             <SelectItem value="center">Centro</SelectItem>
-                           </SelectContent>
-                         </Select>
-                       </div>
-                     </>
-                   )}
-
-                  <div>
-                    <Label className="text-white mb-2">Tamanho da Fonte</Label>
-                    <Slider
-                      value={fontSize}
-                      onValueChange={setFontSize}
-                      min={12}
-                      max={48}
-                      step={2}
-                      className="w-full"
-                    />
-                    <div className="text-xs text-gray-400 mt-1">{fontSize[0]}px</div>
-                  </div>
-
-                  <div>
-                    <Label className="text-white mb-2">Cor das Labels</Label>
-                    <Input
-                      type="color"
-                      value={labelColor}
-                      onChange={(e) => setLabelColor(e.target.value)}
-                      className="w-full h-10"
-                    />
-                  </div>
-
-                  <div>
-                    <Label className="text-white mb-2">Cor de Fundo</Label>
-                    <Input
-                      type="color"
-                      value={backgroundColor}
-                      onChange={(e) => setBackgroundColor(e.target.value)}
-                      className="w-full h-10"
-                    />
-                  </div>
                 </TabsContent>
 
                 <TabsContent value="export" className="space-y-4">
-                  <Button
-                    onClick={generateComparison}
-                    disabled={!beforeImage || !afterImage || isGenerating}
-                    className="w-full bg-gradient-to-r from-aurora-electric-purple to-pink-600 hover:opacity-90 text-white"
-                  >
-                    {isGenerating ? (
-                      <div className="flex items-center gap-2">
-                        <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full" />
-                        Gerando...
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-2">
-                        <Download className="h-4 w-4" />
-                        Baixar Imagem
-                      </div>
-                    )}
-                  </Button>
-
-                  <Button
-                    variant="outline"
-                    className="w-full"
-                    onClick={() => {
-                      if (navigator.share) {
-                        navigator.share({
-                          title: title || 'Comparação Antes e Depois',
-                          text: description || 'Veja os resultados incríveis!'
-                        });
-                      } else {
-                        toast.info('Compartilhamento não disponível neste navegador');
-                      }
-                    }}
-                  >
-                    <Share2 className="h-4 w-4 mr-2" />
-                    Compartilhar
-                  </Button>
+                  <div className="space-y-4">
+                    <p className="text-sm text-gray-600">
+                      Faça o download da sua comparação antes e depois em alta qualidade.
+                    </p>
+                    <Button 
+                      onClick={generateComparison} 
+                      className="w-full" 
+                      disabled={!beforeImage || !afterImage || isGenerating}
+                    >
+                      <Download className="w-4 h-4 mr-2" />
+                      {isGenerating ? 'Gerando...' : 'Baixar Imagem'}
+                    </Button>
+                  </div>
                 </TabsContent>
               </Tabs>
-            </div>
-
-            {/* Preview Panel */}
-            <div className="lg:col-span-2">
-              <div 
-                ref={canvasRef}
-                className="p-6 rounded-lg"
-                style={{ backgroundColor }}
-              >
-                {showTitle && title && (
-                  <div className="text-center mb-6">
-                    <h2 
-                      className="font-bold"
-                      style={{ 
-                        fontSize: `${fontSize[0] + 8}px`, 
-                        color: labelColor 
-                      }}
-                    >
-                      {title}
-                    </h2>
-                    {description && (
-                      <p 
-                        className="mt-2"
-                        style={{ 
-                          fontSize: `${fontSize[0] - 4}px`, 
-                          color: labelColor,
-                          opacity: 0.8
-                        }}
-                      >
-                        {description}
-                      </p>
-                    )}
-                  </div>
-                )}
-                 
-                 <div className="relative">
-                   {renderComparison()}
-                   
-                   {/* Logo Overlay */}
-                   {showLogo && logoImage && (beforeImage || afterImage) && (
-                     <div 
-                       className={`absolute z-10 ${
-                         logoPosition === 'top-left' ? 'top-4 left-4' :
-                         logoPosition === 'top-right' ? 'top-4 right-4' :
-                         logoPosition === 'bottom-left' ? 'bottom-4 left-4' :
-                         logoPosition === 'bottom-right' ? 'bottom-4 right-4' :
-                         'top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2'
-                       }`}
-                     >
-                       <img 
-                         src={logoImage} 
-                         alt="Logo da Clínica" 
-                         style={{ 
-                           width: `${logoSize[0]}px`,
-                           height: 'auto',
-                           filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))'
-                         }}
-                         className="object-contain"
-                       />
-                     </div>
-                   )}
-                 </div>
-                 
-                 {!beforeImage || !afterImage ? (
-                   <div className="flex items-center justify-center h-64 border-2 border-dashed border-gray-400 rounded-lg">
-                     <p className="text-gray-400">Adicione as duas imagens para ver a comparação</p>
-                   </div>
-                 ) : null}
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     </motion.div>
   );
 };
