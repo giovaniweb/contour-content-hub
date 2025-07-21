@@ -452,8 +452,8 @@ const BeforeAfterBuilder: React.FC = () => {
                   {/* Imagem Antes */}
                   <div className="flex-1">
                     <div 
-                      className="relative w-full h-64 bg-gray-100 rounded-2xl overflow-hidden"
-                      style={{ aspectRatio: '3/4' }}
+                      className="relative w-full bg-gray-100 rounded-2xl overflow-hidden"
+                      style={{ aspectRatio: '3/4', height: 'auto' }}
                     >
                       {beforeImage && (
                         <img
@@ -479,8 +479,8 @@ const BeforeAfterBuilder: React.FC = () => {
                   {/* Imagem Depois */}
                   <div className="flex-1">
                     <div 
-                      className="relative w-full h-64 bg-gray-100 rounded-2xl overflow-hidden"
-                      style={{ aspectRatio: '3/4' }}
+                      className="relative w-full bg-gray-100 rounded-2xl overflow-hidden"
+                      style={{ aspectRatio: '3/4', height: 'auto' }}
                     >
                       {afterImage && (
                         <img
