@@ -167,6 +167,92 @@ export type Database = {
           },
         ]
       }
+      agent_coordination: {
+        Row: {
+          completed_at: string | null
+          coordination_strategy: Json | null
+          created_at: string | null
+          execution_order: number[] | null
+          id: string
+          primary_agent_id: string | null
+          result: Json | null
+          secondary_agents: string[] | null
+          session_id: string
+          status: string | null
+          task_type: string
+        }
+        Insert: {
+          completed_at?: string | null
+          coordination_strategy?: Json | null
+          created_at?: string | null
+          execution_order?: number[] | null
+          id?: string
+          primary_agent_id?: string | null
+          result?: Json | null
+          secondary_agents?: string[] | null
+          session_id: string
+          status?: string | null
+          task_type: string
+        }
+        Update: {
+          completed_at?: string | null
+          coordination_strategy?: Json | null
+          created_at?: string | null
+          execution_order?: number[] | null
+          id?: string
+          primary_agent_id?: string | null
+          result?: Json | null
+          secondary_agents?: string[] | null
+          session_id?: string
+          status?: string | null
+          task_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_coordination_primary_agent_id_fkey"
+            columns: ["primary_agent_id"]
+            isOneToOne: false
+            referencedRelation: "ai_agents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ai_agents: {
+        Row: {
+          active: boolean | null
+          capabilities: Json | null
+          created_at: string | null
+          id: string
+          name: string
+          performance_metrics: Json | null
+          specialization: string
+          system_prompt: string
+          updated_at: string | null
+        }
+        Insert: {
+          active?: boolean | null
+          capabilities?: Json | null
+          created_at?: string | null
+          id?: string
+          name: string
+          performance_metrics?: Json | null
+          specialization: string
+          system_prompt: string
+          updated_at?: string | null
+        }
+        Update: {
+          active?: boolean | null
+          capabilities?: Json | null
+          created_at?: string | null
+          id?: string
+          name?: string
+          performance_metrics?: Json | null
+          specialization?: string
+          system_prompt?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       ai_feedback: {
         Row: {
           ai_response: string
@@ -1707,6 +1793,51 @@ export type Database = {
         }
         Relationships: []
       }
+      multi_agent_sessions: {
+        Row: {
+          agents_involved: string[]
+          completed_at: string | null
+          coordination_pattern: string | null
+          created_at: string | null
+          current_phase: string | null
+          id: string
+          performance_score: number | null
+          primary_objective: string
+          results: Json | null
+          session_context: Json | null
+          session_name: string | null
+          user_id: string
+        }
+        Insert: {
+          agents_involved: string[]
+          completed_at?: string | null
+          coordination_pattern?: string | null
+          created_at?: string | null
+          current_phase?: string | null
+          id?: string
+          performance_score?: number | null
+          primary_objective: string
+          results?: Json | null
+          session_context?: Json | null
+          session_name?: string | null
+          user_id: string
+        }
+        Update: {
+          agents_involved?: string[]
+          completed_at?: string | null
+          coordination_pattern?: string | null
+          created_at?: string | null
+          current_phase?: string | null
+          id?: string
+          performance_score?: number | null
+          primary_objective?: string
+          results?: Json | null
+          session_context?: Json | null
+          session_name?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       perfis: {
         Row: {
           cidade: string | null
@@ -1894,6 +2025,62 @@ export type Database = {
             columns: ["brand_id"]
             isOneToOne: false
             referencedRelation: "brands"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      prompt_ab_tests: {
+        Row: {
+          agent_id: string | null
+          completed_at: string | null
+          confidence_level: number | null
+          created_at: string | null
+          id: string
+          prompt_a: string
+          prompt_b: string
+          results: Json | null
+          status: string | null
+          success_metric: string
+          test_name: string
+          traffic_split: number | null
+          winner: string | null
+        }
+        Insert: {
+          agent_id?: string | null
+          completed_at?: string | null
+          confidence_level?: number | null
+          created_at?: string | null
+          id?: string
+          prompt_a: string
+          prompt_b: string
+          results?: Json | null
+          status?: string | null
+          success_metric: string
+          test_name: string
+          traffic_split?: number | null
+          winner?: string | null
+        }
+        Update: {
+          agent_id?: string | null
+          completed_at?: string | null
+          confidence_level?: number | null
+          created_at?: string | null
+          id?: string
+          prompt_a?: string
+          prompt_b?: string
+          results?: Json | null
+          status?: string | null
+          success_metric?: string
+          test_name?: string
+          traffic_split?: number | null
+          winner?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prompt_ab_tests_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "ai_agents"
             referencedColumns: ["id"]
           },
         ]
@@ -2109,6 +2296,56 @@ export type Database = {
             columns: ["script_id"]
             isOneToOne: false
             referencedRelation: "roteiros"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      self_improvement_log: {
+        Row: {
+          after_state: Json
+          agent_id: string | null
+          applied_at: string | null
+          before_state: Json
+          id: string
+          improvement_reason: string | null
+          improvement_type: string
+          rollback_possible: boolean | null
+          success_metrics: Json | null
+          validated_at: string | null
+          validation_result: Json | null
+        }
+        Insert: {
+          after_state: Json
+          agent_id?: string | null
+          applied_at?: string | null
+          before_state: Json
+          id?: string
+          improvement_reason?: string | null
+          improvement_type: string
+          rollback_possible?: boolean | null
+          success_metrics?: Json | null
+          validated_at?: string | null
+          validation_result?: Json | null
+        }
+        Update: {
+          after_state?: Json
+          agent_id?: string | null
+          applied_at?: string | null
+          before_state?: Json
+          id?: string
+          improvement_reason?: string | null
+          improvement_type?: string
+          rollback_possible?: boolean | null
+          success_metrics?: Json | null
+          validated_at?: string | null
+          validation_result?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "self_improvement_log_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "ai_agents"
             referencedColumns: ["id"]
           },
         ]
@@ -2373,6 +2610,42 @@ export type Database = {
           role_sugerido?: string
           status?: string
           workspace_id?: string
+        }
+        Relationships: []
+      }
+      user_memory: {
+        Row: {
+          created_at: string | null
+          expires_at: string | null
+          id: string
+          importance_score: number | null
+          key: string
+          last_accessed: string | null
+          memory_type: string
+          user_id: string
+          value: Json
+        }
+        Insert: {
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          importance_score?: number | null
+          key: string
+          last_accessed?: string | null
+          memory_type: string
+          user_id: string
+          value: Json
+        }
+        Update: {
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          importance_score?: number | null
+          key?: string
+          last_accessed?: string | null
+          memory_type?: string
+          user_id?: string
+          value?: Json
         }
         Relationships: []
       }
@@ -2746,6 +3019,15 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      coordinate_agents: {
+        Args: {
+          p_session_id: string
+          p_task_type: string
+          p_agent_ids: string[]
+          p_strategy?: Json
+        }
+        Returns: string
+      }
       create_unified_document: {
         Args: {
           p_title: string
@@ -2870,6 +3152,17 @@ export type Database = {
       sparsevec_typmod_in: {
         Args: { "": unknown[] }
         Returns: number
+      }
+      store_user_memory: {
+        Args: {
+          p_user_id: string
+          p_memory_type: string
+          p_key: string
+          p_value: Json
+          p_importance?: number
+          p_expires_hours?: number
+        }
+        Returns: string
       }
       update_ai_performance_metrics: {
         Args: {
