@@ -12,6 +12,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Video, Camera, Instagram, Phone, MapPin, DollarSign } from 'lucide-react';
 import AppLayout from '@/components/layout/AppLayout';
+import { PhotoUpload } from '@/components/videomaker/PhotoUpload';
 
 const VideomakerCadastro: React.FC = () => {
   const navigate = useNavigate();
@@ -27,7 +28,8 @@ const VideomakerCadastro: React.FC = () => {
     modelo_microfone: '',
     possui_iluminacao: false,
     emite_nota_fiscal: false,
-    valor_diaria: '300-500'
+    valor_diaria: '300-500',
+    foto_url: ''
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -99,6 +101,13 @@ const VideomakerCadastro: React.FC = () => {
                     <Phone className="h-5 w-5" />
                     Dados Pessoais
                   </h3>
+                  
+                  {/* Upload de Foto */}
+                  <PhotoUpload
+                    currentPhotoUrl={formData.foto_url}
+                    onPhotoUpload={(url) => handleInputChange('foto_url', url)}
+                    onPhotoRemove={() => handleInputChange('foto_url', '')}
+                  />
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">

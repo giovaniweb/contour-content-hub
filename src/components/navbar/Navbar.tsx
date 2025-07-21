@@ -21,6 +21,12 @@ const INSTITUCIONAL_LINKS = [
   { label: "Suporte", to: "/institucional/suporte" },
 ];
 
+// Links para videomakers
+const VIDEOMAKER_LINKS = [
+  { label: "Buscar Videomakers", to: "/videomaker/busca" },
+  { label: "Cadastrar-se", to: "/videomaker/cadastro" },
+];
+
 const SIDEBAR_WIDTH = 104; // mesma largura do Sidebar
 
 export const Navbar = () => {
@@ -87,6 +93,21 @@ export const Navbar = () => {
         {/* Menus institucionais - visíveis para todos */}
         <div className="hidden md:flex items-center gap-6 flex-1 justify-center">
           {INSTITUCIONAL_LINKS.map((item) => (
+            <NavLink
+              to={item.to}
+              key={item.to}
+              className="text-white/80 hover:text-white transition-all duration-300 font-medium text-base hover:text-shadow-aurora-glow"
+              style={{ whiteSpace: 'nowrap' }}
+            >
+              {item.label}
+            </NavLink>
+          ))}
+          
+          {/* Separador */}
+          <div className="w-px h-4 bg-white/20"></div>
+          
+          {/* Links de Videomaker */}
+          {VIDEOMAKER_LINKS.map((item) => (
             <NavLink
               to={item.to}
               key={item.to}

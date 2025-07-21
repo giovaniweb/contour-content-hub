@@ -9,8 +9,9 @@ import { Separator } from '@/components/ui/separator';
 import { Videomaker, ProfessionalType, InvestmentRange } from '@/types/videomaker';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Search, MapPin, Phone, Instagram, Video, Camera, DollarSign, Check, X } from 'lucide-react';
+import { Search, MapPin, Phone, Instagram, Video, Camera, DollarSign, Check, X, MessageCircle, User } from 'lucide-react';
 import AppLayout from '@/components/layout/AppLayout';
+import { StarRating, VideomakerRating, AvaliacoesList } from '@/components/videomaker/StarRating';
 
 const VideomakerBusca: React.FC = () => {
   const [videomakers, setVideomakers] = useState<Videomaker[]>([]);
@@ -91,6 +92,14 @@ const VideomakerBusca: React.FC = () => {
       return `(${cleaned.slice(0, 2)}) ${cleaned.slice(2, 7)}-${cleaned.slice(7)}`;
     }
     return phone;
+  };
+
+  const generateWhatsAppLink = (phone: string, videomakerName: string) => {
+    const cleanPhone = phone.replace(/\D/g, '');
+    const message = encodeURIComponent(
+      `Olá ${videomakerName}! Vi seu perfil na plataforma e gostaria de conversar sobre um projeto de vídeo. Você está disponível?`
+    );
+    return `https://wa.me/55${cleanPhone}?text=${message}`;
   };
 
   if (loading) {
@@ -184,17 +193,44 @@ const VideomakerBusca: React.FC = () => {
             {filteredVideomakers.map((videomaker) => (
               <Card key={videomaker.id} className="hover:shadow-lg transition-shadow">
                 <CardHeader>
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <CardTitle className="text-lg">{videomaker.nome_completo}</CardTitle>
-                      <CardDescription className="flex items-center gap-1 mt-1">
-                        <MapPin className="h-4 w-4" />
-                        {videomaker.cidade}
-                      </CardDescription>
+                  <div className="flex items-start gap-3">
+                    {/* Foto do videomaker */}
+                    <div className="w-16 h-16 rounded-full bg-muted border flex items-center justify-center overflow-hidden flex-shrink-0">
+                      {videomaker.foto_url ? (
+                        <img
+                          src={videomaker.foto_url}
+                          alt={videomaker.nome_completo}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <User className="h-8 w-8 text-muted-foreground" />
+                      )}
                     </div>
-                    <Badge variant={videomaker.tipo_profissional === 'videomaker' ? 'default' : 'secondary'}>
-                      {videomaker.tipo_profissional === 'videomaker' ? 'Videomaker' : 'Storymaker'}
-                    </Badge>
+                    
+                    <div className="flex-1 min-w-0">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <CardTitle className="text-lg truncate">{videomaker.nome_completo}</CardTitle>
+                          <CardDescription className="flex items-center gap-1 mt-1">
+                            <MapPin className="h-4 w-4 flex-shrink-0" />
+                            <span className="truncate">{videomaker.cidade}</span>
+                          </CardDescription>
+                        </div>
+                        <Badge variant={videomaker.tipo_profissional === 'videomaker' ? 'default' : 'secondary'}>
+                          {videomaker.tipo_profissional === 'videomaker' ? 'Videomaker' : 'Storymaker'}
+                        </Badge>
+                      </div>
+                      
+                      {/* Avaliação */}
+                      {videomaker.total_avaliacoes > 0 && (
+                        <div className="flex items-center gap-2 mt-2">
+                          <StarRating value={videomaker.media_avaliacao} readonly size="sm" />
+                          <span className="text-sm text-muted-foreground">
+                            {videomaker.media_avaliacao} ({videomaker.total_avaliacoes} avaliações)
+                          </span>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </CardHeader>
                 
@@ -285,12 +321,26 @@ const VideomakerBusca: React.FC = () => {
                     </div>
                   </div>
 
-                  <Button className="w-full" asChild>
-                    <a href={`tel:${videomaker.telefone}`}>
-                      <Phone className="h-4 w-4 mr-2" />
-                      Entrar em Contato
-                    </a>
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button className="flex-1" asChild>
+                      <a 
+                        href={generateWhatsAppLink(videomaker.telefone, videomaker.nome_completo)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <MessageCircle className="h-4 w-4 mr-2" />
+                        WhatsApp
+                      </a>
+                    </Button>
+                    
+                    <VideomakerRating
+                      videomaker={videomaker}
+                      onRatingSubmitted={() => fetchVideomakers()}
+                    />
+                  </div>
+                  
+                  {/* Lista de avaliações */}
+                  <AvaliacoesList videomaker_id={videomaker.id} />
                 </CardContent>
               </Card>
             ))}

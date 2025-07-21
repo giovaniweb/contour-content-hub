@@ -2971,6 +2971,44 @@ export type Database = {
         }
         Relationships: []
       }
+      videomaker_avaliacoes: {
+        Row: {
+          avaliador_id: string
+          comentario: string | null
+          created_at: string
+          id: string
+          nota: number
+          updated_at: string
+          videomaker_id: string
+        }
+        Insert: {
+          avaliador_id: string
+          comentario?: string | null
+          created_at?: string
+          id?: string
+          nota: number
+          updated_at?: string
+          videomaker_id: string
+        }
+        Update: {
+          avaliador_id?: string
+          comentario?: string | null
+          created_at?: string
+          id?: string
+          nota?: number
+          updated_at?: string
+          videomaker_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "videomaker_avaliacoes_videomaker_id_fkey"
+            columns: ["videomaker_id"]
+            isOneToOne: false
+            referencedRelation: "videomakers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       videomakers: {
         Row: {
           ativo: boolean
@@ -2978,13 +3016,16 @@ export type Database = {
           cidade: string
           created_at: string
           emite_nota_fiscal: boolean
+          foto_url: string | null
           id: string
           instagram: string | null
+          media_avaliacao: number | null
           modelo_microfone: string | null
           nome_completo: string
           possui_iluminacao: boolean
           telefone: string
           tipo_profissional: Database["public"]["Enums"]["professional_type"]
+          total_avaliacoes: number | null
           updated_at: string
           user_id: string
           valor_diaria: Database["public"]["Enums"]["investment_range"]
@@ -2996,13 +3037,16 @@ export type Database = {
           cidade: string
           created_at?: string
           emite_nota_fiscal?: boolean
+          foto_url?: string | null
           id?: string
           instagram?: string | null
+          media_avaliacao?: number | null
           modelo_microfone?: string | null
           nome_completo: string
           possui_iluminacao?: boolean
           telefone: string
           tipo_profissional?: Database["public"]["Enums"]["professional_type"]
+          total_avaliacoes?: number | null
           updated_at?: string
           user_id: string
           valor_diaria: Database["public"]["Enums"]["investment_range"]
@@ -3014,13 +3058,16 @@ export type Database = {
           cidade?: string
           created_at?: string
           emite_nota_fiscal?: boolean
+          foto_url?: string | null
           id?: string
           instagram?: string | null
+          media_avaliacao?: number | null
           modelo_microfone?: string | null
           nome_completo?: string
           possui_iluminacao?: boolean
           telefone?: string
           tipo_profissional?: Database["public"]["Enums"]["professional_type"]
+          total_avaliacoes?: number | null
           updated_at?: string
           user_id?: string
           valor_diaria?: Database["public"]["Enums"]["investment_range"]

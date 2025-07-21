@@ -10,6 +10,7 @@ export interface Videomaker {
   instagram?: string;
   cidade: string;
   tipo_profissional: ProfessionalType;
+  foto_url?: string;
   
   // Equipamentos
   camera_celular: string;
@@ -19,6 +20,10 @@ export interface Videomaker {
   
   // Investimento
   valor_diaria: InvestmentRange;
+  
+  // Avaliações
+  media_avaliacao: number;
+  total_avaliacoes: number;
   
   // Metadados
   ativo: boolean;
@@ -38,4 +43,15 @@ export interface VideomakerFormData {
   possui_iluminacao: boolean;
   emite_nota_fiscal: boolean;
   valor_diaria: InvestmentRange;
+  foto_url?: string;
+}
+
+export interface VideomakerAvaliacao {
+  id: string;
+  videomaker_id: string;
+  avaliador_id: string;
+  nota: number;
+  comentario?: string;
+  created_at: string;
+  updated_at: string;
 }
