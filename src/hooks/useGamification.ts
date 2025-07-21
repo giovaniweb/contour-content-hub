@@ -18,6 +18,11 @@ export interface UserProgress {
   xp_total: number;
   nivel: 'Bronze' | 'Prata' | 'Ouro' | 'Diamante';
   badges: string[];
+  videos_watched?: number;
+  articles_viewed?: number;
+  photos_uploaded?: number;
+  diagnostics_completed?: number;
+  videos_downloaded?: number;
 }
 
 // Interface for user_gamification table (temporary until types are regenerated)
