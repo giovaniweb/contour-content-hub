@@ -167,6 +167,198 @@ export type Database = {
           },
         ]
       }
+      ai_feedback: {
+        Row: {
+          ai_response: string
+          ai_service: string
+          context_data: Json | null
+          created_at: string
+          feedback_type: string
+          id: string
+          improvement_applied: boolean | null
+          processed_at: string | null
+          prompt_used: string
+          response_time_ms: number | null
+          session_id: string
+          tokens_used: number | null
+          user_feedback: Json
+          user_id: string
+        }
+        Insert: {
+          ai_response: string
+          ai_service: string
+          context_data?: Json | null
+          created_at?: string
+          feedback_type?: string
+          id?: string
+          improvement_applied?: boolean | null
+          processed_at?: string | null
+          prompt_used: string
+          response_time_ms?: number | null
+          session_id: string
+          tokens_used?: number | null
+          user_feedback: Json
+          user_id: string
+        }
+        Update: {
+          ai_response?: string
+          ai_service?: string
+          context_data?: Json | null
+          created_at?: string
+          feedback_type?: string
+          id?: string
+          improvement_applied?: boolean | null
+          processed_at?: string | null
+          prompt_used?: string
+          response_time_ms?: number | null
+          session_id?: string
+          tokens_used?: number | null
+          user_feedback?: Json
+          user_id?: string
+        }
+        Relationships: []
+      }
+      ai_learning_log: {
+        Row: {
+          after_state: Json
+          applied_at: string
+          before_state: Json
+          confidence_score: number | null
+          id: string
+          improvement_metrics: Json | null
+          learning_type: string
+          rollback_at: string | null
+          service_name: string
+          success_validated: boolean | null
+          trigger_event: string
+          validation_metrics: Json | null
+        }
+        Insert: {
+          after_state: Json
+          applied_at?: string
+          before_state: Json
+          confidence_score?: number | null
+          id?: string
+          improvement_metrics?: Json | null
+          learning_type: string
+          rollback_at?: string | null
+          service_name: string
+          success_validated?: boolean | null
+          trigger_event: string
+          validation_metrics?: Json | null
+        }
+        Update: {
+          after_state?: Json
+          applied_at?: string
+          before_state?: Json
+          confidence_score?: number | null
+          id?: string
+          improvement_metrics?: Json | null
+          learning_type?: string
+          rollback_at?: string | null
+          service_name?: string
+          success_validated?: boolean | null
+          trigger_event?: string
+          validation_metrics?: Json | null
+        }
+        Relationships: []
+      }
+      ai_performance_metrics: {
+        Row: {
+          auto_adjustments_made: number | null
+          avg_rating: number | null
+          avg_response_time_ms: number | null
+          created_at: string
+          error_rate: number | null
+          estimated_cost: number | null
+          id: string
+          improvement_opportunities: Json | null
+          metric_date: string
+          service_name: string
+          successful_requests: number | null
+          total_requests: number | null
+          total_tokens_used: number | null
+          updated_at: string
+          user_satisfaction: number | null
+        }
+        Insert: {
+          auto_adjustments_made?: number | null
+          avg_rating?: number | null
+          avg_response_time_ms?: number | null
+          created_at?: string
+          error_rate?: number | null
+          estimated_cost?: number | null
+          id?: string
+          improvement_opportunities?: Json | null
+          metric_date?: string
+          service_name: string
+          successful_requests?: number | null
+          total_requests?: number | null
+          total_tokens_used?: number | null
+          updated_at?: string
+          user_satisfaction?: number | null
+        }
+        Update: {
+          auto_adjustments_made?: number | null
+          avg_rating?: number | null
+          avg_response_time_ms?: number | null
+          created_at?: string
+          error_rate?: number | null
+          estimated_cost?: number | null
+          id?: string
+          improvement_opportunities?: Json | null
+          metric_date?: string
+          service_name?: string
+          successful_requests?: number | null
+          total_requests?: number | null
+          total_tokens_used?: number | null
+          updated_at?: string
+          user_satisfaction?: number | null
+        }
+        Relationships: []
+      }
+      ai_prompt_templates: {
+        Row: {
+          auto_generated: boolean | null
+          created_at: string
+          created_by: string | null
+          id: string
+          is_active: boolean | null
+          parameters: Json | null
+          performance_metrics: Json | null
+          prompt_template: string
+          prompt_version: string
+          service_name: string
+          system_instructions: string | null
+        }
+        Insert: {
+          auto_generated?: boolean | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          parameters?: Json | null
+          performance_metrics?: Json | null
+          prompt_template: string
+          prompt_version: string
+          service_name: string
+          system_instructions?: string | null
+        }
+        Update: {
+          auto_generated?: boolean | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          parameters?: Json | null
+          performance_metrics?: Json | null
+          prompt_template?: string
+          prompt_version?: string
+          service_name?: string
+          system_instructions?: string | null
+        }
+        Relationships: []
+      }
       alertas_email: {
         Row: {
           ativo: boolean | null
@@ -2652,6 +2844,21 @@ export type Database = {
         Args: { "": string } | { "": unknown } | { "": unknown }
         Returns: string
       }
+      register_ai_feedback: {
+        Args: {
+          p_user_id: string
+          p_session_id: string
+          p_ai_service: string
+          p_prompt_used: string
+          p_ai_response: string
+          p_user_feedback: Json
+          p_feedback_type?: string
+          p_context_data?: Json
+          p_response_time_ms?: number
+          p_tokens_used?: number
+        }
+        Returns: string
+      }
       sparsevec_out: {
         Args: { "": unknown }
         Returns: unknown
@@ -2663,6 +2870,17 @@ export type Database = {
       sparsevec_typmod_in: {
         Args: { "": unknown[] }
         Returns: number
+      }
+      update_ai_performance_metrics: {
+        Args: {
+          p_service_name: string
+          p_success?: boolean
+          p_response_time_ms?: number
+          p_rating?: number
+          p_tokens_used?: number
+          p_estimated_cost?: number
+        }
+        Returns: undefined
       }
       vector_avg: {
         Args: { "": number[] }
