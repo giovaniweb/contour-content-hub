@@ -95,12 +95,12 @@ const OQueE = () => {
               <div className="text-white/60 text-sm">Especializadas em marketing médico</div>
             </div>
             <div className="space-y-2">
-              <div className="text-4xl font-bold text-aurora-neon-blue">500+</div>
+              <div className="text-4xl font-bold text-aurora-neon-blue">11</div>
               <div className="text-white font-medium">Equipamentos Catalogados</div>
               <div className="text-white/60 text-sm">Com dados científicos completos</div>
             </div>
             <div className="space-y-2">
-              <div className="text-4xl font-bold text-aurora-emerald">1000+</div>
+              <div className="text-4xl font-bold text-aurora-emerald">67+</div>
               <div className="text-white font-medium">Artigos Científicos</div>
               <div className="text-white/60 text-sm">Base de conhecimento atualizada</div>
             </div>

@@ -20,6 +20,7 @@ const MestreDaBelezaPage = React.lazy(() => import('@/pages/MestreDaBelezaPage')
 const FluidaRoteiristsPage = React.lazy(() => import('@/pages/FluidaRoteiristsPage'));
 
 // Páginas institucionais
+const LandingPage = React.lazy(() => import('@/pages/LandingPage'));
 const OQueE = React.lazy(() => import('@/pages/Institucional/OQueE'));
 const Contato = React.lazy(() => import('@/pages/Institucional/Contato'));
 const Suporte = React.lazy(() => import('@/pages/Institucional/Suporte'));
@@ -71,6 +72,16 @@ const AppRoutes: React.FC = () => {
         element={
           <Suspense fallback={<AuroraLoadingSkeleton />}>
             <Register />
+          </Suspense>
+        } 
+      />
+
+      {/* Páginas Públicas */}
+      <Route 
+        path="/landing" 
+        element={
+          <Suspense fallback={<AuroraLoadingSkeleton />}>
+            <LandingPage />
           </Suspense>
         } 
       />
