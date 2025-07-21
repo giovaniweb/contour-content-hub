@@ -54,13 +54,13 @@ const BeforeAfterBuilder: React.FC = () => {
   const [beforeLabel, setBeforeLabel] = useState('ANTES');
   const [afterLabel, setAfterLabel] = useState('DEPOIS');
   const [fontSize, setFontSize] = useState([24]);
-  const [labelColor, setLabelColor] = useState('#ffffff');
-  const [backgroundColor, setBackgroundColor] = useState('#1a1a2e');
+  const [labelColor, setLabelColor] = useState('#333333');
+  const [backgroundColor, setBackgroundColor] = useState('#ffffff');
   const [showLabels, setShowLabels] = useState(true);
   const [showTitle, setShowTitle] = useState(true);
   const [showLogo, setShowLogo] = useState(true);
   const [logoSize, setLogoSize] = useState([60]);
-  const [logoPosition, setLogoPosition] = useState('bottom-right');
+  const [logoPosition, setLogoPosition] = useState('center');
   
   // Controles de posicionamento das imagens
   const [beforeImageScale, setBeforeImageScale] = useState([100]);
@@ -71,6 +71,11 @@ const BeforeAfterBuilder: React.FC = () => {
   const [afterImageY, setAfterImageY] = useState([0]);
   const [beforeImageRotation, setBeforeImageRotation] = useState([0]);
   const [afterImageRotation, setAfterImageRotation] = useState([0]);
+  
+  // Estados para drag and drop
+  const [isDragging, setIsDragging] = useState<'before' | 'after' | null>(null);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [initialPosition, setInitialPosition] = useState({ x: 0, y: 0 });
   
   const [isGenerating, setIsGenerating] = useState(false);
 
@@ -104,6 +109,56 @@ const BeforeAfterBuilder: React.FC = () => {
       toast.error('Por favor, selecione apenas arquivos de imagem');
     }
   }, []);
+
+  // Funções de drag and drop
+  const handleMouseDown = useCallback((e: React.MouseEvent, type: 'before' | 'after') => {
+    e.preventDefault();
+    setIsDragging(type);
+    setDragStart({ x: e.clientX, y: e.clientY });
+    setInitialPosition({
+      x: type === 'before' ? beforeImageX[0] : afterImageX[0],
+      y: type === 'before' ? beforeImageY[0] : afterImageY[0]
+    });
+  }, [beforeImageX, beforeImageY, afterImageX, afterImageY]);
+
+  const handleMouseMove = useCallback((e: MouseEvent) => {
+    if (!isDragging) return;
+
+    const deltaX = e.clientX - dragStart.x;
+    const deltaY = e.clientY - dragStart.y;
+    
+    const newX = initialPosition.x + deltaX / 2; // Divisor para tornar o movimento mais suave
+    const newY = initialPosition.y + deltaY / 2;
+
+    // Limitar os valores dentro dos limites
+    const clampedX = Math.max(-100, Math.min(100, newX));
+    const clampedY = Math.max(-100, Math.min(100, newY));
+
+    if (isDragging === 'before') {
+      setBeforeImageX([clampedX]);
+      setBeforeImageY([clampedY]);
+    } else if (isDragging === 'after') {
+      setAfterImageX([clampedX]);
+      setAfterImageY([clampedY]);
+    }
+  }, [isDragging, dragStart, initialPosition]);
+
+  const handleMouseUp = useCallback(() => {
+    setIsDragging(null);
+  }, []);
+
+  // Adicionar event listeners para mouse move e up
+  React.useEffect(() => {
+    if (isDragging) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      
+      return () => {
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+      };
+    }
+  }, [isDragging, handleMouseMove, handleMouseUp]);
 
   const generateComparison = async () => {
     if (!beforeImage || !afterImage) {
@@ -390,10 +445,13 @@ const BeforeAfterBuilder: React.FC = () => {
                         <img
                           src={beforeImage}
                           alt="Antes"
-                          className="w-full h-full object-cover"
+                          className="w-full h-full object-cover cursor-move select-none"
                           style={{
                             transform: `scale(${beforeImageScale[0] / 100}) translate(${beforeImageX[0]}px, ${beforeImageY[0]}px) rotate(${beforeImageRotation[0]}deg)`,
+                            transition: isDragging === 'before' ? 'none' : 'transform 0.2s ease'
                           }}
+                          onMouseDown={(e) => handleMouseDown(e, 'before')}
+                          draggable={false}
                         />
                       )}
                     </div>
@@ -414,10 +472,13 @@ const BeforeAfterBuilder: React.FC = () => {
                         <img
                           src={afterImage}
                           alt="Depois"
-                          className="w-full h-full object-cover"
+                          className="w-full h-full object-cover cursor-move select-none"
                           style={{
                             transform: `scale(${afterImageScale[0] / 100}) translate(${afterImageX[0]}px, ${afterImageY[0]}px) rotate(${afterImageRotation[0]}deg)`,
+                            transition: isDragging === 'after' ? 'none' : 'transform 0.2s ease'
                           }}
+                          onMouseDown={(e) => handleMouseDown(e, 'after')}
+                          draggable={false}
                         />
                       )}
                     </div>
