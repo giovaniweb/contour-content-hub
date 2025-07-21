@@ -4,14 +4,17 @@ import { LayoutDashboard, Users, Settings, BarChart3, Database, Film, Brain, Lin
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
+import { useAdminStats } from '@/hooks/useAdminStats';
 
 const AdminDashboard: React.FC = () => {
+  const { stats, isLoading } = useAdminStats();
+
   const adminCards = [
     {
       title: "Usuários",
       description: "Gerencie usuários e permissões",
       icon: Users,
-      count: "24",
+      count: isLoading ? "..." : stats.totalUsers.toString(),
       action: "Gerenciar Usuários",
       path: "/admin/users"
     },
@@ -19,33 +22,41 @@ const AdminDashboard: React.FC = () => {
       title: "Equipamentos",
       description: "Configure equipamentos do sistema",
       icon: Settings,
-      count: "12",
+      count: isLoading ? "..." : stats.totalEquipments.toString(),
       action: "Ver Equipamentos",
       path: "/admin/equipments"
-    },
-    {
-      title: "Conteúdos",
-      description: "Administre conteúdos da plataforma",
-      icon: Database,
-      count: "156",
-      action: "Gerenciar Conteúdo",
-      path: "/admin/content"
-    },
-    {
-      title: "Artigos Científicos",
-      description: "Gerencie biblioteca de artigos científicos",
-      icon: BookOpen,
-      count: "45",
-      action: "Gerenciar Artigos",
-      path: "/admin/scientific-articles"
     },
     {
       title: "Vídeos",
       description: "Gerencie biblioteca de vídeos",
       icon: Film,
-      count: "89",
+      count: isLoading ? "..." : stats.totalVideos.toString(),
       action: "Ver Vídeos",
       path: "/admin/videos"
+    },
+    {
+      title: "Artigos Científicos",
+      description: "Gerencie biblioteca de artigos científicos",
+      icon: BookOpen,
+      count: isLoading ? "..." : stats.totalDocuments.toString(),
+      action: "Gerenciar Artigos",
+      path: "/admin/scientific-articles"
+    },
+    {
+      title: "Gamificação",
+      description: "Usuários engajados no sistema",
+      icon: BarChart3,
+      count: isLoading ? "..." : stats.totalGamificationUsers.toString(),
+      action: "Ver Gamificação",
+      path: "/admin/gamification"
+    },
+    {
+      title: "Hot Leads",
+      description: "Usuários com alta probabilidade de compra",
+      icon: Database,
+      count: isLoading ? "..." : stats.hotLeads.toString(),
+      action: "Ver Leads",
+      path: "/admin/leads"
     },
     {
       title: "IA do Sistema",
@@ -56,20 +67,12 @@ const AdminDashboard: React.FC = () => {
       path: "/admin/ai"
     },
     {
-      title: "Integrações",
-      description: "Gerencie integrações externas",
-      icon: LinkIcon,
-      count: "8",
-      action: "Ver Integrações",
-      path: "/admin/integrations"
-    },
-    {
-      title: "Diagnóstico",
-      description: "Diagnósticos do sistema",
+      title: "Ações dos Usuários",
+      description: "Atividade dos últimos 30 dias",
       icon: TestTube,
-      count: "3",
-      action: "Ver Diagnósticos",
-      path: "/admin/diagnostics"
+      count: isLoading ? "..." : stats.totalActions.toString(),
+      action: "Ver Atividade",
+      path: "/admin/user-activity"
     }
   ];
 
@@ -86,6 +89,15 @@ const AdminDashboard: React.FC = () => {
             Gerencie e configure todos os aspectos da plataforma Fluida
           </p>
         </div>
+
+        {/* Real Stats Overview */}
+        {!isLoading && stats.topEngagementUser && (
+          <div className="mb-6 p-4 bg-primary/10 rounded-lg">
+            <h3 className="text-lg font-semibold mb-2">👑 Top Usuário Engajado</h3>
+            <p><strong>{stats.topEngagementUser.name}</strong> - {stats.topEngagementUser.xp} XP</p>
+            <p className="text-sm text-muted-foreground">XP médio da plataforma: {stats.averageXP} XP</p>
+          </div>
+        )}
 
         {/* Admin Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">

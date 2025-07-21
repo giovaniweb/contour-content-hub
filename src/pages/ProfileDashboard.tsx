@@ -7,6 +7,7 @@ import LibrarySummarySection from "@/components/profile-dashboard/LibrarySummary
 import IntegrationsSummarySection from "@/components/profile-dashboard/IntegrationsSummarySection";
 import ProgressSummarySection from "@/components/profile-dashboard/ProgressSummarySection";
 import ProfileQuickActions from "@/components/profile-dashboard/ProfileQuickActions";
+import GamificationSection from "@/components/profile-dashboard/GamificationSection";
 
 const ProfileDashboard: React.FC = () => {
   return (
@@ -16,7 +17,7 @@ const ProfileDashboard: React.FC = () => {
       </h1>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <UserSummarySection />
-        <ProgressSummarySection />
+        <GamificationSection />
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <LibrarySummarySection />

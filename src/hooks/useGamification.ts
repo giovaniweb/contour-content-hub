@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { useUserActions } from './useUserActions';
 
 export interface GamificationReward {
   mensagem: string;
@@ -52,6 +53,7 @@ export const useGamification = () => {
     badges: []
   });
   const [isLoading, setIsLoading] = useState(true);
+  const { trackAction } = useUserActions();
 
   // Carregar progresso do usuário
   useEffect(() => {
@@ -63,20 +65,21 @@ export const useGamification = () => {
       const { data: userData } = await supabase.auth.getUser();
       if (!userData.user) return;
 
-      // Buscar ou criar progresso do usuário usando query raw
+      // Buscar progresso na nova tabela user_gamification
       const { data: progress, error } = await supabase
-        .from('user_gamification' as any)
+        .from('user_gamification')
         .select('*')
         .eq('user_id', userData.user.id)
         .single();
 
       if (error && error.code === 'PGRST116') {
-        // Criar registro inicial
+        // Criar registro inicial na nova estrutura
         const { data: newProgress } = await supabase
-          .from('user_gamification' as any)
+          .from('user_gamification')
           .insert({
             user_id: userData.user.id,
             xp_total: 0,
+            level_current: 'Bronze',
             badges: []
           })
           .select()
@@ -90,11 +93,10 @@ export const useGamification = () => {
           });
         }
       } else if (progress) {
-        const gamificationData = progress as unknown as UserGamificationRow;
         setUserProgress({
-          xp_total: gamificationData.xp_total,
-          nivel: calculateLevel(gamificationData.xp_total),
-          badges: gamificationData.badges || []
+          xp_total: progress.xp_total,
+          nivel: calculateLevel(progress.xp_total),
+          badges: progress.badges || []
         });
       }
     } catch (error) {
@@ -122,6 +124,15 @@ export const useGamification = () => {
     const { data: userData } = await supabase.auth.getUser();
     if (!userData.user) throw new Error('Usuário não autenticado');
 
+    // Registrar ação no sistema de tracking
+    await trackAction({
+      action_type: 'photo_upload',
+      target_type: 'before_after_photo'
+    });
+
+    // Recarregar progresso para pegar dados atualizados do trigger
+    await loadUserProgress();
+
     const xpGanho = 25;
     const novoXp = userProgress.xp_total + xpGanho;
     const nivelAnterior = userProgress.nivel;
@@ -143,22 +154,20 @@ export const useGamification = () => {
       novasBadges.push('Mestre da Transformação');
     }
 
-    // Atualizar no banco usando type assertion
+    // Atualizar badges no banco
     await supabase
-      .from('user_gamification' as any)
-      .upsert({
-        user_id: userData.user.id,
-        xp_total: novoXp,
+      .from('user_gamification')
+      .update({
         badges: novasBadges,
         updated_at: new Date().toISOString()
-      });
+      })
+      .eq('user_id', userData.user.id);
 
     // Atualizar estado local
-    setUserProgress({
-      xp_total: novoXp,
-      nivel: novoNivel,
+    setUserProgress(prev => ({
+      ...prev,
       badges: novasBadges
-    });
+    }));
 
     // Gerar mensagem
     let mensagem = MOTIVATIONAL_PHRASES[Math.floor(Math.random() * MOTIVATIONAL_PHRASES.length)];
@@ -183,6 +192,37 @@ export const useGamification = () => {
     return reward;
   };
 
+  // Função para rastrear assistir vídeo
+  const awardVideoWatch = async (videoId: string) => {
+    await trackAction({
+      action_type: 'video_watch',
+      target_id: videoId,
+      target_type: 'video'
+    });
+    toast.success('+10 XP - Vídeo assistido! 🎬');
+  };
+
+  // Função para rastrear download
+  const awardDownload = async (targetId: string, targetType: string) => {
+    await trackAction({
+      action_type: 'video_download',
+      target_id: targetId,
+      target_type: targetType
+    });
+    toast.success('+5 XP - Download realizado! 📥');
+  };
+
+  // Função para rastrear diagnóstico
+  const awardDiagnostic = async () => {
+    await trackAction({
+      action_type: 'diagnostic_complete',
+      target_type: 'diagnostic'
+    });
+    toast.success('+50 XP - Diagnóstico completo! 🩺', {
+      description: 'Parabéns! Você é um verdadeiro especialista!'
+    });
+  };
+
   const showGamificationToast = (reward: GamificationReward) => {
     toast.success(`+${reward.xp_ganho} XP! 🎯`, {
       description: reward.mensagem,
@@ -204,6 +244,9 @@ export const useGamification = () => {
     userProgress,
     isLoading,
     awardBeforeAfterUpload,
+    awardVideoWatch,
+    awardDownload,
+    awardDiagnostic,
     loadUserProgress
   };
 };

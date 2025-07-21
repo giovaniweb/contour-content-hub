@@ -2520,6 +2520,39 @@ export type Database = {
           },
         ]
       }
+      user_actions: {
+        Row: {
+          action_type: string
+          created_at: string
+          id: string
+          metadata: Json | null
+          target_id: string | null
+          target_type: string | null
+          user_id: string
+          xp_awarded: number | null
+        }
+        Insert: {
+          action_type: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          target_id?: string | null
+          target_type?: string | null
+          user_id: string
+          xp_awarded?: number | null
+        }
+        Update: {
+          action_type?: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          target_id?: string | null
+          target_type?: string | null
+          user_id?: string
+          xp_awarded?: number | null
+        }
+        Relationships: []
+      }
       user_content_profiles: {
         Row: {
           common_keywords: string[] | null
@@ -2675,6 +2708,48 @@ export type Database = {
           insights_performance?: string[] | null
           perfil_comportamental?: string[] | null
           tipos_conteudo_validados?: string[] | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_purchase_scores: {
+        Row: {
+          behavior_score: number | null
+          created_at: string
+          engagement_score: number | null
+          final_score: number | null
+          hot_lead_alert: boolean | null
+          id: string
+          interest_score: number | null
+          last_equipment_interest: string | null
+          probability_tier: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          behavior_score?: number | null
+          created_at?: string
+          engagement_score?: number | null
+          final_score?: number | null
+          hot_lead_alert?: boolean | null
+          id?: string
+          interest_score?: number | null
+          last_equipment_interest?: string | null
+          probability_tier?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          behavior_score?: number | null
+          created_at?: string
+          engagement_score?: number | null
+          final_score?: number | null
+          hot_lead_alert?: boolean | null
+          id?: string
+          interest_score?: number | null
+          last_equipment_interest?: string | null
+          probability_tier?: string | null
+          updated_at?: string
           user_id?: string
         }
         Relationships: []
@@ -3014,6 +3089,10 @@ export type Database = {
       binary_quantize: {
         Args: { "": string } | { "": unknown }
         Returns: unknown
+      }
+      calculate_final_purchase_score: {
+        Args: { user_id_param: string }
+        Returns: undefined
       }
       cleanup_completed_uploads: {
         Args: Record<PropertyKey, never>
