@@ -533,9 +533,13 @@ const LandingPage = () => {
                   {featuredContent.art ? (
                     <>
                       <img 
-                        src={featuredContent.art.thumbnail_url} 
-                        alt={featuredContent.art.title}
+                        src={featuredContent.art.thumbnail_url || featuredContent.art.file_url || "https://images.unsplash.com/photo-1487058792275-0ad4aaf24ca7?w=400&h=225&fit=crop"} 
+                        alt={featuredContent.art.title || "Arte exemplo"}
                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.src = "https://images.unsplash.com/photo-1487058792275-0ad4aaf24ca7?w=400&h=225&fit=crop";
+                        }}
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                       <motion.div 
