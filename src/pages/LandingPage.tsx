@@ -1,6 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { motion, useScroll, useTransform, useInView } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -17,12 +18,19 @@ import {
   Play,
   ArrowRight,
   Rocket,
-  Trophy
+  Trophy,
+  Download,
+  Eye
 } from 'lucide-react';
 
 const LandingPage = () => {
   const navigate = useNavigate();
   const containerRef = useRef<HTMLDivElement>(null);
+  const [realVideos, setRealVideos] = useState<any[]>([]);
+  const [realPhotos, setRealPhotos] = useState<any[]>([]);
+  const [realArts, setRealArts] = useState<any[]>([]);
+  const [contentCounts, setContentCounts] = useState({ videos: 157, photos: 129, arts: 25 });
+  
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ["start start", "end start"]
@@ -42,6 +50,44 @@ const LandingPage = () => {
   const y2 = useTransform(scrollYProgress, [0, 1], [0, -150]);
   const y3 = useTransform(scrollYProgress, [0, 1], [0, -200]);
   const opacity = useTransform(scrollYProgress, [0, 0.3], [1, 0.7]);
+
+  // Fetch real content on mount
+  useEffect(() => {
+    const fetchRealContent = async () => {
+      try {
+        // Fetch videos
+        const { data: videos } = await supabase
+          .from('videos')
+          .select('id, titulo, thumbnail_url, url_video')
+          .order('data_upload', { ascending: false })
+          .limit(4);
+
+        // Fetch photos
+        const { data: photos } = await supabase
+          .from('equipment_photos')
+          .select('id, title, thumbnail_url, image_url')
+          .eq('is_public', true)
+          .order('created_at', { ascending: false })
+          .limit(4);
+
+        // Fetch arts
+        const { data: arts } = await supabase
+          .from('downloads_storage')
+          .select('id, title, thumbnail_url, file_url')
+          .eq('status', 'active')
+          .order('created_at', { ascending: false })
+          .limit(4);
+
+        if (videos) setRealVideos(videos);
+        if (photos) setRealPhotos(photos);
+        if (arts) setRealArts(arts);
+      } catch (error) {
+        console.error('Error fetching real content:', error);
+      }
+    };
+
+    fetchRealContent();
+  }, []);
 
   const handleGetStarted = () => {
     navigate('/register');
@@ -280,7 +326,7 @@ const LandingPage = () => {
                     Demonstrações de equipamentos, depoimentos e tutoriais profissionais
                   </p>
                   <Badge className="bg-pink-500/20 text-pink-300 border-pink-500/30">
-                    50+ Vídeos
+                    {contentCounts.videos}+ Vídeos
                   </Badge>
                 </CardContent>
               </Card>
@@ -302,7 +348,7 @@ const LandingPage = () => {
                     Antes e depois, procedimentos e imagens de alta qualidade
                   </p>
                   <Badge className="bg-blue-500/20 text-blue-300 border-blue-500/30">
-                    200+ Fotos
+                    {contentCounts.photos}+ Fotos
                   </Badge>
                 </CardContent>
               </Card>
@@ -324,34 +370,104 @@ const LandingPage = () => {
                     Posts para redes sociais, banners e materiais gráficos prontos
                   </p>
                   <Badge className="bg-emerald-500/20 text-emerald-300 border-emerald-500/30">
-                    100+ Artes
+                    {contentCounts.arts}+ Artes
                   </Badge>
                 </CardContent>
               </Card>
             </motion.div>
           </div>
 
-          {/* Content Preview Grid */}
+          {/* Content Preview Grid - Real Content */}
           <motion.div
             initial={{ opacity: 0, y: 40 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.4 }}
             viewport={{ once: true }}
-            className="grid grid-cols-2 md:grid-cols-4 gap-4"
+            className="space-y-8"
           >
-            {[1, 2, 3, 4, 5, 6, 7, 8].map((item) => (
-              <div
-                key={item}
-                className="aspect-square bg-gradient-to-br from-aurora-electric-purple/20 to-aurora-neon-blue/20 rounded-xl border border-aurora-electric-purple/20 flex items-center justify-center group hover:border-aurora-electric-purple/40 transition-all duration-300"
-              >
-                <div className="text-center">
-                  <div className="w-8 h-8 bg-aurora-electric-purple/30 rounded-lg flex items-center justify-center mx-auto mb-2 group-hover:scale-110 transition-transform duration-300">
-                    <Zap className="h-4 w-4 text-aurora-electric-purple" />
+            {/* Videos Section */}
+            <div>
+              <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                <Play className="h-5 w-5 text-pink-500" />
+                Vídeos Recentes
+              </h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {realVideos.map((video) => (
+                  <div
+                    key={video.id}
+                    className="group relative aspect-video bg-gradient-to-br from-aurora-electric-purple/20 to-aurora-neon-blue/20 rounded-xl border border-aurora-electric-purple/20 overflow-hidden hover:border-aurora-electric-purple/40 transition-all duration-300"
+                  >
+                    <img 
+                      src={video.thumbnail_url} 
+                      alt={video.titulo}
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-black/30 group-hover:bg-black/20 transition-all duration-300 flex items-center justify-center">
+                      <Play className="h-8 w-8 text-white group-hover:scale-110 transition-transform duration-300" />
+                    </div>
+                    <div className="absolute bottom-2 left-2 right-2">
+                      <div className="text-xs text-white/90 font-medium truncate bg-black/50 px-2 py-1 rounded">
+                        {video.titulo}
+                      </div>
+                    </div>
                   </div>
-                  <div className="text-xs text-white/60">Conteúdo {item}</div>
-                </div>
+                ))}
               </div>
-            ))}
+            </div>
+
+            {/* Photos Section */}
+            <div>
+              <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                <Eye className="h-5 w-5 text-blue-500" />
+                Fotos Recentes
+              </h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {realPhotos.map((photo) => (
+                  <div
+                    key={photo.id}
+                    className="group relative aspect-square bg-gradient-to-br from-aurora-electric-purple/20 to-aurora-neon-blue/20 rounded-xl border border-aurora-electric-purple/20 overflow-hidden hover:border-aurora-electric-purple/40 transition-all duration-300"
+                  >
+                    <img 
+                      src={photo.thumbnail_url || photo.image_url} 
+                      alt={photo.title}
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                    />
+                    <div className="absolute bottom-2 left-2 right-2">
+                      <div className="text-xs text-white/90 font-medium truncate bg-black/50 px-2 py-1 rounded">
+                        {photo.title}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Arts Section */}
+            <div>
+              <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                <Download className="h-5 w-5 text-emerald-500" />
+                Artes Recentes
+              </h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {realArts.map((art) => (
+                  <div
+                    key={art.id}
+                    className="group relative aspect-square bg-gradient-to-br from-aurora-electric-purple/20 to-aurora-neon-blue/20 rounded-xl border border-aurora-electric-purple/20 overflow-hidden hover:border-aurora-electric-purple/40 transition-all duration-300"
+                  >
+                    <img 
+                      src={art.thumbnail_url || art.file_url} 
+                      alt={art.title}
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                    />
+                    <div className="absolute bottom-2 left-2 right-2">
+                      <div className="text-xs text-white/90 font-medium truncate bg-black/50 px-2 py-1 rounded">
+                        {art.title}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </motion.div>
 
           <motion.div
