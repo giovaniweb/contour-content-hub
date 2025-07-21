@@ -60,6 +60,26 @@ const AppRoutes: React.FC = () => {
   return (
     <Routes>
       {/* Public Routes */}
+      
+      {/* Landing como página inicial */}
+      <Route 
+        path="/" 
+        element={
+          <Suspense fallback={<AuroraLoadingSkeleton />}>
+            <LandingPage />
+          </Suspense>
+        } 
+      />
+      
+      <Route 
+        path="/landing" 
+        element={
+          <Suspense fallback={<AuroraLoadingSkeleton />}>
+            <LandingPage />
+          </Suspense>
+        } 
+      />
+      
       <Route 
         path="/login" 
         element={
@@ -92,16 +112,6 @@ const AppRoutes: React.FC = () => {
         element={
           <Suspense fallback={<AuroraLoadingSkeleton />}>
             <ResetPassword />
-          </Suspense>
-        } 
-      />
-
-      {/* Páginas Públicas */}
-      <Route 
-        path="/landing" 
-        element={
-          <Suspense fallback={<AuroraLoadingSkeleton />}>
-            <LandingPage />
           </Suspense>
         } 
       />
@@ -141,14 +151,9 @@ const AppRoutes: React.FC = () => {
       />
 
       {/* Protected Routes */}
-      <Route element={<PrivateRoute />}>
+      <Route element={<PrivateRoute />}>        
         <Route 
-          path="/" 
-          element={<Navigate to="/dashboard" replace />}
-        />
-        
-        <Route 
-          path="/dashboard" 
+          path="/dashboard"
           element={
             <AppLayout>
               <Suspense fallback={<AuroraLoadingSkeleton />}>
@@ -542,7 +547,7 @@ const AppRoutes: React.FC = () => {
       {/* Catch all route */}
       <Route 
         path="*" 
-        element={<Navigate to="/dashboard" replace />}
+        element={<Navigate to="/" replace />}
       />
     </Routes>
   );
