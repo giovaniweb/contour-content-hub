@@ -1,9 +1,11 @@
 
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Upload, Image as ImageIcon } from "lucide-react";
+import { Upload, Image as ImageIcon, Layers } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import BeforeAfterUploader from './BeforeAfterUploader';
 import BeforeAfterGallery from './BeforeAfterGallery';
+import BeforeAfterBuilder from './BeforeAfterBuilder';
 
 const BeforeAfterManager: React.FC = () => {
   const [refreshGallery, setRefreshGallery] = useState(0);
@@ -19,13 +21,34 @@ const BeforeAfterManager: React.FC = () => {
       animate={{ opacity: 1, y: 0 }}
       className="max-w-full space-y-6"
     >
-      {/* Conteúdo da galeria e upload integrado */}
-      <div className="space-y-6">
-        <BeforeAfterGallery key={refreshGallery} />
-        <div className="border-t border-gray-600/50 pt-6">
+      <Tabs defaultValue="gallery" className="w-full">
+        <TabsList className="grid w-full grid-cols-3 bg-slate-800/50">
+          <TabsTrigger value="gallery" className="flex items-center gap-2">
+            <ImageIcon className="h-4 w-4" />
+            Galeria
+          </TabsTrigger>
+          <TabsTrigger value="builder" className="flex items-center gap-2">
+            <Layers className="h-4 w-4" />
+            Montador
+          </TabsTrigger>
+          <TabsTrigger value="upload" className="flex items-center gap-2">
+            <Upload className="h-4 w-4" />
+            Upload
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="gallery" className="mt-6">
+          <BeforeAfterGallery key={refreshGallery} />
+        </TabsContent>
+
+        <TabsContent value="builder" className="mt-6">
+          <BeforeAfterBuilder />
+        </TabsContent>
+
+        <TabsContent value="upload" className="mt-6">
           <BeforeAfterUploader onUploadSuccess={handleUploadSuccess} />
-        </div>
-      </div>
+        </TabsContent>
+      </Tabs>
     </motion.div>
   );
 };
