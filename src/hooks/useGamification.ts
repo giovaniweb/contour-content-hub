@@ -67,45 +67,65 @@ export const useGamification = () => {
 
   const loadUserProgress = async () => {
     try {
+      setIsLoading(true);
       const { data: userData } = await supabase.auth.getUser();
-      if (!userData.user) return;
+      if (!userData.user) {
+        setIsLoading(false);
+        return;
+      }
 
-      // Buscar progresso na nova tabela user_gamification
+      console.log('🔍 Carregando progresso para usuário:', userData.user.id);
+
+      // Buscar progresso na tabela user_gamification
       const { data: progress, error } = await supabase
         .from('user_gamification')
         .select('*')
         .eq('user_id', userData.user.id)
-        .single();
+        .maybeSingle();
 
-      if (error && error.code === 'PGRST116') {
-        // Criar registro inicial na nova estrutura
-        const { data: newProgress } = await supabase
+      if (error) {
+        console.error('❌ Erro ao buscar progresso:', error);
+        setIsLoading(false);
+        return;
+      }
+
+      if (!progress) {
+        console.log('📝 Criando registro inicial de gamificação');
+        // Criar registro inicial
+        const { data: newProgress, error: insertError } = await supabase
           .from('user_gamification')
           .insert({
             user_id: userData.user.id,
             xp_total: 0,
-            level_current: 'Bronze',
             badges: []
           })
           .select()
-          .single();
+          .maybeSingle();
+
+        if (insertError) {
+          console.error('❌ Erro ao criar progresso:', insertError);
+          setIsLoading(false);
+          return;
+        }
 
         if (newProgress) {
+          console.log('✅ Progresso inicial criado');
           setUserProgress({
             xp_total: 0,
             nivel: 'Bronze',
             badges: []
           });
         }
-      } else if (progress) {
+      } else {
+        console.log('✅ Progresso encontrado:', progress);
         setUserProgress({
-          xp_total: progress.xp_total,
-          nivel: calculateLevel(progress.xp_total),
+          xp_total: progress.xp_total || 0,
+          nivel: calculateLevel(progress.xp_total || 0),
           badges: progress.badges || []
         });
       }
     } catch (error) {
-      console.error('Erro ao carregar progresso:', error);
+      console.error('❌ Erro crítico ao carregar progresso:', error);
     } finally {
       setIsLoading(false);
     }
