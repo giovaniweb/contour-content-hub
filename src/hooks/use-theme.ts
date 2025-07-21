@@ -1,11 +1,3 @@
 
-import { useTheme as useNextTheme } from 'next-themes';
-
-export const useTheme = () => {
-  const { theme, setTheme } = useNextTheme();
-  
-  return {
-    theme: theme || 'light',
-    setTheme,
-  };
-};
+// Re-export useTheme from our custom theme provider
+export { useTheme } from '@/components/theme-provider';
