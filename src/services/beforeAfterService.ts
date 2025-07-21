@@ -62,7 +62,7 @@ export const beforeAfterService = {
           before_image_url: beforeUrl,
           after_image_url: afterUrl,
           equipment_used: data.equipment_used,
-          procedure_date: data.procedure_date,
+          procedure_date: data.procedure_date && data.procedure_date.trim() !== '' ? data.procedure_date : null,
           is_public: data.is_public,
           approved_script_id: data.approved_script_id,
           equipment_parameters: data.equipment_parameters || {},
