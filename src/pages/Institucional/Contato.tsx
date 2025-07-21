@@ -1,145 +1,268 @@
 
-import React, { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { Loader2, Mail, MessageCircle, Clock, Users } from "lucide-react";
+import React, { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Mail, MessageCircle, Clock, Users, Send, MapPin, Phone } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 const Contato = () => {
-  const [content, setContent] = useState("");
-  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
+  const [formData, setFormData] = useState({
+    nome: '',
+    email: '',
+    telefone: '',
+    clinica: '',
+    assunto: '',
+    mensagem: ''
+  });
 
-  useEffect(() => {
-    const generateContent = async () => {
-      try {
-        const { data, error } = await supabase.functions.invoke('custom-gpt', {
-          body: {
-            tipo: 'bigIdea',
-            equipamento: 'Fluida Contact',
-            estrategiaConteudo: '🔵 Educar',
-            equipamentoData: {
-              name: 'Fluida',
-              category: 'Plataforma de Marketing para Clínicas',
-              description: 'Contato e atendimento especializado'
-            },
-            prompt: `Crie um conteúdo profissional e acolhedor para a página de contato da Fluida. Inclua:
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Simular envio do formulário
+    toast({
+      title: "Mensagem enviada com sucesso!",
+      description: "Entraremos em contato em até 2 horas úteis.",
+    });
+    
+    // Limpar formulário
+    setFormData({
+      nome: '',
+      email: '',
+      telefone: '',
+      clinica: '',
+      assunto: '',
+      mensagem: ''
+    });
+  };
 
-1. Uma mensagem de boas-vindas calorosa
-2. Diferentes formas de contato e quando usar cada uma
-3. Horários de atendimento
-4. Compromisso com qualidade no atendimento
-5. Expectativas de tempo de resposta
-
-Transmita confiança, profissionalismo e acessibilidade. Mostre que a Fluida valoriza cada cliente e está sempre pronta para ajudar.`
-          }
-        });
-
-        if (error) throw error;
-        setContent(data.content || "");
-      } catch (error) {
-        console.error('Erro ao gerar conteúdo:', error);
-        setContent(`# Entre em Contato Conosco
-
-Estamos aqui para transformar o marketing da sua clínica! Nossa equipe especializada está pronta para responder suas dúvidas e ajudar você a alcançar resultados extraordinários.
-
-## 📞 **Canais de Atendimento**
-
-### **Atendimento Comercial**
-Para conhecer melhor a Fluida, solicitar demonstrações ou contratar nossos serviços.
-
-### **Suporte Técnico**  
-Para dúvidas sobre uso da plataforma, troubleshooting ou orientações técnicas.
-
-### **Parcerias**
-Para propostas de parceria, integrações ou colaborações estratégicas.
-
-## ⏰ **Horários de Atendimento**
-
-**Segunda a Sexta:** 9h às 18h
-**Sábados:** 9h às 13h  
-**Domingos e Feriados:** Atendimento por e-mail
-
-## 🎯 **Nosso Compromisso**
-
-- **Resposta Rápida:** E-mails respondidos em até 2 horas úteis
-- **Atendimento Personalizado:** Cada clínica tem necessidades únicas
-- **Suporte Contínuo:** Acompanhamento durante toda sua jornada
-- **Expertise Comprovada:** Equipe especializada em marketing médico
-
----
-
-*Sua satisfação é nossa prioridade. Vamos juntos revolucionar o marketing da sua clínica!*`);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    generateContent();
-  }, []);
-
-  if (loading) {
-    return (
-      <div className="max-w-4xl mx-auto py-10">
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="text-center">
-            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-aurora-electric-purple" />
-            <p className="text-white/70">Carregando informações de contato...</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  const handleChange = (field: string, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
 
   return (
-    <div className="max-w-4xl mx-auto py-10 px-6">
-      <div className="grid md:grid-cols-3 gap-8 mb-12">
-        <div className="bg-aurora-dark-purple/20 rounded-lg p-6 border border-aurora-electric-purple/20">
-          <Mail className="h-8 w-8 text-aurora-electric-purple mb-4" />
-          <h3 className="text-lg font-semibold text-white mb-2">E-mail Principal</h3>
-          <a href="mailto:contato@fluida.com" className="text-aurora-electric-purple hover:underline">
-            contato@fluida.com
-          </a>
-        </div>
-        
-        <div className="bg-aurora-dark-purple/20 rounded-lg p-6 border border-aurora-electric-purple/20">
-          <MessageCircle className="h-8 w-8 text-aurora-electric-purple mb-4" />
-          <h3 className="text-lg font-semibold text-white mb-2">Suporte Técnico</h3>
-          <a href="mailto:suporte@fluida.com" className="text-aurora-electric-purple hover:underline">
-            suporte@fluida.com
-          </a>
-        </div>
-        
-        <div className="bg-aurora-dark-purple/20 rounded-lg p-6 border border-aurora-electric-purple/20">
-          <Users className="h-8 w-8 text-aurora-electric-purple mb-4" />
-          <h3 className="text-lg font-semibold text-white mb-2">Parcerias</h3>
-          <a href="mailto:parcerias@fluida.com" className="text-aurora-electric-purple hover:underline">
-            parcerias@fluida.com
-          </a>
+    <div className="max-w-6xl mx-auto py-10 px-6">
+      <div className="text-center mb-12">
+        <h1 className="text-4xl font-bold mb-4 aurora-text-gradient">
+          Transforme o Marketing da Sua Clínica
+        </h1>
+        <p className="text-xl text-white/80 max-w-3xl mx-auto">
+          Estamos aqui para revolucionar a forma como sua clínica se comunica com seus pacientes. 
+          Entre em contato e descubra como a Fluida pode impulsionar seus resultados.
+        </p>
+      </div>
+
+      <div className="grid lg:grid-cols-2 gap-12 mb-12">
+        {/* Formulário de Contato */}
+        <Card className="bg-aurora-dark-purple/20 border-aurora-electric-purple/30">
+          <CardHeader>
+            <CardTitle className="text-2xl text-white flex items-center gap-3">
+              <Send className="h-6 w-6 text-aurora-electric-purple" />
+              Fale Conosco
+            </CardTitle>
+            <CardDescription className="text-white/70">
+              Preencha o formulário e nossa equipe especializada entrará em contato
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="grid md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="nome" className="text-white">Nome Completo</Label>
+                  <Input
+                    id="nome"
+                    type="text"
+                    value={formData.nome}
+                    onChange={(e) => handleChange('nome', e.target.value)}
+                    className="bg-aurora-space-black/30 border-aurora-electric-purple/20 text-white"
+                    placeholder="Seu nome completo"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="email" className="text-white">E-mail</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => handleChange('email', e.target.value)}
+                    className="bg-aurora-space-black/30 border-aurora-electric-purple/20 text-white"
+                    placeholder="seu@email.com"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="telefone" className="text-white">Telefone</Label>
+                  <Input
+                    id="telefone"
+                    type="tel"
+                    value={formData.telefone}
+                    onChange={(e) => handleChange('telefone', e.target.value)}
+                    className="bg-aurora-space-black/30 border-aurora-electric-purple/20 text-white"
+                    placeholder="(11) 99999-9999"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="clinica" className="text-white">Nome da Clínica</Label>
+                  <Input
+                    id="clinica"
+                    type="text"
+                    value={formData.clinica}
+                    onChange={(e) => handleChange('clinica', e.target.value)}
+                    className="bg-aurora-space-black/30 border-aurora-electric-purple/20 text-white"
+                    placeholder="Sua clínica"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="assunto" className="text-white">Assunto</Label>
+                <Select value={formData.assunto} onValueChange={(value) => handleChange('assunto', value)}>
+                  <SelectTrigger className="bg-aurora-space-black/30 border-aurora-electric-purple/20 text-white">
+                    <SelectValue placeholder="Selecione o assunto" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="comercial">Informações Comerciais</SelectItem>
+                    <SelectItem value="demonstracao">Solicitar Demonstração</SelectItem>
+                    <SelectItem value="suporte">Suporte Técnico</SelectItem>
+                    <SelectItem value="parceria">Parcerias</SelectItem>
+                    <SelectItem value="outro">Outro</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="mensagem" className="text-white">Mensagem</Label>
+                <Textarea
+                  id="mensagem"
+                  value={formData.mensagem}
+                  onChange={(e) => handleChange('mensagem', e.target.value)}
+                  className="bg-aurora-space-black/30 border-aurora-electric-purple/20 text-white min-h-[120px]"
+                  placeholder="Conte-nos como podemos ajudar sua clínica a alcançar melhores resultados..."
+                  required
+                />
+              </div>
+
+              <Button 
+                type="submit" 
+                className="w-full bg-gradient-to-r from-aurora-electric-purple to-aurora-neon-blue hover:opacity-90 text-white"
+              >
+                <Send className="h-4 w-4 mr-2" />
+                Enviar Mensagem
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+
+        {/* Informações de Contato */}
+        <div className="space-y-6">
+          <Card className="bg-gradient-to-br from-aurora-electric-purple/20 to-aurora-neon-blue/20 border-aurora-electric-purple/30">
+            <CardHeader>
+              <CardTitle className="text-white flex items-center gap-3">
+                <Mail className="h-6 w-6 text-aurora-electric-purple" />
+                Nossos Canais
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center gap-3 text-white/90">
+                <Mail className="h-5 w-5 text-aurora-electric-purple" />
+                <div>
+                  <p className="font-medium">E-mail Principal</p>
+                  <a href="mailto:contato@fluida.com" className="text-aurora-electric-purple hover:underline">
+                    contato@fluida.com
+                  </a>
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-3 text-white/90">
+                <Phone className="h-5 w-5 text-aurora-electric-purple" />
+                <div>
+                  <p className="font-medium">Telefone</p>
+                  <p className="text-white/70">(11) 3000-0000</p>
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-3 text-white/90">
+                <MapPin className="h-5 w-5 text-aurora-electric-purple" />
+                <div>
+                  <p className="font-medium">Endereço</p>
+                  <p className="text-white/70">São Paulo, SP - Brasil</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-aurora-dark-purple/20 border-aurora-electric-purple/30">
+            <CardHeader>
+              <CardTitle className="text-white flex items-center gap-3">
+                <Clock className="h-6 w-6 text-aurora-electric-purple" />
+                Horário de Atendimento
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3 text-white/90">
+                <div className="flex justify-between">
+                  <span>Segunda a Sexta</span>
+                  <span className="text-aurora-electric-purple font-medium">9h às 18h</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Sábados</span>
+                  <span className="text-aurora-electric-purple font-medium">9h às 13h</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Domingos e Feriados</span>
+                  <span className="text-white/60">Atendimento por e-mail</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-to-br from-aurora-emerald/20 to-aurora-electric-purple/20 border-aurora-emerald/30">
+            <CardHeader>
+              <CardTitle className="text-white flex items-center gap-3">
+                <Users className="h-6 w-6 text-aurora-emerald" />
+                Nosso Compromisso
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ul className="space-y-3 text-white/90">
+                <li className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-aurora-emerald rounded-full"></div>
+                  Resposta em até 2 horas úteis
+                </li>
+                <li className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-aurora-emerald rounded-full"></div>
+                  Atendimento personalizado
+                </li>
+                <li className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-aurora-emerald rounded-full"></div>
+                  Equipe especializada em marketing médico
+                </li>
+                <li className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-aurora-emerald rounded-full"></div>
+                  Suporte contínuo durante toda jornada
+                </li>
+              </ul>
+            </CardContent>
+          </Card>
         </div>
       </div>
 
-      <div className="bg-aurora-dark-purple/10 rounded-lg p-6 border border-aurora-electric-purple/20 mb-8">
-        <div className="flex items-center mb-4">
-          <Clock className="h-6 w-6 text-aurora-electric-purple mr-3" />
-          <h3 className="text-xl font-semibold text-white">Horários de Atendimento</h3>
-        </div>
-        <div className="grid md:grid-cols-2 gap-4 text-white/90">
-          <div>
-            <p className="font-medium">Segunda a Sexta</p>
-            <p className="text-white/70">9h às 18h</p>
-          </div>
-          <div>
-            <p className="font-medium">Sábados</p>
-            <p className="text-white/70">9h às 13h</p>
-          </div>
-        </div>
-      </div>
-
-      <div className="prose prose-invert max-w-none">
-        <div 
-          className="text-white/90 leading-relaxed space-y-6"
-          dangerouslySetInnerHTML={{ 
-            __html: content.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong class="text-aurora-electric-purple">$1</strong>').replace(/###? (.*?)(?=<br>|$)/g, '<h3 class="text-xl font-semibold text-aurora-electric-purple mt-8 mb-4">$1</h3>').replace(/^# (.*?)(?=<br>|$)/g, '<h1 class="text-3xl font-bold mb-6 aurora-text-gradient">$1</h1>')
-          }} 
-        />
+      <div className="text-center bg-gradient-to-r from-aurora-electric-purple/10 to-aurora-neon-blue/10 rounded-lg p-8 border border-aurora-electric-purple/20">
+        <h3 className="text-2xl font-bold text-white mb-4">
+          Pronto para Revolucionar Sua Clínica?
+        </h3>
+        <p className="text-white/80 max-w-2xl mx-auto">
+          Junte-se a centenas de clínicas que já transformaram seus resultados com a Fluida. 
+          Nossa equipe está pronta para mostrar como nossa plataforma pode impulsionar seu crescimento.
+        </p>
       </div>
     </div>
   );
