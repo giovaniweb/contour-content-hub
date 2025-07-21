@@ -25,6 +25,7 @@ export async function registerUser(userData: {
     email: userData.email,
     password: userData.password,
     options: {
+      emailRedirectTo: `${window.location.origin}/`,
       data: {
         nome: userData.name,
       },
@@ -71,42 +72,19 @@ export async function registerUser(userData: {
     return authData;
   }
   
-  // Se for fornecido o nome da clínica, vamos criar um novo workspace
-  if (userData.clinic && userData.role === 'admin') {
-    // We'll mock this since there's no workspaces table
-    const workspaceId = `ws_${Date.now()}`;
-    
-    // Agora atualizamos o usuário com o role de admin
+  // Note: Role is now automatically set to 'user' by the database trigger for security
+  // Only update additional profile information if provided
+  if (userData.clinic || userData.city || userData.phone || userData.equipment || userData.language) {
     const { error: updateError } = await supabase
       .from('perfis')
       .update({
         nome: userData.name,
-        role: userData.role || 'admin',
         clinica: userData.clinic,
         cidade: userData.city,
         telefone: userData.phone,
         equipamentos: userData.equipment,
         idioma: userData.language
-        // Note: Not setting workspace_id as it may not exist in the perfis table
-      })
-      .eq('id', authData.user.id);
-      
-    if (updateError) {
-      console.error("Erro ao atualizar usuário:", updateError);
-      throw updateError;
-    }
-  } else {
-    // Se não for um admin com clínica, apenas atualizamos o perfil básico
-    const { error: updateError } = await supabase
-      .from('perfis')
-      .update({
-        nome: userData.name,
-        role: userData.role || 'operador',
-        clinica: userData.clinic,
-        cidade: userData.city,
-        telefone: userData.phone,
-        equipamentos: userData.equipment,
-        idioma: userData.language
+        // Note: role is managed by trigger, not set manually for security
       })
       .eq('id', authData.user.id);
       

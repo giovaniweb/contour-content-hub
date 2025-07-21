@@ -10,7 +10,7 @@ export const usePermissions = () => {
   };
 
   const canViewConsultantPanel = () => {
-    return user?.role === 'admin' || user?.role === 'consultant' || user?.role === 'consultor';
+    return user?.role === 'admin' || user?.role === 'consultor';
   };
 
   const canManageUsers = () => {
@@ -34,10 +34,6 @@ export const usePermissions = () => {
       'gerente': 8,
       'operador': 7,
       'consultor': 6,
-      'consultant': 6,
-      'editAllContent': 5,
-      'manageClients': 4,
-      'viewSales': 3,
       'cliente': 2,
       'user': 1
     };

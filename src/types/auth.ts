@@ -1,22 +1,17 @@
 
 export type UserRole = 
+  | 'user'
+  | 'cliente' 
   | 'admin' 
   | 'gerente' 
   | 'operador' 
   | 'consultor' 
-  | 'superadmin'
-  | 'cliente'
-  | 'user'
-  | 'consultant'
-  | 'editAllContent'
-  | 'manageClients'
-  | 'viewSales';
+  | 'superadmin';
 
 export interface UserProfile {
   id: string;
   email: string;
   nome: string;
-  name: string;
   role: UserRole;
   profilePhotoUrl?: string;
   workspace_id?: string;
@@ -26,13 +21,18 @@ export interface UserProfile {
   equipamentos?: string[];
   idioma?: 'PT' | 'EN' | 'ES';
   passwordChanged?: boolean;
-  clinic?: string;
-  city?: string;
-  phone?: string;
-  equipment?: string[];
-  language?: "PT" | "EN" | "ES";
   created_at?: string;
   updated_at?: string;
+  // Geographic fields
+  estado?: string;
+  endereco_completo?: string;
+  lat?: number;
+  lng?: number;
+  // Professional fields
+  perfil_tipo?: string;
+  especialidade?: string;
+  foto_url?: string;
+  observacoes_conteudo?: string;
 }
 
 export interface AuthContextType {

@@ -27,7 +27,6 @@ export const fetchUserProfile = async (userId?: string): Promise<UserProfile | n
       id: data.id,
       email: data.email,
       nome: data.nome,
-      name: data.nome || data.email, // Add required name property
       role: (data.role as UserRole) || 'cliente',
       clinica: data.clinica,
       cidade: data.cidade,
@@ -84,7 +83,6 @@ export const ensureUserProfile = (user: any): UserProfile => {
     id: user.id,
     email: user.email,
     nome: user.nome || user.name,
-    name: user.name || user.nome, // Add required name property
     role: user.role || 'cliente',
     clinica: user.clinica,
     cidade: user.cidade,

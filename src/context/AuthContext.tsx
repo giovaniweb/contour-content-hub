@@ -65,7 +65,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 id: session.user.id,
                 email: session.user.email || '',
                 nome: session.user.email?.split('@')[0] || 'Usuário',
-                name: session.user.email?.split('@')[0] || 'Usuário',
                 role: 'user' as UserRole,
                 workspace_id: 'default',
                 idioma: 'PT' as 'PT' | 'EN' | 'ES'
@@ -113,7 +112,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               id: session.user.id,
               email: session.user.email || '',
               nome: session.user.email?.split('@')[0] || 'Usuário',
-              name: session.user.email?.split('@')[0] || 'Usuário',
               role: 'user' as UserRole,
               workspace_id: 'default',
               idioma: 'PT' as 'PT' | 'EN' | 'ES'
@@ -165,7 +163,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             id: authUser.id,
             email: authUser.email || '',
             nome: authUser.email?.split('@')[0] || 'Usuário',
-            name: authUser.email?.split('@')[0] || 'Usuário',
             role: 'user' as UserRole,
             workspace_id: 'default',
             idioma: 'PT' as 'PT' | 'EN' | 'ES'
@@ -183,7 +180,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           id: profile.id,
           email: profile.email,
           nome: profile.nome,
-          name: profile.nome,
           role: (profile.role || 'user') as UserRole,
           workspace_id: 'default',
           clinica: profile.clinica,

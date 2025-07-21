@@ -9,6 +9,8 @@ import AdminRoute from '@/components/AdminRoute';
 const Dashboard = React.lazy(() => import('@/pages/Dashboard'));
 const Login = React.lazy(() => import('@/pages/Login'));
 const Register = React.lazy(() => import('@/pages/Register'));
+const ForgotPassword = React.lazy(() => import('@/pages/ForgotPassword'));
+const ResetPassword = React.lazy(() => import('@/pages/ResetPassword'));
 const ScientificArticles = React.lazy(() => import('@/pages/ScientificArticles'));
 const ScientificArticleView = React.lazy(() => import('@/pages/ScientificArticleView'));
 const AdminScientificArticles = React.lazy(() => import('@/pages/admin/AdminScientificArticles'));
@@ -72,6 +74,24 @@ const AppRoutes: React.FC = () => {
         element={
           <Suspense fallback={<AuroraLoadingSkeleton />}>
             <Register />
+          </Suspense>
+        } 
+      />
+      
+      <Route 
+        path="/forgot-password" 
+        element={
+          <Suspense fallback={<AuroraLoadingSkeleton />}>
+            <ForgotPassword />
+          </Suspense>
+        } 
+      />
+      
+      <Route 
+        path="/reset-password" 
+        element={
+          <Suspense fallback={<AuroraLoadingSkeleton />}>
+            <ResetPassword />
           </Suspense>
         } 
       />
