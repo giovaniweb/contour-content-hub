@@ -601,42 +601,63 @@ export type Database = {
         Row: {
           after_image_url: string
           approved_script_id: string | null
+          associated_therapies: string[] | null
           before_image_url: string
           created_at: string
           description: string | null
+          equipment_parameters: Json | null
           equipment_used: string[] | null
           id: string
           is_public: boolean | null
           procedure_date: string | null
+          session_count: number | null
+          session_interval: number | null
+          session_notes: string | null
           title: string
+          treated_areas: string[] | null
+          treatment_objective: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
           after_image_url: string
           approved_script_id?: string | null
+          associated_therapies?: string[] | null
           before_image_url: string
           created_at?: string
           description?: string | null
+          equipment_parameters?: Json | null
           equipment_used?: string[] | null
           id?: string
           is_public?: boolean | null
           procedure_date?: string | null
+          session_count?: number | null
+          session_interval?: number | null
+          session_notes?: string | null
           title: string
+          treated_areas?: string[] | null
+          treatment_objective?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
           after_image_url?: string
           approved_script_id?: string | null
+          associated_therapies?: string[] | null
           before_image_url?: string
           created_at?: string
           description?: string | null
+          equipment_parameters?: Json | null
           equipment_used?: string[] | null
           id?: string
           is_public?: boolean | null
           procedure_date?: string | null
+          session_count?: number | null
+          session_interval?: number | null
+          session_notes?: string | null
           title?: string
+          treated_areas?: string[] | null
+          treatment_objective?: string | null
           updated_at?: string
           user_id?: string
         }
