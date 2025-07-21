@@ -56,6 +56,8 @@ const BeforeAfterBuilder: React.FC = () => {
   const [fontSize, setFontSize] = useState([24]);
   const [labelColor, setLabelColor] = useState('#333333');
   const [backgroundColor, setBackgroundColor] = useState('#ffffff');
+  const [titleColor, setTitleColor] = useState('#1f2937'); // Cor do título
+  const [descriptionColor, setDescriptionColor] = useState('#6b7280'); // Cor da descrição
   const [showLabels, setShowLabels] = useState(true);
   const [showTitle, setShowTitle] = useState(true);
   const [showLogo, setShowLogo] = useState(true);
@@ -174,27 +176,34 @@ const BeforeAfterBuilder: React.FC = () => {
     setIsGenerating(true);
     
     try {
+      // Aguardar um pouco para garantir que as imagens estão renderizadas
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
       const canvas = await html2canvas(canvasRef.current, {
-        backgroundColor: backgroundColor,
+        backgroundColor: null, // Usar a cor de fundo do elemento
         scale: 2,
         useCORS: true,
-        allowTaint: true,
-        logging: false,
-        width: canvasRef.current.scrollWidth,
-        height: canvasRef.current.scrollHeight,
-        foreignObjectRendering: true
+        allowTaint: false,
+        logging: true,
+        width: 400,
+        height: 600,
+        foreignObjectRendering: false,
+        imageTimeout: 15000,
+        removeContainer: true
       });
       
       // Criar link para download
       const link = document.createElement('a');
       link.download = `antes-depois-${Date.now()}.png`;
       link.href = canvas.toDataURL('image/png', 1.0);
+      document.body.appendChild(link);
       link.click();
+      document.body.removeChild(link);
       
       toast.success('Imagem de comparação gerada com sucesso!');
     } catch (error) {
       console.error('Erro ao gerar imagem:', error);
-      toast.error('Erro ao gerar imagem');
+      toast.error('Erro ao gerar imagem. Tente novamente.');
     } finally {
       setIsGenerating(false);
     }
@@ -424,10 +433,15 @@ const BeforeAfterBuilder: React.FC = () => {
                 {/* Título e Descrição */}
                 {showTitle && (
                   <div className="text-center mb-8">
-                    <h1 className="text-2xl font-bold text-gray-800 mb-2">
+                    <h1 
+                      className="text-2xl font-bold mb-2"
+                      style={{ color: titleColor }}
+                    >
                       {title || 'TITULO'}
                     </h1>
-                    <p className="text-gray-600">
+                    <p 
+                      style={{ color: descriptionColor }}
+                    >
                       {description || 'DESCRICAO'}
                     </p>
                   </div>
@@ -562,6 +576,26 @@ const BeforeAfterBuilder: React.FC = () => {
                           onChange={(e) => setDescription(e.target.value)}
                           placeholder="Digite a descrição"
                         />
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="title-color">Cor do título</Label>
+                          <Input
+                            id="title-color"
+                            type="color"
+                            value={titleColor}
+                            onChange={(e) => setTitleColor(e.target.value)}
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="description-color">Cor da descrição</Label>
+                          <Input
+                            id="description-color"
+                            type="color"
+                            value={descriptionColor}
+                            onChange={(e) => setDescriptionColor(e.target.value)}
+                          />
+                        </div>
                       </div>
                     </>
                   )}
