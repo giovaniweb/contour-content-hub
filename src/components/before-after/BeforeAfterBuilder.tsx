@@ -41,6 +41,7 @@ interface Template {
 const BeforeAfterBuilder: React.FC = () => {
   const [beforeImage, setBeforeImage] = useState<string | null>(null);
   const [afterImage, setAfterImage] = useState<string | null>(null);
+  const [logoImage, setLogoImage] = useState<string | null>(null);
   const [template, setTemplate] = useState<Template>({
     id: 'side-by-side',
     name: 'Lado a Lado',
@@ -57,11 +58,15 @@ const BeforeAfterBuilder: React.FC = () => {
   const [backgroundColor, setBackgroundColor] = useState('#1a1a2e');
   const [showLabels, setShowLabels] = useState(true);
   const [showTitle, setShowTitle] = useState(true);
+  const [showLogo, setShowLogo] = useState(true);
+  const [logoSize, setLogoSize] = useState([60]);
+  const [logoPosition, setLogoPosition] = useState('bottom-right');
   const [isGenerating, setIsGenerating] = useState(false);
 
   const canvasRef = useRef<HTMLDivElement>(null);
   const beforeInputRef = useRef<HTMLInputElement>(null);
   const afterInputRef = useRef<HTMLInputElement>(null);
+  const logoInputRef = useRef<HTMLInputElement>(null);
 
   const templates: Template[] = [
     { id: 'side-by-side', name: 'Lado a Lado', layout: 'side-by-side', style: {} },
@@ -70,15 +75,17 @@ const BeforeAfterBuilder: React.FC = () => {
     { id: 'overlay', name: 'Sobreposição', layout: 'overlay', style: {} }
   ];
 
-  const handleImageUpload = useCallback((file: File, type: 'before' | 'after') => {
+  const handleImageUpload = useCallback((file: File, type: 'before' | 'after' | 'logo') => {
     if (file && file.type.startsWith('image/')) {
       const reader = new FileReader();
       reader.onload = (e) => {
         const result = e.target?.result as string;
         if (type === 'before') {
           setBeforeImage(result);
-        } else {
+        } else if (type === 'after') {
           setAfterImage(result);
+        } else if (type === 'logo') {
+          setLogoImage(result);
         }
       };
       reader.readAsDataURL(file);
@@ -106,13 +113,16 @@ const BeforeAfterBuilder: React.FC = () => {
         scale: 2,
         useCORS: true,
         allowTaint: true,
-        logging: false
+        logging: false,
+        width: canvasRef.current.scrollWidth,
+        height: canvasRef.current.scrollHeight,
+        foreignObjectRendering: true
       });
       
       // Criar link para download
       const link = document.createElement('a');
       link.download = `antes-depois-${Date.now()}.png`;
-      link.href = canvas.toDataURL();
+      link.href = canvas.toDataURL('image/png', 1.0);
       link.click();
       
       toast.success('Imagem de comparação gerada com sucesso!');
@@ -130,8 +140,9 @@ const BeforeAfterBuilder: React.FC = () => {
     const commonImageStyle = {
       width: '100%',
       height: '400px',
-      objectFit: 'cover' as const,
-      borderRadius: '8px'
+      objectFit: 'contain' as const,
+      borderRadius: '8px',
+      backgroundColor: 'rgba(0,0,0,0.1)'
     };
 
     switch (template.layout) {
@@ -365,10 +376,37 @@ const BeforeAfterBuilder: React.FC = () => {
                           if (file) handleImageUpload(file, 'before');
                         }}
                       />
-                    </div>
+                     </div>
 
-                    <div>
-                      <Label className="text-white mb-2">Imagem DEPOIS</Label>
+                     <div>
+                       <Label className="text-white mb-2">Logo da Clínica</Label>
+                       <div
+                         className="border-2 border-dashed border-green-500/50 rounded-lg p-4 text-center hover:border-green-500/70 transition-colors cursor-pointer"
+                         onClick={() => logoInputRef.current?.click()}
+                       >
+                         {logoImage ? (
+                           <img src={logoImage} alt="Logo" className="w-full h-24 object-contain rounded" />
+                         ) : (
+                           <div className="space-y-2">
+                             <Upload className="h-8 w-8 text-green-500 mx-auto" />
+                             <p className="text-white text-sm">Clique para adicionar logo</p>
+                           </div>
+                         )}
+                       </div>
+                       <input
+                         ref={logoInputRef}
+                         type="file"
+                         accept="image/*"
+                         className="hidden"
+                         onChange={(e) => {
+                           const file = e.target.files?.[0];
+                           if (file) handleImageUpload(file, 'logo');
+                         }}
+                       />
+                     </div>
+
+                     <div>
+                       <Label className="text-white mb-2">Imagem DEPOIS</Label>
                       <div
                         className="border-2 border-dashed border-aurora-electric-purple/50 rounded-lg p-4 text-center hover:border-aurora-electric-purple/70 transition-colors cursor-pointer"
                         onClick={() => afterInputRef.current?.click()}
@@ -488,13 +526,54 @@ const BeforeAfterBuilder: React.FC = () => {
                     <Label className="text-white">Mostrar labels</Label>
                   </div>
 
-                  <div className="flex items-center space-x-2">
-                    <Switch
-                      checked={showTitle}
-                      onCheckedChange={setShowTitle}
-                    />
-                    <Label className="text-white">Mostrar título</Label>
-                  </div>
+                   <div className="flex items-center space-x-2">
+                     <Switch
+                       checked={showTitle}
+                       onCheckedChange={setShowTitle}
+                     />
+                     <Label className="text-white">Mostrar título</Label>
+                   </div>
+
+                   <div className="flex items-center space-x-2">
+                     <Switch
+                       checked={showLogo}
+                       onCheckedChange={setShowLogo}
+                     />
+                     <Label className="text-white">Mostrar logo</Label>
+                   </div>
+
+                   {showLogo && logoImage && (
+                     <>
+                       <div>
+                         <Label className="text-white mb-2">Tamanho do Logo</Label>
+                         <Slider
+                           value={logoSize}
+                           onValueChange={setLogoSize}
+                           min={30}
+                           max={120}
+                           step={5}
+                           className="w-full"
+                         />
+                         <div className="text-xs text-gray-400 mt-1">{logoSize[0]}px</div>
+                       </div>
+
+                       <div>
+                         <Label className="text-white mb-2">Posição do Logo</Label>
+                         <Select value={logoPosition} onValueChange={setLogoPosition}>
+                           <SelectTrigger className="bg-slate-800/50 border-aurora-electric-purple/30 text-white">
+                             <SelectValue />
+                           </SelectTrigger>
+                           <SelectContent>
+                             <SelectItem value="top-left">Superior Esquerda</SelectItem>
+                             <SelectItem value="top-right">Superior Direita</SelectItem>
+                             <SelectItem value="bottom-left">Inferior Esquerda</SelectItem>
+                             <SelectItem value="bottom-right">Inferior Direita</SelectItem>
+                             <SelectItem value="center">Centro</SelectItem>
+                           </SelectContent>
+                         </Select>
+                       </div>
+                     </>
+                   )}
 
                   <div>
                     <Label className="text-white mb-2">Tamanho da Fonte</Label>
@@ -602,14 +681,40 @@ const BeforeAfterBuilder: React.FC = () => {
                     )}
                   </div>
                 )}
-                
-                {renderComparison()}
-                
-                {!beforeImage || !afterImage ? (
-                  <div className="flex items-center justify-center h-64 border-2 border-dashed border-gray-400 rounded-lg">
-                    <p className="text-gray-400">Adicione as duas imagens para ver a comparação</p>
-                  </div>
-                ) : null}
+                 
+                 <div className="relative">
+                   {renderComparison()}
+                   
+                   {/* Logo Overlay */}
+                   {showLogo && logoImage && (beforeImage || afterImage) && (
+                     <div 
+                       className={`absolute z-10 ${
+                         logoPosition === 'top-left' ? 'top-4 left-4' :
+                         logoPosition === 'top-right' ? 'top-4 right-4' :
+                         logoPosition === 'bottom-left' ? 'bottom-4 left-4' :
+                         logoPosition === 'bottom-right' ? 'bottom-4 right-4' :
+                         'top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2'
+                       }`}
+                     >
+                       <img 
+                         src={logoImage} 
+                         alt="Logo da Clínica" 
+                         style={{ 
+                           width: `${logoSize[0]}px`,
+                           height: 'auto',
+                           filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))'
+                         }}
+                         className="object-contain"
+                       />
+                     </div>
+                   )}
+                 </div>
+                 
+                 {!beforeImage || !afterImage ? (
+                   <div className="flex items-center justify-center h-64 border-2 border-dashed border-gray-400 rounded-lg">
+                     <p className="text-gray-400">Adicione as duas imagens para ver a comparação</p>
+                   </div>
+                 ) : null}
               </div>
             </div>
           </div>
