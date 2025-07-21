@@ -61,6 +61,17 @@ const BeforeAfterBuilder: React.FC = () => {
   const [showLogo, setShowLogo] = useState(true);
   const [logoSize, setLogoSize] = useState([60]);
   const [logoPosition, setLogoPosition] = useState('bottom-right');
+  
+  // Controles de posicionamento das imagens
+  const [beforeImageScale, setBeforeImageScale] = useState([100]);
+  const [afterImageScale, setAfterImageScale] = useState([100]);
+  const [beforeImageX, setBeforeImageX] = useState([0]);
+  const [beforeImageY, setBeforeImageY] = useState([0]);
+  const [afterImageX, setAfterImageX] = useState([0]);
+  const [afterImageY, setAfterImageY] = useState([0]);
+  const [beforeImageRotation, setBeforeImageRotation] = useState([0]);
+  const [afterImageRotation, setAfterImageRotation] = useState([0]);
+  
   const [isGenerating, setIsGenerating] = useState(false);
 
   const canvasRef = useRef<HTMLDivElement>(null);
@@ -137,12 +148,21 @@ const BeforeAfterBuilder: React.FC = () => {
   const renderComparison = () => {
     if (!beforeImage || !afterImage) return null;
 
-    const commonImageStyle = {
-      width: '100%',
-      height: '400px',
-      objectFit: 'contain' as const,
-      borderRadius: '8px',
-      backgroundColor: 'rgba(0,0,0,0.1)'
+    const getImageStyle = (type: 'before' | 'after') => {
+      const scale = type === 'before' ? beforeImageScale[0] : afterImageScale[0];
+      const x = type === 'before' ? beforeImageX[0] : afterImageX[0];
+      const y = type === 'before' ? beforeImageY[0] : afterImageY[0];
+      const rotation = type === 'before' ? beforeImageRotation[0] : afterImageRotation[0];
+      
+      return {
+        width: '100%',
+        height: '400px',
+        objectFit: 'contain' as const,
+        borderRadius: '8px',
+        backgroundColor: 'rgba(0,0,0,0.1)',
+        transform: `scale(${scale / 100}) translate(${x}px, ${y}px) rotate(${rotation}deg)`,
+        transformOrigin: 'center center'
+      };
     };
 
     switch (template.layout) {
@@ -150,7 +170,7 @@ const BeforeAfterBuilder: React.FC = () => {
         return (
           <div className="grid grid-cols-2 gap-4">
             <div className="relative">
-              <img src={beforeImage} alt="Antes" style={commonImageStyle} />
+              <img src={beforeImage} alt="Antes" style={getImageStyle('before')} />
               {showLabels && (
                 <div 
                   className="absolute top-4 left-4 px-3 py-1 rounded-full font-bold"
@@ -165,7 +185,7 @@ const BeforeAfterBuilder: React.FC = () => {
               )}
             </div>
             <div className="relative">
-              <img src={afterImage} alt="Depois" style={commonImageStyle} />
+              <img src={afterImage} alt="Depois" style={getImageStyle('after')} />
               {showLabels && (
                 <div 
                   className="absolute top-4 left-4 px-3 py-1 rounded-full font-bold"
@@ -186,7 +206,7 @@ const BeforeAfterBuilder: React.FC = () => {
         return (
           <div className="space-y-4">
             <div className="relative">
-              <img src={beforeImage} alt="Antes" style={commonImageStyle} />
+              <img src={beforeImage} alt="Antes" style={getImageStyle('before')} />
               {showLabels && (
                 <div 
                   className="absolute top-4 left-4 px-3 py-1 rounded-full font-bold"
@@ -201,7 +221,7 @@ const BeforeAfterBuilder: React.FC = () => {
               )}
             </div>
             <div className="relative">
-              <img src={afterImage} alt="Depois" style={commonImageStyle} />
+              <img src={afterImage} alt="Depois" style={getImageStyle('after')} />
               {showLabels && (
                 <div 
                   className="absolute top-4 left-4 px-3 py-1 rounded-full font-bold"
@@ -342,8 +362,9 @@ const BeforeAfterBuilder: React.FC = () => {
             {/* Controls Panel */}
             <div className="lg:col-span-1 space-y-6">
               <Tabs defaultValue="images" className="w-full">
-                <TabsList className="grid w-full grid-cols-3 bg-slate-800/50">
+                <TabsList className="grid w-full grid-cols-4 bg-slate-800/50">
                   <TabsTrigger value="images">Imagens</TabsTrigger>
+                  <TabsTrigger value="position">Posição</TabsTrigger>
                   <TabsTrigger value="style">Estilo</TabsTrigger>
                   <TabsTrigger value="export">Exportar</TabsTrigger>
                 </TabsList>
@@ -470,6 +491,162 @@ const BeforeAfterBuilder: React.FC = () => {
                         className="w-full"
                       />
                       <div className="text-xs text-gray-400 mt-1">{sliderPosition[0]}%</div>
+                    </div>
+                  )}
+                </TabsContent>
+
+                <TabsContent value="position" className="space-y-4">
+                  {beforeImage && (
+                    <div className="space-y-4 p-4 bg-slate-800/30 rounded-lg">
+                      <h4 className="text-white font-medium">Imagem ANTES</h4>
+                      
+                      <div>
+                        <Label className="text-white mb-2">Escala</Label>
+                        <Slider
+                          value={beforeImageScale}
+                          onValueChange={setBeforeImageScale}
+                          min={50}
+                          max={200}
+                          step={5}
+                          className="w-full"
+                        />
+                        <div className="text-xs text-gray-400 mt-1">{beforeImageScale[0]}%</div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <Label className="text-white mb-2">Posição X</Label>
+                          <Slider
+                            value={beforeImageX}
+                            onValueChange={setBeforeImageX}
+                            min={-100}
+                            max={100}
+                            step={5}
+                            className="w-full"
+                          />
+                          <div className="text-xs text-gray-400 mt-1">{beforeImageX[0]}px</div>
+                        </div>
+                        <div>
+                          <Label className="text-white mb-2">Posição Y</Label>
+                          <Slider
+                            value={beforeImageY}
+                            onValueChange={setBeforeImageY}
+                            min={-100}
+                            max={100}
+                            step={5}
+                            className="w-full"
+                          />
+                          <div className="text-xs text-gray-400 mt-1">{beforeImageY[0]}px</div>
+                        </div>
+                      </div>
+
+                      <div>
+                        <Label className="text-white mb-2">Rotação</Label>
+                        <Slider
+                          value={beforeImageRotation}
+                          onValueChange={setBeforeImageRotation}
+                          min={-180}
+                          max={180}
+                          step={5}
+                          className="w-full"
+                        />
+                        <div className="text-xs text-gray-400 mt-1">{beforeImageRotation[0]}°</div>
+                      </div>
+
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setBeforeImageScale([100]);
+                          setBeforeImageX([0]);
+                          setBeforeImageY([0]);
+                          setBeforeImageRotation([0]);
+                        }}
+                        className="w-full text-xs"
+                      >
+                        <RotateCcw className="h-3 w-3 mr-1" />
+                        Resetar Posição
+                      </Button>
+                    </div>
+                  )}
+
+                  {afterImage && (
+                    <div className="space-y-4 p-4 bg-slate-800/30 rounded-lg">
+                      <h4 className="text-white font-medium">Imagem DEPOIS</h4>
+                      
+                      <div>
+                        <Label className="text-white mb-2">Escala</Label>
+                        <Slider
+                          value={afterImageScale}
+                          onValueChange={setAfterImageScale}
+                          min={50}
+                          max={200}
+                          step={5}
+                          className="w-full"
+                        />
+                        <div className="text-xs text-gray-400 mt-1">{afterImageScale[0]}%</div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <Label className="text-white mb-2">Posição X</Label>
+                          <Slider
+                            value={afterImageX}
+                            onValueChange={setAfterImageX}
+                            min={-100}
+                            max={100}
+                            step={5}
+                            className="w-full"
+                          />
+                          <div className="text-xs text-gray-400 mt-1">{afterImageX[0]}px</div>
+                        </div>
+                        <div>
+                          <Label className="text-white mb-2">Posição Y</Label>
+                          <Slider
+                            value={afterImageY}
+                            onValueChange={setAfterImageY}
+                            min={-100}
+                            max={100}
+                            step={5}
+                            className="w-full"
+                          />
+                          <div className="text-xs text-gray-400 mt-1">{afterImageY[0]}px</div>
+                        </div>
+                      </div>
+
+                      <div>
+                        <Label className="text-white mb-2">Rotação</Label>
+                        <Slider
+                          value={afterImageRotation}
+                          onValueChange={setAfterImageRotation}
+                          min={-180}
+                          max={180}
+                          step={5}
+                          className="w-full"
+                        />
+                        <div className="text-xs text-gray-400 mt-1">{afterImageRotation[0]}°</div>
+                      </div>
+
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setAfterImageScale([100]);
+                          setAfterImageX([0]);
+                          setAfterImageY([0]);
+                          setAfterImageRotation([0]);
+                        }}
+                        className="w-full text-xs"
+                      >
+                        <RotateCcw className="h-3 w-3 mr-1" />
+                        Resetar Posição
+                      </Button>
+                    </div>
+                  )}
+
+                  {!beforeImage && !afterImage && (
+                    <div className="text-center py-8 text-gray-400">
+                      Adicione as imagens primeiro para ajustar a posição
                     </div>
                   )}
                 </TabsContent>
