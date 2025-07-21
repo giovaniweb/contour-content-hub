@@ -55,6 +55,8 @@ const InstagramIntegration = React.lazy(() => import('@/pages/InstagramIntegrati
 const Gamification = React.lazy(() => import('@/pages/Gamification'));
 const WorkspaceSettings = React.lazy(() => import('@/pages/WorkspaceSettings'));
 const Profile = React.lazy(() => import('@/pages/Profile'));
+const VideomakerCadastro = React.lazy(() => import('@/pages/VideomakerCadastro'));
+const VideomakerBusca = React.lazy(() => import('@/pages/VideomakerBusca'));
 
 const AppRoutes: React.FC = () => {
   return (
@@ -436,6 +438,29 @@ const AppRoutes: React.FC = () => {
             <AppLayout>
               <Suspense fallback={<AuroraLoadingSkeleton />}>
                 <WorkspaceSettings />
+              </Suspense>
+            </AppLayout>
+          } 
+        />
+
+        {/* Videomaker Routes */}
+        <Route 
+          path="/videomaker/cadastro" 
+          element={
+            <AppLayout>
+              <Suspense fallback={<AuroraLoadingSkeleton />}>
+                <VideomakerCadastro />
+              </Suspense>
+            </AppLayout>
+          } 
+        />
+
+        <Route 
+          path="/videomaker/busca" 
+          element={
+            <AppLayout>
+              <Suspense fallback={<AuroraLoadingSkeleton />}>
+                <VideomakerBusca />
               </Suspense>
             </AppLayout>
           } 

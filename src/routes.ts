@@ -50,6 +50,11 @@ export const ROUTES = {
     BATCH: '/downloads/batch'
   },
 
+  VIDEOMAKER: {
+    CADASTRO: '/videomaker/cadastro',
+    BUSCA: '/videomaker/busca'
+  },
+
   ADMIN: {
     ROOT: '/admin',
     EQUIPMENTS: {

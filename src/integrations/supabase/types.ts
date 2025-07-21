@@ -2971,6 +2971,63 @@ export type Database = {
         }
         Relationships: []
       }
+      videomakers: {
+        Row: {
+          ativo: boolean
+          camera_celular: string
+          cidade: string
+          created_at: string
+          emite_nota_fiscal: boolean
+          id: string
+          instagram: string | null
+          modelo_microfone: string | null
+          nome_completo: string
+          possui_iluminacao: boolean
+          telefone: string
+          tipo_profissional: Database["public"]["Enums"]["professional_type"]
+          updated_at: string
+          user_id: string
+          valor_diaria: Database["public"]["Enums"]["investment_range"]
+          video_referencia_url: string | null
+        }
+        Insert: {
+          ativo?: boolean
+          camera_celular: string
+          cidade: string
+          created_at?: string
+          emite_nota_fiscal?: boolean
+          id?: string
+          instagram?: string | null
+          modelo_microfone?: string | null
+          nome_completo: string
+          possui_iluminacao?: boolean
+          telefone: string
+          tipo_profissional?: Database["public"]["Enums"]["professional_type"]
+          updated_at?: string
+          user_id: string
+          valor_diaria: Database["public"]["Enums"]["investment_range"]
+          video_referencia_url?: string | null
+        }
+        Update: {
+          ativo?: boolean
+          camera_celular?: string
+          cidade?: string
+          created_at?: string
+          emite_nota_fiscal?: boolean
+          id?: string
+          instagram?: string | null
+          modelo_microfone?: string | null
+          nome_completo?: string
+          possui_iluminacao?: boolean
+          telefone?: string
+          tipo_profissional?: Database["public"]["Enums"]["professional_type"]
+          updated_at?: string
+          user_id?: string
+          valor_diaria?: Database["public"]["Enums"]["investment_range"]
+          video_referencia_url?: string | null
+        }
+        Relationships: []
+      }
       videos: {
         Row: {
           area_corpo: string | null
@@ -3290,7 +3347,13 @@ export type Database = {
       }
     }
     Enums: {
-      [_ in never]: never
+      investment_range:
+        | "300-500"
+        | "500-800"
+        | "800-1000"
+        | "1000-1200"
+        | "acima-1200"
+      professional_type: "videomaker" | "storymaker"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -3417,6 +3480,15 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      investment_range: [
+        "300-500",
+        "500-800",
+        "800-1000",
+        "1000-1200",
+        "acima-1200",
+      ],
+      professional_type: ["videomaker", "storymaker"],
+    },
   },
 } as const
