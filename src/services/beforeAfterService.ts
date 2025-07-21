@@ -64,7 +64,14 @@ export const beforeAfterService = {
           equipment_used: data.equipment_used,
           procedure_date: data.procedure_date,
           is_public: data.is_public,
-          approved_script_id: data.approved_script_id
+          approved_script_id: data.approved_script_id,
+          equipment_parameters: data.equipment_parameters || {},
+          treated_areas: data.treated_areas || [],
+          treatment_objective: data.treatment_objective || '',
+          associated_therapies: data.associated_therapies || [],
+          session_interval: data.session_interval,
+          session_count: data.session_count,
+          session_notes: data.session_notes || ''
         })
         .select()
         .single();
@@ -105,7 +112,16 @@ export const beforeAfterService = {
       }
 
       console.log('📊 Fotos encontradas:', data?.length || 0);
-      return data || [];
+      return (data || []).map(photo => ({
+        ...photo,
+        equipment_parameters: photo.equipment_parameters as any || {},
+        treated_areas: photo.treated_areas || [],
+        treatment_objective: photo.treatment_objective || '',
+        associated_therapies: photo.associated_therapies || [],
+        session_interval: photo.session_interval || undefined,
+        session_count: photo.session_count || undefined,
+        session_notes: photo.session_notes || ''
+      }));
     } catch (error) {
       console.error('❌ Erro ao buscar fotos:', error);
       return [];
@@ -129,7 +145,16 @@ export const beforeAfterService = {
       }
 
       console.log('📊 Fotos públicas encontradas:', data?.length || 0);
-      return data || [];
+      return (data || []).map(photo => ({
+        ...photo,
+        equipment_parameters: photo.equipment_parameters as any || {},
+        treated_areas: photo.treated_areas || [],
+        treatment_objective: photo.treatment_objective || '',
+        associated_therapies: photo.associated_therapies || [],
+        session_interval: photo.session_interval || undefined,
+        session_count: photo.session_count || undefined,
+        session_notes: photo.session_notes || ''
+      }));
     } catch (error) {
       console.error('❌ Erro ao buscar fotos públicas:', error);
       return [];
