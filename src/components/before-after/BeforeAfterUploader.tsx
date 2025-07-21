@@ -1,5 +1,5 @@
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,12 +9,18 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Upload, Image as ImageIcon, X, Camera, Sparkles, ClipboardList, Settings, Target } from "lucide-react";
+import { Upload, Image as ImageIcon, X, Camera, Sparkles, ClipboardList, Settings, Target, Check } from "lucide-react";
 import { toast } from 'sonner';
 import { beforeAfterService } from '@/services/beforeAfterService';
 import { BeforeAfterUploadData } from '@/types/before-after';
 import { useGamification } from '@/hooks/useGamification';
 import GamificationDisplay from '@/components/gamification/GamificationDisplay';
+import { supabase } from '@/integrations/supabase/client';
+
+interface Equipment {
+  id: string;
+  nome: string;
+}
 
 interface BeforeAfterUploaderProps {
   onUploadSuccess?: () => void;
@@ -26,6 +32,8 @@ const BeforeAfterUploader: React.FC<BeforeAfterUploaderProps> = ({ onUploadSucce
   const [beforePreview, setBeforePreview] = useState<string | null>(null);
   const [afterPreview, setAfterPreview] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [equipments, setEquipments] = useState<Equipment[]>([]);
+  const [selectedEquipments, setSelectedEquipments] = useState<string[]>([]);
   
   const { userProgress, awardBeforeAfterUpload, isLoading: gamificationLoading } = useGamification();
   
@@ -51,6 +59,27 @@ const BeforeAfterUploader: React.FC<BeforeAfterUploaderProps> = ({ onUploadSucce
 
   const beforeInputRef = useRef<HTMLInputElement>(null);
   const afterInputRef = useRef<HTMLInputElement>(null);
+
+  // Carregar equipamentos
+  useEffect(() => {
+    const loadEquipments = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('equipamentos')
+          .select('id, nome')
+          .eq('ativo', true)
+          .order('nome');
+
+        if (error) throw error;
+        setEquipments(data || []);
+      } catch (error) {
+        console.error('Erro ao carregar equipamentos:', error);
+        toast.error('Erro ao carregar lista de equipamentos');
+      }
+    };
+
+    loadEquipments();
+  }, []);
 
   const handleImageSelect = (file: File, type: 'before' | 'after') => {
     if (file && file.type.startsWith('image/')) {
@@ -109,12 +138,23 @@ const BeforeAfterUploader: React.FC<BeforeAfterUploaderProps> = ({ onUploadSucce
         throw new Error('Falha no upload das imagens');
       }
 
-      // Criar registro no banco
-      const photo = await beforeAfterService.createBeforeAfterPhoto(
-        beforeUrl,
-        afterUrl,
-        formData
-      );
+        // Atualizar equipment_used com os nomes dos equipamentos selecionados
+        const equipmentNames = selectedEquipments.map(equipId => {
+          const equipment = equipments.find(eq => eq.id === equipId);
+          return equipment?.nome || '';
+        }).filter(Boolean);
+
+        const updatedFormData = {
+          ...formData,
+          equipment_used: equipmentNames
+        };
+
+        // Criar registro no banco
+        const photo = await beforeAfterService.createBeforeAfterPhoto(
+          beforeUrl,
+          afterUrl,
+          updatedFormData
+        );
 
       if (!photo) {
         throw new Error('Falha ao criar registro');
@@ -154,6 +194,7 @@ const BeforeAfterUploader: React.FC<BeforeAfterUploaderProps> = ({ onUploadSucce
         session_count: undefined,
         session_notes: ''
       });
+      setSelectedEquipments([]);
 
       if (onUploadSuccess) {
         onUploadSuccess();
@@ -347,20 +388,43 @@ const BeforeAfterUploader: React.FC<BeforeAfterUploaderProps> = ({ onUploadSucce
                 </div>
 
                 <div>
-                  <Label htmlFor="equipment" className="text-white font-medium">
+                  <Label className="text-white font-medium">
                     Equipamentos Utilizados
                   </Label>
-                  <Input
-                    id="equipment"
-                    type="text"
-                    placeholder="Ex: Microagulhamento DermaPen"
-                    value={formData.equipment_used.join(', ')}
-                    onChange={(e) => setFormData({ 
-                      ...formData, 
-                      equipment_used: e.target.value.split(',').map(item => item.trim()).filter(Boolean)
-                    })}
-                    className="bg-slate-800/50 border-aurora-electric-purple/30 text-white"
-                  />
+                  <div className="space-y-2">
+                    {equipments.map((equipment) => (
+                      <div key={equipment.id} className="flex items-center space-x-2">
+                        <input
+                          type="checkbox"
+                          id={equipment.id}
+                          checked={selectedEquipments.includes(equipment.id)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setSelectedEquipments([...selectedEquipments, equipment.id]);
+                            } else {
+                              setSelectedEquipments(selectedEquipments.filter(id => id !== equipment.id));
+                            }
+                          }}
+                          className="rounded border-aurora-electric-purple/30 text-aurora-electric-purple"
+                        />
+                        <Label 
+                          htmlFor={equipment.id} 
+                          className="text-white text-sm cursor-pointer"
+                        >
+                          {equipment.nome}
+                        </Label>
+                      </div>
+                    ))}
+                  </div>
+                  {selectedEquipments.length > 0 && (
+                    <div className="mt-2 p-2 bg-slate-800/30 rounded border border-aurora-electric-purple/20">
+                      <p className="text-sm text-gray-300">
+                        Selecionados: {selectedEquipments.map(id => 
+                          equipments.find(eq => eq.id === id)?.nome
+                        ).join(', ')}
+                      </p>
+                    </div>
+                  )}
                 </div>
 
                 <div>
@@ -507,27 +571,13 @@ const BeforeAfterUploader: React.FC<BeforeAfterUploaderProps> = ({ onUploadSucce
               <TabsContent value="objectives" className="space-y-4 mt-6">
                 <div>
                   <Label className="text-white font-medium">Objetivo do Tratamento</Label>
-                  <Select 
-                    value={formData.treatment_objective || ''} 
-                    onValueChange={(value) => setFormData({ ...formData, treatment_objective: value })}
-                  >
-                    <SelectTrigger className="bg-slate-800/50 border-aurora-electric-purple/30 text-white">
-                      <SelectValue placeholder="Selecione o objetivo principal" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="rejuvenescimento">Rejuvenescimento</SelectItem>
-                      <SelectItem value="acne">Tratamento de Acne</SelectItem>
-                      <SelectItem value="manchas">Remoção de Manchas</SelectItem>
-                      <SelectItem value="cicatrizes">Tratamento de Cicatrizes</SelectItem>
-                      <SelectItem value="flacidez">Flacidez</SelectItem>
-                      <SelectItem value="rugas">Rugas e Linhas de Expressão</SelectItem>
-                      <SelectItem value="melasma">Melasma</SelectItem>
-                      <SelectItem value="olheiras">Olheiras</SelectItem>
-                      <SelectItem value="estrias">Estrias</SelectItem>
-                      <SelectItem value="celulite">Celulite</SelectItem>
-                      <SelectItem value="outro">Outro</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Textarea
+                    placeholder="Descreva o objetivo específico do tratamento..."
+                    value={formData.treatment_objective || ''}
+                    onChange={(e) => setFormData({ ...formData, treatment_objective: e.target.value })}
+                    className="bg-slate-800/50 border-aurora-electric-purple/30 text-white"
+                    rows={3}
+                  />
                 </div>
 
                 <div>
