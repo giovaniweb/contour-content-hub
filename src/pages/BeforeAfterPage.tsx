@@ -35,10 +35,19 @@ const BeforeAfterPage: React.FC = () => {
   const loadStats = async () => {
     try {
       setLoading(true);
+      console.log('🔄 Iniciando carregamento das estatísticas...');
+      
       const [userPhotos, publicPhotos] = await Promise.all([
         beforeAfterService.getUserPhotos(),
         beforeAfterService.getPublicPhotos()
       ]);
+
+      console.log('📊 Dados carregados:', {
+        userPhotos: userPhotos.length,
+        publicPhotos: publicPhotos.length,
+        userPhotosData: userPhotos,
+        publicPhotosData: publicPhotos
+      });
 
       const protocolsWithFullData = userPhotos.filter(photo => 
         photo.equipment_parameters && 
@@ -46,14 +55,17 @@ const BeforeAfterPage: React.FC = () => {
         photo.treatment_objective
       ).length;
 
-      setStats({
+      const newStats = {
         totalPhotos: userPhotos.length,
         publicPhotos: publicPhotos.length,
         protocolsCompleted: protocolsWithFullData,
-        averageRating: userPhotos.length > 0 ? 4.5 : 0 // Real calculation based on actual data
-      });
+        averageRating: userPhotos.length > 0 ? 4.5 : 0
+      };
+
+      console.log('📈 Estatísticas calculadas:', newStats);
+      setStats(newStats);
     } catch (error) {
-      console.error('Erro ao carregar estatísticas:', error);
+      console.error('❌ Erro ao carregar estatísticas:', error);
     } finally {
       setLoading(false);
     }

@@ -12,6 +12,7 @@ const BeforeAfterManager: React.FC = () => {
 
   const handleUploadSuccess = () => {
     console.log('✅ Upload concluído - atualizando galeria');
+    console.log('🔄 Atualizando refreshGallery de', refreshGallery, 'para', refreshGallery + 1);
     setRefreshGallery(prev => prev + 1);
   };
 
