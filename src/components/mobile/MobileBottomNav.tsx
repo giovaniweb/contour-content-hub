@@ -1,64 +1,51 @@
 
 import React from "react";
 import { useLocation, Link } from "react-router-dom";
-import { ROUTES } from "@/routes";
 import { 
   LayoutDashboard, 
-  Kanban, 
-  Lightbulb, 
+  Video, 
+  Image, 
   FileText,
-  Menu
+  Crown
 } from "lucide-react";
-import { useSidebar } from "@/components/ui/sidebar";
+import { cn } from "@/lib/utils";
 
 export default function MobileBottomNav() {
   const location = useLocation();
-  const { setOpen } = useSidebar();
-  
-  const openSidebar = (e: React.MouseEvent) => {
-    e.preventDefault();
-    setOpen(true);
-  };
   
   const isActive = (path: string) => {
-    if (path === ROUTES.DASHBOARD && (location.pathname === '/' || location.pathname === ROUTES.DASHBOARD)) {
+    if (path === '/dashboard' && (location.pathname === '/' || location.pathname === '/dashboard')) {
       return true;
     }
     return location.pathname === path;
   };
   
   const menuItems = [
-    { icon: LayoutDashboard, path: ROUTES.DASHBOARD, label: 'Home' },
-    { icon: Kanban, path: ROUTES.CONTENT.PLANNER, label: 'Planner' },
-    { icon: Lightbulb, path: ROUTES.CONTENT.IDEAS, label: 'Ideas' },
-    { icon: FileText, path: ROUTES.CONTENT.SCRIPTS.ROOT, label: 'Scripts' },
+    { icon: LayoutDashboard, path: '/dashboard', label: 'Dashboard' },
+    { icon: Crown, path: '/mestre-da-beleza', label: 'Beleza' },
+    { icon: Video, path: '/videos', label: 'Vídeos' },
+    { icon: Image, path: '/photos', label: 'Fotos' },
+    { icon: FileText, path: '/my-documents', label: 'Docs' },
   ];
 
   return (
-    <div className="md:hidden fixed bottom-0 left-0 right-0 bg-background border-t z-40 px-2 py-1">
-      <div className="flex items-center justify-between">
+    <div className="md:hidden fixed bottom-0 left-0 right-0 bg-aurora-deep-navy/95 backdrop-blur-lg border-t border-aurora-neon-blue/20 z-40 px-2 py-2 shadow-lg">
+      <div className="flex items-center justify-around">
         {menuItems.map((item) => (
           <Link
             key={item.path}
             to={item.path}
-            className={`flex flex-col items-center justify-center p-2 ${
+            className={cn(
+              "flex flex-col items-center justify-center p-3 rounded-lg transition-all duration-200 min-w-[60px]",
               isActive(item.path) 
-                ? "text-primary" 
-                : "text-muted-foreground"
-            }`}
+                ? "text-aurora-neon-blue bg-aurora-neon-blue/10 shadow-lg" 
+                : "text-aurora-text-muted hover:text-aurora-neon-blue hover:bg-aurora-neon-blue/5"
+            )}
           >
             <item.icon className="h-5 w-5" />
-            <span className="text-xs mt-1">{item.label}</span>
+            <span className="text-xs mt-1 font-medium">{item.label}</span>
           </Link>
         ))}
-        
-        <button
-          onClick={openSidebar}
-          className="flex flex-col items-center justify-center p-2 text-muted-foreground"
-        >
-          <Menu className="h-5 w-5" />
-          <span className="text-xs mt-1">Menu</span>
-        </button>
       </div>
     </div>
   );

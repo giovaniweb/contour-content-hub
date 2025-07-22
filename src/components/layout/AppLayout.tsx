@@ -2,8 +2,12 @@
 import React, { useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
+import { useIsMobile } from "@/hooks/use-mobile";
 import Sidebar from "./Sidebar";
 import Navbar from "../navbar/Navbar";
+import MobileBottomNav from "../mobile/MobileBottomNav";
+import { MobileSidebar } from "@/components/ui/sidebar/mobile-sidebar";
+import MobileSidebarMenu from "../mobile/MobileSidebarMenu";
 import AuroraPageLayout from "./AuroraPageLayout";
 
 const SIDEBAR_WIDTH = 104; // igual ao Sidebar.tsx (px: w-26)
@@ -23,6 +27,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({
   interactive = true,
 }) => {
   const { user, isAuthenticated, isLoading } = useAuth();
+  const isMobile = useIsMobile();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -48,6 +53,37 @@ const AppLayout: React.FC<AppLayoutProps> = ({
     );
   }
 
+  // Layout para mobile - sem sidebar lateral, com bottom navigation
+  if (isMobile) {
+    return (
+      <div className="min-h-screen aurora-enhanced-bg">
+        {/* Sidebar mobile deslizante */}
+        <MobileSidebar>
+          <MobileSidebarMenu />
+        </MobileSidebar>
+        
+        {/* Header simplificado para mobile */}
+        <div className="relative z-30">
+          <Navbar />
+        </div>
+        
+        {/* Conteúdo principal mobile - ocupa toda a largura */}
+        <main 
+          className="flex-1 overflow-y-auto px-4 relative z-20 pb-20"
+          style={{ paddingTop: NAVBAR_HEIGHT + 8 }}
+        >
+          <div className="relative z-20 clickable min-h-full">
+            {children}
+          </div>
+        </main>
+        
+        {/* Bottom Navigation para mobile */}
+        <MobileBottomNav />
+      </div>
+    );
+  }
+
+  // Layout para desktop - com sidebar lateral
   return (
     <div className="min-h-screen aurora-enhanced-bg">
       {/* Sidebar sempre fixo à esquerda */}

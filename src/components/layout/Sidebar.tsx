@@ -13,6 +13,7 @@ import {
   BookOpen,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const sidebarItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
@@ -31,6 +32,12 @@ const SIDEBAR_WIDTH = 104; // px (w-26 ~ 104px, enough for two lines)
 const Sidebar: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
+
+  // Ocultar sidebar no mobile
+  if (isMobile) {
+    return null;
+  }
 
   return (
     <aside

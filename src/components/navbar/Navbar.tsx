@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { Film, Menu, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import NotificationsMenu from "../notifications/NotificationsMenu";
@@ -34,6 +35,7 @@ export const Navbar = () => {
   const { isAdmin } = usePermissions();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -74,9 +76,9 @@ export const Navbar = () => {
         scrolled && "shadow-2xl shadow-aurora-electric-purple/10"
       )}
       style={{ 
-        left: isAuthenticated ? SIDEBAR_WIDTH : 0,
+        left: (isAuthenticated && !isMobile) ? SIDEBAR_WIDTH : 0,
         right: 0,
-        width: isAuthenticated ? `calc(100% - ${SIDEBAR_WIDTH}px)` : '100%'
+        width: (isAuthenticated && !isMobile) ? `calc(100% - ${SIDEBAR_WIDTH}px)` : '100%'
       }}
     >
       {/* Aurora glow effect */}
