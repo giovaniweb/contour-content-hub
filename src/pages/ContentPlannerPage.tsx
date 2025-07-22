@@ -1,25 +1,36 @@
 
 import React from "react";
-import { Calendar } from "lucide-react";
+import { Calendar, Sparkles, Zap } from "lucide-react";
 import ContentPlannerComponent from '@/components/content-planner/ContentPlanner';
+import AuroraPageLayout from '@/components/layout/AuroraPageLayout';
+import StandardPageHeader from '@/components/layout/StandardPageHeader';
 
 const ContentPlannerPage: React.FC = () => {
-  return (
-    <div className="container mx-auto py-6 space-y-8">
-      {/* Header */}
-      <div className="text-center space-y-4">
-        <div className="flex items-center justify-center gap-3">
-          <Calendar className="h-12 w-12 text-primary" />
-          <div>
-            <h1 className="text-3xl font-bold text-slate-50">Planner de Conteúdo</h1>
-            <p className="text-slate-400">Organize e planeje seu conteúdo de forma estratégica</p>
-          </div>
-        </div>
-      </div>
+  const statusBadges = [
+    {
+      icon: Sparkles,
+      label: 'Planner',
+      variant: 'secondary' as const,
+      color: 'bg-aurora-electric-purple/20 text-aurora-electric-purple border-aurora-electric-purple/30'
+    },
+    {
+      icon: Zap,
+      label: 'Estratégico',
+      variant: 'secondary' as const,
+      color: 'bg-aurora-cyan/20 text-aurora-cyan border-aurora-cyan/30'
+    }
+  ];
 
-      {/* Content */}
+  return (
+    <AuroraPageLayout>
+      <StandardPageHeader
+        icon={Calendar}
+        title="Planner de Conteúdo"
+        subtitle="Organize e planeje seu conteúdo de forma estratégica"
+        statusBadges={statusBadges}
+      />
       <ContentPlannerComponent />
-    </div>
+    </AuroraPageLayout>
   );
 };
 

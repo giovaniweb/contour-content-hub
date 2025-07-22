@@ -6,8 +6,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Mail, MessageCircle, Clock, Users, Send, MapPin, Phone } from "lucide-react";
+import { Mail, Clock, Users, Send, MapPin, Phone, Sparkles, MessageSquare } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import AuroraPageLayout from '@/components/layout/AuroraPageLayout';
+import StandardPageHeader from '@/components/layout/StandardPageHeader';
 
 const Contato = () => {
   const { toast } = useToast();
@@ -44,17 +46,31 @@ const Contato = () => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
+  const statusBadges = [
+    {
+      icon: MessageSquare,
+      label: 'Suporte',
+      variant: 'secondary' as const,
+      color: 'bg-aurora-electric-purple/20 text-aurora-electric-purple border-aurora-electric-purple/30'
+    },
+    {
+      icon: Sparkles,
+      label: 'Revolucione',
+      variant: 'secondary' as const,
+      color: 'bg-aurora-emerald/20 text-aurora-emerald border-aurora-emerald/30'
+    }
+  ];
+
   return (
-    <div className="max-w-6xl mx-auto py-10 px-6">
-      <div className="text-center mb-12">
-        <h1 className="text-4xl font-bold mb-4 aurora-text-gradient">
-          Transforme o Marketing da Sua Clínica
-        </h1>
-        <p className="text-xl text-white/80 max-w-3xl mx-auto">
-          Estamos aqui para revolucionar a forma como sua clínica se comunica com seus pacientes. 
-          Entre em contato e descubra como a Fluida pode impulsionar seus resultados.
-        </p>
-      </div>
+    <AuroraPageLayout>
+      <StandardPageHeader
+        icon={Mail}
+        title="Transforme o Marketing da Sua Clínica"
+        subtitle="Entre em contato e descubra como a Fluida pode impulsionar seus resultados"
+        statusBadges={statusBadges}
+      />
+      
+      <div className="container mx-auto px-6 py-8">
 
       <div className="grid lg:grid-cols-2 gap-12 mb-12">
         {/* Formulário de Contato */}

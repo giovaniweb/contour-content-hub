@@ -1,14 +1,36 @@
 import React from 'react';
-import AppLayout from '@/components/layout/AppLayout';
+import AuroraPageLayout from '@/components/layout/AuroraPageLayout';
+import StandardPageHeader from '@/components/layout/StandardPageHeader';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { BarChart3, LineChart, PieChart } from 'lucide-react';
+import { BarChart3, LineChart, PieChart, Sparkles, TrendingUp } from 'lucide-react';
 
 const ReportsPage: React.FC = () => {
+  const statusBadges = [
+    {
+      icon: TrendingUp,
+      label: 'Analytics',
+      variant: 'secondary' as const,
+      color: 'bg-aurora-neon-blue/20 text-aurora-neon-blue border-aurora-neon-blue/30'
+    },
+    {
+      icon: Sparkles,
+      label: 'Insights',
+      variant: 'secondary' as const,
+      color: 'bg-aurora-emerald/20 text-aurora-emerald border-aurora-emerald/30'
+    }
+  ];
+
   return (
-    <AppLayout>
-      <div className="container mx-auto py-6 space-y-6">
-        <h1 className="text-3xl font-bold">Relatórios e Analytics</h1>
+    <AuroraPageLayout>
+      <StandardPageHeader
+        icon={BarChart3}
+        title="Relatórios e Analytics"
+        subtitle="Acompanhe o desempenho e obtenha insights valiosos"
+        statusBadges={statusBadges}
+      />
+      
+      <div className="container mx-auto px-6 py-8">
         
         <Tabs defaultValue="overview" className="w-full">
           <TabsList className="grid w-full grid-cols-3 max-w-md mb-4">
@@ -110,7 +132,7 @@ const ReportsPage: React.FC = () => {
           </TabsContent>
         </Tabs>
       </div>
-    </AppLayout>
+    </AuroraPageLayout>
   );
 };
 

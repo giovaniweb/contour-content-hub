@@ -1,30 +1,22 @@
 
 import React, { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Progress } from "@/components/ui/progress";
 import { 
   Brain, 
   Sparkles, 
-  Target, 
-  Users, 
   Zap, 
-  Award, 
-  Gamepad2, 
   TrendingUp, 
   Shield, 
   Lightbulb,
   Microscope,
   Video,
-  MessageCircle,
-  BarChart3,
   Rocket,
   Star,
-  Crown,
-  Trophy,
   ChevronRight
 } from "lucide-react";
+import AuroraPageLayout from '@/components/layout/AuroraPageLayout';
+import StandardPageHeader from '@/components/layout/StandardPageHeader';
 
 const OQueE = () => {
   const [activeFeature, setActiveFeature] = useState(0);
@@ -60,25 +52,31 @@ const OQueE = () => {
     { level: "Master", xp: "15000+ XP", badge: "🏆", rewards: ["Acesso total", "Prioridade no suporte"] }
   ];
 
+  const statusBadges = [
+    {
+      icon: Brain,
+      label: 'IA Revolucionária',
+      variant: 'secondary' as const,
+      color: 'bg-aurora-electric-purple/20 text-aurora-electric-purple border-aurora-electric-purple/30'
+    },
+    {
+      icon: Sparkles,
+      label: 'Marketing Médico',
+      variant: 'secondary' as const,
+      color: 'bg-aurora-neon-blue/20 text-aurora-neon-blue border-aurora-neon-blue/30'
+    }
+  ];
+
   return (
-    <div className="max-w-7xl mx-auto py-10 px-6">
-      {/* Header Hero */}
-      <div className="text-center mb-16">
-        <div className="inline-flex items-center gap-2 bg-gradient-to-r from-aurora-electric-purple/20 to-aurora-neon-blue/20 rounded-full px-4 py-2 mb-6 border border-aurora-electric-purple/30">
-          <Sparkles className="h-4 w-4 text-aurora-electric-purple" />
-          <span className="text-aurora-electric-purple font-medium">Revolução no Marketing Médico</span>
-        </div>
-        
-        <h1 className="text-5xl md:text-6xl font-bold mb-6 aurora-text-gradient">
-          O que é a Fluida?
-        </h1>
-        
-        <p className="text-xl md:text-2xl text-white/80 max-w-4xl mx-auto leading-relaxed">
-          A primeira plataforma de marketing médico <span className="text-aurora-electric-purple font-semibold">verdadeiramente inteligente</span>, 
-          onde ciência, tecnologia e criatividade se unem para transformar clínicas de estética em 
-          <span className="text-aurora-neon-blue font-semibold"> máquinas de conversão</span>.
-        </p>
-      </div>
+    <AuroraPageLayout>
+      <StandardPageHeader
+        icon={Brain}
+        title="O que é a Fluida?"
+        subtitle="A primeira plataforma de marketing médico verdadeiramente inteligente"
+        statusBadges={statusBadges}
+      />
+      
+      <div className="container mx-auto px-6 py-8 space-y-12">
 
       {/* Resumo Visual da Fluida */}
       <Card className="mb-16 bg-gradient-to-br from-aurora-space-black/40 via-aurora-deep-purple/20 to-aurora-space-black/40 border-aurora-electric-purple/30">
@@ -442,7 +440,7 @@ const OQueE = () => {
           </Badge>
         </div>
       </div>
-    </div>
+    </AuroraPageLayout>
   );
 };
 

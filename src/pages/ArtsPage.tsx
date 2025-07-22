@@ -16,13 +16,13 @@ const ArtsPage: React.FC = () => {
       icon: Sparkles,
       label: 'Materiais',
       variant: 'secondary' as const,
-      color: 'bg-purple-500/20 text-purple-400 border-purple-500/30'
+      color: 'bg-aurora-electric-purple/20 text-aurora-electric-purple border-aurora-electric-purple/30'
     },
     {
       icon: FileImage,
       label: 'Marketing',
       variant: 'secondary' as const,
-      color: 'bg-pink-500/20 text-pink-400 border-pink-500/30'
+      color: 'bg-aurora-emerald/20 text-aurora-emerald border-aurora-emerald/30'
     }
   ];
 
@@ -44,12 +44,12 @@ const ArtsPage: React.FC = () => {
           <>
             <Button 
               variant="outline" 
-              className="flex items-center gap-2 bg-slate-800/50 border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/20 rounded-xl"
+              className="flex items-center gap-2 aurora-glass border-aurora-cyan/30 text-aurora-cyan hover:bg-aurora-cyan/20"
             >
               <Brush className="h-4 w-4" />
               Criar Arte
             </Button>
-            <Button className="flex items-center gap-2 bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-600 hover:to-purple-600 rounded-xl">
+            <Button className="flex items-center gap-2 aurora-button-enhanced">
               <Upload className="h-4 w-4" />
               Enviar Material
             </Button>
@@ -58,7 +58,7 @@ const ArtsPage: React.FC = () => {
       />
 
       <div className="container mx-auto px-6 py-8">
-        <div className="rounded-2xl bg-slate-800/30 backdrop-blur-sm border border-cyan-500/20 p-6">
+        <div className="aurora-glass rounded-3xl border border-aurora-electric-purple/30 p-8">
           <EmptyState
             icon={Palette}
             title="Nenhum material encontrado"

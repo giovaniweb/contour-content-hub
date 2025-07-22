@@ -67,13 +67,13 @@ const PhotosPage: React.FC = () => {
       icon: Sparkles,
       label: `${photos.length} Fotos`,
       variant: 'secondary' as const,
-      color: 'bg-green-500/20 text-green-400 border-green-500/30'
+      color: 'bg-aurora-emerald/20 text-aurora-emerald border-aurora-emerald/30'
     },
     {
       icon: Image,
       label: 'Galeria',
       variant: 'secondary' as const,
-      color: 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30'
+      color: 'bg-aurora-cyan/20 text-aurora-cyan border-aurora-cyan/30'
     }
   ];
 
@@ -95,12 +95,12 @@ const PhotosPage: React.FC = () => {
           <>
             <Button 
               variant="outline" 
-              className="flex items-center gap-2 bg-slate-800/50 border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/20 rounded-xl"
+              className="flex items-center gap-2 aurora-glass border-aurora-cyan/30 text-aurora-cyan hover:bg-aurora-cyan/20"
             >
               <Camera className="h-4 w-4" />
               Capturar Foto
             </Button>
-            <Button className="flex items-center gap-2 bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-600 hover:to-purple-600 rounded-xl">
+            <Button className="flex items-center gap-2 aurora-button-enhanced">
               <Upload className="h-4 w-4" />
               Enviar Fotos
             </Button>
@@ -127,7 +127,7 @@ const PhotosPage: React.FC = () => {
             onPhotoClick={(photo) => console.log('View photo:', photo)}
           />
         ) : (
-          <div className="rounded-2xl bg-slate-800/30 backdrop-blur-sm border border-cyan-500/20 p-6">
+          <div className="aurora-glass rounded-3xl border border-aurora-electric-purple/30 p-8">
             <EmptyState
               icon={Camera}
               title={searchTerm ? "Nenhuma foto encontrada" : "Nenhuma foto ainda"}

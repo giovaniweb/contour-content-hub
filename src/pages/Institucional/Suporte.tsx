@@ -8,8 +8,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { HelpCircle, Book, MessageSquare, Zap, Shield, HeartHandshake, Search, FileText, Video, Lightbulb, CheckCircle } from "lucide-react";
+import { HelpCircle, Book, MessageSquare, Zap, Shield, HeartHandshake, FileText, Video, Lightbulb, CheckCircle, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import AuroraPageLayout from '@/components/layout/AuroraPageLayout';
+import StandardPageHeader from '@/components/layout/StandardPageHeader';
 
 const Suporte = () => {
   const { toast } = useToast();
@@ -64,17 +66,31 @@ const Suporte = () => {
     }
   ];
 
+  const statusBadges = [
+    {
+      icon: Sparkles,
+      label: 'Suporte Premium',
+      variant: 'secondary' as const,
+      color: 'bg-aurora-electric-purple/20 text-aurora-electric-purple border-aurora-electric-purple/30'
+    },
+    {
+      icon: Shield,
+      label: '24/7 Disponível',
+      variant: 'secondary' as const,
+      color: 'bg-aurora-emerald/20 text-aurora-emerald border-aurora-emerald/30'
+    }
+  ];
+
   return (
-    <div className="max-w-7xl mx-auto py-10 px-6">
-      <div className="text-center mb-12">
-        <h1 className="text-4xl font-bold mb-4 aurora-text-gradient">
-          Suporte Fluida: Seu Sucesso é Nossa Missão
-        </h1>
-        <p className="text-xl text-white/80 max-w-3xl mx-auto">
-          Oferecemos suporte completo e especializado para garantir que você extraia o máximo valor da plataforma Fluida. 
-          Nossa equipe está dedicada ao seu sucesso.
-        </p>
-      </div>
+    <AuroraPageLayout>
+      <StandardPageHeader
+        icon={HelpCircle}
+        title="Suporte Fluida: Seu Sucesso é Nossa Missão"
+        subtitle="Oferecemos suporte completo e especializado para garantir que você extraia o máximo valor da plataforma"
+        statusBadges={statusBadges}
+      />
+      
+      <div className="container mx-auto px-6 py-8">
 
       {/* Cards de Tipos de Suporte */}
       <div className="grid md:grid-cols-3 gap-6 mb-12">
@@ -344,7 +360,7 @@ const Suporte = () => {
           <p className="text-white/60 text-sm mt-2">Equipe especializada</p>
         </div>
       </div>
-    </div>
+    </AuroraPageLayout>
   );
 };
 

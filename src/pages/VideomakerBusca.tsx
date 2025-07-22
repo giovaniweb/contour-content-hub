@@ -9,8 +9,9 @@ import { Separator } from '@/components/ui/separator';
 import { Videomaker, ProfessionalType, InvestmentRange } from '@/types/videomaker';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Search, MapPin, Phone, Instagram, Video, Camera, DollarSign, Check, X, MessageCircle, User } from 'lucide-react';
-import AppLayout from '@/components/layout/AppLayout';
+import { Search, MapPin, Phone, Instagram, Video, Camera, DollarSign, Check, X, MessageCircle, User, Sparkles, Users } from 'lucide-react';
+import AuroraPageLayout from '@/components/layout/AuroraPageLayout';
+import StandardPageHeader from '@/components/layout/StandardPageHeader';
 import { StarRating, VideomakerRating, AvaliacoesList } from '@/components/videomaker/StarRating';
 
 const VideomakerBusca: React.FC = () => {
@@ -112,20 +113,41 @@ const VideomakerBusca: React.FC = () => {
     );
   }
 
+  const statusBadges = [
+    {
+      icon: Users,
+      label: `${filteredVideomakers.length} Videomakers`,
+      variant: 'secondary' as const,
+      color: 'bg-aurora-electric-purple/20 text-aurora-electric-purple border-aurora-electric-purple/30'
+    },
+    {
+      icon: Sparkles,
+      label: 'Profissionais',
+      variant: 'secondary' as const,
+      color: 'bg-aurora-emerald/20 text-aurora-emerald border-aurora-emerald/30'
+    }
+  ];
+
   return (
-    <AppLayout>
-      <div className="container mx-auto py-8 px-4">
-        <div className="max-w-6xl mx-auto">
-          <Card className="mb-6">
-            <CardHeader>
-              <CardTitle className="text-2xl flex items-center gap-2">
-                <Search className="h-6 w-6" />
-                Buscar Videomakers
-              </CardTitle>
-              <CardDescription>
-                Encontre videomakers profissionais na sua região
-              </CardDescription>
-            </CardHeader>
+    <AuroraPageLayout>
+      <StandardPageHeader
+        icon={Search}
+        title="Buscar Videomakers"
+        subtitle="Encontre videomakers profissionais na sua região"
+        statusBadges={statusBadges}
+      />
+      
+      <div className="container mx-auto px-6 py-8">
+        <Card className="aurora-glass border-aurora-electric-purple/30 mb-6">
+          <CardHeader>
+            <CardTitle className="aurora-heading flex items-center gap-2">
+              <Search className="h-6 w-6" />
+              Filtros de Busca
+            </CardTitle>
+            <CardDescription className="aurora-body">
+              Use os filtros para encontrar o videomaker ideal
+            </CardDescription>
+          </CardHeader>
             
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -138,7 +160,7 @@ const VideomakerBusca: React.FC = () => {
                       value={searchCity}
                       onChange={(e) => setSearchCity(e.target.value)}
                       placeholder="Digite a cidade..."
-                      className="pl-10"
+                      className="pl-10 aurora-input"
                     />
                   </div>
                 </div>
@@ -183,19 +205,19 @@ const VideomakerBusca: React.FC = () => {
             </CardContent>
           </Card>
 
-          <div className="mb-4">
-            <p className="text-sm text-muted-foreground">
+          <div className="mb-6">
+            <p className="text-sm aurora-body">
               {filteredVideomakers.length} videomaker(s) encontrado(s)
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredVideomakers.map((videomaker) => (
-              <Card key={videomaker.id} className="hover:shadow-lg transition-shadow">
+              <Card key={videomaker.id} className="aurora-glass border-aurora-electric-purple/30 hover:border-aurora-electric-purple/60 transition-all">
                 <CardHeader>
                   <div className="flex items-start gap-3">
                     {/* Foto do videomaker */}
-                    <div className="w-16 h-16 rounded-full bg-muted border flex items-center justify-center overflow-hidden flex-shrink-0">
+                    <div className="w-16 h-16 rounded-full aurora-glass border border-aurora-electric-purple/30 flex items-center justify-center overflow-hidden flex-shrink-0">
                       {videomaker.foto_url ? (
                         <img
                           src={videomaker.foto_url}
@@ -203,15 +225,15 @@ const VideomakerBusca: React.FC = () => {
                           className="w-full h-full object-cover"
                         />
                       ) : (
-                        <User className="h-8 w-8 text-muted-foreground" />
+                        <User className="h-8 w-8 text-aurora-electric-purple" />
                       )}
                     </div>
                     
                     <div className="flex-1 min-w-0">
                       <div className="flex justify-between items-start">
                         <div>
-                          <CardTitle className="text-lg truncate">{videomaker.nome_completo}</CardTitle>
-                          <CardDescription className="flex items-center gap-1 mt-1">
+                          <CardTitle className="text-lg truncate aurora-heading">{videomaker.nome_completo}</CardTitle>
+                          <CardDescription className="flex items-center gap-1 mt-1 aurora-body">
                             <MapPin className="h-4 w-4 flex-shrink-0" />
                             <span className="truncate">{videomaker.cidade}</span>
                           </CardDescription>
@@ -347,13 +369,13 @@ const VideomakerBusca: React.FC = () => {
           </div>
 
           {filteredVideomakers.length === 0 && (
-            <Card>
+            <Card className="aurora-glass border-aurora-electric-purple/30">
               <CardContent className="text-center py-12">
-                <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-muted">
-                  <Search className="h-6 w-6 text-muted-foreground" />
+                <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-lg aurora-glass border border-aurora-electric-purple/30">
+                  <Search className="h-6 w-6 text-aurora-electric-purple" />
                 </div>
-                <h3 className="text-lg font-semibold mb-2">Nenhum videomaker encontrado</h3>
-                <p className="text-muted-foreground mb-4">
+                <h3 className="text-lg font-semibold mb-2 aurora-heading">Nenhum videomaker encontrado</h3>
+                <p className="aurora-body mb-4">
                   Tente ajustar os filtros ou buscar por uma cidade diferente.
                 </p>
                 <Button
@@ -362,6 +384,7 @@ const VideomakerBusca: React.FC = () => {
                     setFilterType('all');
                     setFilterInvestment('all');
                   }}
+                  className="aurora-button-enhanced"
                 >
                   Limpar Filtros
                 </Button>
@@ -370,7 +393,7 @@ const VideomakerBusca: React.FC = () => {
           )}
         </div>
       </div>
-    </AppLayout>
+    </AuroraPageLayout>
   );
 };
 

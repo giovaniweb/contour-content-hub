@@ -11,27 +11,29 @@ const FluidaRoteiristsPage: React.FC = () => {
       icon: Wand2,
       label: 'IA Criativa',
       variant: 'secondary' as const,
-      color: 'bg-purple-500/20 text-purple-400 border-purple-500/30'
+      color: 'bg-aurora-electric-purple/20 text-aurora-electric-purple border-aurora-electric-purple/30'
     },
     {
       icon: Sparkles,
       label: 'Roteiros Únicos',
       variant: 'secondary' as const,
-      color: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30'
+      color: 'bg-aurora-lime/20 text-aurora-lime border-aurora-lime/30'
     }
   ];
 
   const handleScriptGenerated = (script: any) => {
     console.log('🎬 [FluidaRoteiristsPage] Script gerado:', script);
-    // Aqui você pode adicionar lógica adicional se necessário
-    // Por exemplo, navegar para outra página ou salvar o script
   };
 
   return (
     <AuroraPageLayout>
-      <div className="min-h-screen">
-        <FluidaRoteirista onScriptGenerated={handleScriptGenerated} />
-      </div>
+      <StandardPageHeader
+        icon={PenTool}
+        title="Fluida Roteirista"
+        subtitle="IA Criativa para Roteiros Únicos"
+        statusBadges={statusBadges}
+      />
+      <FluidaRoteirista onScriptGenerated={handleScriptGenerated} />
     </AuroraPageLayout>
   );
 };

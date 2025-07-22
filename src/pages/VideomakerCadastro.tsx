@@ -10,8 +10,9 @@ import { Separator } from '@/components/ui/separator';
 import { VideomakerFormData, ProfessionalType, InvestmentRange } from '@/types/videomaker';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Video, Camera, Instagram, Phone, MapPin, DollarSign } from 'lucide-react';
-import AppLayout from '@/components/layout/AppLayout';
+import { Video, Camera, Instagram, Phone, MapPin, DollarSign, Sparkles, UserPlus } from 'lucide-react';
+import AuroraPageLayout from '@/components/layout/AuroraPageLayout';
+import StandardPageHeader from '@/components/layout/StandardPageHeader';
 import { PhotoUpload } from '@/components/videomaker/PhotoUpload';
 
 const VideomakerCadastro: React.FC = () => {
@@ -78,26 +79,44 @@ const VideomakerCadastro: React.FC = () => {
     }));
   };
 
+  const statusBadges = [
+    {
+      icon: UserPlus,
+      label: 'Cadastro',
+      variant: 'secondary' as const,
+      color: 'bg-aurora-electric-purple/20 text-aurora-electric-purple border-aurora-electric-purple/30'
+    },
+    {
+      icon: Sparkles,
+      label: 'Seja Encontrado',
+      variant: 'secondary' as const,
+      color: 'bg-aurora-emerald/20 text-aurora-emerald border-aurora-emerald/30'
+    }
+  ];
+
   return (
-    <AppLayout>
-      <div className="container mx-auto py-8 px-4">
-        <div className="max-w-4xl mx-auto">
-          <Card>
-            <CardHeader className="text-center">
-              <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
-                <Video className="h-6 w-6 text-primary" />
-              </div>
-              <CardTitle className="text-2xl">Cadastro de Videomaker</CardTitle>
-              <CardDescription>
-                Cadastre-se como videomaker e seja encontrado por clínicas da sua região
-              </CardDescription>
-            </CardHeader>
+    <AuroraPageLayout>
+      <StandardPageHeader
+        icon={Video}
+        title="Cadastro de Videomaker"
+        subtitle="Cadastre-se como videomaker e seja encontrado por clínicas da sua região"
+        statusBadges={statusBadges}
+      />
+      
+      <div className="container mx-auto px-6 py-8">
+        <Card className="aurora-glass border-aurora-electric-purple/30 max-w-4xl mx-auto">
+          <CardHeader>
+            <CardTitle className="aurora-heading text-center">Seus Dados Profissionais</CardTitle>
+            <CardDescription className="aurora-body text-center">
+              Preencha as informações para criar seu perfil profissional
+            </CardDescription>
+          </CardHeader>
             
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Dados Pessoais */}
+                  {/* Dados Pessoais */}
                 <div className="space-y-4">
-                  <h3 className="text-lg font-semibold flex items-center gap-2">
+                  <h3 className="aurora-heading-enhanced flex items-center gap-2">
                     <Phone className="h-5 w-5" />
                     Dados Pessoais
                   </h3>
@@ -191,7 +210,7 @@ const VideomakerCadastro: React.FC = () => {
 
                 {/* Equipamentos */}
                 <div className="space-y-4">
-                  <h3 className="text-lg font-semibold flex items-center gap-2">
+                  <h3 className="aurora-heading-enhanced flex items-center gap-2">
                     <Camera className="h-5 w-5" />
                     Equipamentos
                   </h3>
@@ -244,7 +263,7 @@ const VideomakerCadastro: React.FC = () => {
 
                 {/* Investimento */}
                 <div className="space-y-4">
-                  <h3 className="text-lg font-semibold flex items-center gap-2">
+                  <h3 className="aurora-heading-enhanced flex items-center gap-2">
                     <DollarSign className="h-5 w-5" />
                     Investimento
                   </h3>
@@ -281,7 +300,7 @@ const VideomakerCadastro: React.FC = () => {
                   <Button
                     type="submit"
                     disabled={loading}
-                    className="flex-1"
+                    className="flex-1 aurora-button-enhanced"
                   >
                     {loading ? 'Cadastrando...' : 'Cadastrar Perfil'}
                   </Button>
@@ -291,7 +310,7 @@ const VideomakerCadastro: React.FC = () => {
           </Card>
         </div>
       </div>
-    </AppLayout>
+    </AuroraPageLayout>
   );
 };
 
