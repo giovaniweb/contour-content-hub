@@ -31,7 +31,7 @@ const ArtsPage: React.FC = () => {
       <StandardPageHeader
         icon={Palette}
         title="Artes Gráficas"
-        subtitle="Crie e gerencie seus materiais de marketing"
+        subtitle="Crie e gerencie artes para suas campanhas de marketing"
         statusBadges={statusBadges}
       />
 
