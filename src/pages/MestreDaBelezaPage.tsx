@@ -11,13 +11,13 @@ const MestreDaBelezaPage: React.FC = () => {
       icon: Brain,
       label: 'IA Científica',
       variant: 'secondary' as const,
-      color: 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30'
+      color: 'bg-blue-500/20 text-blue-400 border-blue-500/30'
     },
     {
       icon: Zap,
       label: 'Base Completa',
       variant: 'secondary' as const,
-      color: 'bg-purple-500/20 text-purple-400 border-purple-500/30'
+      color: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
     }
   ];
 
@@ -30,7 +30,7 @@ const MestreDaBelezaPage: React.FC = () => {
         statusBadges={statusBadges}
       />
       
-      <div className="container mx-auto px-6">
+      <div className="container mx-auto px-6 -mt-4">
         <AkinatorInteligente />
       </div>
     </AuroraPageLayout>

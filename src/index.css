@@ -44,39 +44,39 @@
   }
 
   .dark {
-    /* Enhanced Aurora Boreal Dark Theme */
-    --background: 237 100% 2%; /* #000511 - deeper space black */
+    /* Otimized Navy Blue Aurora Boreal Night Theme */
+    --background: 220 100% 4%; /* #001133 - navy blue space */
     --foreground: 0 0% 98%;
-    --card: 253 41% 8%; /* #1a0b2e - deeper purple */
+    --card: 220 70% 8%; /* #0a1a33 - deeper navy */
     --card-foreground: 0 0% 98%;
-    --popover: 253 41% 8%;
+    --popover: 220 70% 8%;
     --popover-foreground: 0 0% 98%;
-    --primary: 263 70% 50%; /* #6b46c1 - electric purple */
+    --primary: 220 90% 55%; /* #1e3a8a - navy blue primary */
     --primary-foreground: 0 0% 98%;
-    --secondary: 253 35% 12%; /* #2d1b3d - darker violet */
+    --secondary: 220 60% 12%; /* #1a2540 - darker navy */
     --secondary-foreground: 0 0% 98%;
-    --muted: 253 35% 12%;
-    --muted-foreground: 0 0% 65%;
-    --accent: 253 35% 12%;
+    --muted: 220 60% 12%;
+    --muted-foreground: 0 0% 70%;
+    --accent: 263 70% 50%; /* #6b46c1 - purple accent */
     --accent-foreground: 0 0% 98%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
-    --border: 263 70% 15%;
-    --input: 253 35% 12%;
-    --ring: 263 70% 50%;
-    --chart-1: 263 70% 50%; /* electric purple */
+    --border: 220 80% 15%;
+    --input: 220 60% 12%;
+    --ring: 220 90% 55%;
+    --chart-1: 220 90% 55%; /* navy blue */
     --chart-2: 195 100% 50%; /* cyan */
     --chart-3: 160 84% 39%; /* emerald */
-    --chart-4: 217 91% 60%; /* neon blue */
+    --chart-4: 263 70% 50%; /* purple */
     --chart-5: 84 81% 44%; /* lime */
-    --sidebar-background: 253 41% 5%; /* even darker than card */
+    --sidebar-background: 220 80% 6%; /* darker navy */
     --sidebar-foreground: 0 0% 95%;
-    --sidebar-primary: 263 70% 50%;
+    --sidebar-primary: 220 90% 55%;
     --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 253 35% 8%;
+    --sidebar-accent: 220 60% 10%;
     --sidebar-accent-foreground: 0 0% 98%;
-    --sidebar-border: 263 70% 10%;
-    --sidebar-ring: 263 70% 50%;
+    --sidebar-border: 220 80% 12%;
+    --sidebar-ring: 220 90% 55%;
   }
 }
 
@@ -94,8 +94,8 @@
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
-    /* Enhanced Aurora Boreal Dark Background with noise */
-    background: linear-gradient(135deg, #000511, #0a0015, #1a0b2e, #2d1b3d);
+    /* Otimized Navy Blue Aurora Night Background */
+    background: linear-gradient(135deg, #001133, #0a1a33, #1a2540, #1e3a8a);
     background-attachment: fixed;
     position: relative;
   }
@@ -108,10 +108,10 @@
     right: 0;
     bottom: 0;
     background-image: 
-      radial-gradient(circle at 25% 25%, #6b46c1 0%, transparent 50%),
-      radial-gradient(circle at 75% 75%, #10b981 0%, transparent 50%),
-      radial-gradient(circle at 50% 50%, #3b82f6 0%, transparent 50%);
-    opacity: 0.3;
+      radial-gradient(circle at 25% 25%, #1e3a8a 0%, transparent 60%),
+      radial-gradient(circle at 75% 75%, #10b981 0%, transparent 55%),
+      radial-gradient(circle at 50% 50%, #6b46c1 0%, transparent 50%);
+    opacity: 0.25;
     animation: aurora-pulse 8s ease-in-out infinite;
     z-index: -2;
   }
@@ -148,7 +148,7 @@ html {
 }
 
 html.dark body {
-  background: linear-gradient(135deg, #000511, #0a0015, #1a0b2e, #2d1b3d);
+  background: linear-gradient(135deg, #001133, #0a1a33, #1a2540, #1e3a8a);
   background-attachment: fixed;
 }
 
@@ -166,10 +166,10 @@ html.dark body {
 
 /* Enhanced Sonner Toast Custom Styles */
 .sonner-toast {
-  background: linear-gradient(135deg, #1a0b2e 85%, #6b46c1 100%);
-  border: 1px solid rgba(107, 70, 193, 0.40);
+  background: linear-gradient(135deg, #1a2540 85%, #1e3a8a 100%);
+  border: 1px solid rgba(30, 58, 138, 0.40);
   border-radius: 0.75rem;
-  box-shadow: 0 8px 40px 0 rgba(50,30,105,0.20);
+  box-shadow: 0 8px 40px 0 rgba(26, 37, 64, 0.20);
   padding: 1.25rem 1.25rem;
   color: #fff;
   font-size: 1rem;
@@ -216,18 +216,18 @@ html.dark body {
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(26, 11, 46, 0.3);
+  background: rgba(26, 37, 64, 0.3);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(107, 70, 193, 0.6);
+  background: rgba(30, 58, 138, 0.6);
   border-radius: 4px;
   transition: background 0.3s ease;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(107, 70, 193, 0.8);
+  background: rgba(30, 58, 138, 0.8);
 }
 
 /* Enhanced selection */
