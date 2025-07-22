@@ -53,8 +53,8 @@ const VideosPage: React.FC = () => {
 
   const statusBadges = [
     {
-      icon: Flame,
-      label: 'Biblioteca',
+      icon: Video,
+      label: 'Biblioteca Completa',
       variant: 'secondary' as const,
       color: 'bg-aurora-neon-blue/20 text-aurora-neon-blue border-aurora-neon-blue/30'
     },
@@ -62,7 +62,7 @@ const VideosPage: React.FC = () => {
       icon: Sparkles,
       label: `${videos.length} Vídeos`,
       variant: 'secondary' as const,
-      color: 'bg-aurora-emerald/20 text-aurora-emerald border-aurora-emerald/30'
+      color: 'bg-aurora-cyan/20 text-aurora-cyan border-aurora-cyan/30'
     }
   ];
 

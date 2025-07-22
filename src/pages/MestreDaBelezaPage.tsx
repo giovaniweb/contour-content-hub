@@ -17,7 +17,7 @@ const MestreDaBelezaPage: React.FC = () => {
       icon: Zap,
       label: 'Base Completa',
       variant: 'secondary' as const,
-      color: 'bg-aurora-emerald/20 text-aurora-emerald border-aurora-emerald/30'
+      color: 'bg-aurora-cyan/20 text-aurora-cyan border-aurora-cyan/30'
     }
   ];
 

@@ -8,15 +8,15 @@ const ScientificArticlesPage: React.FC = () => {
   const statusBadges = [
     {
       icon: Brain,
-      label: 'Científico',
+      label: 'Base Científica',
       variant: 'secondary' as const,
       color: 'bg-aurora-neon-blue/20 text-aurora-neon-blue border-aurora-neon-blue/30'
     },
     {
       icon: Sparkles,
-      label: 'Estudos',
+      label: 'Pesquisas Avançadas',
       variant: 'secondary' as const,
-      color: 'bg-aurora-emerald/20 text-aurora-emerald border-aurora-emerald/30'
+      color: 'bg-aurora-cyan/20 text-aurora-cyan border-aurora-cyan/30'
     }
   ];
 

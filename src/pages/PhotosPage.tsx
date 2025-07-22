@@ -64,14 +64,14 @@ const PhotosPage: React.FC = () => {
 
   const statusBadges = [
     {
-      icon: Sparkles,
-      label: `${photos.length} Fotos`,
+      icon: Image,
+      label: 'Acervo Visual',
       variant: 'secondary' as const,
-      color: 'bg-aurora-emerald/20 text-aurora-emerald border-aurora-emerald/30'
+      color: 'bg-aurora-neon-blue/20 text-aurora-neon-blue border-aurora-neon-blue/30'
     },
     {
-      icon: Image,
-      label: 'Galeria',
+      icon: Sparkles,
+      label: `${photos.length} Fotos`,
       variant: 'secondary' as const,
       color: 'bg-aurora-cyan/20 text-aurora-cyan border-aurora-cyan/30'
     }

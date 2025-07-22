@@ -26,42 +26,43 @@ const StandardPageHeader: React.FC<StandardPageHeaderProps> = ({
   actions
 }) => {
   return (
-    <div className="container mx-auto py-4 space-y-6">
+    <div className="container mx-auto py-8 space-y-6">
       {/* Header */}
-      <div className="text-center space-y-3">
-        <div className="flex items-center justify-center gap-3">
+      <div className="text-center space-y-4">
+        <div className="flex items-center justify-center gap-4">
           <div className="relative">
-            <Icon className="h-10 w-10 text-blue-400 drop-shadow-lg" />
-            <div className="absolute inset-0 h-10 w-10 text-blue-400 animate-pulse blur-sm"></div>
+            <div className="rounded-2xl p-3 bg-gradient-to-br from-aurora-neon-blue/20 to-aurora-electric-purple/20 border border-aurora-neon-blue/30">
+              <Icon className="h-8 w-8 text-aurora-neon-blue" />
+            </div>
           </div>
           <div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-emerald-400 bg-clip-text text-transparent drop-shadow-lg aurora-heading-enhanced">
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-aurora-neon-blue via-aurora-electric-purple to-aurora-cyan bg-clip-text text-transparent aurora-heading-enhanced">
               {title}
             </h1>
-            <p className="text-slate-300 aurora-body">{subtitle}</p>
+            <p className="text-aurora-text-muted aurora-body mt-2">{subtitle}</p>
           </div>
         </div>
 
-        {/* Actions */}
-        {actions && (
-          <div className="flex justify-center">
-            {actions}
-          </div>
-        )}
-
         {/* Status Tags */}
         {statusBadges.length > 0 && (
-          <div className="flex items-center justify-center gap-4">
+          <div className="flex items-center justify-center gap-3 flex-wrap">
             {statusBadges.map((badge, index) => (
               <Badge 
                 key={index}
                 variant="secondary" 
-                className={`${badge.color} rounded-xl`}
+                className="bg-aurora-card-bg/30 text-aurora-neon-blue border-aurora-neon-blue/30 rounded-xl px-3 py-1"
               >
-                <badge.icon className="h-4 w-4 mr-1" />
+                <badge.icon className="h-4 w-4 mr-1.5" />
                 {badge.label}
               </Badge>
             ))}
+          </div>
+        )}
+
+        {/* Actions */}
+        {actions && (
+          <div className="flex justify-center pt-2">
+            {actions}
           </div>
         )}
       </div>

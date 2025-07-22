@@ -13,16 +13,16 @@ const ArtsPage: React.FC = () => {
 
   const statusBadges = [
     {
-      icon: Sparkles,
-      label: 'Materiais',
+      icon: Palette,
+      label: 'Design Criativo',
       variant: 'secondary' as const,
       color: 'bg-aurora-electric-purple/20 text-aurora-electric-purple border-aurora-electric-purple/30'
     },
     {
       icon: FileImage,
-      label: 'Marketing',
+      label: 'Materiais Pro',
       variant: 'secondary' as const,
-      color: 'bg-aurora-emerald/20 text-aurora-emerald border-aurora-emerald/30'
+      color: 'bg-aurora-cyan/20 text-aurora-cyan border-aurora-cyan/30'
     }
   ];
 

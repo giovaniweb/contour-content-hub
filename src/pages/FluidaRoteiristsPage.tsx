@@ -15,9 +15,9 @@ const FluidaRoteiristsPage: React.FC = () => {
     },
     {
       icon: Sparkles,
-      label: 'Roteiros Únicos',
+      label: 'Roteiros Pro',
       variant: 'secondary' as const,
-      color: 'bg-aurora-lime/20 text-aurora-lime border-aurora-lime/30'
+      color: 'bg-aurora-cyan/20 text-aurora-cyan border-aurora-cyan/30'
     }
   ];
 

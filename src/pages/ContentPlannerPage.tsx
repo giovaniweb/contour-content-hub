@@ -9,7 +9,7 @@ const ContentPlannerPage: React.FC = () => {
   const statusBadges = [
     {
       icon: Sparkles,
-      label: 'Planner',
+      label: 'Planejamento',
       variant: 'secondary' as const,
       color: 'bg-aurora-electric-purple/20 text-aurora-electric-purple border-aurora-electric-purple/30'
     },
