@@ -122,7 +122,7 @@ const AuroraLoadingScreen: React.FC<AuroraLoadingScreenProps> = ({
         >
           <h2 className="aurora-heading text-3xl font-bold flex items-center justify-center gap-3">
             <Sparkles className="h-8 w-8 aurora-pulse" />
-            FLUIDAROTEIRISTA
+            Fluida Roteirista
           </h2>
           <p className="aurora-body text-lg">
             Criando seu roteiro perfeito com magia aurora...

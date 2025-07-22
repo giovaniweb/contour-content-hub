@@ -1,0 +1,108 @@
+/* Aurora Navy Blue Theme - Optimized Color Tokens */
+:root {
+  /* Base Aurora Navy Colors */
+  --aurora-deep-navy: hsl(220, 100%, 4%);
+  --aurora-card-bg: hsl(220, 70%, 8%);
+  --aurora-neon-blue: hsl(220, 90%, 55%);
+  --aurora-electric-purple: hsl(263, 70%, 50%);
+  --aurora-cyan: hsl(195, 100%, 50%);
+  --aurora-emerald: hsl(160, 84%, 39%);
+  --aurora-lime: hsl(84, 81%, 44%);
+  
+  /* Text Colors */
+  --aurora-text-primary: hsl(0, 0%, 98%);
+  --aurora-text-muted: hsl(0, 0%, 70%);
+  --aurora-text-accent: var(--aurora-neon-blue);
+  
+  /* Semantic Tokens */
+  --aurora-success: var(--aurora-emerald);
+  --aurora-warning: var(--aurora-lime);
+  --aurora-error: var(--aurora-electric-purple);
+  --aurora-info: var(--aurora-cyan);
+  
+  /* Component Tokens */
+  --aurora-button-primary: var(--aurora-neon-blue);
+  --aurora-button-secondary: var(--aurora-electric-purple);
+  --aurora-border-primary: hsla(220, 90%, 55%, 0.3);
+  --aurora-border-muted: hsla(220, 70%, 8%, 0.5);
+}
+
+/* Aurora Utility Classes */
+.aurora-text-primary { color: var(--aurora-text-primary); }
+.aurora-text-muted { color: var(--aurora-text-muted); }
+.aurora-text-accent { color: var(--aurora-text-accent); }
+
+.aurora-bg-primary { background-color: var(--aurora-neon-blue); }
+.aurora-bg-card { background-color: var(--aurora-card-bg); }
+.aurora-bg-glass { 
+  background: hsla(220, 70%, 8%, 0.3);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--aurora-border-primary);
+}
+
+.aurora-border-primary { border-color: var(--aurora-border-primary); }
+.aurora-border-muted { border-color: var(--aurora-border-muted); }
+
+/* Enhanced Typography */
+.aurora-heading-enhanced {
+  background: linear-gradient(135deg, 
+    var(--aurora-neon-blue), 
+    var(--aurora-electric-purple), 
+    var(--aurora-cyan)
+  );
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  font-weight: 700;
+}
+
+.aurora-body {
+  color: var(--aurora-text-muted);
+  line-height: 1.6;
+}
+
+.aurora-body-enhanced {
+  color: var(--aurora-text-primary);
+  line-height: 1.7;
+}
+
+/* Performance Optimized Components */
+.aurora-glass {
+  background: hsla(220, 70%, 8%, 0.4);
+  backdrop-filter: blur(12px);
+  border: 1px solid hsla(220, 90%, 55%, 0.2);
+  border-radius: 1rem;
+}
+
+.aurora-button-enhanced {
+  background: linear-gradient(135deg, 
+    var(--aurora-neon-blue), 
+    var(--aurora-electric-purple)
+  );
+  color: var(--aurora-text-primary);
+  border: none;
+  transition: all 0.2s ease;
+}
+
+.aurora-button-enhanced:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 25px hsla(220, 90%, 55%, 0.3);
+}
+
+/* Floating Animation - Performance Optimized */
+.aurora-floating {
+  animation: aurora-float 3s ease-in-out infinite;
+  will-change: transform;
+}
+
+@keyframes aurora-float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+}
+
+/* Remove heavy animations for better performance */
+@media (prefers-reduced-motion: reduce) {
+  .aurora-floating {
+    animation: none;
+  }
+}

@@ -17,8 +17,8 @@ const AuroraHeaderSection: React.FC = () => (
         <Wand2 className="h-12 w-12 text-aurora-electric-purple" />
       </motion.div>
       <div>
-        <h1 className="text-3xl font-bold text-slate-50 bg-aurora-gradient-primary bg-clip-text text-transparent">
-          FLUIDAROTEIRISTA 🎬
+        <h1 className="text-3xl font-bold text-aurora-text-primary aurora-heading-enhanced">
+          Fluida Roteirista
         </h1>
         <p className="text-slate-400 mt-2">
           Roteiros criativos, impactantes e prontos para redes sociais

@@ -70,7 +70,7 @@ const ChatScriptMode: React.FC<ChatScriptModeProps> = ({
               Voltar
             </Button>
             <CardTitle className="text-white text-center flex-1">
-              💬 Chat com FLUIDAROTEIRISTA
+              💬 Chat com Fluida Roteirista
             </CardTitle>
           </div>
           <p className="text-sm text-slate-400 text-center">
@@ -90,7 +90,7 @@ const ChatScriptMode: React.FC<ChatScriptModeProps> = ({
                 <div className="text-6xl">🎬</div>
                 <div className="space-y-2">
                   <h3 className="text-lg font-medium text-white">
-                    Olá! Sou seu FLUIDAROTEIRISTA pessoal
+                    Olá! Sou seu Fluida Roteirista pessoal
                   </h3>
                   <p className="text-slate-400">
                     Me conte sobre seu tratamento, público ou objetivo e eu criarei roteiros incríveis para suas redes sociais!

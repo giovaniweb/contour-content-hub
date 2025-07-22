@@ -117,7 +117,7 @@ const FluidaScriptGenerator: React.FC<FluidaScriptGeneratorProps> = ({
         <div className="flex items-center justify-center gap-3">
           <Wand2 className="h-12 w-12 text-aurora-electric-purple" />
           <div>
-            <h1 className="text-4xl font-bold text-slate-50">FLUIDAROTEIRISTA</h1>
+            <h1 className="text-4xl font-bold text-aurora-text-primary aurora-heading-enhanced">Fluida Roteirista</h1>
             <p className="text-slate-400 text-lg">
               Sistema Anti-Genérico com IA Personalizada
             </p>

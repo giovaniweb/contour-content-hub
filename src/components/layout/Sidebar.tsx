@@ -35,8 +35,8 @@ const Sidebar: React.FC = () => {
   return (
     <aside
       className={cn(
-        "fixed left-0 top-0 h-screen bg-gradient-to-b from-slate-950 via-purple-950 to-slate-900 shadow-lg z-40 flex flex-col items-center py-4",
-        "border-r border-white/10"
+        "fixed left-0 top-0 h-screen bg-gradient-to-b from-aurora-deep-navy via-aurora-card-bg to-aurora-deep-navy shadow-xl z-40 flex flex-col items-center py-4",
+        "border-r border-aurora-neon-blue/20"
       )}
       style={{ width: SIDEBAR_WIDTH }}
     >
@@ -49,8 +49,8 @@ const Sidebar: React.FC = () => {
             <button
               key={item.path}
               className={cn(
-                "flex flex-col items-center justify-center gap-1 text-slate-400 hover:text-white hover:bg-white/10 rounded-lg transition-all duration-150 mx-auto w-[88px] py-3 group",
-                active && "bg-white/15 text-white shadow-lg"
+                "flex flex-col items-center justify-center gap-1 text-aurora-text-muted hover:text-aurora-neon-blue hover:bg-aurora-neon-blue/10 rounded-lg transition-all duration-150 mx-auto w-[88px] py-3 group",
+                active && "bg-aurora-neon-blue/20 text-aurora-neon-blue shadow-lg border border-aurora-neon-blue/30"
               )}
               onClick={() => navigate(item.path)}
               tabIndex={0}
@@ -59,7 +59,7 @@ const Sidebar: React.FC = () => {
               <item.icon className="w-7 h-7 mb-1" />
               <span className={cn(
                 "text-[0.78rem] font-medium truncate leading-tight text-center break-words",
-                active && "text-white"
+                active && "text-aurora-neon-blue"
               )}>
                 {labelLines.map((line, idx) => (
                   <span key={idx} className="block">

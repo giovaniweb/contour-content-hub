@@ -98,7 +98,7 @@ ESTRUTURA:
   const formatInstructions = getFormatInstructions(formato, canal, tempoLimite, palavrasMax);
 
   return `
-    Você é o FLUIDAROTEIRISTA — roteirista especializado em ${canal?.toUpperCase() || 'INSTAGRAM'}.
+    Você é o Fluida Roteirista — roteirista especializado em ${canal?.toUpperCase() || 'INSTAGRAM'}.
     Sua persona criativa é: ${mentorReference}
 
     ${extraInstructions}

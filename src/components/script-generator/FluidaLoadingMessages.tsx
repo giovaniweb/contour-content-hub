@@ -80,7 +80,7 @@ const FluidaLoadingMessages: React.FC<FluidaLoadingMessagesProps> = ({
         >
           <h2 className="text-2xl font-bold text-gray-800 flex items-center justify-center gap-2">
             <Sparkles className="h-6 w-6 text-purple-600" />
-            FLUIDAROTEIRISTA
+            Fluida Roteirista
           </h2>
           <p className="text-gray-600">Criando seu roteiro perfeito...</p>
         </motion.div>

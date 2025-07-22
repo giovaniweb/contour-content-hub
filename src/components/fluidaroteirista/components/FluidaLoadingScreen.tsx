@@ -33,7 +33,7 @@ const MENTOR_PHRASES = {
     "🎬 Finalizando roteiro mágico..."
   ],
   default: [
-    "🎬 FLUIDAROTEIRISTA iniciando...",
+    "🎬 Fluida Roteirista iniciando...",
     "🤖 IA processando suas informações...",
     "✨ Criando roteiro personalizado...",
     "🎯 Aplicando estratégias de conversão...",
@@ -168,7 +168,7 @@ const FluidaLoadingScreen: React.FC<FluidaLoadingScreenProps> = ({
             animate={{ opacity: 1, y: 0 }}
             className="text-2xl font-bold text-white"
           >
-            {showAiImprovement ? 'APRIMORANDO COM IA 🤖' : 'FLUIDAROTEIRISTA 🎬'}
+            {showAiImprovement ? 'APRIMORANDO COM IA 🤖' : 'Fluida Roteirista'}
           </motion.h2>
           
           <motion.div

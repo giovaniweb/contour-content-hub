@@ -51,7 +51,7 @@ const ScriptGeneratorPage: React.FC = () => {
         <div className="flex items-center justify-center gap-3">
           <Wand2 className="h-12 w-12 text-primary" />
           <div>
-            <h1 className="text-3xl font-bold text-slate-50">FLUIDAROTEIRISTA 🎬</h1>
+            <h1 className="text-3xl font-bold text-aurora-text-primary aurora-heading-enhanced">Fluida Roteirista</h1>
             <p className="text-slate-400">
               Crie roteiros emocionais com inteligência artificial
             </p>
@@ -90,7 +90,7 @@ const ScriptGeneratorPage: React.FC = () => {
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="fluidaroteirista" className="flex items-center gap-2">
               <Wand2 className="h-4 w-4" />
-              FLUIDAROTEIRISTA
+              Fluida Roteirista
             </TabsTrigger>
             <TabsTrigger value="test" className="flex items-center gap-2">
               <TestTube className="h-4 w-4" />

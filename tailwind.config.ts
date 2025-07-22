@@ -69,26 +69,29 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
-				// Enhanced Aurora Borealis Color Palette
+				// Enhanced Aurora Navy Blue Color Palette
 				aurora: {
-					'space-black': '#000511',
-					'void-black': '#0a0015',
-					'deep-purple': '#1a0b2e',
-					'dark-violet': '#2d1b3d',
-					'electric-purple': '#6b46c1',
-					'neon-blue': '#3b82f6',
-					cyan: '#06b6d4',
-					emerald: '#10b981',
-					lime: '#84cc16',
-					midnight: '#0f0f23',
-					// Enhanced secondary palette
-					lavender: '#8b5cf6',
-					teal: '#14b8a6',
-					turquoise: '#06b6d4',
+					'deep-navy': 'hsl(220, 100%, 4%)',
+					'card-bg': 'hsl(220, 70%, 8%)',
+					'neon-blue': 'hsl(220, 90%, 55%)',
+					'electric-purple': 'hsl(263, 70%, 50%)',
+					'cyan': 'hsl(195, 100%, 50%)',
+					'emerald': 'hsl(160, 84%, 39%)',
+					'lime': 'hsl(84, 81%, 44%)',
+					'text-primary': 'hsl(0, 0%, 98%)',
+					'text-muted': 'hsl(0, 0%, 70%)',
+					// Legacy compatibility colors
+					'space-black': '#001133',
+					'void-black': '#0a1a33',
+					'dark-violet': '#1a2540',
+					'midnight': '#1e3a8a',
+					'lavender': '#8b5cf6',
+					'teal': '#14b8a6',
+					'turquoise': '#06b6d4',
 					'deep-violet': '#6b46c1',
 					'soft-pink': '#f472b6',
 					'electric-blue': '#3b82f6',
-					sage: '#10b981',
+					'sage': '#10b981',
 				},
 				// Enhanced Fluida brand colors
 				fluida: {
