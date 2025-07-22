@@ -1,7 +1,9 @@
 
 import React, { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Progress } from "@/components/ui/progress";
 import { 
   Brain, 
   Sparkles, 
@@ -13,7 +15,9 @@ import {
   Video,
   Rocket,
   Star,
-  ChevronRight
+  ChevronRight,
+  Gamepad2,
+  Trophy
 } from "lucide-react";
 import AuroraPageLayout from '@/components/layout/AuroraPageLayout';
 import StandardPageHeader from '@/components/layout/StandardPageHeader';
