@@ -36,7 +36,7 @@ const StandardPageHeader: React.FC<StandardPageHeaderProps> = ({
             </div>
           </div>
           <div>
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-aurora-neon-blue via-aurora-electric-purple to-aurora-cyan bg-clip-text text-transparent aurora-heading-enhanced">
+            <h1 className="text-3xl md:text-4xl font-semibold bg-gradient-to-r from-aurora-neon-blue via-aurora-electric-purple to-aurora-cyan bg-clip-text text-transparent aurora-heading-enhanced tracking-wide leading-relaxed">
               {title}
             </h1>
             <p className="text-aurora-text-muted aurora-body mt-2">{subtitle}</p>
