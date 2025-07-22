@@ -57,16 +57,14 @@ const ArtsPage: React.FC = () => {
         }
       />
 
-      <div className="container mx-auto px-6 py-8">
-        <div className="aurora-glass rounded-3xl border border-aurora-electric-purple/30 p-8">
-          <EmptyState
-            icon={Palette}
-            title="Nenhum material encontrado"
-            description="Comece criando ou enviando seus primeiros materiais"
-            actionLabel="Criar Primeiro Material"
-            onAction={() => console.log('Create material')}
-          />
-        </div>
+      <div className="aurora-glass rounded-3xl border border-aurora-electric-purple/30 p-8">
+        <EmptyState
+          icon={Palette}
+          title="Nenhum material encontrado"
+          description="Comece criando ou enviando seus primeiros materiais"
+          actionLabel="Criar Primeiro Material"
+          onAction={() => console.log('Create material')}
+        />
       </div>
     </AuroraPageLayout>
   );
