@@ -280,7 +280,8 @@ const Contato = () => {
           Nossa equipe está pronta para mostrar como nossa plataforma pode impulsionar seu crescimento.
         </p>
       </div>
-    </div>
+      </div>
+    </AuroraPageLayout>
   );
 };
 

@@ -105,11 +105,11 @@ const VideomakerBusca: React.FC = () => {
 
   if (loading) {
     return (
-      <AppLayout>
+      <AuroraPageLayout>
         <div className="container mx-auto py-8 px-4">
           <div className="text-center">Carregando videomakers...</div>
         </div>
-      </AppLayout>
+      </AuroraPageLayout>
     );
   }
 

@@ -360,6 +360,7 @@ const Suporte = () => {
           <p className="text-white/60 text-sm mt-2">Equipe especializada</p>
         </div>
       </div>
+      </div>
     </AuroraPageLayout>
   );
 };

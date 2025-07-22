@@ -440,6 +440,7 @@ const OQueE = () => {
           </Badge>
         </div>
       </div>
+      </div>
     </AuroraPageLayout>
   );
 };
