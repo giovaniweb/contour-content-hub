@@ -140,16 +140,21 @@ html.dark body {
   background-attachment: fixed;
 }
 
-/* Ensure all main containers use transparent backgrounds */
+/* Aurora Universal Layout */
+.aurora-page-container {
+  @apply min-h-screen w-full relative;
+}
+
+/* All page content should use consistent spacing */
+.aurora-content {
+  @apply space-y-6;
+}
+
+/* Ensure all main containers have proper backgrounds */
 #root {
   @apply dark;
   background: transparent;
   min-height: 100vh;
-}
-
-/* All page content should have transparent backgrounds */
-.container, .page-content, .main-content {
-  background: transparent !important;
 }
 
 /* Enhanced Sonner Toast Custom Styles */

@@ -149,10 +149,10 @@ const AkinatorInteligente: React.FC = () => {
   ];
 
   return (
-    <div className="relative min-h-screen flex items-start justify-center aurora-gradient-bg px-2 pt-4">
+    <div className="space-y-4">
       <AuroraParticles />
 
-      <div className="relative z-10 mx-auto w-full max-w-4xl flex flex-col gap-4 py-4 px-2 sm:px-4">
+      <div className="relative z-10 w-full max-w-4xl mx-auto space-y-4">
         
         {/* Header com Stats */}
         <motion.div

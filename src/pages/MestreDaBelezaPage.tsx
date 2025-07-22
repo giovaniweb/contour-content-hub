@@ -22,7 +22,7 @@ const MestreDaBelezaPage: React.FC = () => {
   ];
 
   return (
-    <AuroraPageLayout>
+    <AuroraPageLayout containerSize="lg" padding="sm" fullHeight>
       <StandardPageHeader
         icon={Sparkles}
         title="Mestre da Beleza 2.0"

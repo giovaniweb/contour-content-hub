@@ -20,14 +20,14 @@ const ApprovedScriptsPage: React.FC = () => {
   ];
 
   return (
-    <AuroraPageLayout>
+    <AuroraPageLayout containerSize="lg" padding="sm">
       <StandardPageHeader
         icon={Check}
         title="Biblioteca de Roteiros Aprovados"
         subtitle="Gerencie, avalie desempenho e envie roteiros aprovados para o planejador de conteúdo"
         statusBadges={statusBadges}
       />
-      <div className="aurora-glass rounded-3xl border border-aurora-electric-purple/30 p-8">
+      <div className="aurora-glass rounded-2xl border border-aurora-neon-blue/30 p-6">
         <ApprovedScriptsManager />
       </div>
     </AuroraPageLayout>

@@ -4,10 +4,8 @@ import MarketingConsultantHome from '@/components/marketing-consultant/Marketing
 
 const MarketingConsultant: React.FC = () => {
   return (
-    <AuroraPageLayout>
-      <div className="min-h-screen">
-        <MarketingConsultantHome />
-      </div>
+    <AuroraPageLayout containerSize="lg" padding="sm" fullHeight>
+      <MarketingConsultantHome />
     </AuroraPageLayout>
   );
 };

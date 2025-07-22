@@ -22,7 +22,7 @@ const ContentPlannerPage: React.FC = () => {
   ];
 
   return (
-    <AuroraPageLayout>
+    <AuroraPageLayout containerSize="lg" padding="sm">
       <StandardPageHeader
         icon={Calendar}
         title="Planner de Conteúdo"

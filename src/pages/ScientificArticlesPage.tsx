@@ -21,7 +21,7 @@ const ScientificArticlesPage: React.FC = () => {
   ];
 
   return (
-    <AuroraPageLayout>
+    <AuroraPageLayout containerSize="lg" padding="sm">
       <StandardPageHeader
         icon={FileText}
         title="Artigos Científicos"

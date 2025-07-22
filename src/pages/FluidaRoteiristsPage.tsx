@@ -26,7 +26,7 @@ const FluidaRoteiristsPage: React.FC = () => {
   };
 
   return (
-    <AuroraPageLayout>
+    <AuroraPageLayout containerSize="lg" padding="sm">
       <StandardPageHeader
         icon={PenTool}
         title="Fluida Roteirista"
