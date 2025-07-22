@@ -1,12 +1,14 @@
 
 import React, { useState } from 'react';
-import { Palette, Upload, Grid, Search, Filter, Brush, Download, Eye, FileText, Wand2, Heart } from 'lucide-react';
+import { Palette, Upload, Grid, Search, Filter, Brush, Download, Eye, FileText, Wand2, Heart, FileImage } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import CarouselViewer from '@/components/downloads/CarouselViewer';
 import CaptionGenerator from '@/components/downloads/CaptionGenerator';
+import AuroraPageLayout from '@/components/layout/AuroraPageLayout';
+import StandardPageHeader from '@/components/layout/StandardPageHeader';
 import {
   Dialog,
   DialogContent,
@@ -19,6 +21,21 @@ const Arts: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [equipments, setEquipments] = useState<any[]>([]);
   const [likedMaterials, setLikedMaterials] = useState<Set<string>>(new Set());
+
+  const statusBadges = [
+    {
+      icon: Palette,
+      label: 'Design Criativo',
+      variant: 'secondary' as const,
+      color: 'bg-aurora-electric-purple/20 text-aurora-electric-purple border-aurora-electric-purple/30'
+    },
+    {
+      icon: FileImage,
+      label: 'Materiais Pro',
+      variant: 'secondary' as const,
+      color: 'bg-aurora-cyan/20 text-aurora-cyan border-aurora-cyan/30'
+    }
+  ];
 
   const { data: materials = [], isLoading } = useQuery({
     queryKey: ['arts_materials'],
@@ -111,24 +128,15 @@ const Arts: React.FC = () => {
   };
 
   return (
-    <div className="p-6">
-      <div className="relative max-w-7xl mx-auto space-y-8">
-        {/* Header */}
-        <div className="text-center space-y-4">
-          <div className="flex items-center justify-center gap-4 mb-6">
-            <div className="w-16 h-16 aurora-glass rounded-2xl flex items-center justify-center">
-              <Palette className="h-8 w-8 text-aurora-electric-purple aurora-floating" />
-            </div>
-            <div>
-              <h1 className="text-4xl font-light aurora-text-gradient">
-                Artes Gráficas
-              </h1>
-              <p className="text-slate-400 aurora-body">
-                Crie e gerencie artes para suas campanhas de marketing
-              </p>
-            </div>
-          </div>
-        </div>
+    <AuroraPageLayout>
+      <StandardPageHeader
+        icon={Palette}
+        title="Artes Gráficas"
+        subtitle="Crie e gerencie artes para suas campanhas de marketing"
+        statusBadges={statusBadges}
+      />
+
+      <div className="space-y-8">
 
         {/* Controls */}
         <div className="aurora-card p-6 space-y-4">
@@ -323,7 +331,7 @@ const Arts: React.FC = () => {
           )}
         </div>
       </div>
-    </div>
+    </AuroraPageLayout>
   );
 };
 
