@@ -149,20 +149,20 @@ const AkinatorInteligente: React.FC = () => {
   ];
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center aurora-gradient-bg px-2 py-8">
+    <div className="relative min-h-screen flex items-start justify-center aurora-gradient-bg px-2 pt-4">
       <AuroraParticles />
 
-      <div className="relative z-10 mx-auto w-full max-w-4xl flex flex-col gap-6 py-6 px-2 sm:px-4">
+      <div className="relative z-10 mx-auto w-full max-w-4xl flex flex-col gap-4 py-4 px-2 sm:px-4">
         
         {/* Header com Stats */}
         <motion.div
-          initial={{ opacity: 0, y: -32 }}
+          initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex flex-col items-center gap-4"
+          className="flex flex-col items-center gap-3"
         >
-          <div className="flex items-center gap-4">
-            <span className="animate-pulse crystal-pulse rounded-full p-4 bg-gradient-to-br from-cyan-400 via-purple-500 to-pink-500 border-4 border-cyan-400/30">
-              <Brain className="text-white drop-shadow" size={52} />
+          <div className="flex items-center gap-3">
+            <span className="animate-pulse crystal-pulse rounded-full p-3 bg-gradient-to-br from-aurora-neon-blue via-aurora-electric-purple to-aurora-cyan border-2 border-aurora-neon-blue/30">
+              <Brain className="text-white drop-shadow" size={40} />
             </span>
             <div className="text-center">
               <GenioMestreHeader 
@@ -170,12 +170,12 @@ const AkinatorInteligente: React.FC = () => {
                 phrase={isThinking ? mysticalThinkingPhrases[0] : `${genieName} - IA Científica`}
               />
               {sessionStarted && (
-                <div className="flex gap-4 mt-2">
-                  <Badge variant="secondary" className="bg-purple-500/20 text-purple-200">
+                <div className="flex gap-3 mt-1">
+                  <Badge variant="secondary" className="bg-aurora-neon-blue/20 text-aurora-neon-blue border-aurora-neon-blue/30">
                     <BookOpen className="w-3 h-3 mr-1" />
                     {aiStats.artigosConsultados} Estudos
                   </Badge>
-                  <Badge variant="secondary" className="bg-cyan-500/20 text-cyan-200">
+                  <Badge variant="secondary" className="bg-aurora-cyan/20 text-aurora-cyan border-aurora-cyan/30">
                     <Zap className="w-3 h-3 mr-1" />
                     {aiStats.equipamentosUsados} Equipamentos
                   </Badge>
@@ -186,11 +186,11 @@ const AkinatorInteligente: React.FC = () => {
 
           {sessionStarted && (
             <div className="w-full max-w-md">
-              <div className="flex justify-between text-sm text-purple-200 mb-1">
+              <div className="flex justify-between text-sm text-aurora-text-muted mb-1">
                 <span>Análise Científica</span>
                 <span>{progress}%</span>
               </div>
-              <Progress value={progress} className="h-3 bg-purple-900/40 magical-glow" />
+              <Progress value={progress} className="h-2 aurora-glass" />
             </div>
           )}
         </motion.div>
@@ -202,33 +202,33 @@ const AkinatorInteligente: React.FC = () => {
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.9 }}
-              className="space-y-6"
+              className="space-y-4"
             >
-              <Card className="aurora-card border-2 border-purple-400/50 shadow-xl backdrop-blur-lg">
-                <CardContent className="p-8 text-center">
-                  <h2 className="text-3xl font-bold text-white mb-4 font-playfair">
-                    🧠 Mestre da Beleza 2.0
+              <Card className="aurora-glass border border-aurora-neon-blue/30">
+                <CardContent className="p-6 text-center">
+                  <h2 className="text-2xl font-bold text-aurora-text-primary mb-3 aurora-heading-enhanced">
+                    Mestre da Beleza 2.0
                   </h2>
-                  <p className="text-purple-200 text-lg mb-6">
+                  <p className="text-aurora-text-muted text-base mb-4">
                     Powered by IA + Base Científica Completa
                   </p>
-                  <div className="grid grid-cols-2 gap-4 mb-6 text-sm">
-                    <div className="bg-purple-800/30 p-3 rounded-lg">
-                      <Brain className="w-6 h-6 text-cyan-400 mx-auto mb-2" />
-                      <div className="text-cyan-200 font-semibold">IA Avançada</div>
-                      <div className="text-purple-300">OpenAI GPT-4</div>
+                  <div className="grid grid-cols-2 gap-3 mb-4 text-sm">
+                    <div className="aurora-glass p-3 rounded-lg">
+                      <Brain className="w-6 h-6 text-aurora-neon-blue mx-auto mb-2" />
+                      <div className="text-aurora-neon-blue font-semibold">IA Avançada</div>
+                      <div className="text-aurora-text-muted">OpenAI GPT-4</div>
                     </div>
-                    <div className="bg-purple-800/30 p-3 rounded-lg">
-                      <BookOpen className="w-6 h-6 text-pink-400 mx-auto mb-2" />
-                      <div className="text-pink-200 font-semibold">Base Científica</div>
-                      <div className="text-purple-300">Estudos + Equipamentos</div>
+                    <div className="aurora-glass p-3 rounded-lg">
+                      <BookOpen className="w-6 h-6 text-aurora-cyan mx-auto mb-2" />
+                      <div className="text-aurora-cyan font-semibold">Base Científica</div>
+                      <div className="text-aurora-text-muted">Estudos + Equipamentos</div>
                     </div>
                   </div>
                   <Button
                     onClick={startSession}
-                    className="bg-gradient-to-r from-cyan-600 to-purple-600 hover:from-cyan-700 hover:to-purple-700 text-white font-bold px-8 py-3 rounded-full text-lg shadow-lg"
+                    className="aurora-button-enhanced px-6 py-2 rounded-full text-base"
                   >
-                    <Sparkles className="mr-2 h-5 w-5" />
+                    <Sparkles className="mr-2 h-4 w-4" />
                     Iniciar Consulta Inteligente
                   </Button>
                 </CardContent>
