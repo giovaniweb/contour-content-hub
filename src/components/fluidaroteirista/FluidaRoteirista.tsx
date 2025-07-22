@@ -120,7 +120,7 @@ const FluidaRoteirista: React.FC<FluidaRoteiristaProps> = ({ onScriptGenerated }
 
     if (IS_DEV) console.log('📱 [FluidaRoteirista] Renderizando resultados');
     return (
-      <div className="p-4 sm:p-8 w-full max-w-3xl mx-auto space-y-6">
+      <div className="w-full space-y-6">
         <FluidaScriptResults
           results={results}
           onNewScript={handleNewScript}
@@ -137,7 +137,7 @@ const FluidaRoteirista: React.FC<FluidaRoteiristaProps> = ({ onScriptGenerated }
   if (currentMode === 'elementos') {
     if (IS_DEV) console.log('🎯 [FluidaRoteirista] Renderizando modo Rocket');
     return (
-      <div className="p-4 sm:p-8 max-w-2xl mx-auto">
+      <div className="w-full">
         <ElementosUniversaisMode
           onScriptGenerated={handleScriptGenerated}
           onGoBack={handleGoBack}
@@ -151,7 +151,7 @@ const FluidaRoteirista: React.FC<FluidaRoteiristaProps> = ({ onScriptGenerated }
   if (currentMode === 'akinator') {
     if (IS_DEV) console.log('❓ [FluidaRoteirista] Renderizando modo Fluida');
     return (
-      <div className="p-4 sm:p-8 max-w-2xl mx-auto">
+      <div className="w-full">
         <AkinatorScriptMode
           onScriptGenerated={handleScriptGenerated}
           onGoBack={handleGoBack}
@@ -168,22 +168,27 @@ const FluidaRoteirista: React.FC<FluidaRoteiristaProps> = ({ onScriptGenerated }
 
   if (IS_DEV) console.log('🏠 [FluidaRoteirista] Renderizando seleção de modo');
   return (
-    <div className="container mx-auto py-10 sm:py-14 space-y-14 sm:space-y-16 px-4">
-      {/* Header */}
-      <AuroraHeaderSection />
+    <div className="w-full space-y-8">
+      {/* Header Section Removed - Now handled by StandardPageHeader */}
 
       {/* Quick Access Menu */}
-      <div className="py-2">
+      <div className="aurora-glass rounded-2xl border border-aurora-neon-blue/30 p-6">
+        <h2 className="text-xl font-bold text-aurora-text-primary mb-4 text-center">
+          📋 Menu Rápido
+        </h2>
         <QuickAccessMenu onNavigateToApprovedScripts={handleNavigateToApprovedScripts} />
       </div>
 
       {/* Mode Selection */}
-      <div>
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold text-aurora-text-primary text-center">
+          ✨ Escolha seu estilo de criação:
+        </h3>
         <ModeSelection onSelect={handleModeSelect} />
       </div>
 
       {/* Features Banner */}
-      <div className="mt-2">
+      <div>
         <FeaturesBanner />
       </div>
     </div>

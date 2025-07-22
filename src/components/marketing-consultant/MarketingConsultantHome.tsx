@@ -24,7 +24,7 @@ const MarketingConsultantHome: React.FC = () => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="w-full max-w-4xl mx-auto py-6 space-y-8 px-2 sm:px-4 md:px-0"
+        className="w-full space-y-6"
       >
         <motion.div 
           initial={{ opacity: 0, y: -20 }}
@@ -37,7 +37,7 @@ const MarketingConsultantHome: React.FC = () => {
               setCurrentView('home');
               setForceNewDiagnostic(false);
             }} 
-            className="flex items-center gap-2 hover-scale"
+            className="flex items-center gap-2 aurora-glass border-aurora-neon-blue/30 text-aurora-neon-blue hover:bg-aurora-neon-blue/20"
           >
             <ArrowRight className="h-4 w-4 rotate-180" />
             Voltar
@@ -47,14 +47,14 @@ const MarketingConsultantHome: React.FC = () => {
               animate={{ rotate: [0, 360] }}
               transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
             >
-              <BrainCircuit className="h-8 w-8 text-primary" />
+              <BrainCircuit className="h-8 w-8 text-aurora-neon-blue" />
             </motion.div>
             <div>
-              <h1 className="text-2xl font-bold flex items-center gap-2">
+              <h1 className="text-xl font-bold text-aurora-text-primary flex items-center gap-2">
                 Novo Diagnóstico
-                <Sparkles className="h-6 w-6 text-yellow-500" />
+                <Sparkles className="h-5 w-5 text-aurora-lime" />
               </h1>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-aurora-text-muted">
                 Vamos descobrir o potencial da sua clínica
               </p>
             </div>
@@ -73,22 +73,15 @@ const MarketingConsultantHome: React.FC = () => {
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -20 }}
         transition={{ duration: 0.4 }}
-        className="w-full max-w-4xl mx-auto py-6 space-y-8 px-2 sm:px-4 md:px-0"
+        className="w-full space-y-8"
       >
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-        >
-          <ConsultantHeader />
-        </motion.div>
+        {/* Header Section Removed - Now handled by StandardPageHeader */}
 
         {/* Cards de Ação Principais */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
+          transition={{ delay: 0.1 }}
         >
           <ActionCards onStartNewDiagnostic={handleStartNewDiagnostic} />
         </motion.div>
@@ -97,7 +90,7 @@ const MarketingConsultantHome: React.FC = () => {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
+          transition={{ delay: 0.2 }}
         >
           <QuickTipsSection />
         </motion.div>
