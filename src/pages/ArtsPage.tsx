@@ -30,7 +30,7 @@ const ArtsPage: React.FC = () => {
     <AuroraPageLayout>
       <StandardPageHeader
         icon={Palette}
-        title="Materiais e Artes"
+        title="Artes Gráficas"
         subtitle="Crie e gerencie seus materiais de marketing"
         statusBadges={statusBadges}
       />
