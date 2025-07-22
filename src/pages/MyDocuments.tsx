@@ -1,119 +1,186 @@
-import React from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { useState } from 'react';
+import { FileText, Upload, Search, Filter, Download, Eye, Calendar, File } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { FileText, Download, Calendar, Upload, Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import AuroraPageLayout from '@/components/layout/AuroraPageLayout';
+import StandardPageHeader from '@/components/layout/StandardPageHeader';
+import { EmptyState } from '@/components/ui/empty-state';
 
 const MyDocuments = () => {
-  const documents = [
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const statusBadges = [
     {
-      id: 1,
-      title: "Protocolos de Harmonização Facial",
-      description: "Documento completo com todos os protocolos atualizados",
-      type: "PDF",
-      size: "2.5 MB",
-      date: "15/01/2024",
-      category: "Protocolos"
+      icon: FileText,
+      label: 'Documentos Pro',
+      variant: 'secondary' as const,
+      color: 'bg-aurora-electric-purple/20 text-aurora-electric-purple border-aurora-electric-purple/30'
     },
     {
-      id: 2,
-      title: "Artigo - Skinbooster Applications",
-      description: "Artigo científico sobre aplicações de skinbooster",
-      type: "PDF",
-      size: "1.8 MB",
-      date: "18/01/2024",
-      category: "Artigos"
-    },
-    {
-      id: 3,
-      title: "Checklist Pré-Procedimento",
-      description: "Lista de verificação para procedimentos estéticos",
-      type: "DOC",
-      size: "856 KB",
-      date: "20/01/2024",
-      category: "Checklists"
-    },
-    {
-      id: 4,
-      title: "Termo de Consentimento",
-      description: "Modelo de termo de consentimento atualizado",
-      type: "PDF",
-      size: "1.2 MB",
-      date: "22/01/2024",
-      category: "Documentos Legais"
+      icon: File,
+      label: 'Base Técnica',
+      variant: 'secondary' as const,
+      color: 'bg-aurora-cyan/20 text-aurora-cyan border-aurora-cyan/30'
     }
   ];
 
-  const getFileIcon = (type: string) => {
-    return <FileText className="h-8 w-8 text-primary" />;
+  const { data: documents = [], isLoading } = useQuery({
+    queryKey: ['user_documents'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('documentos_tecnicos')
+        .select('*')
+        .eq('status', 'ativo')
+        .order('data_criacao', { ascending: false });
+      
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
+  const filteredDocuments = documents.filter(doc =>
+    doc.titulo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    doc.descricao?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    doc.tipo?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const getFileIcon = (tipo: string) => {
+    switch (tipo?.toLowerCase()) {
+      case 'pdf':
+        return <FileText className="h-5 w-5 text-red-400" />;
+      case 'manual':
+        return <File className="h-5 w-5 text-blue-400" />;
+      case 'protocolo':
+        return <FileText className="h-5 w-5 text-green-400" />;
+      default:
+        return <FileText className="h-5 w-5 text-slate-400" />;
+    }
   };
 
   return (
-    <div className="container mx-auto py-6">
-      <div className="mb-8 flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Meus Documentos</h1>
-          <p className="text-muted-foreground">
-            Biblioteca pessoal de documentos, artigos e protocolos
-          </p>
+    <AuroraPageLayout>
+      <StandardPageHeader
+        icon={FileText}
+        title="Meus Documentos"
+        subtitle="Acesse documentos técnicos e protocolos especializados"
+        statusBadges={statusBadges}
+      />
+
+      {/* Controls */}
+      <div className="aurora-card p-6 space-y-4">
+        <div className="flex flex-col md:flex-row gap-4">
+          <div className="flex-1">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
+              <Input
+                placeholder="Buscar documentos..."
+                className="pl-10"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+          </div>
+          
+          <div className="flex gap-2">
+            <Button variant="outline">
+              <Filter className="h-4 w-4 mr-2" />
+              Filtros
+            </Button>
+            <Button className="aurora-button">
+              <Upload className="h-4 w-4 mr-2" />
+              Upload Documento
+            </Button>
+          </div>
         </div>
-        <Button>
-          <Upload className="h-4 w-4 mr-2" />
-          Adicionar Documento
-        </Button>
       </div>
 
-      <div className="mb-6">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Buscar documentos..."
-            className="pl-10"
-          />
-        </div>
-      </div>
-
-      <div className="grid gap-4">
-        {documents.map((document) => (
-          <Card key={document.id}>
-            <CardHeader>
-              <div className="flex items-start justify-between">
-                <div className="flex items-start space-x-4">
-                  <div className="flex-shrink-0">
-                    {getFileIcon(document.type)}
+      {/* Documents Grid */}
+      <div className="aurora-card">
+        {isLoading ? (
+          <div className="p-8 text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-aurora-electric-purple mx-auto"></div>
+            <p className="text-slate-400 mt-4">Carregando documentos...</p>
+          </div>
+        ) : filteredDocuments.length === 0 ? (
+          <div className="p-8">
+            <EmptyState
+              icon={FileText}
+              title={searchTerm ? 'Nenhum documento encontrado' : 'Nenhum documento disponível'}
+              description={searchTerm ? 'Tente buscar por outros termos' : 'Comece fazendo upload dos seus primeiros documentos'}
+              actionLabel="Fazer Upload"
+              onAction={() => console.log('Upload document')}
+            />
+          </div>
+        ) : (
+          <div className="p-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredDocuments.map((document) => (
+                <div key={document.id} className="group aurora-glass p-4 rounded-lg backdrop-blur-md bg-slate-800/30 border border-white/10">
+                  <div className="flex items-start gap-3 mb-3">
+                    <div className="mt-1">
+                      {getFileIcon(document.tipo)}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-medium text-slate-200 group-hover:text-aurora-electric-purple transition-colors duration-200 line-clamp-2">
+                        {document.titulo}
+                      </h3>
+                      {document.descricao && (
+                        <p className="text-sm text-slate-400 mt-1 line-clamp-2">
+                          {document.descricao}
+                        </p>
+                      )}
+                    </div>
                   </div>
-                  <div className="space-y-1">
-                    <CardTitle className="text-lg">
-                      {document.title}
-                    </CardTitle>
-                    <CardDescription>
-                      {document.description}
-                    </CardDescription>
-                    <div className="flex items-center space-x-4 text-sm text-muted-foreground">
-                      <div className="flex items-center space-x-1">
-                        <Calendar className="h-4 w-4" />
-                        <span>{document.date}</span>
+                  
+                  <div className="space-y-3">
+                    {document.tipo && (
+                      <span className="inline-block px-2 py-1 text-xs bg-aurora-neon-blue/20 text-aurora-neon-blue rounded-full">
+                        {document.tipo}
+                      </span>
+                    )}
+                    
+                    {document.keywords && document.keywords.length > 0 && (
+                      <div className="flex flex-wrap gap-1">
+                        {document.keywords.slice(0, 3).map((keyword, index) => (
+                          <span
+                            key={index}
+                            className="px-2 py-1 text-xs bg-aurora-electric-purple/20 text-aurora-electric-purple rounded-full"
+                          >
+                            {keyword}
+                          </span>
+                        ))}
+                        {document.keywords.length > 3 && (
+                          <span className="px-2 py-1 text-xs bg-slate-700/50 text-slate-400 rounded-full">
+                            +{document.keywords.length - 3}
+                          </span>
+                        )}
                       </div>
-                      <span>{document.type}</span>
-                      <span>{document.size}</span>
-                      <span className="bg-primary/10 text-primary px-2 py-1 rounded-full text-xs">
-                        {document.category}
+                    )}
+                    
+                    <div className="flex items-center justify-between">
+                      <div className="flex gap-2">
+                        <Button size="sm" className="aurora-button">
+                          <Download className="h-4 w-4" />
+                        </Button>
+                        <Button size="sm" variant="outline" className="bg-white/10 border-white/20 text-white hover:bg-white/20">
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      <span className="text-xs text-slate-500 flex items-center gap-1">
+                        <Calendar className="h-3 w-3" />
+                        {new Date(document.data_criacao).toLocaleDateString()}
                       </span>
                     </div>
                   </div>
                 </div>
-                <div className="flex space-x-2">
-                  <Button variant="outline" size="sm">
-                    <Download className="h-4 w-4 mr-2" />
-                    Download
-                  </Button>
-                </div>
-              </div>
-            </CardHeader>
-          </Card>
-        ))}
+              ))}
+            </div>
+          </div>
+        )}
       </div>
-    </div>
+    </AuroraPageLayout>
   );
 };
 
