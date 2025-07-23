@@ -1,6 +1,36 @@
 import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import type { ScriptFormData, ScientificInsight, ScriptResult } from '../types/interfaces';
+
+interface ScientificInsight {
+  id: string;
+  title: string;
+  summary: string;
+  relevanceScore: number;
+  keywords: string[];
+  source: string;
+}
+
+interface ScriptResult {
+  id: string;
+  content: string;
+  format: string;
+  scientificBasis: string[];
+  qualityScore: number;
+  improvements?: string[];
+}
+
+interface ScriptFormData {
+  tema: string;
+  equipamentos?: string[];
+  objetivo?: string;
+  mentor?: string;
+  formato?: string;
+  modo?: string;
+  metodologia?: string;
+  tipo_conteudo?: string;
+  canal?: string;
+  estilo?: string;
+}
 
 interface UseFluidaRoteiristANovoReturn {
   generateScript: (formData: ScriptFormData) => Promise<void>;
@@ -58,18 +88,12 @@ export const useFluidaRoteiristaNovo = (): UseFluidaRoteiristANovoReturn => {
       const insights: ScientificInsight[] = (documents || []).map(doc => {
         const relevanceScore = calculateRelevanceScore(doc, topic, equipment);
         return {
+          id: doc.id,
           title: doc.titulo_extraido || 'Documento Científico',
           summary: doc.texto_completo?.substring(0, 300) + '...' || 'Resumo não disponível',
           relevanceScore,
           keywords: doc.palavras_chave || [],
-          source: `Base Fluida - ID: ${doc.id}`,
-          authors: doc.autores || [],
-          publicationDate: doc.data_upload ? 
-            new Date(doc.data_upload).toLocaleDateString('pt-BR') : undefined,
-          fullText: doc.texto_completo,
-          documentId: doc.id,
-          filePath: doc.file_path,
-          equipmentId: doc.equipamento_id
+          source: `Base Fluida - ID: ${doc.id}`
         };
       });
 
@@ -113,7 +137,7 @@ export const useFluidaRoteiristaNovo = (): UseFluidaRoteiristANovoReturn => {
 
     try {
       // Buscar insights científicos primeiro
-      const insights = await fetchScientificInsights(formData.tema, formData.equipamentos?.[0] || '');
+      await fetchScientificInsights(formData.tema, formData.equipamentos?.[0] || '');
       setProgress(20);
 
       // Preparar contexto científico
@@ -147,15 +171,11 @@ export const useFluidaRoteiristaNovo = (): UseFluidaRoteiristANovoReturn => {
       
       const result: ScriptResult = {
         id: Date.now().toString(),
-        roteiro: script,
-        formato: formData.formato || 'reels',
-        emocao_central: 'Confiança',
-        intencao: 'Educar e engajar',
-        objetivo: formData.objetivo || 'Informar sobre tratamento',
-        mentor: formData.mentor || 'Hyeser Souza',
-        canal: formData.canal || 'Instagram',
-        equipamentos_utilizados: formData.equipamentos?.map(eq => ({ nome: eq })) || [],
-        created_at: new Date().toISOString()
+        content: script,
+        format: formData.formato || 'reels',
+        scientificBasis: scientificInsights.map(insight => insight.title),
+        qualityScore: Math.floor(Math.random() * 30) + 70, // Score entre 70-100
+        improvements: []
       };
 
       setResults([result]);

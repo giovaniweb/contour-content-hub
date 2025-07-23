@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { 
   BookOpen, 
@@ -11,15 +10,19 @@ import {
   ChevronUp, 
   Eye, 
   FileText,
-  Users,
   Calendar,
-  Star,
-  Quote,
-  Download
+  Star
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-import type { ScientificInsight } from '../types/interfaces';
+interface ScientificInsight {
+  id: string;
+  title: string;
+  summary: string;
+  relevanceScore: number;
+  keywords: string[];
+  source: string;
+}
 
 interface RealScientificInsightsPanelProps {
   insights: ScientificInsight[];
@@ -166,12 +169,6 @@ const RealScientificInsightsPanel: React.FC<RealScientificInsightsPanelProps> = 
                           <Star className="h-3 w-3 mr-1" />
                           {insight.relevanceScore}/10 - {getRelevanceLabel(insight.relevanceScore)}
                         </Badge>
-                        {insight.publicationDate && (
-                          <Badge variant="outline" className="text-xs">
-                            <Calendar className="h-3 w-3 mr-1" />
-                            {insight.publicationDate}
-                          </Badge>
-                        )}
                         <Badge variant="outline" className="text-xs">
                           <FileText className="h-3 w-3 mr-1" />
                           Base Fluida
@@ -215,16 +212,6 @@ const RealScientificInsightsPanel: React.FC<RealScientificInsightsPanelProps> = 
                   {/* Conteúdo expandido */}
                   {expandedInsights.has(index) && (
                     <div className="space-y-3 pt-3 border-t border-border/50">
-                      {/* Autores se disponível */}
-                      {insight.authors && insight.authors.length > 0 && (
-                        <div className="space-y-1">
-                          <div className="text-xs font-medium text-foreground">Autores</div>
-                          <p className="text-xs text-muted-foreground">
-                            {insight.authors.join(", ")}
-                          </p>
-                        </div>
-                      )}
-
                       {/* Fonte do documento */}
                       <div className="space-y-1">
                         <div className="text-xs font-medium text-foreground">Identificação</div>
@@ -244,21 +231,6 @@ const RealScientificInsightsPanel: React.FC<RealScientificInsightsPanelProps> = 
                           <Eye className="h-3 w-3 mr-1" />
                           Ver Artigo Completo
                         </Button>
-                        {insight.filePath && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="text-xs h-7"
-                            onClick={() => {
-                              if (insight.filePath) {
-                                window.open(`https://mksvzhgqnsjfolvskibq.supabase.co/storage/v1/object/public/documents/${insight.filePath}`, '_blank');
-                              }
-                            }}
-                          >
-                            <Download className="h-3 w-3 mr-1" />
-                            Download PDF
-                          </Button>
-                        )}
                       </div>
                     </div>
                   )}
@@ -303,22 +275,15 @@ const RealScientificInsightsPanel: React.FC<RealScientificInsightsPanelProps> = 
                   <div>
                     <span className="font-medium">Relevância:</span> {selectedDocument.relevanceScore}/10
                   </div>
-                  {selectedDocument.publicationDate && (
-                    <div>
-                      <span className="font-medium">Data:</span> {selectedDocument.publicationDate}
-                    </div>
-                  )}
-                  {selectedDocument.authors && selectedDocument.authors.length > 0 && (
-                    <div className="col-span-2">
-                      <span className="font-medium">Autores:</span> {selectedDocument.authors.join(", ")}
-                    </div>
-                  )}
+                  <div>
+                    <span className="font-medium">Fonte:</span> {selectedDocument.source}
+                  </div>
                 </div>
 
                 {/* Conteúdo completo */}
                 <div className="prose prose-sm max-w-none dark:prose-invert">
                   <div className="whitespace-pre-line text-muted-foreground leading-relaxed">
-                    {selectedDocument.fullText || selectedDocument.summary}
+                    {selectedDocument.summary}
                   </div>
                 </div>
 
