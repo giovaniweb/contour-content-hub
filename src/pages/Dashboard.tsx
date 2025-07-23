@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -30,12 +29,164 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [currentStreak, setCurrentStreak] = useState(7);
-  const [totalPoints, setTotalPoints] = useState(1250);
+  
+  // Estados para dados reais
+  const [gamificationData, setGamificationData] = useState({
+    xp_total: 0,
+    current_streak: 0,
+    level: 'Iniciante',
+    videos_watched: 0,
+    diagnostics_completed: 0,
+    articles_viewed: 0,
+    photos_uploaded: 0
+  });
+  
+  const [recentActivity, setRecentActivity] = useState([]);
+  const [contentStats, setContentStats] = useState({
+    videos: 0,
+    photos: 0,
+    articles: 0,
+    equipments: 0
+  });
+  const [loading, setLoading] = useState(true);
+
+  // Buscar dados reais do usuário
+  useEffect(() => {
+    if (user?.id) {
+      fetchUserData();
+    }
+  }, [user?.id]);
+
+  const fetchUserData = async () => {
+    try {
+      setLoading(true);
+      
+      // Buscar dados de gamificação
+      const { data: gamification } = await supabase
+        .from('user_gamification')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+      if (gamification) {
+        // Determinar nível baseado no XP
+        const level = calculateLevel(gamification.xp_total);
+        
+        setGamificationData({
+          xp_total: gamification.xp_total || 0,
+          current_streak: 1, // Valor padrão por enquanto
+          level: level,
+          videos_watched: 0, // Calculado separadamente
+          diagnostics_completed: 0, // Calculado separadamente  
+          articles_viewed: 0, // Calculado separadamente
+          photos_uploaded: 0 // Calculado separadamente
+        });
+      }
+
+      // Buscar atividades recentes
+      const { data: activities } = await supabase
+        .from('user_actions')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(4);
+
+      if (activities) {
+        setRecentActivity(activities.map(activity => ({
+          action: formatActivityAction(activity.action_type, activity.target_type),
+          time: formatTimeAgo(activity.created_at),
+          points: activity.xp_awarded || 0
+        })));
+      }
+
+      // Buscar contadores específicos de atividades
+      const { count: videoCount } = await supabase
+        .from('user_actions')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .eq('action_type', 'video_watch');
+
+      const { count: diagnosticCount } = await supabase
+        .from('user_actions')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .eq('action_type', 'diagnostic_complete');
+
+      // Atualizar gamification data com contadores reais
+      setGamificationData(prev => ({
+        ...prev,
+        videos_watched: videoCount || 0,
+        diagnostics_completed: diagnosticCount || 0
+      }));
+
+      // Buscar estatísticas de conteúdo
+      const [videosRes, photosRes, articlesRes, equipmentsRes] = await Promise.all([
+        supabase.from('videos').select('*', { count: 'exact', head: true }),
+        supabase.from('equipment_photos').select('*', { count: 'exact', head: true }),
+        supabase.from('documentos_tecnicos').select('*', { count: 'exact', head: true }).eq('status', 'ativo'),
+        supabase.from('equipamentos').select('*', { count: 'exact', head: true }).eq('ativo', true)
+      ]);
+
+      setContentStats({
+        videos: videosRes.count || 0,
+        photos: photosRes.count || 0,
+        articles: articlesRes.count || 0,
+        equipments: equipmentsRes.count || 0
+      });
+
+    } catch (error) {
+      console.error('Erro ao buscar dados do usuário:', error);
+      // Definir valores padrão em caso de erro
+      setGamificationData({
+        xp_total: 0,
+        current_streak: 0,
+        level: 'Iniciante',
+        videos_watched: 0,
+        diagnostics_completed: 0,
+        articles_viewed: 0,
+        photos_uploaded: 0
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const calculateLevel = (xp: number) => {
+    if (xp >= 5000) return 'Especialista';
+    if (xp >= 2000) return 'Avançado';
+    if (xp >= 500) return 'Intermediário';
+    return 'Iniciante';
+  };
+
+  const formatActivityAction = (actionType: string, targetType: string) => {
+    const actions = {
+      video_watch: 'Assistiu vídeo',
+      video_download: 'Baixou vídeo',
+      diagnostic_complete: 'Completou diagnóstico',
+      article_view: 'Visualizou artigo',
+      photo_upload: 'Enviou foto',
+      equipment_view: 'Visualizou equipamento'
+    };
+    
+    return actions[actionType] || 'Atividade no sistema';
+  };
+
+  const formatTimeAgo = (date: string) => {
+    const now = new Date();
+    const past = new Date(date);
+    const diffInMs = now.getTime() - past.getTime();
+    const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));
+    const diffInDays = Math.floor(diffInHours / 24);
+    
+    if (diffInDays > 0) return `${diffInDays} dia${diffInDays > 1 ? 's' : ''}`;
+    if (diffInHours > 0) return `${diffInHours}h atrás`;
+    return 'Agora há pouco';
+  };
 
   const aiTools = [
     {
@@ -71,7 +222,7 @@ const Dashboard: React.FC = () => {
       title: "Biblioteca de Vídeos",
       description: "Vídeos profissionais para seu conteúdo",
       path: "/videos",
-      count: "2.5k+ vídeos",
+      count: `${contentStats.videos}+ vídeos`,
       gradient: "from-red-500 to-pink-500"
     },
     {
@@ -79,7 +230,7 @@ const Dashboard: React.FC = () => {
       title: "Galeria de Fotos",
       description: "Fotos de alta qualidade para seus posts",
       path: "/photos",
-      count: "5k+ fotos",
+      count: `${contentStats.photos}+ fotos`,
       gradient: "from-green-500 to-blue-500"
     },
     {
@@ -95,7 +246,7 @@ const Dashboard: React.FC = () => {
       title: "Artigos Científicos",
       description: "Base científica para seus conteúdos",
       path: "/scientific-articles",
-      count: "150+ artigos",
+      count: `${contentStats.articles}+ artigos`,
       gradient: "from-indigo-500 to-purple-500"
     }
   ];
@@ -125,18 +276,26 @@ const Dashboard: React.FC = () => {
   ];
 
   const achievements = [
-    { icon: Flame, label: "Streak Atual", value: `${currentStreak} dias`, color: "text-orange-400" },
-    { icon: Star, label: "Pontos Totais", value: totalPoints.toLocaleString(), color: "text-yellow-400" },
-    { icon: Trophy, label: "Nível", value: "Especialista", color: "text-purple-400" },
-    { icon: Target, label: "Meta Mensal", value: "85%", color: "text-blue-400" }
+    { icon: Flame, label: "Streak Atual", value: `${gamificationData.current_streak} dias`, color: "text-orange-400" },
+    { icon: Star, label: "Pontos Totais", value: gamificationData.xp_total.toLocaleString(), color: "text-yellow-400" },
+    { icon: Trophy, label: "Nível", value: gamificationData.level, color: "text-purple-400" },
+    { icon: Target, label: "Vídeos Assistidos", value: gamificationData.videos_watched.toString(), color: "text-blue-400" }
   ];
 
-  const recentActivity = [
-    { action: "Criou roteiro com Fluida", time: "2h atrás", points: 50 },
-    { action: "Baixou 5 fotos de equipamentos", time: "5h atrás", points: 25 },
-    { action: "Planejou conteúdo da semana", time: "1 dia", points: 75 },
-    { action: "Consultou estratégia de marketing", time: "2 dias", points: 100 }
+  const recentActivityDisplay = recentActivity.length > 0 ? recentActivity : [
+    { action: "Nenhuma atividade recente", time: "", points: 0 }
   ];
+
+  if (loading) {
+    return (
+      <div className="relative z-10 p-6 flex items-center justify-center min-h-[400px]">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="w-8 h-8 border-2 border-purple-400 border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-white/70">Carregando seus dados...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="relative z-10 p-6 space-y-8 max-w-7xl mx-auto">
@@ -341,7 +500,7 @@ const Dashboard: React.FC = () => {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {recentActivity.map((activity, index) => (
+              {recentActivityDisplay.map((activity, index) => (
                 <motion.div
                   key={index}
                   initial={{ opacity: 0, y: 10 }}
@@ -351,11 +510,13 @@ const Dashboard: React.FC = () => {
                 >
                   <div className="flex-1">
                     <div className="text-white text-sm">{activity.action}</div>
-                    <div className="text-white/60 text-xs">{activity.time}</div>
+                    {activity.time && <div className="text-white/60 text-xs">{activity.time}</div>}
                   </div>
-                  <Badge variant="secondary" className="text-yellow-300 bg-yellow-500/20">
-                    +{activity.points} pts
-                  </Badge>
+                  {activity.points > 0 && (
+                    <Badge variant="secondary" className="text-yellow-300 bg-yellow-500/20">
+                      +{activity.points} pts
+                    </Badge>
+                  )}
                 </motion.div>
               ))}
             </CardContent>
