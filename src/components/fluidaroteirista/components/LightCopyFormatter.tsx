@@ -69,11 +69,11 @@ const LightCopyFormatter: React.FC<LightCopyFormatterProps> = ({
             </p>
           </div>
           <div className="w-full border-t border-aurora-electric-purple/20 my-2" />
-          <div className="relative bg-slate-900/80 px-1 py-4 rounded-2xl shadow-inner aurora-glass border-aurora-neon-blue/10 w-full max-w-2xl mx-auto flex flex-col gap-6">
+          <div className="relative px-1 py-4 w-full max-w-2xl mx-auto flex flex-col gap-6">
             {blocks.map((block, i) => (
               <div
                 key={i}
-                className="mb-5 last:mb-0 overflow-hidden p-0 sm:p-4 rounded-xl bg-gradient-to-tr from-yellow-300/10 via-white/0 to-aurora-neon-blue/5 border border-yellow-300/20 shadow"
+                className="mb-5 last:mb-0 overflow-hidden p-4 rounded-xl bg-gradient-to-tr from-aurora-electric-purple/10 via-aurora-neon-blue/5 to-transparent border border-aurora-electric-purple/20 backdrop-blur-sm"
               >
                 <div className="flex items-center gap-2 mb-2">
                   <span className="font-bold text-lg aurora-heading text-yellow-300 drop-shadow">
