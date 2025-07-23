@@ -1,13 +1,50 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { FileText, Calendar, User, Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { FileText, Calendar, User, Loader2, ChevronLeft, ChevronRight, Home } from 'lucide-react';
 import { approvedScriptsService } from '@/services/approvedScriptsService';
 import { ApprovedScriptWithPerformance } from '@/types/approved-scripts';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import AuroraPageLayout from '@/components/layout/AuroraPageLayout';
+
+const Breadcrumb = () => {
+  const navigate = useNavigate();
+  
+  const breadcrumbs = [
+    { label: 'Dashboard', path: '/dashboard', icon: Home },
+    { label: 'Fluida Roteirista', path: '/fluidaroteirista' },
+    { label: 'Meus Roteiros', path: '/approved-scripts', active: true }
+  ];
+
+  return (
+    <nav className="flex items-center space-x-2 mb-6">
+      {breadcrumbs.map((item, index) => (
+        <React.Fragment key={item.path}>
+          {index > 0 && (
+            <ChevronRight className="w-4 h-4 text-white/40" />
+          )}
+          <button
+            onClick={() => !item.active && navigate(item.path)}
+            className={`flex items-center space-x-1 px-3 py-1.5 rounded-lg text-sm transition-colors ${
+              item.active 
+                ? 'text-aurora-neon-blue bg-aurora-neon-blue/10 cursor-default' 
+                : 'text-white/70 hover:text-white hover:bg-white/5'
+            }`}
+          >
+            {item.icon && <item.icon className="w-4 h-4" />}
+            <span>{item.label}</span>
+          </button>
+        </React.Fragment>
+      ))}
+    </nav>
+  );
+};
 
 const ApprovedScripts = () => {
+  const navigate = useNavigate();
   const [scripts, setScripts] = useState<ApprovedScriptWithPerformance[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -69,81 +106,101 @@ const ApprovedScripts = () => {
   }
 
   return (
-    <div className="container mx-auto py-6">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold">Meus Roteiros</h1>
-        <p className="text-muted-foreground">
-          Visualize e gerencie seus roteiros aprovados
-        </p>
-      </div>
+    <AuroraPageLayout>
+      <div className="space-y-6">
+        {/* Back Button */}
+        <Button
+          variant="ghost"
+          onClick={() => navigate('/fluidaroteirista')}
+          className="text-white/70 hover:text-white hover:bg-white/10 mb-4"
+        >
+          <ChevronLeft className="w-4 h-4 mr-2" />
+          Voltar para Fluida Roteirista
+        </Button>
 
-      {scripts.length === 0 ? (
-        <Card>
-          <CardContent className="py-8">
-            <div className="text-center">
-              <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">Nenhum roteiro encontrado</h3>
-              <p className="text-muted-foreground">
-                Você ainda não possui roteiros aprovados. Crie seu primeiro roteiro no Fluida Roteirista!
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="grid gap-4">
-          {scripts.map((script) => (
-            <Card key={script.id}>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <FileText className="h-5 w-5 text-primary" />
-                    <CardTitle>{script.title}</CardTitle>
+        {/* Breadcrumb */}
+        <Breadcrumb />
+
+        {/* Page Header */}
+        <div>
+          <h1 className="text-3xl font-light text-white mb-2">Meus Roteiros</h1>
+          <p className="text-white/70">Visualize e gerencie seus roteiros aprovados</p>
+        </div>
+
+        {scripts.length === 0 ? (
+          <Card className="aurora-glass-enhanced aurora-border-enhanced">
+            <CardContent className="py-8">
+              <div className="text-center">
+                <FileText className="h-12 w-12 text-white/60 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold mb-2 text-white">Nenhum roteiro encontrado</h3>
+                <p className="text-white/70 mb-4">
+                  Você ainda não possui roteiros aprovados. Crie seu primeiro roteiro no Fluida Roteirista!
+                </p>
+                <Button 
+                  onClick={() => navigate('/fluidaroteirista')}
+                  className="bg-aurora-neon-blue hover:bg-aurora-neon-blue/80"
+                >
+                  Criar Roteiro
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="grid gap-4">
+            {scripts.map((script) => (
+              <Card key={script.id} className="aurora-glass-enhanced aurora-border-enhanced">
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <FileText className="h-5 w-5 text-aurora-neon-blue" />
+                      <CardTitle className="text-white">{script.title}</CardTitle>
+                    </div>
+                    <div className="flex gap-2">
+                      <Badge className={getStatusColor(script.approval_status)}>
+                        {getStatusLabel(script.approval_status)}
+                      </Badge>
+                      <Badge variant="outline" className="text-white/70 border-white/20">{script.format}</Badge>
+                    </div>
                   </div>
-                  <div className="flex gap-2">
-                    <Badge className={getStatusColor(script.approval_status)}>
-                      {getStatusLabel(script.approval_status)}
-                    </Badge>
-                    <Badge variant="outline">{script.format}</Badge>
-                  </div>
-                </div>
-                <CardDescription className="line-clamp-2">
-                  {script.script_content?.substring(0, 150)}...
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center space-x-4 text-sm text-muted-foreground">
-                  <div className="flex items-center space-x-1">
-                    <Calendar className="h-4 w-4" />
-                    <span>Criado em {formatDate(script.created_at)}</span>
-                  </div>
-                  {script.approved_at && (
+                  <CardDescription className="line-clamp-2 text-white/70">
+                    {script.script_content?.substring(0, 150)}...
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-center space-x-4 text-sm text-white/60">
                     <div className="flex items-center space-x-1">
-                      <User className="h-4 w-4" />
-                      <span>Aprovado em {formatDate(script.approved_at)}</span>
+                      <Calendar className="h-4 w-4" />
+                      <span>Criado em {formatDate(script.created_at)}</span>
+                    </div>
+                    {script.approved_at && (
+                      <div className="flex items-center space-x-1">
+                        <User className="h-4 w-4" />
+                        <span>Aprovado em {formatDate(script.approved_at)}</span>
+                      </div>
+                    )}
+                  </div>
+                  {script.equipment_used && script.equipment_used.length > 0 && (
+                    <div className="mt-2">
+                      <span className="text-sm text-white/60">Equipamentos: </span>
+                      <span className="text-sm text-white">{script.equipment_used.join(', ')}</span>
                     </div>
                   )}
-                </div>
-                {script.equipment_used && script.equipment_used.length > 0 && (
-                  <div className="mt-2">
-                    <span className="text-sm text-muted-foreground">Equipamentos: </span>
-                    <span className="text-sm">{script.equipment_used.join(', ')}</span>
-                  </div>
-                )}
-                {script.performance && (
-                  <div className="mt-2">
-                    <Badge 
-                      variant={script.performance.performance_rating === 'bombou' ? 'default' : 'secondary'}
-                    >
-                      Performance: {script.performance.performance_rating}
-                    </Badge>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
-    </div>
+                  {script.performance && (
+                    <div className="mt-2">
+                      <Badge 
+                        variant={script.performance.performance_rating === 'bombou' ? 'default' : 'secondary'}
+                      >
+                        Performance: {script.performance.performance_rating}
+                      </Badge>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
+      </div>
+    </AuroraPageLayout>
   );
 };
 
