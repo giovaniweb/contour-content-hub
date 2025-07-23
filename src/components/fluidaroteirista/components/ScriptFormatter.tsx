@@ -146,8 +146,6 @@ const ScriptFormatter: React.FC<ScriptFormatterProps> = ({
   const renderScriptContent = () => {
     const formato = (script.formato || "").toLowerCase();
 
-    // NOVA: Visualização melhorada para todos os formatos
-    return <ScriptFlowFormatter script={script} />;
     if (formato === "carrossel") {
       return <CarouselFormatter roteiro={script.roteiro} />;
     }
