@@ -18,16 +18,21 @@ export class EquipmentFetcher {
     console.log('🔍 [EquipmentFetcher] Buscando equipamentos:', equipmentNames);
 
     try {
-      const { data: equipments, error } = await supabase
-        .from('equipamentos')
-        .select('id, nome, tecnologia, indicacoes, beneficios, diferenciais, categoria')
-        .in('nome', equipmentNames)
-        .eq('ativo', true);
-
-      if (error) {
-        console.error('❌ [EquipmentFetcher] Erro ao buscar equipamentos:', error);
-        return [];
+      // Buscar por nome exato ou usando ILIKE para ser case-insensitive
+      let equipments = [];
+      
+      for (const equipmentName of equipmentNames) {
+        const { data: equipment, error: equipmentError } = await supabase
+          .from('equipamentos')
+          .select('id, nome, tecnologia, indicacoes, beneficios, diferenciais, categoria')
+          .or(`nome.eq.${equipmentName},nome.ilike.%${equipmentName}%`)
+          .eq('ativo', true);
+          
+        if (equipment && equipment.length > 0) {
+          equipments.push(...equipment);
+        }
       }
+
 
       if (!equipments || equipments.length === 0) {
         console.warn('⚠️ [EquipmentFetcher] Nenhum equipamento encontrado para:', equipmentNames);
@@ -49,10 +54,12 @@ export class EquipmentFetcher {
   static buildEquipmentPromptSection(equipments: EquipmentData[]): string {
     if (equipments.length === 0) {
       return `
-🚨 REGRA DE EQUIPAMENTOS:
-- NENHUM equipamento específico selecionado
-- NÃO mencione equipamentos específicos
-- Use termos genéricos como "nossos tratamentos"
+🚨 REGRA CRÍTICA DE EQUIPAMENTOS:
+- NENHUM equipamento válido encontrado no banco de dados
+- NÃO mencione equipamentos específicos que não existem
+- NÃO invente informações sobre equipamentos
+- Use termos genéricos como "nossos tratamentos" ou "tecnologias avançadas"
+- NUNCA associe características de um equipamento a outro
       `;
     }
 
@@ -68,16 +75,19 @@ export class EquipmentFetcher {
 
     return `
 🚨 REGRA CRÍTICA DE EQUIPAMENTOS:
-- OBRIGATÓRIO: Mencione TODOS os equipamentos listados: ${equipmentNames}
-- Use os nomes EXATOS dos equipamentos (nomes reais)
-- Integre as tecnologias e benefícios específicos
-- NUNCA substitua por outros equipamentos
-- NUNCA use termos genéricos se equipamentos específicos foram selecionados
+- OBRIGATÓRIO: Mencione APENAS os equipamentos listados: ${equipmentNames}
+- Use EXATAMENTE os nomes e tecnologias fornecidas
+- NÃO invente características que não estão listadas
+- NÃO misture informações de equipamentos diferentes
+- NÃO mencione "canetas emagrecedoras" se não estiver nas especificações
 
 📋 EQUIPAMENTOS DISPONÍVEIS:
 ${equipmentList}
 
-⚠️ VALIDAÇÃO: Se você não mencionar os equipamentos listados, o roteiro será rejeitado.
+⚠️ VALIDAÇÃO CRÍTICA: 
+- Use APENAS as informações fornecidas acima
+- NÃO adicione equipamentos ou tecnologias não listadas
+- NÃO associe características de outros equipamentos
     `;
   }
 }
