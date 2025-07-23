@@ -92,14 +92,51 @@ const CarouselSlideCard: React.FC<CarouselSlideCardProps> = ({ slide }) => {
     imagemLength: slide.imagem?.length
   });
 
+  // Função para limpar e formatar o texto
+  const cleanAndFormatText = (text: string): string => {
+    if (!text || text.trim() === "") return "";
+    
+    let cleanText = text
+      // Remove JSON estruturado mal formatado
+      .replace(/[{\[\]}"]/g, '')
+      // Converte \n literais em quebras reais
+      .replace(/\\n/g, '\n')
+      // Remove marcadores de formato JSON
+      .replace(/"formato":\s*"[^"]*"/g, '')
+      .replace(/"metodologia":\s*"[^"]*"/g, '')
+      .replace(/"stories_total":\s*\d+/g, '')
+      .replace(/"tempo_total":\s*"[^"]*"/g, '')
+      .replace(/"dispositivos_usados":\s*\[[^\]]*\]/g, '')
+      .replace(/"tom_narrativo":\s*"[^"]*"/g, '')
+      .replace(/"engajamento_esperado":\s*"[^"]*"/g, '')
+      // Remove vírgulas soltas e dois pontos
+      .replace(/,\s*,/g, ',')
+      .replace(/:\s*,/g, ':')
+      .replace(/^,+|,+$/g, '')
+      // Remove quebras excessivas
+      .replace(/\n{3,}/g, '\n\n')
+      // Remove espaços no início e fim
+      .replace(/^\s+|\s+$/g, '')
+      // Normaliza quebras de linha
+      .replace(/\s*\n\s*/g, '\n')
+      // Remove caracteres especiais de escape
+      .replace(/\\"/g, '"');
+    
+    return cleanText;
+  };
+
   // Verificação melhorada para mostrar conteúdo real
-  const texto = slide.texto && slide.texto.trim() !== "" && slide.texto !== "Conteúdo do slide" && slide.texto !== "Sem texto"
+  const rawTexto = slide.texto && slide.texto.trim() !== "" && slide.texto !== "Conteúdo do slide" && slide.texto !== "Sem texto"
     ? slide.texto
     : "Texto não informado.";
 
-  const imagem = slide.imagem && slide.imagem.trim() !== "" && slide.imagem !== "Ambiente clínico moderno e acolhedor, profissional sorridente, iluminação suave" && slide.imagem !== "Sem imagem"
+  const rawImagem = slide.imagem && slide.imagem.trim() !== "" && slide.imagem !== "Ambiente clínico moderno e acolhedor, profissional sorridente, iluminação suave" && slide.imagem !== "Sem imagem"
     ? slide.imagem
     : "Descrição de imagem não informada.";
+
+  // Aplica formatação
+  const texto = cleanAndFormatText(rawTexto);
+  const imagem = cleanAndFormatText(rawImagem);
 
   return (
     <motion.div
