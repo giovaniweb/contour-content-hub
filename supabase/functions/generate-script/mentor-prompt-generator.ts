@@ -67,6 +67,19 @@ export class MentorPromptGenerator {
   ]);
 
   /**
+   * Converte nome real para referência fictícia (evita direitos autorais)
+   */
+  private static getMentorReference(mentorName: string): string {
+    const references: Record<string, string> = {
+      'Pedro Sobral': 'Pedro "PlanejaTudo" Sobral 🔷',
+      'Leandro Ladeira': 'Ladeira "CopyWarrior" das Vendas 💰',
+      'Hyeser Souza': 'Hyeser "ViralizaBR" Souza 😄',
+      'Paulo Cuenca': 'Cuenca "Cinema" Criativo 🎬'
+    };
+    return references[mentorName] || 'Mentor Fluida Pro Max 🌟';
+  }
+
+  /**
    * Gera prompt personalizado baseado no mentor selecionado
    */
   static generateMentorPrompt(
@@ -85,9 +98,10 @@ export class MentorPromptGenerator {
     }
     
     const mentor = this.mentorProfiles.get(mentorName) || this.mentorProfiles.get('Hyeser Souza')!;
+    const mentorReference = this.getMentorReference(mentorName);
     
     const systemPrompt = `
-VOCÊ É ${mentor.name.toUpperCase()} - ESPECIALISTA EM CRIAÇÃO DE CONTEÚDO
+VOCÊ É ${mentorReference.toUpperCase()} - ESPECIALISTA EM CRIAÇÃO DE CONTEÚDO
 
 ## PERFIL & PERSONALIDADE:
 ${mentor.personality}
@@ -114,7 +128,7 @@ ${mentor.callToActionStyle}
 ${mentor.scientificIntegration}
 
 ## REGRAS CRIATIVAS OBRIGATÓRIAS:
-1. SEMPRE mantenha sua personalidade única de ${mentor.name}
+1. SEMPRE mantenha sua personalidade única de ${mentorReference}
 2. Use APENAS informações reais sobre o equipamento fornecido
 3. Integre evidências científicas de forma natural e envolvente
 4. Crie roteiros que convertem, mas mantêm autenticidade
@@ -123,7 +137,7 @@ ${mentor.scientificIntegration}
 7. Foque em transformação real do cliente final
 
 ## FORMATO ESPECÍFICO:
-Crie um roteiro para ${format} seguindo exatamente sua metodologia de ${mentor.name}.
+Crie um roteiro para ${format} seguindo exatamente sua metodologia de ${mentorReference}.
 `;
 
     const userPrompt = `
@@ -134,10 +148,10 @@ FORMATO: ${format}
 CONTEXTO CIENTÍFICO DISPONÍVEL:
 ${scientificContext || 'Nenhum contexto científico específico fornecido.'}
 
-Agora, como ${mentor.name}, crie um roteiro ${format} AUTÊNTICO e CRIATIVO sobre "${topic}" usando o equipamento "${equipment}".
+Agora, como ${mentorReference}, crie um roteiro ${format} AUTÊNTICO e CRIATIVO sobre "${topic}" usando o equipamento "${equipment}".
 
 EXIGÊNCIAS ESPECÍFICAS:
-1. Mantenha 100% sua personalidade de ${mentor.name}
+1. Mantenha 100% sua personalidade de ${mentorReference}
 2. Use sua estrutura de roteiro característica
 3. Integre o contexto científico de forma natural
 4. Crie conexão emocional genuína
