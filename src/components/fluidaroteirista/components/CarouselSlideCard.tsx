@@ -83,16 +83,23 @@ const CarouselSlideCard: React.FC<CarouselSlideCardProps> = ({ slide }) => {
   const icon = getSlideIcon(slide.number);
   const theme = getSlideTheme(slide.number);
 
-  // Checagem direta para mostrar apenas valor real do roteiro
-  const texto =
-    isTextoMock(slide.texto)
-      ? "Texto não informado."
-      : slide.texto;
+  // Debug logs para entender o que está vindo no slide
+  console.log(`🔍 Slide ${slide.number} - Debug:`, {
+    title: slide.title,
+    texto: slide.texto,
+    imagem: slide.imagem,
+    textoLength: slide.texto?.length,
+    imagemLength: slide.imagem?.length
+  });
 
-  const imagem =
-    isImagemMock(slide.imagem)
-      ? "Descrição de imagem não informada."
-      : slide.imagem;
+  // Verificação melhorada para mostrar conteúdo real
+  const texto = slide.texto && slide.texto.trim() !== "" && slide.texto !== "Conteúdo do slide" && slide.texto !== "Sem texto"
+    ? slide.texto
+    : "Texto não informado.";
+
+  const imagem = slide.imagem && slide.imagem.trim() !== "" && slide.imagem !== "Ambiente clínico moderno e acolhedor, profissional sorridente, iluminação suave" && slide.imagem !== "Sem imagem"
+    ? slide.imagem
+    : "Descrição de imagem não informada.";
 
   return (
     <motion.div
