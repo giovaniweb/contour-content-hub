@@ -108,16 +108,6 @@ const ApprovedScripts = () => {
   return (
     <AuroraPageLayout>
       <div className="space-y-6">
-        {/* Back Button */}
-        <Button
-          variant="ghost"
-          onClick={() => navigate('/fluidaroteirista')}
-          className="text-white/70 hover:text-white hover:bg-white/10 mb-4"
-        >
-          <ChevronLeft className="w-4 h-4 mr-2" />
-          Voltar para Fluida Roteirista
-        </Button>
-
         {/* Breadcrumb */}
         <Breadcrumb />
 
