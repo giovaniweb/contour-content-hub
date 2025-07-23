@@ -17,18 +17,6 @@ interface MentorProfile {
 
 export class MentorPromptGenerator {
   private static mentorProfiles: Map<string, MentorProfile> = new Map([
-    ['Hyeser Souza', {
-      name: 'Hyeser Souza',
-      personality: 'Criativa, viral, autêntica e conectada com tendências',
-      methodology: 'Fórmula VIRAL: Velocidade + Impacto + Relevância + Analogias + Linguagem natural',
-      tone: 'Descontraído, próximo, com gírias atuais e linguagem de "melhor amiga"',
-      specialties: ['Conteúdo viral', 'Storytelling autêntico', 'Engajamento jovem', 'Tendências digitais'],
-      scriptStructure: 'Gancho impactante (3s) → Problema relatable → Solução surpreendente → CTA irresistível',
-      creativeApproach: 'Usa analogias inusitadas, referências da cultura pop, humor inteligente e reversals inesperados',
-      callToActionStyle: 'Urgente mas amigável, cria FOMO saudável, usa linguagem direta tipo "bora que bora"',
-      scientificIntegration: 'Transforma dados científicos em histórias envolventes e fáceis de entender'
-    }],
-    
     ['Leandro Ladeira', {
       name: 'Leandro Ladeira',
       personality: 'Estratégico, persuasivo, focado em conversão',
@@ -39,30 +27,6 @@ export class MentorPromptGenerator {
       creativeApproach: 'Combina dados com emoção, usa escassez e urgência, foca em benefícios transformadores',
       callToActionStyle: 'Direto ao ponto, cria senso de urgência real, oferece valor irrecusável',
       scientificIntegration: 'Usa evidências científicas como prova social e autoridade para aumentar credibilidade'
-    }],
-    
-    ['Paulo Cuenca', {
-      name: 'Paulo Cuenca',
-      personality: 'Visionário, cinematográfico, focado em narrativa visual',
-      methodology: 'Storytelling visual cinematográfico com estrutura de roteiro profissional',
-      tone: 'Sofisticado mas acessível, narrativo, cria atmosfera e suspense',
-      specialties: ['Direção visual', 'Narrativa cinematográfica', 'Produção de alto nível', 'Storytelling visual'],
-      scriptStructure: 'Setup visual → Conflito crescente → Clímax emocional → Resolução satisfatória → CTA elegante',
-      creativeApproach: 'Pensa em cada frame, usa técnicas de cinema, cria jornadas emocionais completas',
-      callToActionStyle: 'Elegante e inspiracional, convida para uma transformação, não pressiona',
-      scientificIntegration: 'Apresenta ciência como revelação dramática, construindo suspense até o insight final'
-    }],
-    
-    ['Pedro Sobral', {
-      name: 'Pedro Sobral',
-      personality: 'Estruturado, educativo, autoridade técnica',
-      methodology: 'Educação estruturada com metodologia de ensino progressivo',
-      tone: 'Professoral mas moderno, didático, constrói conhecimento gradualmente',
-      specialties: ['Conteúdo educativo', 'Metodologia de ensino', 'Autoridade técnica', 'Explicações claras'],
-      scriptStructure: 'Conceito base → Desenvolvimento lógico → Exemplos práticos → Aplicação → CTA educativo',
-      creativeApproach: 'Usa metáforas educativas, exemplos do cotidiano, constrói entendimento passo a passo',
-      callToActionStyle: 'Educativo e capacitador, oferece aprendizado contínuo, posiciona como próximo passo natural',
-      scientificIntegration: 'Apresenta ciência de forma didática, explicando o "porquê" por trás de cada benefício'
     }]
   ]);
 
@@ -70,13 +34,7 @@ export class MentorPromptGenerator {
    * Converte nome real para referência fictícia (evita direitos autorais)
    */
   private static getMentorReference(mentorName: string): string {
-    const references: Record<string, string> = {
-      'Pedro Sobral': 'Pedro "PlanejaTudo" Sobral 🔷',
-      'Leandro Ladeira': 'Ladeira "CopyWarrior" das Vendas 💰',
-      'Hyeser Souza': 'Hyeser "ViralizaBR" Souza 😄',
-      'Paulo Cuenca': 'Cuenca "Cinema" Criativo 🎬'
-    };
-    return references[mentorName] || 'Mentor Fluida Pro Max 🌟';
+    return 'Ladeira "CopyWarrior" das Vendas 💰';
   }
 
   /**
@@ -97,7 +55,7 @@ export class MentorPromptGenerator {
       return this.generateProfessionalPrompt(mentorName, topic, equipment, scientificContext, format);
     }
     
-    const mentor = this.mentorProfiles.get(mentorName) || this.mentorProfiles.get('Hyeser Souza')!;
+    const mentor = this.mentorProfiles.get(mentorName) || this.mentorProfiles.get('Leandro Ladeira')!;
     const mentorReference = this.getMentorReference(mentorName);
     
     const systemPrompt = `
