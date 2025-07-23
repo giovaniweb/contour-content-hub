@@ -20,6 +20,7 @@ import TemporalScriptBlock from "./TemporalScriptBlock";
 import ReelsTipsCard from "./ReelsTipsCard";
 import ReelsActionFooter from "./ReelsActionFooter";
 import AuroraActionFooter from "./AuroraActionFooter";
+import ScriptFlowFormatter from "./ScriptFlowFormatter";
 
 // Utilize apenas os utilitários importados, sem duplicidade local
 import {
@@ -145,23 +146,8 @@ const ScriptFormatter: React.FC<ScriptFormatterProps> = ({
   const renderScriptContent = () => {
     const formato = (script.formato || "").toLowerCase();
 
-    // MELHORIA: Visualização especial para Reels (roteiro temporal)
-    if (formato === "reels") {
-      const blocks = parseTemporalScript(script.roteiro);
-      return (
-        <div className="space-y-1">
-          {blocks.map((block, i) => (
-            <TemporalScriptBlock
-              key={i}
-              time={block.time}
-              label={block.label}
-              content={block.content}
-              index={i}
-            />
-          ))}
-        </div>
-      );
-    }
+    // NOVA: Visualização melhorada para todos os formatos
+    return <ScriptFlowFormatter script={script} />;
     if (formato === "carrossel") {
       return <CarouselFormatter roteiro={script.roteiro} />;
     }

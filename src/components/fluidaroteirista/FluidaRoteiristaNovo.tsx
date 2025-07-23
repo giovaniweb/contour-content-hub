@@ -25,7 +25,7 @@ import { toast } from 'sonner';
 import { useFluidaRoteiristaNovo } from './hooks/useFluidaRoteiristaNovo';
 import ScriptFormNovo from './components/ScriptFormNovo';
 import ScriptResultsNovo from './components/ScriptResultsNovo';
-import ScientificInsightsPanel from './components/ScientificInsightsPanel';
+import EnhancedScientificInsightsPanel from './components/EnhancedScientificInsightsPanel';
 import ProcessingSteps from './components/ProcessingSteps';
 
 interface FluidaRoteiristANovoProps {
@@ -250,7 +250,7 @@ const FluidaRoteiristaNovo: React.FC<FluidaRoteiristANovoProps> = ({
                   exit={{ opacity: 0, x: 20 }}
                   transition={{ duration: 0.3 }}
                 >
-                  <ScientificInsightsPanel
+                  <EnhancedScientificInsightsPanel
                     insights={scientificInsights}
                     isLoading={isGenerating}
                   />
