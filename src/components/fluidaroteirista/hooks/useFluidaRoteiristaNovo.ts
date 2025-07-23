@@ -134,10 +134,28 @@ export const useFluidaRoteiristaNovo = (): UseFluidaRoteiristANovoReturn => {
 
       const { data: result, error: functionError } = await supabase.functions.invoke('generate-script', {
         body: {
-          type: 'fluidaroteirista_enhanced',
-          prompt: enrichedPrompt,
-          formData,
-          scientificContext: insights
+          request: {
+            type: 'fluidaroteirista_enhanced',
+            systemPrompt: enrichedPrompt,
+            userPrompt: `
+        Tema: ${formData.topic}
+        Canal: ${formData.format}
+        Formato: ${formData.format}
+        Objetivo: ${formData.objective}
+        Estilo: ${formData.style}
+        Equipamentos: ${formData.equipment}
+        
+        Crie o roteiro seguindo exatamente as especificações do formato selecionado.
+      `,
+            topic: formData.topic,
+            equipment: formData.equipment,
+            bodyArea: '',
+            purpose: '',
+            additionalInfo: formData.additionalInfo,
+            tone: formData.style,
+            language: 'pt-BR',
+            marketingObjective: formData.objective
+          }
         }
       });
 
@@ -169,7 +187,7 @@ export const useFluidaRoteiristaNovo = (): UseFluidaRoteiristANovoReturn => {
         return 'Roteiro gerado com sucesso';
       };
 
-      const cleanContent = processContent(result);
+      const cleanContent = processContent(result?.content || result);
 
       const scriptResult: ScriptResult = {
         id: Date.now().toString(),
