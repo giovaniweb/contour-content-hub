@@ -280,9 +280,11 @@ const ScriptResultsNovo: React.FC<ScriptResultsNovoProps> = ({
               </CardHeader>
               <CardContent>
                 <div className="bg-slate-900/50 rounded-lg p-6 border border-slate-600">
-                  <pre className="whitespace-pre-wrap text-slate-100 font-mono text-sm leading-relaxed">
-                    {currentResult.content}
-                  </pre>
+                  <div className="prose prose-invert max-w-none">
+                    <div className="text-slate-100 leading-relaxed whitespace-pre-wrap">
+                      {currentResult.content}
+                    </div>
+                  </div>
                 </div>
               </CardContent>
             </Card>

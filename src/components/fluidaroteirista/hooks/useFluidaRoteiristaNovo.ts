@@ -155,9 +155,32 @@ export const useFluidaRoteiristaNovo = (): UseFluidaRoteiristANovoReturn => {
       // Etapa 4: Processar resultado (90%)
       setProgress(90);
 
+      // Processar e limpar o conteúdo do roteiro
+      const processContent = (data: any): string => {
+        if (typeof data === 'string') {
+          try {
+            // Tentar parsear se for JSON string
+            const parsed = JSON.parse(data);
+            return parsed.roteiro || parsed.content || data;
+          } catch {
+            // Se não for JSON, retornar como string limpa
+            return data;
+          }
+        }
+        
+        if (data && typeof data === 'object') {
+          // Se for objeto, extrair o roteiro
+          return data.roteiro || data.content || JSON.stringify(data, null, 2);
+        }
+        
+        return 'Roteiro gerado com sucesso';
+      };
+
+      const cleanContent = processContent(result);
+
       const scriptResult: ScriptResult = {
         id: Date.now().toString(),
-        content: result.content || result.roteiro || 'Roteiro gerado com sucesso',
+        content: cleanContent,
         format: formData.format,
         scientificBasis: insights.map(i => i.title),
         qualityScore: Math.min(95, 60 + insights.length * 5), // Score baseado em insights científicos

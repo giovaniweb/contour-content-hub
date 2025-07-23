@@ -2,7 +2,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PenTool, Wand2, Sparkles, Home, ChevronRight } from 'lucide-react';
-import FluidaRoteirista from '@/components/fluidaroteirista/FluidaRoteirista';
+import FluidaRoteiristaNovo from '@/components/fluidaroteirista/FluidaRoteiristaNovo';
 import AuroraPageLayout from '@/components/layout/AuroraPageLayout';
 import StandardPageHeader from '@/components/layout/StandardPageHeader';
 
@@ -67,7 +67,7 @@ const FluidaRoteiristsPage: React.FC = () => {
         subtitle="IA Criativa para Roteiros Únicos"
         statusBadges={statusBadges}
       />
-      <FluidaRoteirista onScriptGenerated={handleScriptGenerated} />
+      <FluidaRoteiristaNovo onScriptGenerated={handleScriptGenerated} />
     </AuroraPageLayout>
   );
 };
