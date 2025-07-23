@@ -132,25 +132,18 @@ export const useFluidaRoteiristaNovo = (): UseFluidaRoteiristANovoReturn => {
         5. Integre naturalmente as informações técnicas
       `;
 
-      const response = await fetch('/api/generate-script-enhanced', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
-        },
-        body: JSON.stringify({
+      const { data: result, error: functionError } = await supabase.functions.invoke('generate-script', {
+        body: {
           type: 'fluidaroteirista_enhanced',
           prompt: enrichedPrompt,
           formData,
           scientificContext: insights
-        })
+        }
       });
 
-      if (!response.ok) {
-        throw new Error('Falha na geração do roteiro');
+      if (functionError) {
+        throw new Error('Falha na geração do roteiro: ' + functionError.message);
       }
-
-      const result = await response.json();
 
       // Etapa 4: Processar resultado (90%)
       setProgress(90);
