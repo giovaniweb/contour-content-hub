@@ -5,7 +5,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useIsMobile } from "@/hooks/use-mobile";
 import Sidebar from "./Sidebar";
 import Navbar from "../navbar/Navbar";
-import MobileBottomNav from "../mobile/MobileBottomNav";
+import MobileBottomNavWithSubmenus from "../mobile/MobileBottomNavWithSubmenus";
 import { MobileSidebar } from "@/components/ui/sidebar/mobile-sidebar";
 import MobileSidebarMenu from "../mobile/MobileSidebarMenu";
 import AuroraPageLayout from "./AuroraPageLayout";
@@ -78,7 +78,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({
         </main>
         
         {/* Bottom Navigation para mobile */}
-        <MobileBottomNav />
+        <MobileBottomNavWithSubmenus />
       </div>
     );
   }

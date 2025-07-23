@@ -6,7 +6,9 @@ import {
   Video, 
   Image, 
   FileText,
-  Crown
+  Crown,
+  BrainCircuit,
+  Wrench
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -22,9 +24,22 @@ export default function MobileBottomNav() {
   
   const menuItems = [
     { icon: LayoutDashboard, path: '/dashboard', label: 'Dashboard' },
-    { icon: Crown, path: '/mestre-da-beleza', label: 'Beleza' },
-    { icon: Video, path: '/videos', label: 'Vídeos' },
-    { icon: Image, path: '/photos', label: 'Fotos' },
+    { icon: BrainCircuit, path: '/ai-tools', label: 'IA', 
+      submenu: [
+        { path: '/mestre-da-beleza', label: 'Mestre da Beleza' },
+        { path: '/marketing-consultant', label: 'Consultor MKT' },
+        { path: '/fluidaroteirista', label: 'Roteirista' }
+      ]
+    },
+    { icon: Video, path: '/downloads', label: 'Download',
+      submenu: [
+        { path: '/videos', label: 'Vídeos' },
+        { path: '/photos', label: 'Fotos' },
+        { path: '/arts', label: 'Artes' },
+        { path: '/scientific-articles', label: 'Artigos' }
+      ]
+    },
+    { icon: Wrench, path: '/equipments', label: 'Equipamentos' },
     { icon: FileText, path: '/my-documents', label: 'Docs' },
   ];
 

@@ -87,8 +87,8 @@ export function MobileSidebar({
       {/* Sidebar mobile */}
       <div
         className={cn(
-          "sidebar-mobile bg-aurora-deep-navy border-r border-aurora-neon-blue/20 w-72 overflow-auto shadow-xl",
-          open && "open",
+          "fixed left-0 top-0 z-50 h-full bg-aurora-deep-navy border-r border-aurora-neon-blue/20 w-72 overflow-auto shadow-xl transform transition-transform duration-300 ease-in-out",
+          open ? "translate-x-0" : "-translate-x-full",
           className
         )}
         {...props}
