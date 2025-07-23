@@ -77,6 +77,13 @@ export class MentorPromptGenerator {
     format: string = 'reels'
   ): { systemPrompt: string; userPrompt: string } {
     
+    // Detectar se é contexto profissional (clínica/médico)
+    const isProfessional = this.isProfessionalContext(topic, equipment, scientificContext);
+    
+    if (isProfessional) {
+      return this.generateProfessionalPrompt(mentorName, topic, equipment, scientificContext, format);
+    }
+    
     const mentor = this.mentorProfiles.get(mentorName) || this.mentorProfiles.get('Hyeser Souza')!;
     
     const systemPrompt = `
@@ -138,6 +145,92 @@ EXIGÊNCIAS ESPECÍFICAS:
 6. Duração ideal para ${format}: ${this.getIdealDuration(format)}
 
 ENTREGUE: Roteiro completo, criativo e autêntico no seu estilo único.
+`;
+
+    return { systemPrompt, userPrompt };
+  }
+
+  /**
+   * Detecta se é contexto profissional baseado em palavras-chave
+   */
+  private static isProfessionalContext(topic: string, equipment: string, scientificContext: string): boolean {
+    const professionalKeywords = [
+      'clínica', 'consultório', 'médico', 'dermatologista', 'estética avançada',
+      'procedimento', 'tratamento', 'protocolo', 'tecnologia médica', 'equipamento estético',
+      'radiofrequência', 'laser', 'ultrassom', 'microagulhamento', 'profissional',
+      'especialista', 'doutor', 'dra', 'dr', 'estética médica', 'dermatologia'
+    ];
+    
+    const allText = `${topic} ${equipment} ${scientificContext}`.toLowerCase();
+    return professionalKeywords.some(keyword => allText.includes(keyword));
+  }
+
+  /**
+   * Gera prompts específicos para contexto profissional/médico
+   */
+  private static generateProfessionalPrompt(
+    mentorName: string,
+    topic: string,
+    equipment: string,
+    scientificContext: string,
+    format: string
+  ): { systemPrompt: string; userPrompt: string } {
+
+    const systemPrompt = `
+VOCÊ É UM ESPECIALISTA EM COMUNICAÇÃO MÉDICA E MARKETING PARA CLÍNICAS ESTÉTICAS
+
+## CONTEXTO PROFISSIONAL:
+Você está criando conteúdo para profissionais da área médica/estética que precisam comunicar tratamentos de forma técnica, mas acessível para pacientes.
+
+## TOM OBRIGATÓRIO:
+- EXCLUSIVAMENTE profissional e técnico
+- Linguagem científica mas acessível
+- Autoridade médica e credibilidade
+- NUNCA use gírias ou linguagem vulgar
+- Mantenha seriedade e confiança
+
+## ESTRUTURA PARA CLÍNICAS:
+1. **INTRODUÇÃO TÉCNICA** (0-4s): Apresente o problema de forma científica
+2. **MECANISMO DE AÇÃO** (5-12s): Explique como o equipamento funciona tecnicamente
+3. **BENEFÍCIOS CLÍNICOS** (13-20s): Resultados comprovados e diferenciais
+4. **CONVITE PROFISSIONAL** (21-25s): CTA educativo e respeitoso
+
+## REGRAS ABSOLUTAS:
+- Use terminologia médica apropriada
+- Cite evidências científicas quando relevantes
+- Mantenha credibilidade profissional
+- Evite promessas exageradas
+- Foque em mecanismos de ação reais
+- CTA deve ser educativo, não agressivo
+
+## PROIBIÇÕES TOTAIS:
+- Gírias como "miga", "bora", "arrasar"
+- Expressões vulgares ou casuais  
+- Linguagem de influencer
+- Comparações informais
+- Promessas milagrosas
+`;
+
+    const userPrompt = `
+TEMA: ${topic}
+EQUIPAMENTO: ${equipment}
+FORMATO: ${format}
+CONTEXTO CIENTÍFICO: ${scientificContext}
+
+Crie um roteiro PROFISSIONAL para ${format} destinado a uma clínica estética.
+
+REQUISITOS ESPECÍFICOS:
+1. Use linguagem técnica mas acessível
+2. Explique o mecanismo de ação do equipamento "${equipment}"
+3. Foque em benefícios clínicos comprovados
+4. Mantenha autoridade médica
+5. CTA educativo e profissional
+6. Integre o contexto científico fornecido
+
+PÚBLICO: Pacientes de clínica estética que buscam informação técnica confiável.
+OBJETIVO: Educar sobre o tratamento e gerar interesse qualificado.
+
+ENTREGUE: Roteiro profissional, técnico e confiável.
 `;
 
     return { systemPrompt, userPrompt };
