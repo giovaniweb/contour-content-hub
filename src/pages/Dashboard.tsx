@@ -1,130 +1,243 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { 
   Sparkles, 
   FileText, 
   Video, 
   Calendar, 
-  Lightbulb, 
-  BarChart3,
-  TrendingUp,
+  Crown,
+  BrainCircuit,
+  PenTool,
+  Image,
+  Palette,
+  BookOpen,
+  Wrench,
+  Trophy,
+  Target,
+  Flame,
+  Star,
+  ChevronRight,
+  Play,
+  Download,
   Users,
+  TrendingUp,
   Heart,
-  Zap,
-  Wrench
+  Zap
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/context/AuthContext';
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const [currentStreak, setCurrentStreak] = useState(7);
+  const [totalPoints, setTotalPoints] = useState(1250);
 
-  const quickActions = [
+  const aiTools = [
     {
-      icon: FileText,
-      title: "Artigos Científicos",
-      description: "Gerencie artigos científicos",
-      path: "/scientific-articles",
-      gradient: "from-purple-500 to-blue-500"
+      icon: Crown,
+      title: "Mestre da Beleza",
+      description: "IA especialista em estética e beleza",
+      path: "/mestre-da-beleza",
+      gradient: "from-yellow-500 to-orange-500",
+      badge: "IA Premium",
+      isPopular: true
     },
     {
-      icon: Video,
-      title: "Biblioteca de Vídeos",
-      description: "Crie conteúdo visual impactante",
-      path: "/videos",
-      gradient: "from-blue-500 to-cyan-500"
+      icon: BrainCircuit,
+      title: "Consultor de Marketing",
+      description: "Estratégias de marketing personalizadas",
+      path: "/marketing-consultant",
+      gradient: "from-purple-500 to-pink-500",
+      badge: "Estratégia"
     },
     {
-      icon: Calendar,
-      title: "Planejar Conteúdo",
-      description: "Organize sua estratégia",
-      path: "/content-planner",
-      gradient: "from-cyan-500 to-green-500"
-    },
-    {
-      icon: Wrench,
-      title: "Ver Equipamentos",
-      description: "Explore equipamentos disponíveis",
-      path: "/equipments",
-      gradient: "from-green-500 to-yellow-500"
+      icon: PenTool,
+      title: "Fluida Roteirista",
+      description: "Criação de roteiros e conteúdos",
+      path: "/fluidaroteirista",
+      gradient: "from-blue-500 to-cyan-500",
+      badge: "Criativo"
     }
   ];
 
-  const stats = [
-    { icon: TrendingUp, label: "Crescimento", value: "+24%", color: "text-emerald-400" },
-    { icon: Users, label: "Engajamento", value: "8.2k", color: "text-cyan-400" },
-    { icon: Heart, label: "Conexão Emocional", value: "9.1/10", color: "text-pink-400" },
-    { icon: Zap, label: "Produtividade", value: "+45%", color: "text-blue-400" }
+  const contentTools = [
+    {
+      icon: Video,
+      title: "Biblioteca de Vídeos",
+      description: "Vídeos profissionais para seu conteúdo",
+      path: "/videos",
+      count: "2.5k+ vídeos",
+      gradient: "from-red-500 to-pink-500"
+    },
+    {
+      icon: Image,
+      title: "Galeria de Fotos",
+      description: "Fotos de alta qualidade para seus posts",
+      path: "/photos",
+      count: "5k+ fotos",
+      gradient: "from-green-500 to-blue-500"
+    },
+    {
+      icon: Palette,
+      title: "Artes Gráficas",
+      description: "Designs e templates prontos",
+      path: "/arts",
+      count: "800+ artes",
+      gradient: "from-purple-500 to-blue-500"
+    },
+    {
+      icon: BookOpen,
+      title: "Artigos Científicos",
+      description: "Base científica para seus conteúdos",
+      path: "/scientific-articles",
+      count: "150+ artigos",
+      gradient: "from-indigo-500 to-purple-500"
+    }
+  ];
+
+  const quickActions = [
+    {
+      icon: Calendar,
+      title: "Planejar Conteúdo",
+      description: "Organize sua estratégia de conteúdo",
+      path: "/content-planner",
+      color: "text-cyan-400"
+    },
+    {
+      icon: Wrench,
+      title: "Equipamentos",
+      description: "Catálogo completo de equipamentos",
+      path: "/equipments",
+      color: "text-green-400"
+    },
+    {
+      icon: Download,
+      title: "Meus Downloads",
+      description: "Gerencie seus arquivos baixados",
+      path: "/my-documents",
+      color: "text-orange-400"
+    }
+  ];
+
+  const achievements = [
+    { icon: Flame, label: "Streak Atual", value: `${currentStreak} dias`, color: "text-orange-400" },
+    { icon: Star, label: "Pontos Totais", value: totalPoints.toLocaleString(), color: "text-yellow-400" },
+    { icon: Trophy, label: "Nível", value: "Especialista", color: "text-purple-400" },
+    { icon: Target, label: "Meta Mensal", value: "85%", color: "text-blue-400" }
+  ];
+
+  const recentActivity = [
+    { action: "Criou roteiro com Fluida", time: "2h atrás", points: 50 },
+    { action: "Baixou 5 fotos de equipamentos", time: "5h atrás", points: 25 },
+    { action: "Planejou conteúdo da semana", time: "1 dia", points: 75 },
+    { action: "Consultou estratégia de marketing", time: "2 dias", points: 100 }
   ];
 
   return (
-    <div className="relative z-10 p-6 space-y-8">
-      {/* Hero Section */}
+    <div className="relative z-10 p-6 space-y-8 max-w-7xl mx-auto">
+      {/* Welcome Section */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
-        className="text-center py-12"
+        className="text-center py-8"
       >
-        <motion.div
-          className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-r from-purple-500 via-blue-500 to-cyan-500 flex items-center justify-center"
-          animate={{
-            rotate: [0, 360],
-            scale: [1, 1.1, 1],
-          }}
-          transition={{
-            rotate: { duration: 20, repeat: Infinity, ease: "linear" },
-            scale: { duration: 4, repeat: Infinity, ease: "easeInOut" }
-          }}
-        >
-          <Sparkles className="w-10 h-10 text-white" />
-        </motion.div>
-        
-        <h1 className="text-4xl md:text-6xl font-light text-white mb-4">
-          Crie conteúdo{' '}
+        <h1 className="text-3xl md:text-5xl font-light text-white mb-4">
+          Bem-vindo de volta,{' '}
           <span className="bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent font-medium">
-            mágico
+            {user?.nome || 'Usuário'}
           </span>
         </h1>
         
-        <p className="text-white/80 text-xl max-w-2xl mx-auto">
-          Transforme suas ideias em conteúdo que conecta emocionalmente com seu público
+        <p className="text-white/80 text-lg max-w-2xl mx-auto mb-6">
+          Seu hub completo para criar conteúdo profissional na área da estética
         </p>
+
+        {/* Gamification Stats */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-2xl mx-auto">
+          {achievements.map((achievement, index) => (
+            <motion.div
+              key={achievement.label}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.3, delay: index * 0.1 }}
+              className="text-center"
+            >
+              <div className="flex items-center justify-center mb-2">
+                <achievement.icon className={`w-6 h-6 ${achievement.color}`} />
+              </div>
+              <div className="text-lg font-bold text-white">
+                {achievement.value}
+              </div>
+              <div className="text-white/60 text-xs">
+                {achievement.label}
+              </div>
+            </motion.div>
+          ))}
+        </div>
       </motion.div>
 
-      {/* Quick Actions */}
+      {/* AI Tools Section */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.2 }}
       >
-        <h2 className="text-2xl font-light text-white mb-6">
-          Ações Rápidas
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {quickActions.map((action, index) => (
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-2xl font-light text-white flex items-center">
+            <Sparkles className="w-6 h-6 mr-2 text-purple-400" />
+            Ferramentas de IA
+          </h2>
+          <Badge variant="secondary" className="bg-purple-500/20 text-purple-300">
+            Novidade
+          </Badge>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {aiTools.map((tool, index) => (
             <motion.div
-              key={action.title}
+              key={tool.title}
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.3, delay: index * 0.1 }}
             >
               <Card 
-                className="cursor-pointer text-center p-6 h-full hover:shadow-lg transition-all duration-300 aurora-glass-enhanced aurora-border-enhanced"
-                onClick={() => navigate(action.path)}
+                className="cursor-pointer h-full hover:shadow-xl transition-all duration-300 aurora-glass-enhanced aurora-border-enhanced relative overflow-hidden group"
+                onClick={() => navigate(tool.path)}
               >
-                <CardContent className="p-0">
-                  <div className={`w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-r ${action.gradient} flex items-center justify-center`}>
-                    <action.icon className="w-8 h-8 text-white" />
+                {tool.isPopular && (
+                  <div className="absolute top-3 right-3 z-10">
+                    <Badge className="bg-yellow-500 text-yellow-900 text-xs">
+                      Popular
+                    </Badge>
                   </div>
+                )}
+                
+                <CardContent className="p-6">
+                  <div className={`w-16 h-16 mb-4 rounded-xl bg-gradient-to-r ${tool.gradient} flex items-center justify-center group-hover:scale-110 transition-transform duration-300`}>
+                    <tool.icon className="w-8 h-8 text-white" />
+                  </div>
+                  
+                  <Badge variant="outline" className="mb-3 text-xs">
+                    {tool.badge}
+                  </Badge>
+                  
                   <h3 className="text-lg font-medium text-white mb-2">
-                    {action.title}
+                    {tool.title}
                   </h3>
-                  <p className="text-white/70 text-sm">
-                    {action.description}
+                  <p className="text-white/70 text-sm mb-4">
+                    {tool.description}
                   </p>
+                  
+                  <div className="flex items-center text-purple-400 text-sm group-hover:translate-x-1 transition-transform duration-300">
+                    <Play className="w-4 h-4 mr-1" />
+                    Usar agora
+                  </div>
                 </CardContent>
               </Card>
             </motion.div>
@@ -132,68 +245,159 @@ const Dashboard: React.FC = () => {
         </div>
       </motion.div>
 
-      {/* Stats */}
+      {/* Content Library Section */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.4 }}
       >
-        <Card className="p-6 aurora-glass-enhanced aurora-border-enhanced">
-          <CardHeader className="p-0 mb-6">
-            <CardTitle className="text-xl font-medium text-white">
-              Suas Estatísticas Mágicas
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-0">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {stats.map((stat, index) => (
+        <h2 className="text-2xl font-light text-white mb-6 flex items-center">
+          <Download className="w-6 h-6 mr-2 text-blue-400" />
+          Biblioteca de Conteúdo
+        </h2>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {contentTools.map((tool, index) => (
+            <motion.div
+              key={tool.title}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: index * 0.1 }}
+            >
+              <Card 
+                className="cursor-pointer h-full hover:shadow-lg transition-all duration-300 aurora-glass-enhanced aurora-border-enhanced group"
+                onClick={() => navigate(tool.path)}
+              >
+                <CardContent className="p-6 text-center">
+                  <div className={`w-14 h-14 mx-auto mb-4 rounded-lg bg-gradient-to-r ${tool.gradient} flex items-center justify-center group-hover:scale-110 transition-transform duration-300`}>
+                    <tool.icon className="w-6 h-6 text-white" />
+                  </div>
+                  
+                  <h3 className="text-base font-medium text-white mb-2">
+                    {tool.title}
+                  </h3>
+                  <p className="text-white/60 text-sm mb-3">
+                    {tool.description}
+                  </p>
+                  
+                  <Badge variant="secondary" className="text-xs">
+                    {tool.count}
+                  </Badge>
+                </CardContent>
+              </Card>
+            </motion.div>
+          ))}
+        </div>
+      </motion.div>
+
+      {/* Quick Actions & Recent Activity */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Quick Actions */}
+        <motion.div
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.6, delay: 0.6 }}
+        >
+          <Card className="h-full aurora-glass-enhanced aurora-border-enhanced">
+            <CardHeader>
+              <CardTitle className="text-white flex items-center">
+                <Target className="w-5 h-5 mr-2 text-green-400" />
+                Ações Rápidas
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {quickActions.map((action, index) => (
                 <motion.div
-                  key={stat.label}
-                  initial={{ opacity: 0, x: -20 }}
+                  key={action.title}
+                  initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.3, delay: index * 0.1 }}
-                  className="text-center"
+                  className="flex items-center p-3 rounded-lg hover:bg-white/5 cursor-pointer transition-colors group"
+                  onClick={() => navigate(action.path)}
                 >
-                  <div className="flex items-center justify-center mb-3">
-                    <stat.icon className={`w-8 h-8 ${stat.color}`} />
+                  <action.icon className={`w-5 h-5 mr-3 ${action.color}`} />
+                  <div className="flex-1">
+                    <div className="text-white font-medium text-sm">{action.title}</div>
+                    <div className="text-white/60 text-xs">{action.description}</div>
                   </div>
-                  <div className="text-3xl font-bold text-white mb-1">
-                    {stat.value}
-                  </div>
-                  <div className="text-white/70 text-sm">
-                    {stat.label}
-                  </div>
+                  <ChevronRight className="w-4 h-4 text-white/40 group-hover:text-white/70 group-hover:translate-x-1 transition-all" />
                 </motion.div>
               ))}
-            </div>
-          </CardContent>
-        </Card>
-      </motion.div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* Recent Activity */}
+        <motion.div
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.6, delay: 0.8 }}
+        >
+          <Card className="h-full aurora-glass-enhanced aurora-border-enhanced">
+            <CardHeader>
+              <CardTitle className="text-white flex items-center">
+                <TrendingUp className="w-5 h-5 mr-2 text-blue-400" />
+                Atividade Recente
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {recentActivity.map((activity, index) => (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: index * 0.1 }}
+                  className="flex items-center justify-between p-3 rounded-lg bg-white/5"
+                >
+                  <div className="flex-1">
+                    <div className="text-white text-sm">{activity.action}</div>
+                    <div className="text-white/60 text-xs">{activity.time}</div>
+                  </div>
+                  <Badge variant="secondary" className="text-yellow-300 bg-yellow-500/20">
+                    +{activity.points} pts
+                  </Badge>
+                </motion.div>
+              ))}
+            </CardContent>
+          </Card>
+        </motion.div>
+      </div>
 
       {/* CTA Section */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 0.6 }}
-        className="text-center py-12"
+        transition={{ duration: 0.6, delay: 1.0 }}
+        className="text-center py-8"
       >
-        <Card className="p-8 max-w-2xl mx-auto aurora-glass-enhanced aurora-border-enhanced">
+        <Card className="p-8 max-w-3xl mx-auto aurora-glass-enhanced aurora-border-enhanced">
           <CardContent className="p-0">
             <h2 className="text-2xl font-medium text-white mb-4">
-              Pronto para criar algo{' '}
-              <span className="bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">incrível</span>?
+              Continue sua jornada de{' '}
+              <span className="bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">sucesso</span>
             </h2>
             <p className="text-white/70 mb-6">
-              Comece agora e veja como a IA pode transformar sua criatividade
+              Explore todas as ferramentas disponíveis e leve seu conteúdo para o próximo nível
             </p>
-            <Button 
-              size="lg"
-              onClick={() => navigate("/scientific-articles")}
-              className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 border-0"
-            >
-              <Sparkles className="w-5 h-5 mr-2" />
-              Começar a Criar
-            </Button>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button 
+                size="lg"
+                onClick={() => navigate("/mestre-da-beleza")}
+                className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 border-0"
+              >
+                <Crown className="w-5 h-5 mr-2" />
+                Usar Mestre da Beleza
+              </Button>
+              <Button 
+                variant="outline"
+                size="lg"
+                onClick={() => navigate("/content-planner")}
+                className="border-white/20 text-white hover:bg-white/10"
+              >
+                <Calendar className="w-5 h-5 mr-2" />
+                Planejar Conteúdo
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </motion.div>
