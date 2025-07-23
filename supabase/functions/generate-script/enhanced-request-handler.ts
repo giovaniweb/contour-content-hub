@@ -27,7 +27,7 @@ export class EnhancedRequestHandler {
    * Fetch equipment details from database
    */
   private async fetchEquipmentDetails(equipmentName?: string): Promise<EquipmentDetail[]> {
-    if (!equipmentName) {
+    if (!equipmentName || equipmentName.trim() === '') {
       console.log("⚠️ Nenhum equipamento especificado");
       return [];
     }
@@ -35,12 +35,33 @@ export class EnhancedRequestHandler {
     try {
       console.log("🔍 Buscando equipamento:", equipmentName);
       
-      const { data, error } = await this.supabase
-        .from('equipamentos')
-        .select('*')
-        .ilike('nome', `%${equipmentName}%`)
-        .eq('ativo', true)
-        .limit(5);
+      // Busca mais flexível - tentar diferentes variações
+      const searchTerms = [
+        equipmentName.trim(),
+        equipmentName.replace(/\s+/g, ''), // sem espaços
+        equipmentName.toLowerCase(),
+        equipmentName.toUpperCase()
+      ];
+      
+      let data = null;
+      let error = null;
+      
+      // Tentar diferentes formas de busca
+      for (const term of searchTerms) {
+        const result = await this.supabase
+          .from('equipamentos')
+          .select('*')
+          .or(`nome.ilike.%${term}%, nome.ilike.%${term.replace(/\s+/g, '%')}%`)
+          .eq('ativo', true)
+          .limit(5);
+          
+        if (result.data && result.data.length > 0) {
+          data = result.data;
+          error = result.error;
+          console.log(`✅ Equipamento encontrado com termo: "${term}"`);
+          break;
+        }
+      }
 
       if (error) {
         console.error('❌ Erro ao buscar equipamentos:', error);
@@ -49,6 +70,7 @@ export class EnhancedRequestHandler {
 
       if (!data || data.length === 0) {
         console.log("⚠️ Nenhum equipamento encontrado para:", equipmentName);
+        console.log("🔍 Tentativas de busca realizadas:", searchTerms);
         return [];
       }
 
@@ -63,6 +85,8 @@ export class EnhancedRequestHandler {
       }));
 
       console.log("✅ Equipamentos encontrados:", equipmentDetails.length);
+      console.log("📋 Primeiro equipamento:", equipmentDetails[0].nome);
+      console.log("⚙️ Tecnologia:", equipmentDetails[0].tecnologia);
       return equipmentDetails;
 
     } catch (err) {
@@ -72,26 +96,47 @@ export class EnhancedRequestHandler {
   }
 
   /**
-   * Generate mentor-based creative prompts
+   * Generate mentor-based creative prompts with real equipment data
    */
   private generateMentorPrompts(request: any, equipmentDetails: EquipmentDetail[], scientificContext: string = '') {
     console.log("🎭 Gerando prompts baseados no mentor:", request.mentor || 'Hyeser Souza');
     
     const mentorName = request.mentor || 'Hyeser Souza';
     const topic = request.topic || request.content || 'Tratamento estético';
-    const equipment = equipmentDetails.length > 0 ? equipmentDetails[0].nome : (request.equipment || 'equipamento estético');
+    const equipmentName = request.equipment || 'equipamento estético';
     const format = request.format || 'reels';
+    
+    // Construir informações detalhadas do equipamento
+    let equipmentInfo = '';
+    if (equipmentDetails.length > 0) {
+      const equipment = equipmentDetails[0];
+      equipmentInfo = `
+INFORMAÇÕES ESPECÍFICAS DO ${equipment.nome.toUpperCase()}:
+- Nome: ${equipment.nome}
+- Tecnologia: ${equipment.tecnologia}
+- Benefícios: ${equipment.beneficios}
+- Indicações: ${equipment.indicacoes}
+- Diferenciais: ${equipment.diferenciais}
+`;
+    } else {
+      console.warn("⚠️ Nenhum equipamento encontrado, usando informações genéricas");
+      equipmentInfo = `
+ATENÇÃO: Equipamento "${equipmentName}" não encontrado na base de dados.
+Use apenas informações gerais sobre tratamentos estéticos, sem inventar especificações técnicas.
+`;
+    }
     
     // Gerar prompts personalizados baseados no mentor
     const { systemPrompt, userPrompt } = MentorPromptGenerator.generateMentorPrompt(
       mentorName,
       topic,
-      equipment,
-      scientificContext,
+      equipmentName,
+      scientificContext + '\n' + equipmentInfo,
       format
     );
     
     console.log("✅ Prompts criativos gerados para", mentorName);
+    console.log("📋 Equipamento processado:", equipmentDetails.length > 0 ? equipmentDetails[0].nome : 'Genérico');
     
     return { systemPrompt, userPrompt };
   }

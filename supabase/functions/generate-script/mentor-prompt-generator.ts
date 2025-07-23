@@ -190,47 +190,57 @@ Você está criando conteúdo para profissionais da área médica/estética que 
 - Mantenha seriedade e confiança
 
 ## ESTRUTURA PARA CLÍNICAS:
-1. **INTRODUÇÃO TÉCNICA** (0-4s): Apresente o problema de forma científica
-2. **MECANISMO DE AÇÃO** (5-12s): Explique como o equipamento funciona tecnicamente
-3. **BENEFÍCIOS CLÍNICOS** (13-20s): Resultados comprovados e diferenciais
+1. **INTRODUÇÃO ESPECÍFICA** (0-4s): Apresente o problema específico (ex: celulite, flacidez)
+2. **TECNOLOGIA ESPECÍFICA** (5-12s): Explique como o equipamento específico funciona
+3. **BENEFÍCIOS COMPROVADOS** (13-20s): Resultados específicos para o problema
 4. **CONVITE PROFISSIONAL** (21-25s): CTA educativo e respeitoso
 
 ## REGRAS ABSOLUTAS:
+- SEMPRE mencione o nome específico do equipamento se fornecido
+- SEMPRE mencione o problema específico (celulite, flacidez, etc.)
 - Use terminologia médica apropriada
 - Cite evidências científicas quando relevantes
-- Mantenha credibilidade profissional
-- Evite promessas exageradas
-- Foque em mecanismos de ação reais
-- CTA deve ser educativo, não agressivo
+- NUNCA use termos genéricos como "equipamento estético"
+- Foque em mecanismos de ação reais e específicos
 
 ## PROIBIÇÕES TOTAIS:
+- Termos genéricos como "equipamento estético" ou "energia controlada"
 - Gírias como "miga", "bora", "arrasar"
 - Expressões vulgares ou casuais  
 - Linguagem de influencer
 - Comparações informais
 - Promessas milagrosas
+- Inventar informações sobre equipamentos
 `;
 
     const userPrompt = `
-TEMA: ${topic}
+TEMA ESPECÍFICO: ${topic}
 EQUIPAMENTO: ${equipment}
 FORMATO: ${format}
-CONTEXTO CIENTÍFICO: ${scientificContext}
 
-Crie um roteiro PROFISSIONAL para ${format} destinado a uma clínica estética.
+${scientificContext}
 
-REQUISITOS ESPECÍFICOS:
-1. Use linguagem técnica mas acessível
-2. Explique o mecanismo de ação do equipamento "${equipment}"
-3. Foque em benefícios clínicos comprovados
-4. Mantenha autoridade médica
-5. CTA educativo e profissional
-6. Integre o contexto científico fornecido
+Crie um roteiro ESPECÍFICO para ${format} destinado a uma clínica estética.
 
-PÚBLICO: Pacientes de clínica estética que buscam informação técnica confiável.
-OBJETIVO: Educar sobre o tratamento e gerar interesse qualificado.
+REQUISITOS OBRIGATÓRIOS:
+1. SEMPRE mencione "${topic}" especificamente no roteiro
+2. SEMPRE mencione "${equipment}" pelo nome exato no roteiro
+3. Use informações específicas fornecidas sobre o equipamento
+4. Explique o mecanismo de ação específico
+5. Foque nos benefícios específicos para "${topic}"
+6. Mantenha autoridade médica
+7. CTA educativo e profissional
 
-ENTREGUE: Roteiro profissional, técnico e confiável.
+PROIBIDO:
+- Usar "equipamento estético" genérico
+- Inventar informações não fornecidas
+- Ser vago ou genérico
+- Usar linguagem de influencer
+
+PÚBLICO: Pacientes de clínica estética interessados especificamente em "${topic}".
+OBJETIVO: Educar sobre como "${equipment}" trata "${topic}" especificamente.
+
+ENTREGUE: Roteiro profissional, específico e técnico.
 `;
 
     return { systemPrompt, userPrompt };
