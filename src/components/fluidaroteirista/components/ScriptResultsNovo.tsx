@@ -22,6 +22,7 @@ import {
   Volume2
 } from "lucide-react";
 import { toast } from 'sonner';
+import ImprovedScriptFormatter from './ImprovedScriptFormatter';
 
 interface ScientificInsight {
   id: string;
@@ -243,51 +244,17 @@ const ScriptResultsNovo: React.FC<ScriptResultsNovoProps> = ({
           </TabsList>
 
           <TabsContent value="content" className="mt-6">
-            <Card className="bg-slate-800/50 border-slate-700">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-white flex items-center gap-2">
-                    <Badge variant="outline" className="text-xs">
-                      {currentResult.format.toUpperCase()}
-                    </Badge>
-                    Conteúdo do Roteiro
-                  </CardTitle>
-                  
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleCopyContent(currentResult.content)}
-                    >
-                      <Copy className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleDownload(currentResult.content, currentResult.format)}
-                    >
-                      <Download className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleShare(currentResult.content)}
-                    >
-                      <Share2 className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="bg-slate-900/50 rounded-lg p-6 border border-slate-600">
-                  <div className="prose prose-invert max-w-none">
-                    <div className="text-slate-100 leading-relaxed whitespace-pre-wrap">
-                      {currentResult.content}
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            {/* Usando o novo formatador melhorado */}
+            <ImprovedScriptFormatter 
+              script={{
+                roteiro: currentResult.content,
+                formato: currentResult.format,
+                emocao_central: 'Confiança',
+                intencao: 'Educar e engajar',
+                objetivo: 'Informar sobre tratamento',
+                mentor: 'Especialista'
+              }} 
+            />
           </TabsContent>
 
           <TabsContent value="scientific" className="mt-6">

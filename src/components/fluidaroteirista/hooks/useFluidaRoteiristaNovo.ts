@@ -153,8 +153,9 @@ export const useFluidaRoteiristaNovo = (): UseFluidaRoteiristANovoReturn => {
           content: formData.tema,
           topic: formData.tema,
           equipment: formData.equipamentos?.[0] || '',
-          bodyArea: '',
           mentor: formData.mentor || 'Hyeser Souza',
+          format: formData.formato || 'reels',
+          bodyArea: '',
           elementos_aplicados: {},
           scientificContext
         }
