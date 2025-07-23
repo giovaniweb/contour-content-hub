@@ -108,18 +108,35 @@ const CarouselSlideCard: React.FC<CarouselSlideCardProps> = ({ slide }) => {
             <div className="text-2xl aurora-float">{icon}</div>
             <h3 className={`font-bold ${theme.text} text-base sm:text-lg aurora-heading filter drop-shadow`}>{slide.title}</h3>
           </div>
-          <div className="flex flex-col gap-4">
-            {/* Texto */}
-            <div className="bg-slate-900/60 rounded-lg p-3 border border-white/10 backdrop-blur-sm min-h-[64px] flex flex-col gap-2">
-              <div className="flex items-center gap-1 mb-1 text-aurora-emerald text-xs font-semibold uppercase tracking-wide">Texto</div>
-              <p className="text-slate-100 leading-relaxed text-[15px] font-medium break-words whitespace-pre-line">{texto}</p>
-              <CopyButton text={texto} successMessage={`Texto do slide ${slide.number} copiado!`} />
+          <div className="flex flex-col gap-6">
+            {/* Texto Principal */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <Badge variant="outline" className="bg-aurora-emerald/15 text-aurora-emerald border-aurora-emerald/40 font-semibold px-3 py-1">
+                  📝 TEXTO
+                </Badge>
+                <CopyButton text={texto} successMessage={`Texto do slide ${slide.number} copiado!`} />
+              </div>
+              <div className="bg-gradient-to-br from-slate-900/80 to-slate-800/60 rounded-xl p-4 border border-aurora-emerald/20 backdrop-blur-sm min-h-[80px] shadow-lg">
+                <p className="text-slate-100 leading-relaxed text-base font-medium break-words whitespace-pre-line">
+                  {texto}
+                </p>
+              </div>
             </div>
-            {/* Imagem */}
-            <div className="bg-slate-900/60 rounded-lg p-3 border border-white/10 backdrop-blur-sm min-h-[48px] flex flex-col gap-2">
-              <div className="flex items-center gap-1 mb-1 text-aurora-neon-blue text-xs font-semibold uppercase tracking-wide">Imagem</div>
-              <p className="text-slate-300 leading-relaxed text-[15px] italic font-normal break-words whitespace-pre-line">{imagem}</p>
-              <CopyButton text={imagem} successMessage={`Descrição da imagem do slide ${slide.number} copiada!`} />
+
+            {/* Descrição da Imagem */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <Badge variant="outline" className="bg-aurora-neon-blue/15 text-aurora-neon-blue border-aurora-neon-blue/40 font-semibold px-3 py-1">
+                  🖼️ IMAGEM
+                </Badge>
+                <CopyButton text={imagem} successMessage={`Descrição da imagem do slide ${slide.number} copiada!`} />
+              </div>
+              <div className="bg-gradient-to-br from-slate-900/80 to-slate-800/60 rounded-xl p-4 border border-aurora-neon-blue/20 backdrop-blur-sm min-h-[60px] shadow-lg">
+                <p className="text-slate-300 leading-relaxed text-sm italic font-normal break-words whitespace-pre-line">
+                  {imagem}
+                </p>
+              </div>
             </div>
           </div>
         </CardContent>

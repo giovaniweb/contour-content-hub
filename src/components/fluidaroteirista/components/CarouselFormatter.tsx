@@ -121,8 +121,74 @@ const CarouselFormatter: React.FC<CarouselFormatterProps> = ({
           {/* <EquipmentDetails equipments={equipment_used} roteiro={roteiro} /> */}
         </div>}
 
-      {/* BLOCO DE BOTÕES PRINCIPAIS (posicionado após equipamentos integrados) */}
-      
+      {/* BLOCO DE BOTÕES PRINCIPAIS */}
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }} 
+        animate={{ opacity: 1, y: 0 }} 
+        transition={{ delay: 0.3 }}
+        className="flex flex-wrap justify-center gap-4 max-w-4xl mx-auto"
+      >
+        <button
+          onClick={handleApprove}
+          disabled={isApproved}
+          className={`flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-all duration-200 ${
+            isApproved 
+              ? 'bg-aurora-emerald/20 text-aurora-emerald border border-aurora-emerald/30' 
+              : 'bg-aurora-emerald/10 text-aurora-emerald border border-aurora-emerald/20 hover:bg-aurora-emerald/20 hover:scale-105'
+          }`}
+        >
+          <span className="text-lg">✅</span>
+          {isApproved ? 'Roteiro Aprovado' : 'Aprovar roteiro'}
+        </button>
+
+        <button
+          onClick={handleImprove}
+          disabled={isImproving}
+          className="flex items-center gap-2 px-6 py-3 bg-aurora-electric-purple/10 text-aurora-electric-purple border border-aurora-electric-purple/20 rounded-xl font-medium hover:bg-aurora-electric-purple/20 hover:scale-105 transition-all duration-200"
+        >
+          {isImproving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Wand2 className="w-4 h-4" />}
+          Melhorar roteiro
+        </button>
+
+        <button
+          onClick={handleNew}
+          className="flex items-center gap-2 px-6 py-3 bg-aurora-cyan/10 text-aurora-cyan border border-aurora-cyan/20 rounded-xl font-medium hover:bg-aurora-cyan/20 hover:scale-105 transition-all duration-200"
+        >
+          <span className="text-lg">🔄</span>
+          Novo roteiro
+        </button>
+
+        {isApproved && (
+          <>
+            <button
+              onClick={handleGenerateImage}
+              disabled={isGeneratingImg}
+              className="flex items-center gap-2 px-6 py-3 bg-aurora-emerald/10 text-aurora-emerald border border-aurora-emerald/20 rounded-xl font-medium hover:bg-aurora-emerald/20 hover:scale-105 transition-all duration-200"
+            >
+              {isGeneratingImg ? <Loader2 className="w-4 h-4 animate-spin" /> : <span className="text-lg">🎨</span>}
+              Gerar imagem
+            </button>
+
+            <button
+              onClick={handleGenerateAudio}
+              disabled={isGeneratingAudio}
+              className="flex items-center gap-2 px-6 py-3 bg-aurora-neon-blue/10 text-aurora-neon-blue border border-aurora-neon-blue/20 rounded-xl font-medium hover:bg-aurora-neon-blue/20 hover:scale-105 transition-all duration-200"
+            >
+              {isGeneratingAudio ? <Loader2 className="w-4 h-4 animate-spin" /> : <span className="text-lg">🎧</span>}
+              Gerar áudio
+            </button>
+          </>
+        )}
+
+        <button
+          onClick={handleSave}
+          disabled={isSaving}
+          className="flex items-center gap-2 px-6 py-3 bg-aurora-soft-pink/10 text-aurora-soft-pink border border-aurora-soft-pink/20 rounded-xl font-medium hover:bg-aurora-soft-pink/20 hover:scale-105 transition-all duration-200"
+        >
+          {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+          Salvar roteiro
+        </button>
+      </motion.div>
 
       {/* Dicas Aurora para o Carrossel */}
       <motion.div initial={{
