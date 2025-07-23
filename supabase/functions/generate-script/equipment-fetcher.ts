@@ -12,41 +12,89 @@ export interface EquipmentData {
 export class EquipmentFetcher {
   static async fetchEquipmentDetails(supabase: any, equipmentNames: string[]): Promise<EquipmentData[]> {
     if (!equipmentNames || equipmentNames.length === 0) {
+      console.log('⚠️ [EquipmentFetcher] Nenhum equipamento fornecido para busca');
       return [];
     }
 
-    console.log('🔍 [EquipmentFetcher] Buscando equipamentos:', equipmentNames);
+    console.log('🔍 [EquipmentFetcher] Iniciando busca de equipamentos:', equipmentNames);
 
     try {
-      // Buscar por nome exato ou usando ILIKE para ser case-insensitive
-      let equipments = [];
+      let allEquipments: EquipmentData[] = [];
       
       for (const equipmentName of equipmentNames) {
-        const { data: equipment, error: equipmentError } = await supabase
-          .from('equipamentos')
-          .select('id, nome, tecnologia, indicacoes, beneficios, diferenciais, categoria')
-          .or(`nome.eq.${equipmentName},nome.ilike.%${equipmentName}%`)
-          .eq('ativo', true);
+        if (!equipmentName || equipmentName.trim() === '') {
+          console.log('⚠️ [EquipmentFetcher] Nome de equipamento vazio, pulando...');
+          continue;
+        }
+
+        const cleanName = equipmentName.trim();
+        console.log(`🔍 [EquipmentFetcher] Buscando: "${cleanName}"`);
+
+        // Busca mais robusta - múltiplas tentativas
+        const searchVariations = [
+          cleanName,
+          cleanName.toLowerCase(),
+          cleanName.toUpperCase(),
+          // Para casos como "Unyque PRO", buscar também "Unyque" 
+          cleanName.split(' ')[0],
+          // Remover caracteres especiais
+          cleanName.replace(/[^\w\s]/gi, ''),
+        ];
+
+        for (const variation of searchVariations) {
+          if (!variation || variation.length < 2) continue;
+
+          console.log(`🔍 [EquipmentFetcher] Tentativa de busca: "${variation}"`);
           
-        if (equipment && equipment.length > 0) {
-          equipments.push(...equipment);
+          const { data: equipment, error: equipmentError } = await supabase
+            .from('equipamentos')
+            .select('id, nome, tecnologia, indicacoes, beneficios, diferenciais, categoria')
+            .or(`nome.ilike.%${variation}%,tecnologia.ilike.%${variation}%`)
+            .eq('ativo', true);
+
+          if (equipmentError) {
+            console.error(`❌ [EquipmentFetcher] Erro na busca para "${variation}":`, equipmentError);
+            continue;
+          }
+
+          if (equipment && equipment.length > 0) {
+            console.log(`✅ [EquipmentFetcher] Encontrado ${equipment.length} resultado(s) para "${variation}"`);
+            equipment.forEach(eq => {
+              console.log(`📋 [EquipmentFetcher] Encontrado: ${eq.nome} (${eq.tecnologia})`);
+              // Evitar duplicatas
+              if (!allEquipments.find(existing => existing.id === eq.id)) {
+                allEquipments.push(eq);
+              }
+            });
+            break; // Se encontrou com esta variação, não precisa testar outras
+          }
         }
       }
 
-
-      if (!equipments || equipments.length === 0) {
-        console.warn('⚠️ [EquipmentFetcher] Nenhum equipamento encontrado para:', equipmentNames);
+      if (allEquipments.length === 0) {
+        console.warn('⚠️ [EquipmentFetcher] NENHUM equipamento encontrado após todas as tentativas para:', equipmentNames);
+        
+        // Log adicional para debug - mostrar equipamentos disponíveis
+        const { data: availableEquipments } = await supabase
+          .from('equipamentos')
+          .select('nome')
+          .eq('ativo', true)
+          .limit(10);
+        
+        console.log('📋 [EquipmentFetcher] Equipamentos disponíveis no banco (amostra):', 
+          availableEquipments?.map(eq => eq.nome) || 'Nenhum');
+        
         return [];
       }
 
-      console.log('✅ [EquipmentFetcher] Equipamentos encontrados:', equipments.length);
-      equipments.forEach(eq => {
-        console.log(`📋 [EquipmentFetcher] ${eq.nome}: ${eq.tecnologia}`);
+      console.log(`✅ [EquipmentFetcher] SUCESSO: ${allEquipments.length} equipamento(s) encontrado(s)`);
+      allEquipments.forEach(eq => {
+        console.log(`📋 [EquipmentFetcher] FINAL: ${eq.nome} | Tecnologia: ${eq.tecnologia} | Indicações: ${eq.indicacoes?.substring(0, 100)}...`);
       });
 
-      return equipments;
+      return allEquipments;
     } catch (fetchError) {
-      console.error('❌ [EquipmentFetcher] Erro crítico:', fetchError);
+      console.error('❌ [EquipmentFetcher] Erro crítico na busca:', fetchError);
       return [];
     }
   }

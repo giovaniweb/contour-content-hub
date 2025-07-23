@@ -24,73 +24,113 @@ export class EnhancedRequestHandler {
   }
 
   /**
-   * Fetch equipment details from database
+   * Fetch equipment details from database - updated to handle multiple equipment names
    */
-  private async fetchEquipmentDetails(equipmentName?: string): Promise<EquipmentDetail[]> {
-    if (!equipmentName || equipmentName.trim() === '') {
-      console.log("⚠️ Nenhum equipamento especificado");
+  private async fetchEquipmentDetails(equipmentInput?: string | string[]): Promise<EquipmentDetail[]> {
+    // Converter para array se for string
+    const equipmentNames = Array.isArray(equipmentInput) 
+      ? equipmentInput 
+      : (equipmentInput ? [equipmentInput] : []);
+
+    if (equipmentNames.length === 0) {
+      console.log("⚠️ [EnhancedRequestHandler] Nenhum equipamento especificado");
       return [];
     }
 
     try {
-      console.log("🔍 Buscando equipamento:", equipmentName);
+      console.log("🔍 [EnhancedRequestHandler] Buscando equipamentos:", equipmentNames);
       
-      // Busca mais flexível - tentar diferentes variações
-      const searchTerms = [
-        equipmentName.trim(),
-        equipmentName.replace(/\s+/g, ''), // sem espaços
-        equipmentName.toLowerCase(),
-        equipmentName.toUpperCase()
-      ];
+      let allEquipments: EquipmentDetail[] = [];
       
-      let data = null;
-      let error = null;
-      
-      // Tentar diferentes formas de busca
-      for (const term of searchTerms) {
-        const result = await this.supabase
-          .from('equipamentos')
-          .select('*')
-          .or(`nome.ilike.%${term}%, nome.ilike.%${term.replace(/\s+/g, '%')}%`)
-          .eq('ativo', true)
-          .limit(5);
+      for (const equipmentName of equipmentNames) {
+        if (!equipmentName || equipmentName.trim() === '') {
+          continue;
+        }
+
+        const cleanName = equipmentName.trim();
+        console.log(`🔍 [EnhancedRequestHandler] Processando: "${cleanName}"`);
+        
+        // Busca mais flexível - tentar diferentes variações
+        const searchTerms = [
+          cleanName,
+          cleanName.toLowerCase(),
+          cleanName.toUpperCase(),
+          cleanName.replace(/\s+/g, ''), // sem espaços
+          cleanName.split(' ')[0], // primeira palavra
+          // Para "Unyque PRO", buscar também variações
+          cleanName.replace(/\s+(pro|plus|max|ultra)/gi, ''),
+        ];
+        
+        let found = false;
+        
+        // Tentar diferentes formas de busca
+        for (const term of searchTerms) {
+          if (!term || term.length < 2) continue;
           
-        if (result.data && result.data.length > 0) {
-          data = result.data;
-          error = result.error;
-          console.log(`✅ Equipamento encontrado com termo: "${term}"`);
-          break;
+          console.log(`🔍 [EnhancedRequestHandler] Buscando com termo: "${term}"`);
+          
+          const result = await this.supabase
+            .from('equipamentos')
+            .select('*')
+            .or(`nome.ilike.%${term}%,tecnologia.ilike.%${term}%`)
+            .eq('ativo', true)
+            .limit(5);
+            
+          if (result.data && result.data.length > 0) {
+            console.log(`✅ [EnhancedRequestHandler] Equipamento encontrado com termo: "${term}" (${result.data.length} resultados)`);
+            
+            for (const eq of result.data) {
+              // Evitar duplicatas
+              if (!allEquipments.find(existing => existing.id === eq.id)) {
+                const equipmentDetail: EquipmentDetail = {
+                  id: eq.id,
+                  nome: eq.nome,
+                  tecnologia: eq.tecnologia || 'Tecnologia não especificada',
+                  beneficios: eq.beneficios || 'Benefícios não especificados',
+                  indicacoes: eq.indicacoes || 'Indicações não especificadas',
+                  diferenciais: eq.diferenciais || 'Diferenciais não especificados',
+                  linguagem: eq.linguagem || 'Português'
+                };
+                
+                allEquipments.push(equipmentDetail);
+                console.log(`📋 [EnhancedRequestHandler] Adicionado: ${eq.nome} | ${eq.tecnologia}`);
+              }
+            }
+            found = true;
+            break; // Se encontrou com este termo, não precisa testar outros
+          }
+        }
+        
+        if (!found) {
+          console.warn(`⚠️ [EnhancedRequestHandler] Equipamento não encontrado: "${cleanName}"`);
         }
       }
 
-      if (error) {
-        console.error('❌ Erro ao buscar equipamentos:', error);
+      if (allEquipments.length === 0) {
+        console.warn("⚠️ [EnhancedRequestHandler] NENHUM equipamento encontrado para:", equipmentNames);
+        
+        // Log adicional para debug - mostrar equipamentos disponíveis
+        const { data: availableEquipments } = await this.supabase
+          .from('equipamentos')
+          .select('nome')
+          .eq('ativo', true)
+          .limit(10);
+        
+        console.log('📋 [EnhancedRequestHandler] Equipamentos disponíveis (amostra):', 
+          availableEquipments?.map(eq => eq.nome) || 'Nenhum');
+        
         return [];
       }
 
-      if (!data || data.length === 0) {
-        console.log("⚠️ Nenhum equipamento encontrado para:", equipmentName);
-        console.log("🔍 Tentativas de busca realizadas:", searchTerms);
-        return [];
-      }
-
-      const equipmentDetails: EquipmentDetail[] = data.map(eq => ({
-        id: eq.id,
-        nome: eq.nome,
-        tecnologia: eq.tecnologia || 'Tecnologia não especificada',
-        beneficios: eq.beneficios || 'Benefícios não especificados',
-        indicacoes: eq.indicacoes || 'Indicações não especificadas',
-        diferenciais: eq.diferenciais || 'Diferenciais não especificados',
-        linguagem: eq.linguagem || 'Português'
-      }));
-
-      console.log("✅ Equipamentos encontrados:", equipmentDetails.length);
-      console.log("📋 Primeiro equipamento:", equipmentDetails[0].nome);
-      console.log("⚙️ Tecnologia:", equipmentDetails[0].tecnologia);
-      return equipmentDetails;
+      console.log(`✅ [EnhancedRequestHandler] TOTAL: ${allEquipments.length} equipamento(s) encontrado(s)`);
+      allEquipments.forEach(eq => {
+        console.log(`📋 [EnhancedRequestHandler] ${eq.nome} | Tecnologia: ${eq.tecnologia}`);
+      });
+      
+      return allEquipments;
 
     } catch (err) {
-      console.error('❌ Erro na busca de equipamentos:', err);
+      console.error('❌ [EnhancedRequestHandler] Erro na busca de equipamentos:', err);
       return [];
     }
   }
@@ -145,19 +185,36 @@ Use apenas informações gerais sobre tratamentos estéticos, sem inventar espec
    * Process Fluida request with mentor-based creativity and equipment integration
    */
   async processFluidaRequest(request: any) {
-    console.log("🎬 Iniciando processamento FLUIDA com mentor:", request.mentor || 'Hyeser Souza');
+    console.log("🎬 [EnhancedRequestHandler] Iniciando processamento FLUIDA");
+    console.log("📋 [EnhancedRequestHandler] Dados da requisição:", JSON.stringify({
+      topic: request.topic,
+      equipment: request.equipment,
+      equipmentNames: request.equipmentNames,
+      mentor: request.mentor,
+      format: request.format
+    }, null, 2));
     
-    // Fetch equipment details
-    const equipmentDetails = await this.fetchEquipmentDetails(request.equipment);
+    // Usar a lista completa de equipamentos se disponível, senão usar o campo equipment
+    const equipmentToSearch = request.equipmentNames && request.equipmentNames.length > 0 
+      ? request.equipmentNames 
+      : (request.equipment ? [request.equipment] : []);
+    
+    console.log("🔍 [EnhancedRequestHandler] Equipamentos para busca:", equipmentToSearch);
+
+    // Fetch equipment details usando a nova implementação
+    const equipmentDetails = await this.fetchEquipmentDetails(equipmentToSearch);
+    
+    console.log(`📋 [EnhancedRequestHandler] Equipamentos encontrados: ${equipmentDetails.length}`);
+    equipmentDetails.forEach(eq => {
+      console.log(`✅ [EnhancedRequestHandler] ${eq.nome}: ${eq.tecnologia}`);
+    });
     
     // Build scientific context from request
     const scientificContext = request.scientificContext || '';
+    console.log("🧬 [EnhancedRequestHandler] Contexto científico:", scientificContext ? `${scientificContext.length} caracteres` : 'Não fornecido');
     
     // Generate mentor-based creative prompts
     const { systemPrompt, userPrompt } = this.generateMentorPrompts(request, equipmentDetails, scientificContext);
-    
-    console.log("📋 Equipamentos processados:", equipmentDetails.length);
-    console.log("🧬 Contexto científico:", scientificContext ? 'Fornecido' : 'Não fornecido');
     
     return { systemPrompt, userPrompt, equipmentDetails };
   }
