@@ -1,9 +1,42 @@
 
 import React from 'react';
-import { PenTool, Wand2, Sparkles } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { PenTool, Wand2, Sparkles, Home, ChevronRight } from 'lucide-react';
 import FluidaRoteirista from '@/components/fluidaroteirista/FluidaRoteirista';
 import AuroraPageLayout from '@/components/layout/AuroraPageLayout';
 import StandardPageHeader from '@/components/layout/StandardPageHeader';
+
+const Breadcrumb = () => {
+  const navigate = useNavigate();
+  
+  const breadcrumbs = [
+    { label: 'Dashboard', path: '/dashboard', icon: Home },
+    { label: 'Fluida Roteirista', path: '/fluidaroteirista', active: true }
+  ];
+
+  return (
+    <nav className="flex items-center space-x-2 mb-6">
+      {breadcrumbs.map((item, index) => (
+        <React.Fragment key={item.path}>
+          {index > 0 && (
+            <ChevronRight className="w-4 h-4 text-white/40" />
+          )}
+          <button
+            onClick={() => !item.active && navigate(item.path)}
+            className={`flex items-center space-x-1 px-3 py-1.5 rounded-lg text-sm transition-colors ${
+              item.active 
+                ? 'text-aurora-neon-blue bg-aurora-neon-blue/10 cursor-default' 
+                : 'text-white/70 hover:text-white hover:bg-white/5'
+            }`}
+          >
+            {item.icon && <item.icon className="w-4 h-4" />}
+            <span>{item.label}</span>
+          </button>
+        </React.Fragment>
+      ))}
+    </nav>
+  );
+};
 
 const FluidaRoteiristsPage: React.FC = () => {
   const statusBadges = [
@@ -27,6 +60,7 @@ const FluidaRoteiristsPage: React.FC = () => {
 
   return (
     <AuroraPageLayout containerSize="lg" padding="sm">
+      <Breadcrumb />
       <StandardPageHeader
         icon={PenTool}
         title="Fluida Roteirista"
