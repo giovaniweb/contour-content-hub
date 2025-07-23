@@ -179,7 +179,7 @@ export const useFluidaRoteiristaNovo = (): UseFluidaRoteiristANovoReturn => {
     return Math.min(Math.round(score), 10);
   };
 
-  const generateScript = useCallback(async (formData: ScriptFormData): Promise<void> => {
+  const generateScript = useCallback(async (formData: any): Promise<void> => {
     setIsGenerating(true);
     setError(null);
     setProgress(0);
@@ -188,11 +188,14 @@ export const useFluidaRoteiristaNovo = (): UseFluidaRoteiristANovoReturn => {
     try {
       console.log('🎬 [Hook] Iniciando geração de roteiro:', formData);
       
-      // 1. Buscar insights científicos primeiro
-      const equipmentName = formData.equipamentos?.[0] || '';
-      console.log('🔍 [Hook] Buscando insights para:', { tema: formData.tema, equipamento: equipmentName });
+      // 1. Extrair dados do formData (adaptar diferentes formatos)
+      const topic = formData.topic || formData.tema || '';
+      const equipment = formData.equipment || formData.equipamentos?.[0] || '';
+      const format = formData.format || formData.formato || 'reels';
       
-      await fetchScientificInsights(formData.tema, equipmentName);
+      console.log('🔍 [Hook] Buscando insights para:', { tema: topic, equipamento: equipment });
+      
+      await fetchScientificInsights(topic, equipment);
       setProgress(25);
 
       // Aguardar um pouco para que os insights sejam atualizados
@@ -210,24 +213,24 @@ export const useFluidaRoteiristaNovo = (): UseFluidaRoteiristANovoReturn => {
       });
       setProgress(40);
 
-      // 3. Preparar dados para envio - garantir que o equipamento seja enviado corretamente
+      // 3. Preparar dados para envio - usar as variáveis extraídas
       const requestData = {
         type: 'script',
-        content: formData.tema,
-        topic: formData.tema,
-        equipment: equipmentName, // Equipamento específico
-        equipmentNames: formData.equipamentos || [], // Lista completa
+        content: topic,
+        topic: topic,
+        equipment: equipment, // Equipamento específico
+        equipmentNames: equipment ? [equipment] : [], // Lista completa
         mentor: formData.mentor || 'Hyeser Souza',
-        format: formData.formato || 'reels',
+        format: format,
         bodyArea: '',
         elementos_aplicados: {},
         scientificContext,
         // Campos adicionais para contexto
-        objetivo: formData.objetivo,
-        metodologia: formData.metodologia,
-        tipo_conteudo: formData.tipo_conteudo,
-        canal: formData.canal,
-        estilo: formData.estilo
+        objetivo: formData.objective || formData.objetivo,
+        metodologia: formData.style || formData.metodologia,
+        tipo_conteudo: format,
+        canal: formData.channel || formData.canal || 'instagram',
+        estilo: formData.style || formData.estilo
       };
 
       console.log('📤 [Hook] Enviando dados para edge function:', requestData);
