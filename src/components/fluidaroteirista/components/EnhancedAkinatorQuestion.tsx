@@ -40,6 +40,8 @@ const EnhancedAkinatorQuestion: React.FC<EnhancedAkinatorQuestionProps> = ({
 }) => {
   const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
   const [textInput, setTextInput] = useState('');
+  const [showOtherAssuntos, setShowOtherAssuntos] = useState(false);
+  const [otherAssuntosText, setOtherAssuntosText] = useState('');
 
   // CORREÇÃO: Mapear os passos corretamente
   const getStepNumber = (step: string) => {
@@ -64,10 +66,21 @@ const EnhancedAkinatorQuestion: React.FC<EnhancedAkinatorQuestionProps> = ({
   };
 
   const handleSingleSelect = (value: string) => {
+    // Se for "outros_assuntos", mostrar campo de texto
+    if (value === 'outros_assuntos') {
+      setShowOtherAssuntos(true);
+      return;
+    }
     onAnswer(value);
   };
 
   const handleMultiSelect = (value: string) => {
+    // Se for "outros_assuntos", mostrar campo de texto
+    if (value === 'outros_assuntos') {
+      setShowOtherAssuntos(true);
+      return;
+    }
+    
     const newSelection = selectedOptions.includes(value)
       ? selectedOptions.filter(item => item !== value)
       : [...selectedOptions, value];
@@ -82,6 +95,12 @@ const EnhancedAkinatorQuestion: React.FC<EnhancedAkinatorQuestionProps> = ({
   const handleTextSubmit = () => {
     if (textInput.trim()) {
       onAnswer(textInput.trim());
+    }
+  };
+
+  const handleOtherAssuntosSubmit = () => {
+    if (otherAssuntosText.trim()) {
+      onAnswer('outros_assuntos:' + otherAssuntosText.trim());
     }
   };
 
@@ -236,6 +255,51 @@ const EnhancedAkinatorQuestion: React.FC<EnhancedAkinatorQuestionProps> = ({
             </motion.div>
           )}
         </div>
+      )}
+
+      {/* Campo de texto para "Outros assuntos" */}
+      {showOtherAssuntos && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="space-y-4"
+        >
+          <Card className="aurora-glass border border-cyan-500/30">
+            <CardHeader>
+              <CardTitle className="text-cyan-300 text-center">
+                ✨ Outros Assuntos
+              </CardTitle>
+              <p className="text-slate-300 text-center text-sm">
+                Descreva sobre o que você quer falar
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Textarea
+                placeholder="Ex: Autoestima, Bem-estar, Cuidados com a pele, Datas comemorativas..."
+                value={otherAssuntosText}
+                onChange={(e) => setOtherAssuntosText(e.target.value)}
+                className="min-h-[100px] bg-slate-900/50 border-slate-600 text-slate-200 resize-none"
+              />
+              
+              <div className="flex gap-3">
+                <Button 
+                  variant="outline"
+                  onClick={() => setShowOtherAssuntos(false)}
+                  className="flex-1"
+                >
+                  Voltar
+                </Button>
+                <Button 
+                  onClick={handleOtherAssuntosSubmit}
+                  disabled={!otherAssuntosText.trim()}
+                  className="flex-1 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600"
+                >
+                  Continuar ✨
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
       )}
     </div>
   );

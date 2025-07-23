@@ -47,14 +47,26 @@ const AkinatorScriptMode: React.FC<AkinatorScriptModeProps> = ({
     // Se for a etapa de equipamento, injetar os equipamentos do banco
     if (currentStep === 'equipamento' && equipments.length > 0) {
       console.log('🔧 [AkinatorScriptMode] Injetando equipamentos na pergunta:', equipments.length, 'equipamentos');
+      
+      // Adicionar opção "Outros assuntos" junto com os equipamentos
+      const equipmentOptions = equipments.map(eq => ({
+        value: eq.id,
+        label: eq.nome,
+        emoji: '🔧',
+        description: eq.categoria || 'Equipamento para tratamentos'
+      }));
+      
+      // Adicionar opção "Outros assuntos"
+      const outrosAssuntosOption = {
+        value: 'outros_assuntos',
+        label: 'Outros assuntos',
+        emoji: '✨',
+        description: 'Conteúdo sobre outros temas'
+      };
+      
       return {
         ...question,
-        options: equipments.map(eq => ({
-          value: eq.id,
-          label: eq.nome,
-          emoji: '🔧',
-          description: eq.categoria || 'Equipamento para tratamentos'
-        }))
+        options: [...equipmentOptions, outrosAssuntosOption]
       };
     }
     
@@ -81,7 +93,10 @@ const AkinatorScriptMode: React.FC<AkinatorScriptModeProps> = ({
             ? [newAnswers.equipamento as string]
             : [];
 
-        const selectedEquipmentNames = selectedEquipmentIds
+        // Filtrar "outros_assuntos" se presente
+        const cleanEquipmentIds = selectedEquipmentIds.filter(id => !id.startsWith('outros_assuntos'));
+        
+        const selectedEquipmentNames = cleanEquipmentIds
           .map(id => {
             const equipment = equipments.find(eq => eq.id === id);
             return equipment?.nome || id;
