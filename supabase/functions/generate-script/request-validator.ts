@@ -12,32 +12,24 @@ export class RequestValidator {
   static validateRequest(requestData: any): any {
     console.log("🔍 Validando estrutura da requisição...");
     
-    // Verificar se tem a propriedade 'request'
-    if (!requestData.request) {
-      console.error("❌ Propriedade 'request' não encontrada nos dados");
-      throw new Error("Formato de requisição inválido: propriedade 'request' é obrigatória");
-    }
-
-    const request = requestData.request;
-    
     // Validações básicas
-    if (typeof request !== 'object') {
-      throw new Error("Formato de requisição inválido: 'request' deve ser um objeto");
+    if (typeof requestData !== 'object') {
+      throw new Error("Formato de requisição inválido: dados devem ser um objeto");
     }
 
-    // Extrair campos com defaults
+    // Extrair campos com defaults direto dos dados recebidos
     const validatedRequest = {
-      type: request.type || 'custom',
-      systemPrompt: request.systemPrompt || '',
-      userPrompt: request.userPrompt || '',
-      topic: request.topic || '',
-      equipment: request.equipment || '',
-      bodyArea: request.bodyArea || '',
-      purpose: request.purpose || '',
-      additionalInfo: request.additionalInfo || '',
-      tone: request.tone || 'profissional',
-      language: request.language || 'pt-BR',
-      marketingObjective: request.marketingObjective || ''
+      type: requestData.type || 'script',
+      content: requestData.content || requestData.topic || '',
+      topic: requestData.topic || '',
+      equipment: requestData.equipment || '',
+      mentor: requestData.mentor || 'Hyeser Souza',
+      format: requestData.format || 'reels',
+      bodyArea: requestData.bodyArea || '',
+      elementos_aplicados: requestData.elementos_aplicados || {},
+      scientificContext: requestData.scientificContext || '',
+      tone: requestData.tone || 'profissional',
+      language: requestData.language || 'pt-BR'
     };
 
     console.log("✅ Requisição validada com sucesso");
