@@ -152,15 +152,16 @@ ENTREGUE: Roteiro completo, criativo e autêntico no seu estilo único.
 
   /**
    * Detecta se é contexto profissional baseado em palavras-chave
+   * APENAS para clínicas/consultórios, não para temas médicos gerais
    */
   private static isProfessionalContext(topic: string, equipment: string, scientificContext: string): boolean {
     const professionalKeywords = [
-      'clínica', 'consultório', 'médico', 'dermatologista', 'estética avançada',
-      'procedimento', 'tratamento', 'protocolo', 'tecnologia médica', 'equipamento estético',
-      'radiofrequência', 'laser', 'ultrassom', 'microagulhamento', 'profissional',
-      'especialista', 'doutor', 'dra', 'dr', 'estética médica', 'dermatologia'
+      'clínica', 'consultório', 'médico dermatologista', 'estética avançada', 
+      'consultório médico', 'clínica estética', 'dermatologia estética',
+      'procedimento clínico', 'protocolo médico', 'equipamento clínico'
     ];
     
+    // Só considera profissional se mencionar explicitamente clínica/consultório
     const allText = `${topic} ${equipment} ${scientificContext}`.toLowerCase();
     return professionalKeywords.some(keyword => allText.includes(keyword));
   }
