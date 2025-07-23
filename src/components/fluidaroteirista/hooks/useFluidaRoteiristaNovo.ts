@@ -1,32 +1,6 @@
 import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-
-interface ScriptFormData {
-  topic: string;
-  format: string;
-  objective: string;
-  style: string;
-  equipment?: string;
-  additionalInfo?: string;
-}
-
-interface ScientificInsight {
-  id: string;
-  title: string;
-  summary: string;
-  relevanceScore: number;
-  keywords: string[];
-  source: string;
-}
-
-interface ScriptResult {
-  id: string;
-  content: string;
-  format: string;
-  scientificBasis: string[];
-  qualityScore: number;
-  improvements?: string[];
-}
+import type { ScriptFormData, ScientificInsight, ScriptResult } from '../types/interfaces';
 
 interface UseFluidaRoteiristANovoReturn {
   generateScript: (formData: ScriptFormData) => Promise<void>;
@@ -45,21 +19,27 @@ export const useFluidaRoteiristaNovo = (): UseFluidaRoteiristANovoReturn => {
   const [scientificInsights, setScientificInsights] = useState<ScientificInsight[]>([]);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchScientificInsights = useCallback(async (topic: string, equipment?: string): Promise<ScientificInsight[]> => {
+  const fetchScientificInsights = useCallback(async (topic: string, equipment: string) => {
+    if (!topic && !equipment) return;
+    
     try {
-      // Buscar artigos científicos relacionados ao tópico e equipamento
       let query = supabase
         .from('unified_documents')
-        .select('id, titulo_extraido, palavras_chave, autores, texto_completo')
-        .eq('status_processamento', 'concluido')
-        .limit(5);
+        .select('*')
+        .eq('tipo_documento', 'artigo_cientifico')
+        .eq('status_processamento', 'concluido');
 
-      // Filtrar por equipamento se fornecido
+      // Busca por título, texto ou palavras-chave relacionadas ao tópico
+      if (topic) {
+        query = query.or(`titulo_extraido.ilike.%${topic}%,texto_completo.ilike.%${topic}%`);
+      }
+
+      // Se tiver equipamento, tenta encontrar o ID do equipamento
       if (equipment) {
         const { data: equipmentData } = await supabase
           .from('equipamentos')
           .select('id')
-          .eq('nome', equipment)
+          .ilike('nome', `%${equipment}%`)
           .single();
 
         if (equipmentData?.id) {
@@ -67,29 +47,64 @@ export const useFluidaRoteiristaNovo = (): UseFluidaRoteiristANovoReturn => {
         }
       }
 
-      const { data: documents, error } = await query;
+      const { data: documents, error } = await query.limit(10);
 
       if (error) {
         console.error('Erro ao buscar artigos científicos:', error);
-        return [];
+        return;
       }
 
       // Converter documentos em insights
-      const insights: ScientificInsight[] = (documents || []).map(doc => ({
-        id: doc.id,
-        title: doc.titulo_extraido || 'Documento Científico',
-        summary: doc.texto_completo?.substring(0, 200) + '...' || 'Resumo não disponível',
-        relevanceScore: Math.random() * 100, // TODO: Implementar score real baseado em similaridade
-        keywords: doc.palavras_chave || [],
-        source: doc.autores?.join(', ') || 'Autor não informado'
-      }));
+      const insights: ScientificInsight[] = (documents || []).map(doc => {
+        const relevanceScore = calculateRelevanceScore(doc, topic, equipment);
+        return {
+          title: doc.titulo_extraido || 'Documento Científico',
+          summary: doc.texto_completo?.substring(0, 300) + '...' || 'Resumo não disponível',
+          relevanceScore,
+          keywords: doc.palavras_chave || [],
+          source: `Base Fluida - ID: ${doc.id}`,
+          authors: doc.autores || [],
+          publicationDate: doc.data_upload ? 
+            new Date(doc.data_upload).toLocaleDateString('pt-BR') : undefined,
+          fullText: doc.texto_completo,
+          documentId: doc.id,
+          filePath: doc.file_path,
+          equipmentId: doc.equipamento_id
+        };
+      });
 
-      return insights;
+      setScientificInsights(insights);
     } catch (error) {
       console.error('Erro ao processar insights científicos:', error);
-      return [];
+      setScientificInsights([]);
     }
   }, []);
+
+  const calculateRelevanceScore = (doc: any, topic: string, equipment: string): number => {
+    let score = 0;
+    const title = (doc.titulo_extraido || '').toLowerCase();
+    const content = (doc.texto_completo || '').toLowerCase();
+    const keywords = doc.palavras_chave || [];
+    
+    // Relevância por título (peso maior)
+    if (title.includes(topic.toLowerCase())) score += 4;
+    if (title.includes(equipment.toLowerCase())) score += 3;
+    
+    // Relevância por conteúdo
+    const topicMatches = (content.match(new RegExp(topic.toLowerCase(), 'g')) || []).length;
+    const equipmentMatches = (content.match(new RegExp(equipment.toLowerCase(), 'g')) || []).length;
+    
+    score += Math.min(topicMatches * 0.5, 3);
+    score += Math.min(equipmentMatches * 0.5, 2);
+    
+    // Relevância por palavras-chave
+    keywords.forEach((keyword: string) => {
+      if (keyword.toLowerCase().includes(topic.toLowerCase())) score += 1;
+      if (keyword.toLowerCase().includes(equipment.toLowerCase())) score += 1;
+    });
+    
+    return Math.min(Math.round(score), 10);
+  };
 
   const generateScript = useCallback(async (formData: ScriptFormData): Promise<void> => {
     setIsGenerating(true);
@@ -97,110 +112,53 @@ export const useFluidaRoteiristaNovo = (): UseFluidaRoteiristANovoReturn => {
     setProgress(0);
 
     try {
-      // Etapa 1: Buscar insights científicos (20%)
+      // Buscar insights científicos primeiro
+      const insights = await fetchScientificInsights(formData.tema, formData.equipamentos?.[0] || '');
       setProgress(20);
-      const insights = await fetchScientificInsights(formData.topic, formData.equipment);
-      setScientificInsights(insights);
 
-      // Etapa 2: Preparar contexto científico (40%)
-      setProgress(40);
-      const scientificContext = insights
+      // Preparar contexto científico
+      const scientificContext = scientificInsights
         .map(insight => `${insight.title}: ${insight.summary}`)
         .join('\n\n');
+      setProgress(40);
 
-      // Etapa 3: Gerar roteiro com IA (70%)
-      setProgress(70);
-      
-      // Preparar prompt enriquecido com base científica
-      const enrichedPrompt = `
-        CONTEXTO CIENTÍFICO:
-        ${scientificContext}
-
-        SOLICITAÇÃO:
-        Tópico: ${formData.topic}
-        Formato: ${formData.format}
-        Objetivo: ${formData.objective}
-        Estilo: ${formData.style}
-        ${formData.equipment ? `Equipamento: ${formData.equipment}` : ''}
-        ${formData.additionalInfo ? `Informações Adicionais: ${formData.additionalInfo}` : ''}
-
-        INSTRUÇÕES:
-        1. Use as informações científicas fornecidas para fundamentar o roteiro
-        2. Cite evidências científicas quando relevante
-        3. Mantenha a linguagem adequada ao estilo solicitado
-        4. Estruture o conteúdo conforme o formato escolhido
-        5. Integre naturalmente as informações técnicas
-      `;
-
-      const { data: result, error: functionError } = await supabase.functions.invoke('generate-script', {
+      // Invocar edge function para geração do roteiro
+      const { data, error: functionError } = await supabase.functions.invoke('generate-script', {
         body: {
-          request: {
-            type: 'fluidaroteirista_enhanced',
-            systemPrompt: enrichedPrompt,
-            userPrompt: `
-        Tema: ${formData.topic}
-        Canal: ${formData.format}
-        Formato: ${formData.format}
-        Objetivo: ${formData.objective}
-        Estilo: ${formData.style}
-        Equipamentos: ${formData.equipment}
-        
-        Crie o roteiro seguindo exatamente as especificações do formato selecionado.
-      `,
-            topic: formData.topic,
-            equipment: formData.equipment,
-            bodyArea: '',
-            purpose: '',
-            additionalInfo: formData.additionalInfo,
-            tone: formData.style,
-            language: 'pt-BR',
-            marketingObjective: formData.objective
-          }
+          type: 'script',
+          content: formData.tema,
+          topic: formData.tema,
+          equipment: formData.equipamentos?.[0] || '',
+          bodyArea: '',
+          mentor: formData.mentor || 'Hyeser Souza',
+          elementos_aplicados: {},
+          scientificContext
         }
       });
 
       if (functionError) {
-        throw new Error('Falha na geração do roteiro: ' + functionError.message);
+        throw new Error('Erro na geração do roteiro: ' + functionError.message);
       }
 
-      // Etapa 4: Processar resultado (90%)
-      setProgress(90);
+      setProgress(80);
 
-      // Processar e limpar o conteúdo do roteiro
-      const processContent = (data: any): string => {
-        if (typeof data === 'string') {
-          try {
-            // Tentar parsear se for JSON string
-            const parsed = JSON.parse(data);
-            return parsed.roteiro || parsed.content || data;
-          } catch {
-            // Se não for JSON, retornar como string limpa
-            return data;
-          }
-        }
-        
-        if (data && typeof data === 'object') {
-          // Se for objeto, extrair o roteiro
-          return data.roteiro || data.content || JSON.stringify(data, null, 2);
-        }
-        
-        return 'Roteiro gerado com sucesso';
-      };
-
-      const cleanContent = processContent(result?.content || result);
-
-      const scriptResult: ScriptResult = {
-        id: Date.now().toString(),
-        content: cleanContent,
-        format: formData.format,
-        scientificBasis: insights.map(i => i.title),
-        qualityScore: Math.min(95, 60 + insights.length * 5), // Score baseado em insights científicos
-        improvements: result.improvements || []
-      };
-
-      setResults([scriptResult]);
+      // Processar resultado
+      const script = data?.content || data?.roteiro || 'Roteiro gerado com sucesso';
       
-      // Finalizar (100%)
+      const result: ScriptResult = {
+        id: Date.now().toString(),
+        roteiro: script,
+        formato: formData.formato || 'reels',
+        emocao_central: 'Confiança',
+        intencao: 'Educar e engajar',
+        objetivo: formData.objetivo || 'Informar sobre tratamento',
+        mentor: formData.mentor || 'Hyeser Souza',
+        canal: formData.canal || 'Instagram',
+        equipamentos_utilizados: formData.equipamentos?.map(eq => ({ nome: eq })) || [],
+        created_at: new Date().toISOString()
+      };
+
+      setResults([result]);
       setProgress(100);
 
     } catch (error) {
@@ -209,7 +167,7 @@ export const useFluidaRoteiristaNovo = (): UseFluidaRoteiristANovoReturn => {
     } finally {
       setIsGenerating(false);
     }
-  }, [fetchScientificInsights]);
+  }, [fetchScientificInsights, scientificInsights]);
 
   const clearResults = useCallback(() => {
     setResults([]);
