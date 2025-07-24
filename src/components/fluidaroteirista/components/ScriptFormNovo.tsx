@@ -8,6 +8,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
+import { useUserEquipments } from '@/hooks/useUserEquipments';
+import { filterValidEquipments } from '@/utils/equipmentValidation';
 import { 
   Wand2, 
   Sparkles, 
@@ -34,6 +36,7 @@ const ScriptFormNovo: React.FC<ScriptFormNovoProps> = ({
   onToggleInsights,
   showInsights
 }) => {
+  const { equipments, loading: equipmentsLoading } = useUserEquipments();
   const [formData, setFormData] = useState({
     topic: '',
     format: '',
@@ -45,6 +48,9 @@ const ScriptFormNovo: React.FC<ScriptFormNovoProps> = ({
   });
 
   const [useScientificBasis, setUseScientificBasis] = useState(true);
+
+  // Filter valid equipments for the dropdown
+  const validEquipments = filterValidEquipments(equipments);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -236,16 +242,55 @@ const ScriptFormNovo: React.FC<ScriptFormNovoProps> = ({
               transition={{ delay: 0.5 }}
               className="space-y-2"
             >
-              <Label htmlFor="equipment" className="text-white font-medium">
+              <Label className="text-white font-medium">
                 Equipamento (Opcional)
               </Label>
-              <Input
-                id="equipment"
-                placeholder="Ex: Unyque PRO, ReFreeze..."
-                value={formData.equipment}
-                onChange={(e) => handleInputChange('equipment', e.target.value)}
-                className="bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-400"
-              />
+              <Select 
+                value={formData.equipment} 
+                onValueChange={(value) => handleInputChange('equipment', value)}
+              >
+                <SelectTrigger className="bg-slate-700/50 border-slate-600 text-white">
+                  <SelectValue placeholder="Selecione um equipamento ou outros assuntos..." />
+                </SelectTrigger>
+                <SelectContent className="bg-slate-800 border-slate-600">
+                  <SelectItem value="outros_assuntos" className="text-slate-300 hover:bg-slate-700">
+                    <div className="flex items-center gap-2">
+                      <span>📝</span>
+                      <span>Outros assuntos (sem equipamento específico)</span>
+                    </div>
+                  </SelectItem>
+                  {equipmentsLoading ? (
+                    <SelectItem value="loading" disabled className="text-slate-400">
+                      <div className="flex items-center gap-2">
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <span>Carregando equipamentos...</span>
+                      </div>
+                    </SelectItem>
+                  ) : validEquipments.length > 0 ? (
+                    validEquipments.map((equipment) => (
+                      <SelectItem 
+                        key={equipment.id} 
+                        value={equipment.nome}
+                        className="text-slate-300 hover:bg-slate-700"
+                      >
+                        <div className="flex items-center gap-2">
+                          <span>⚡</span>
+                          <span>{equipment.nome}</span>
+                          {equipment.categoria && (
+                            <Badge variant="secondary" className="text-xs ml-2">
+                              {equipment.categoria === 'estetico' ? 'Estético' : 'Médico'}
+                            </Badge>
+                          )}
+                        </div>
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <SelectItem value="no_equipment" disabled className="text-slate-400">
+                      Nenhum equipamento disponível
+                    </SelectItem>
+                  )}
+                </SelectContent>
+              </Select>
             </motion.div>
 
             {/* Informações Adicionais */}
