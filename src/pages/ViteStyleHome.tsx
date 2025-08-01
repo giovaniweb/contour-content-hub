@@ -190,7 +190,7 @@ const ViteStyleHome: React.FC = () => {
 
         {/* Hero Section */}
         <motion.section
-          className="text-center py-20 px-6 max-w-5xl mx-auto"
+          className="text-center py-12 px-6 max-w-5xl mx-auto"
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.2 }}
@@ -257,7 +257,7 @@ const ViteStyleHome: React.FC = () => {
         {/* Features Section */}
         <motion.section
           id="features"
-          className="py-20 px-6 max-w-7xl mx-auto"
+          className="py-12 px-6 max-w-7xl mx-auto"
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           transition={{ duration: 0.8 }}
@@ -298,7 +298,7 @@ const ViteStyleHome: React.FC = () => {
 
         {/* CTA Section */}
         <motion.section
-          className="py-20 px-6 text-center"
+          className="py-12 px-6 text-center"
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           transition={{ duration: 0.8 }}
@@ -329,7 +329,7 @@ const ViteStyleHome: React.FC = () => {
         </motion.section>
 
         {/* Footer */}
-        <footer className="border-t border-white/10 py-12 px-6">
+        <footer className="border-t border-white/10 py-8 px-6">
           <div className="max-w-7xl mx-auto text-center">
             <div className="flex items-center justify-center gap-3 mb-6">
               <div className="p-2 rounded-lg bg-gradient-to-r from-aurora-lavender to-aurora-teal">
