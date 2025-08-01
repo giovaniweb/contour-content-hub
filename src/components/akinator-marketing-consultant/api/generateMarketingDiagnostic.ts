@@ -4,8 +4,11 @@ import { supabase } from '@/integrations/supabase/client';
 
 export const generateMarketingDiagnostic = async (state: MarketingConsultantState): Promise<string> => {
   try {
-    console.log('🎯 Chamando edge function generate-marketing-diagnostic via Supabase');
-    console.log('📊 Estado enviado:', state);
+    console.log('🎯 Iniciando diagnóstico de marketing para usuário');
+    console.log('📊 Parâmetros:', { 
+      questionsAnswered: Object.keys(state).length,
+      stateKeys: Object.keys(state)
+    });
 
     const { data, error } = await supabase.functions.invoke('generate-marketing-diagnostic', {
       body: state
