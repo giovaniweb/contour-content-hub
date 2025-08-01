@@ -1,6 +1,8 @@
 
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1";
+import { checkRateLimit, createRateLimitResponse, getClientIdentifier, getRateLimitHeaders } from "../_shared/rateLimiting.ts";
 
 const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
 
@@ -11,16 +13,46 @@ const corsHeaders = {
 
 serve(async (req) => {
   console.log('🎯 CONSULTOR FLUIDA - Diagnóstico iniciado');
-  console.log('📝 Method:', req.method);
-  console.log('🔑 OpenAI Key present:', !!openAIApiKey);
   
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
+    // P0-003: Rate limiting implementado
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL') || '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || ''
+    );
+
+    const authHeader = req.headers.get('authorization');
+    let userId: string | undefined;
+    
+    if (authHeader?.startsWith('Bearer ')) {
+      try {
+        const { data: { user } } = await supabase.auth.getUser(authHeader.split(' ')[1]);
+        userId = user?.id;
+      } catch (e) {
+        console.log('Token inválido ou expirado');
+      }
+    }
+
+    const identifier = getClientIdentifier(req, userId);
+    const rateLimitResult = await checkRateLimit(identifier, {
+      endpoint: 'generate-marketing-diagnostic',
+      maxRequests: 10, // 10 diagnósticos por minuto por usuário/IP
+      windowMinutes: 1
+    });
+
+    if (!rateLimitResult.allowed) {
+      return createRateLimitResponse(rateLimitResult, corsHeaders);
+    }
+
     const diagnosticData = await req.json();
-    console.log('📊 Dados do diagnóstico recebidos:', JSON.stringify(diagnosticData, null, 2));
+    console.log('📊 Parâmetros:', { 
+      questionsAnswered: Object.keys(diagnosticData).length,
+      stateKeys: Object.keys(diagnosticData)
+    });
 
     // Validação da chave OpenAI
     if (!openAIApiKey) {
