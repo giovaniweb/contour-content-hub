@@ -445,6 +445,51 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_usage_metrics: {
+        Row: {
+          completion_tokens: number
+          created_at: string | null
+          endpoint: string
+          estimated_cost: number
+          id: string
+          model: string
+          prompt_tokens: number
+          response_time_ms: number | null
+          service_name: string
+          total_tokens: number
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          completion_tokens?: number
+          created_at?: string | null
+          endpoint: string
+          estimated_cost?: number
+          id?: string
+          model: string
+          prompt_tokens?: number
+          response_time_ms?: number | null
+          service_name: string
+          total_tokens?: number
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          completion_tokens?: number
+          created_at?: string | null
+          endpoint?: string
+          estimated_cost?: number
+          id?: string
+          model?: string
+          prompt_tokens?: number
+          response_time_ms?: number | null
+          service_name?: string
+          total_tokens?: number
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       alertas_email: {
         Row: {
           ativo: boolean | null
@@ -2106,6 +2151,36 @@ export type Database = {
           },
         ]
       }
+      rate_limits: {
+        Row: {
+          created_at: string | null
+          endpoint: string
+          id: string
+          identifier: string
+          requests_count: number | null
+          updated_at: string | null
+          window_start: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          endpoint: string
+          id?: string
+          identifier: string
+          requests_count?: number | null
+          updated_at?: string | null
+          window_start?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          endpoint?: string
+          id?: string
+          identifier?: string
+          requests_count?: number | null
+          updated_at?: string | null
+          window_start?: string | null
+        }
+        Relationships: []
+      }
       roteiro_validacoes: {
         Row: {
           data_validacao: string | null
@@ -3207,6 +3282,15 @@ export type Database = {
       calculate_final_purchase_score: {
         Args: { user_id_param: string }
         Returns: undefined
+      }
+      check_rate_limit: {
+        Args: {
+          p_identifier: string
+          p_endpoint: string
+          p_max_requests?: number
+          p_window_minutes?: number
+        }
+        Returns: Json
       }
       cleanup_completed_uploads: {
         Args: Record<PropertyKey, never>

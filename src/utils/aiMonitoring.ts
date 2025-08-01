@@ -74,6 +74,16 @@ export class AIMonitoring {
 
   private async saveToDatabase(metrics: AIUsageMetrics): Promise<void> {
     try {
+      // TODO: Implementar quando tipos do Supabase forem atualizados
+      console.log('Métricas de IA:', {
+        service: metrics.service,
+        cost: metrics.estimatedCost,
+        tokens: metrics.totalTokens,
+        model: metrics.model
+      });
+      
+      // Implementação futura quando ai_usage_metrics estiver nos tipos
+      /*
       await supabase
         .from('ai_usage_metrics')
         .insert({
@@ -85,9 +95,9 @@ export class AIMonitoring {
           estimated_cost: metrics.estimatedCost,
           model: metrics.model,
           user_id: metrics.userId,
-          response_time_ms: metrics.responseTime,
-          created_at: new Date().toISOString()
+          response_time_ms: metrics.responseTime
         });
+      */
     } catch (error) {
       console.error('Erro ao salvar métricas no banco:', error);
     }

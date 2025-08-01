@@ -74,9 +74,9 @@ serve(async (req) => {
 
     console.log('🌐 Iniciando chamada OpenAI...');
     
-    // Configurações corrigidas com timeout de 60s
+    // P2-001: Configurações otimizadas com modelo atualizado
     const requestBody = {
-      model: 'gpt-4o-mini',
+      model: 'gpt-4.1-mini-2025-04-14', // Modelo mais eficiente para diagnósticos
       messages: [
         { 
           role: 'system', 
@@ -84,8 +84,8 @@ serve(async (req) => {
         },
         { role: 'user', content: prompt }
       ],
-      temperature: 0.7,
-      max_tokens: 4000
+      temperature: 0.6, // Reduzido para mais consistência
+      max_tokens: 1500  // Reduzido de 4000 para otimizar custos
     };
 
     console.log('📦 Request configurado:', { model: requestBody.model, max_tokens: requestBody.max_tokens });
@@ -163,7 +163,7 @@ serve(async (req) => {
       diagnostic: diagnosticResult,
       success: true,
       timestamp: new Date().toISOString(),
-      model_used: 'gpt-4o-mini',
+      model_used: 'gpt-4.1-mini-2025-04-14',
       clinic_type: diagnosticData.clinicType,
       equipments_validated: await validateEquipments(diagnosticData)
     }), {
@@ -189,92 +189,38 @@ serve(async (req) => {
 });
 
 function getConsolidatedSystemPrompt(): string {
-  return `Você é o CONSULTOR FLUIDA — estrategista oficial da plataforma para clínicas estéticas e médicas.
+  // P2-001: Prompt otimizado (reduzido de ~500 para ~200 tokens)
+  return `CONSULTOR FLUIDA - Diagnósticos para clínicas estéticas/médicas.
 
-Sua missão é gerar um diagnóstico completo com base nas respostas fornecidas, adaptando a linguagem e recomendações ao tipo de clínica (médica ou estética).
+ESTRUTURA OBRIGATÓRIA:
+📊 Diagnóstico | 💡 Conteúdo | 📅 Plano 4 Semanas | 🎨 Marca | 🧩 Enigma | 📈 Insights
 
-⚠️ ESTRUTURA OBRIGATÓRIA (usar EXATAMENTE estes títulos e emojis):
+Linguagem: Médica=técnica, Estética=emocional. Seja conciso e prático.
 
-## 📊 Diagnóstico Estratégico da Clínica
-[Identifique gargalos, analise desalinhamento entre público/oferta/visual/autoridade, use tom consultivo adaptado]
-
-## 💡 Sugestões de Conteúdo Personalizado
-[3-5 ideias práticas SOMENTE para Instagram, Reels, TikTok, Shorts - incluir pelo menos 3 ideias com equipamentos citados]
-
-## 📅 Plano de Ação Semanal
-Semana 1: Autoridade e visibilidade
-Semana 2: Prova social e diferencial  
-Semana 3: Conversão e campanha
-Semana 4: Aceleração e fidelização
-[3-4 tarefas práticas por semana]
-
-## 🎨 Avaliação de Marca e Atendimento
-[Avalie identidade visual, atendimento vs posicionamento, sugira melhorias e programa de indicação]
-
-## 🧩 Enigma do Mentor
-[Frase misteriosa com trocadilho - NUNCA revele o nome verdadeiro do mentor]
-
-## 📈 Insights Estratégicos Fluida
-[3-5 insights práticos com tom de consultoria]
-
-Use a linguagem adequada ao tipo de clínica e personalize com base nos dados fornecidos.
-
-⚠️ IMPORTANTE: Siga EXATAMENTE a estrutura das 6 seções obrigatórias com os títulos e emojis especificados.`;
+⚠️ Use EXATAMENTE os títulos com emojis especificados.`;
 }
 
 function createConsolidatedFluidaPrompt(data: any): string {
-  const tipoClinica = data.clinicType === 'clinica_medica' ? 'Médica' : 'Estética';
-  const isClinicaMedica = data.clinicType === 'clinica_medica';
+  // P2-001: Prompt otimizado (reduzido de ~300 para ~100 tokens)
+  const tipo = data.clinicType === 'clinica_medica' ? 'MED' : 'EST';
+  const key = tipo === 'MED' ? 'medical' : 'aesthetic';
   
-  // Detectar dados principais com base no tipo de clínica
-  const especialidade = isClinicaMedica 
-    ? (data.medicalSpecialty || 'Não informado')
-    : (data.aestheticFocus || 'Não informado');
+  const especialidade = data[`${key}Specialty`] || data[`${key}Focus`] || 'N/A';
+  const equipamentos = data[`${key}Equipments`] || 'N/A';
+  const ticket = data[`${key}Ticket`] || 'N/A';
+  const objetivo = data[`${key}Objective`] || 'N/A';
+  
+  return `Tipo: ${tipo}
+Esp: ${especialidade}
+Equip: ${equipamentos}
+Ticket: ${ticket}
+Meta: ${data.revenueGoal || 'N/A'}
+Objetivo: ${objetivo}
+Público: ${data.targetAudience || 'N/A'}
+Desafios: ${data.mainChallenges || 'N/A'}
 
-  const procedimentos = isClinicaMedica
-    ? (data.medicalProcedures || 'Não informado')
-    : (data.aestheticTreatments || 'Não informado');
-
-  const equipamentos = isClinicaMedica
-    ? (data.medicalEquipments || 'Não informado')
-    : (data.aestheticEquipments || 'Não informado');
-
-  const ticketMedio = isClinicaMedica
-    ? formatMedicalTicket(data.medicalTicket)
-    : formatAestheticTicket(data.aestheticTicket);
-
-  const objetivo = isClinicaMedica
-    ? formatMedicalObjective(data.medicalObjective)
-    : formatAestheticObjective(data.aestheticObjective);
-
-  const faturamento = formatRevenue(data.currentRevenue);
-  const meta = formatGoal(data.revenueGoal);
-  const publicoIdeal = data.targetAudience || 'Não definido';
-  const desafios = data.mainChallenges || 'Não informado';
-
-  return `🎯 CONSULTOR FLUIDA - DIAGNÓSTICO PERSONALIZADO
-
-📋 Dados de briefing disponíveis:
-
-- Tipo: ${tipoClinica}
-- Especialidade: ${especialidade}
-- Procedimentos: ${procedimentos}
-- Equipamentos: ${equipamentos}
-- Ticket médio: ${ticketMedio}
-- Faturamento atual: ${faturamento}
-- Meta 3 meses: ${meta}
-- Objetivo de marketing: ${objetivo}
-- Público ideal: ${publicoIdeal}
-- Principais desafios: ${desafios}
-
-🎯 GERE UM DIAGNÓSTICO COMPLETO SEGUINDO A ESTRUTURA OBRIGATÓRIA das 6 seções.
-
-Use a linguagem adequada:
-- ${isClinicaMedica ? 'TÉCNICO-CONSULTIVA (clínica médica)' : 'EMOCIONAL-INSPIRADORA (clínica estética)'}
-
-Personalize tudo com base no perfil fornecido acima.
-
-⚠️ IMPORTANTE: Siga EXATAMENTE a estrutura das 6 seções obrigatórias com os títulos e emojis especificados.`;
+Gere diagnóstico FLUIDA com 6 seções obrigatórias.
+Linguagem: ${tipo === 'MED' ? 'técnico-consultiva' : 'emocional-inspiradora'}.`;
 }
 
 // Função para validar se o diagnóstico tem as 6 seções obrigatórias
