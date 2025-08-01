@@ -30,7 +30,7 @@ serve(async (req) => {
       );
     }
 
-    console.log("Analisando problema:", issue.description);
+    console.log("Analisando problema:", issue.component, "- Severidade:", issue.severity);
 
     // Construir o prompt para a OpenAI
     const systemPrompt = `Você é um especialista em diagnóstico e reparo de sistemas de software.
