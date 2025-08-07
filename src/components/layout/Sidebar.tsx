@@ -11,6 +11,7 @@ import {
   Palette,
   Wrench,
   BookOpen,
+  GraduationCap,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -24,6 +25,7 @@ const sidebarItems = [
   { icon: Image, label: "Fotos", path: "/photos" },
   { icon: Palette, label: "Artes", path: "/arts" },
   { icon: BookOpen, label: "Artigos\nCientíficos", path: "/scientific-articles" },
+  { icon: GraduationCap, label: "Academia", path: "/academia" },
   { icon: Wrench, label: "Equipamentos", path: "/equipments" },
 ];
 

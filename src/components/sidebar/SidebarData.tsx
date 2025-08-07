@@ -18,7 +18,8 @@ import {
   Palette,
   BookOpen,
   PenTool,
-  Wrench
+  Wrench,
+  GraduationCap
 } from "lucide-react";
 
 // Main menu sidebar structure
@@ -42,6 +43,7 @@ export const sidebarData = [
 // Admin menu structure  
 export const adminItems = [
   { name: "Painel Admin", icon: LayoutDashboard, path: "/admin", highlight: false },
+  { name: "Academia", icon: GraduationCap, path: "/admin/academia", highlight: false },
   { name: "Equipamentos", icon: Settings, path: "/admin/equipments", highlight: false },
   { name: "Artigos Científicos", icon: BookOpen, path: "/admin/scientific-articles", highlight: false },
   { name: "Conteúdo", icon: File, path: "/admin/content", highlight: false },
