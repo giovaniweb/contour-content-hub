@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,20 +7,18 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Separator } from '@/components/ui/separator';
-import { VideomakerFormData, ProfessionalType, InvestmentRange } from '@/types/videomaker';
+import { VideomakerFormData, ProfessionalType, InvestmentRange, Videomaker } from '@/types/videomaker';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Video, Camera, Instagram, Phone, MapPin, DollarSign, Sparkles, UserPlus, Mail, Lock } from 'lucide-react';
+import { Video, Camera, Instagram, Phone, DollarSign, Save, ArrowLeft } from 'lucide-react';
 import AuroraPageLayout from '@/components/layout/AuroraPageLayout';
 import StandardPageHeader from '@/components/layout/StandardPageHeader';
 import { PhotoUpload } from '@/components/videomaker/PhotoUpload';
 
-const VideomakerCadastro: React.FC = () => {
+const VideomakerEditar: React.FC = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [initialLoading, setInitialLoading] = useState(true);
   const [formData, setFormData] = useState<VideomakerFormData>({
     nome_completo: '',
     telefone: '',
@@ -35,76 +33,86 @@ const VideomakerCadastro: React.FC = () => {
     valor_diaria: '300-500',
     foto_url: ''
   });
+  const [videomaker, setVideomaker] = useState<Videomaker | null>(null);
+
+  useEffect(() => {
+    loadVideomakerData();
+  }, []);
+
+  const loadVideomakerData = async () => {
+    try {
+      // Verificar se está logado
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      
+      if (userError || !user) {
+        toast.error('Você precisa estar logado');
+        navigate('/videomaker/login');
+        return;
+      }
+
+      // Buscar dados do videomaker
+      const { data: videomakeData, error: videomakerError } = await supabase
+        .from('videomakers')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+      if (videomakerError) {
+        toast.error('Perfil de videomaker não encontrado');
+        navigate('/videomaker/cadastro');
+        return;
+      }
+
+      setVideomaker(videomakeData);
+      
+      // Preencher formulário com dados existentes
+      setFormData({
+        nome_completo: videomakeData.nome_completo,
+        telefone: videomakeData.telefone,
+        video_referencia_url: videomakeData.video_referencia_url || '',
+        instagram: videomakeData.instagram || '',
+        cidade: videomakeData.cidade,
+        tipo_profissional: videomakeData.tipo_profissional,
+        camera_celular: videomakeData.camera_celular,
+        modelo_microfone: videomakeData.modelo_microfone || '',
+        possui_iluminacao: videomakeData.possui_iluminacao,
+        emite_nota_fiscal: videomakeData.emite_nota_fiscal,
+        valor_diaria: videomakeData.valor_diaria,
+        foto_url: videomakeData.foto_url || ''
+      });
+    } catch (error) {
+      console.error('Erro:', error);
+      toast.error('Erro ao carregar dados');
+    } finally {
+      setInitialLoading(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      // Validações
-      if (!email || !password || !confirmPassword) {
-        toast.error('Por favor, preencha todos os campos obrigatórios');
+      if (!videomaker) {
+        toast.error('Dados do videomaker não encontrados');
         return;
       }
 
-      if (password !== confirmPassword) {
-        toast.error('As senhas não coincidem');
-        return;
-      }
-
-      if (password.length < 6) {
-        toast.error('A senha deve ter pelo menos 6 caracteres');
-        return;
-      }
-
-      // Criar usuário no Supabase Auth
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/videomaker/dashboard`,
-          data: {
-            nome: formData.nome_completo,
-          },
-        },
-      });
-
-      if (authError) {
-        if (authError.message.includes('already registered')) {
-          toast.error('Este email já está cadastrado. Faça login para continuar.');
-        } else {
-          toast.error('Erro ao criar conta: ' + authError.message);
-        }
-        return;
-      }
-
-      if (!authData.user) {
-        toast.error('Erro ao criar usuário');
-        return;
-      }
-
-      // Cadastrar videomaker
-      const { error: videomakerError } = await supabase
+      const { error } = await supabase
         .from('videomakers')
-        .insert([{
-          ...formData,
-          user_id: authData.user.id
-        }]);
+        .update(formData)
+        .eq('id', videomaker.id);
 
-      if (videomakerError) {
-        if (videomakerError.code === '23505') {
-          toast.error('Você já possui um perfil de videomaker cadastrado');
-        } else {
-          toast.error('Erro ao cadastrar videomaker: ' + videomakerError.message);
-        }
+      if (error) {
+        toast.error('Erro ao atualizar perfil: ' + error.message);
         return;
       }
 
-      toast.success('Conta criada com sucesso! Verifique seu email para confirmar o cadastro.');
-      navigate('/videomaker/login');
+      toast.success('Perfil atualizado com sucesso!');
+      navigate('/videomaker/dashboard');
     } catch (error) {
       console.error('Erro:', error);
-      toast.error('Erro inesperado ao cadastrar');
+      toast.error('Erro inesperado ao atualizar');
     } finally {
       setLoading(false);
     }
@@ -119,86 +127,45 @@ const VideomakerCadastro: React.FC = () => {
 
   const statusBadges = [
     {
-      icon: UserPlus,
-      label: 'Cadastro',
+      icon: Save,
+      label: 'Editar',
       variant: 'secondary' as const,
       color: 'bg-aurora-electric-purple/20 text-aurora-electric-purple border-aurora-electric-purple/30'
-    },
-    {
-      icon: Sparkles,
-      label: 'Seja Encontrado',
-      variant: 'secondary' as const,
-      color: 'bg-aurora-emerald/20 text-aurora-emerald border-aurora-emerald/30'
     }
   ];
+
+  if (initialLoading) {
+    return (
+      <AuroraPageLayout>
+        <div className="container mx-auto px-6 py-8">
+          <div className="text-center">
+            <p className="aurora-body">Carregando dados...</p>
+          </div>
+        </div>
+      </AuroraPageLayout>
+    );
+  }
 
   return (
     <AuroraPageLayout>
       <StandardPageHeader
         icon={Video}
-        title="Cadastro de Videomaker"
-        subtitle="Cadastre-se como videomaker e seja encontrado por clínicas da sua região"
+        title="Editar Perfil"
+        subtitle="Atualize suas informações profissionais"
         statusBadges={statusBadges}
       />
       
       <div className="container mx-auto px-6 py-8">
         <Card className="aurora-glass border-aurora-electric-purple/30 max-w-4xl mx-auto">
           <CardHeader>
-            <CardTitle className="aurora-heading text-center">Seus Dados Profissionais</CardTitle>
+            <CardTitle className="aurora-heading text-center">Editar Perfil Profissional</CardTitle>
             <CardDescription className="aurora-body text-center">
-              Preencha as informações para criar seu perfil profissional
+              Mantenha suas informações sempre atualizadas
             </CardDescription>
           </CardHeader>
           
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="space-y-4">
-                <h3 className="aurora-heading-enhanced flex items-center gap-2">
-                  <Mail className="h-5 w-5" />
-                  Dados de Acesso
-                </h3>
-                
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Email *</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="seu@email.com"
-                      required
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="password">Senha *</Label>
-                    <Input
-                      id="password"
-                      type="password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder="Mínimo 6 caracteres"
-                      required
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="confirmPassword">Confirmar Senha *</Label>
-                    <Input
-                      id="confirmPassword"
-                      type="password"
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      placeholder="Digite a senha novamente"
-                      required
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <Separator />
-
               <div className="space-y-4">
                 <h3 className="aurora-heading-enhanced flex items-center gap-2">
                   <Phone className="h-5 w-5" />
@@ -373,31 +340,20 @@ const VideomakerCadastro: React.FC = () => {
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => navigate('/')}
-                  className="flex-1"
+                  onClick={() => navigate('/videomaker/dashboard')}
+                  className="flex-1 flex items-center gap-2"
                 >
-                  Cancelar
+                  <ArrowLeft className="h-4 w-4" />
+                  Voltar
                 </Button>
                 <Button
                   type="submit"
                   disabled={loading}
-                  className="flex-1 aurora-button-enhanced"
+                  className="flex-1 aurora-button-enhanced flex items-center gap-2"
                 >
-                  {loading ? 'Criando Conta...' : 'Criar Conta e Perfil'}
+                  <Save className="h-4 w-4" />
+                  {loading ? 'Salvando...' : 'Salvar Alterações'}
                 </Button>
-              </div>
-              
-              <div className="text-center pt-4">
-                <p className="aurora-body text-sm text-muted-foreground">
-                  Já tem uma conta?{' '}
-                  <button
-                    type="button"
-                    onClick={() => navigate('/videomaker/login')}
-                    className="text-aurora-electric-purple hover:underline font-medium"
-                  >
-                    Faça login aqui
-                  </button>
-                </p>
               </div>
             </form>
           </CardContent>
@@ -407,4 +363,4 @@ const VideomakerCadastro: React.FC = () => {
   );
 };
 
-export default VideomakerCadastro;
+export default VideomakerEditar;

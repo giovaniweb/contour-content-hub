@@ -56,6 +56,9 @@ const Gamification = React.lazy(() => import('@/pages/Gamification'));
 const WorkspaceSettings = React.lazy(() => import('@/pages/WorkspaceSettings'));
 const Profile = React.lazy(() => import('@/pages/Profile'));
 const VideomakerCadastro = React.lazy(() => import('@/pages/VideomakerCadastro'));
+const VideomakerLogin = React.lazy(() => import('@/pages/VideomakerLogin'));
+const VideomakerDashboard = React.lazy(() => import('@/pages/VideomakerDashboard'));
+const VideomakerEditar = React.lazy(() => import('@/pages/VideomakerEditar'));
 const VideomakerBusca = React.lazy(() => import('@/pages/VideomakerBusca'));
 
 // Academia pages
@@ -119,6 +122,25 @@ const AppRoutes: React.FC = () => {
         element={
           <Suspense fallback={<AuroraLoadingSkeleton />}>
             <ResetPassword />
+          </Suspense>
+        } 
+      />
+
+      {/* Videomaker Public Routes */}
+      <Route 
+        path="/videomaker/cadastro" 
+        element={
+          <Suspense fallback={<AuroraLoadingSkeleton />}>
+            <VideomakerCadastro />
+          </Suspense>
+        } 
+      />
+
+      <Route 
+        path="/videomaker/login" 
+        element={
+          <Suspense fallback={<AuroraLoadingSkeleton />}>
+            <VideomakerLogin />
           </Suspense>
         } 
       />
@@ -450,17 +472,6 @@ const AppRoutes: React.FC = () => {
 
         {/* Videomaker Routes */}
         <Route 
-          path="/videomaker/cadastro" 
-          element={
-            <AppLayout>
-              <Suspense fallback={<AuroraLoadingSkeleton />}>
-                <VideomakerCadastro />
-              </Suspense>
-            </AppLayout>
-          } 
-        />
-
-        <Route 
           path="/videomaker/busca" 
           element={
             <AppLayout>
@@ -468,6 +479,24 @@ const AppRoutes: React.FC = () => {
                 <VideomakerBusca />
               </Suspense>
             </AppLayout>
+          } 
+        />
+
+        <Route 
+          path="/videomaker/dashboard" 
+          element={
+            <Suspense fallback={<AuroraLoadingSkeleton />}>
+              <VideomakerDashboard />
+            </Suspense>
+          } 
+        />
+
+        <Route 
+          path="/videomaker/editar" 
+          element={
+            <Suspense fallback={<AuroraLoadingSkeleton />}>
+              <VideomakerEditar />
+            </Suspense>
           } 
         />
 
