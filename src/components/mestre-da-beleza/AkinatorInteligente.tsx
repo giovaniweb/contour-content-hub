@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
+
 import { ArrowRight, RotateCcw, Sparkles, Brain, Zap, BookOpen } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
@@ -184,15 +184,6 @@ const AkinatorInteligente: React.FC = () => {
             </div>
           </div>
 
-          {sessionStarted && (
-            <div className="w-full max-w-md">
-              <div className="flex justify-between text-sm text-aurora-text-muted mb-1">
-                <span>Análise Científica</span>
-                <span>{progress}%</span>
-              </div>
-              <Progress value={progress} className="h-2 aurora-glass" />
-            </div>
-          )}
         </motion.div>
 
         <AnimatePresence mode="wait">
