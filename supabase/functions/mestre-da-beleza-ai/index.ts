@@ -46,26 +46,62 @@ serve(async (req) => {
       userProfile: userProfile || 'detectando...'
     });
 
-    // 1. BUSCAR EQUIPAMENTOS RELEVANTES
+    // 0. RATE LIMIT - por IP ou usuário
+    const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || req.headers.get('cf-connecting-ip') || 'anonymous';
+    try {
+      const { data: rateData } = await supabase.rpc('check_rate_limit', {
+        p_identifier: userProfile?.id || ip,
+        p_endpoint: 'mestre-da-beleza-ai',
+        p_max_requests: 30,
+        p_window_minutes: 1
+      });
+      if (rateData && rateData.allowed === false) {
+        return new Response(JSON.stringify({ error: 'Limite de requisições excedido', ...rateData }), { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }
+    } catch (rateErr) {
+      console.warn('Falha no rate limit:', rateErr);
+    }
+
+    // 1. BUSCAR EQUIPAMENTOS RELEVANTES (filtrados por área quando possível)
     console.log('🔍 Buscando equipamentos no banco de dados...');
-    const { data: equipamentos, error: equipError } = await supabase
+    let equipamentosQuery = supabase
       .from('equipamentos')
       .select('*')
       .eq('ativo', true)
       .eq('akinator_enabled', true);
+    const area = userProfile?.area_problema;
+    if (area) {
+      // filtra por sobreposição de áreas
+      // @ts-ignore - método overlaps é suportado pelo supabase-js
+      equipamentosQuery = (equipamentosQuery as any).overlaps('area_aplicacao', [area]);
+    }
+    const { data: equipamentos, error: equipError } = await equipamentosQuery;
 
     if (equipError) {
       console.error('❌ Erro ao buscar equipamentos:', equipError);
     }
 
-    // 2. BUSCAR ARTIGOS CIENTÍFICOS RELEVANTES
+    // 2. BUSCAR ARTIGOS CIENTÍFICOS RELEVANTES (contextualizados)
     console.log('📚 Buscando artigos científicos...');
-    const { data: artigos, error: artigosError } = await supabase
+    const keywords: string[] = [];
+    if (userProfile?.problema_identificado) keywords.push(userProfile.problema_identificado);
+    if (userProfile?.area_problema) keywords.push(userProfile.area_problema);
+    const lastUserMsg = Array.isArray(messages) ? (messages[messages.length - 1]?.content as string) : '';
+    if (lastUserMsg) {
+      const hint = lastUserMsg.split(/[\s,.;:!?]/).slice(0, 5).join(' ');
+      if (hint) keywords.push(hint);
+    }
+    let artigosQuery = supabase
       .from('unified_documents')
       .select('titulo_extraido, texto_completo, palavras_chave, autores, equipamento_id')
       .eq('status_processamento', 'concluido')
-      .eq('tipo_documento', 'artigo_cientifico')
-      .limit(10);
+      .eq('tipo_documento', 'artigo_cientifico');
+    if (keywords.length > 0) {
+      // restringe por interseção de palavras-chave
+      // @ts-ignore contains para arrays
+      artigosQuery = (artigosQuery as any).contains('palavras_chave', [keywords[0]]);
+    }
+    const { data: artigos, error: artigosError } = await artigosQuery.limit(10);
 
     if (artigosError) {
       console.error('❌ Erro ao buscar artigos:', artigosError);
@@ -91,6 +127,16 @@ serve(async (req) => {
       keywords: art.palavras_chave,
       autores: art.autores
     }));
+
+    const userContext = `
+🧾 CONTEXTO DO ATENDIMENTO:
+- Perfil: ${userProfile?.perfil || 'não informado'}
+- Idade est.: ${userProfile?.idade_estimada ?? 'N/D'}
+- Área principal: ${userProfile?.area_problema || 'N/D'}
+- Problema: ${userProfile?.problema_identificado || 'N/D'}
+- Respostas acumuladas: ${Object.keys(userProfile?.responses || {}).length}
+`;
+
 
     // 4. CRIAR PROMPT CIENTÍFICO AVANÇADO
     const baseKnowledge = `
@@ -119,50 +165,53 @@ ${artigosInfo.map(art => `
         role: "system",
         content: `Você é o MESTRE DA BELEZA, um gênio da estética com acesso a uma vasta base de conhecimento científico e equipamentos de última geração.
 
-🧙‍♂️ PERSONALIDADE:
-- Místico mas cientificamente preciso
-- Use emojis e linguagem envolvente
-- Seja confiante e misterioso
-- Faça perguntas inteligentes para direcionar o diagnóstico
-- Use metáforas místicas mas mantenha base científica
+        🧙‍♂️ PERSONALIDADE:
+        - Místico mas cientificamente preciso
+        - Use emojis e linguagem envolvente
+        - Seja confiante e misterioso
+        - Faça perguntas inteligentes para direcionar o diagnóstico
+        - Use metáforas místicas mas mantenha base científica
 
-🎯 MISSÃO PRINCIPAL:
-- Conduzir consulta rápida e precisa
-- Fazer perguntas diretas para diagnóstico
-- Recomendar equipamentos específicos com base científica
-- Ser conciso e objetivo
+        ${userContext}
 
-🔮 REGRAS DE CONDUTA:
-- SEMPRE baseie recomendações nos equipamentos e artigos disponíveis
-- Seja específico sobre protocolos e equipamentos
-- Mantenha tom científico mas acessível
-- **MÁXIMO 120 palavras por resposta**
-- Use formatação simples e direta
-- Faça UMA pergunta objetiva por vez
-- Use bullets (•) para listas
-- Destaque equipamentos com **negrito**
-
-${baseKnowledge}
-
-🔬 PROTOCOLOS DE DIAGNÓSTICO:
-- Foque em: área, histórico, expectativas
-- Considere contraindicações
-- Sugira 1-2 equipamentos principais
-- Seja direto e prático
-
-FORMATO DA RESPOSTA:
-- Use bullets (•) para pontos principais
-- **Negrito** para equipamentos
-- Máximo 3-4 bullets por resposta
-- Uma pergunta direta no final
-
-IMPORTANTE: Use APENAS os equipamentos e informações científicas fornecidas acima. NÃO invente equipamentos ou estudos.`
+        🎯 MISSÃO PRINCIPAL:
+        - Conduzir consulta rápida e precisa
+        - Fazer perguntas diretas para diagnóstico
+        - Recomendar equipamentos específicos com base científica
+        - Ser conciso e objetivo
+        
+        🔮 REGRAS DE CONDUTA:
+        - SEMPRE baseie recomendações nos equipamentos e artigos disponíveis
+        - Seja específico sobre protocolos e equipamentos
+        - Mantenha tom científico mas acessível
+        - **MÁXIMO 120 palavras por resposta**
+        - Use formatação simples e direta
+        - Faça UMA pergunta objetiva por vez
+        - Use bullets (•) para listas
+        - Destaque equipamentos com **negrito**
+        
+        ${baseKnowledge}
+        
+        🔬 PROTOCOLOS DE DIAGNÓSTICO:
+        - Foque em: área, histórico, expectativas
+        - Considere contraindicações
+        - Sugira 1-2 equipamentos principais
+        - Seja direto e prático
+        
+        FORMATO DA RESPOSTA:
+        - Use bullets (•) para pontos principais
+        - **Negrito** para equipamentos
+        - Máximo 3-4 bullets por resposta
+        - Uma pergunta direta no final
+        
+        IMPORTANTE: Use APENAS os equipamentos e informações científicas fornecidas acima. NÃO invente equipamentos ou estudos.`
       },
       ...messages
     ];
 
     // 5. CHAMAR OPENAI
     console.log('🤖 Enviando para OpenAI...');
+    const startTime = Date.now();
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -176,16 +225,36 @@ IMPORTANTE: Use APENAS os equipamentos e informações científicas fornecidas a
         max_tokens: 400
       })
     });
-    
     const data = await response.json();
-    
     if (data.error) {
       throw new Error(`Erro na API OpenAI: ${data.error.message}`);
     }
-    
-    const assistantReply = data.choices[0].message.content;
-    
+    const assistantReply = data.choices?.[0]?.message?.content ?? '';
+    const responseTime = Date.now() - startTime;
+    const promptTokens = data.usage?.prompt_tokens ?? 0;
+    const completionTokens = data.usage?.completion_tokens ?? 0;
+    const totalTokens = promptTokens + completionTokens;
     console.log('✨ Resposta do Mestre da Beleza gerada com sucesso');
+
+    // 5.1 Registrar métricas de uso de IA (se possível)
+    try {
+      const inputCost = (promptTokens / 1000) * 0.00015; // gpt-4o-mini input
+      const outputCost = (completionTokens / 1000) * 0.00060; // gpt-4o-mini output
+      const estimatedCost = Number((inputCost + outputCost).toFixed(6));
+      await supabase.from('ai_usage_metrics' as any).insert({
+        service_name: 'mestre-da-beleza-ai',
+        endpoint: 'chat',
+        prompt_tokens: promptTokens,
+        completion_tokens: completionTokens,
+        total_tokens: totalTokens,
+        estimated_cost: estimatedCost,
+        model: 'gpt-4o-mini',
+        user_id: requestData.user_id || null,
+        response_time_ms: responseTime
+      } as any);
+    } catch (metricsErr) {
+      console.warn('⚠️ Falha ao salvar métricas de IA:', metricsErr);
+    }
 
     // 6. SALVAR INTERAÇÃO PARA APRENDIZADO
     try {
@@ -203,7 +272,8 @@ IMPORTANTE: Use APENAS os equipamentos e informações científicas fornecidas a
       JSON.stringify({ 
         content: assistantReply,
         equipamentosUsados: equipamentosInfo.length,
-        artigosConsultados: artigosInfo.length
+        artigosConsultados: artigosInfo.length,
+        tokens: { promptTokens, completionTokens, totalTokens }
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
