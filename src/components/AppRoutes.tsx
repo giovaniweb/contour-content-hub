@@ -58,6 +58,11 @@ const Profile = React.lazy(() => import('@/pages/Profile'));
 const VideomakerCadastro = React.lazy(() => import('@/pages/VideomakerCadastro'));
 const VideomakerBusca = React.lazy(() => import('@/pages/VideomakerBusca'));
 
+// Academia pages
+const Academia = React.lazy(() => import('@/pages/Academia'));
+const CourseDetail = React.lazy(() => import('@/pages/CourseDetail'));
+const AdminAcademia = React.lazy(() => import('@/pages/admin/AdminAcademia'));
+
 const AppRoutes: React.FC = () => {
   return (
     <Routes>
@@ -466,6 +471,29 @@ const AppRoutes: React.FC = () => {
           } 
         />
 
+        {/* Academia Routes */}
+        <Route 
+          path="/academia" 
+          element={
+            <AppLayout>
+              <Suspense fallback={<AuroraLoadingSkeleton />}>
+                <Academia />
+              </Suspense>
+            </AppLayout>
+          } 
+        />
+
+        <Route 
+          path="/academia/curso/:id" 
+          element={
+            <AppLayout>
+              <Suspense fallback={<AuroraLoadingSkeleton />}>
+                <CourseDetail />
+              </Suspense>
+            </AppLayout>
+          } 
+        />
+
         {/* Admin Routes */}
         <Route element={<AdminRoute />}>
           <Route 
@@ -562,6 +590,17 @@ const AppRoutes: React.FC = () => {
               <AppLayout requireAdmin={true}>
                 <Suspense fallback={<AuroraLoadingSkeleton />}>
                   <AdminPhotosUpload />
+                </Suspense>
+              </AppLayout>
+            } 
+          />
+
+          <Route 
+            path="/admin/academia"
+            element={
+              <AppLayout requireAdmin={true}>
+                <Suspense fallback={<AuroraLoadingSkeleton />}>
+                  <AdminAcademia />
                 </Suspense>
               </AppLayout>
             } 

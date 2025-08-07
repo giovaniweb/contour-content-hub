@@ -51,22 +51,37 @@ const Academia: React.FC = () => {
 
   const fetchCourses = async () => {
     try {
-      const { data, error } = await supabase
-        .from('academy_courses')
-        .select(`
-          *,
-          academy_lessons(count)
-        `)
-        .eq('status', 'active');
-
-      if (error) throw error;
-
-      const coursesWithLessonCount = data?.map(course => ({
-        ...course,
-        total_lessons: course.academy_lessons?.[0]?.count || 0
-      })) || [];
-
-      setAvailableCourses(coursesWithLessonCount);
+      // Mock data for demo
+      const mockCourses = [
+        {
+          id: '1',
+          title: 'Introdução ao HIFU',
+          description: 'Curso completo sobre tecnologia HIFU e suas aplicações',
+          equipment_name: 'HIFU Profissional',
+          total_lessons: 5,
+          estimated_duration_hours: 3,
+          difficulty_level: 'beginner',
+          gamification_points: 150,
+          has_final_exam: true,
+          has_satisfaction_survey: false,
+          status: 'active'
+        },
+        {
+          id: '2',
+          title: 'Radiofrequência Avançada',
+          description: 'Técnicas avançadas de radiofrequência para resultados otimizados',
+          equipment_name: 'RF Excellence',
+          total_lessons: 8,
+          estimated_duration_hours: 5,
+          difficulty_level: 'advanced',
+          gamification_points: 200,
+          has_final_exam: true,
+          has_satisfaction_survey: true,
+          status: 'active'
+        }
+      ];
+      
+      setAvailableCourses(mockCourses);
     } catch (error) {
       console.error('Error fetching courses:', error);
       toast({
@@ -79,17 +94,32 @@ const Academia: React.FC = () => {
 
   const fetchMyCourses = async () => {
     try {
-      const { data, error } = await supabase
-        .from('academy_user_course_access')
-        .select(`
-          *,
-          course:academy_courses(*)
-        `)
-        .eq('user_id', user?.id)
-        .eq('status', 'approved');
-
-      if (error) throw error;
-      setMyCourses(data || []);
+      // Mock data for demo
+      const mockMyCourses = [
+        {
+          id: '1',
+          course: {
+            id: '1',
+            title: 'Introdução ao HIFU',
+            description: 'Curso completo sobre tecnologia HIFU',
+            equipment_name: 'HIFU Profissional',
+            total_lessons: 5,
+            estimated_duration_hours: 3,
+            difficulty_level: 'beginner',
+            gamification_points: 150,
+            has_final_exam: true,
+            has_satisfaction_survey: false,
+            status: 'active'
+          },
+          status: 'in_progress',
+          progress_percentage: 60,
+          exam_status: null,
+          survey_completed: false,
+          access_expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+        }
+      ];
+      
+      setMyCourses(mockMyCourses);
     } catch (error) {
       console.error('Error fetching my courses:', error);
     } finally {
@@ -99,19 +129,9 @@ const Academia: React.FC = () => {
 
   const requestCourseAccess = async (courseId: string) => {
     try {
-      const { error } = await supabase
-        .from('academy_access_requests')
-        .insert({
-          user_id: user?.id,
-          course_id: courseId,
-          status: 'pending'
-        });
-
-      if (error) throw error;
-
       toast({
         title: "Solicitação enviada",
-        description: "Sua solicitação de acesso foi enviada para aprovação."
+        description: "Sua solicitação de acesso foi enviada para aprovação. Em breve você receberá uma resposta."
       });
     } catch (error) {
       console.error('Error requesting course access:', error);

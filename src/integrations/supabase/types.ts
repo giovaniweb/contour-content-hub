@@ -56,6 +56,212 @@ export type Database = {
         }
         Relationships: []
       }
+      academy_access_requests: {
+        Row: {
+          access_duration_days: number | null
+          course_id: string
+          id: string
+          notes: string | null
+          requested_at: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string | null
+          user_id: string
+        }
+        Insert: {
+          access_duration_days?: number | null
+          course_id: string
+          id?: string
+          notes?: string | null
+          requested_at?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string | null
+          user_id: string
+        }
+        Update: {
+          access_duration_days?: number | null
+          course_id?: string
+          id?: string
+          notes?: string | null
+          requested_at?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "academy_access_requests_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "academy_courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      academy_courses: {
+        Row: {
+          certificate_template_url: string | null
+          created_at: string | null
+          description: string | null
+          difficulty_level: string | null
+          equipment_id: string | null
+          equipment_name: string | null
+          estimated_duration_hours: number | null
+          gamification_points: number | null
+          has_final_exam: boolean | null
+          has_satisfaction_survey: boolean | null
+          id: string
+          status: string | null
+          thumbnail_url: string | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          certificate_template_url?: string | null
+          created_at?: string | null
+          description?: string | null
+          difficulty_level?: string | null
+          equipment_id?: string | null
+          equipment_name?: string | null
+          estimated_duration_hours?: number | null
+          gamification_points?: number | null
+          has_final_exam?: boolean | null
+          has_satisfaction_survey?: boolean | null
+          id?: string
+          status?: string | null
+          thumbnail_url?: string | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          certificate_template_url?: string | null
+          created_at?: string | null
+          description?: string | null
+          difficulty_level?: string | null
+          equipment_id?: string | null
+          equipment_name?: string | null
+          estimated_duration_hours?: number | null
+          gamification_points?: number | null
+          has_final_exam?: boolean | null
+          has_satisfaction_survey?: boolean | null
+          id?: string
+          status?: string | null
+          thumbnail_url?: string | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "academy_courses_equipment_id_fkey"
+            columns: ["equipment_id"]
+            isOneToOne: false
+            referencedRelation: "equipamentos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      academy_lessons: {
+        Row: {
+          course_id: string
+          created_at: string | null
+          description: string | null
+          duration_minutes: number | null
+          id: string
+          is_mandatory: boolean | null
+          order_index: number
+          title: string
+          updated_at: string | null
+          vimeo_url: string
+        }
+        Insert: {
+          course_id: string
+          created_at?: string | null
+          description?: string | null
+          duration_minutes?: number | null
+          id?: string
+          is_mandatory?: boolean | null
+          order_index: number
+          title: string
+          updated_at?: string | null
+          vimeo_url: string
+        }
+        Update: {
+          course_id?: string
+          created_at?: string | null
+          description?: string | null
+          duration_minutes?: number | null
+          id?: string
+          is_mandatory?: boolean | null
+          order_index?: number
+          title?: string
+          updated_at?: string | null
+          vimeo_url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "academy_lessons_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "academy_courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      academy_user_course_access: {
+        Row: {
+          access_expires_at: string | null
+          completed_at: string | null
+          course_id: string
+          created_at: string | null
+          exam_status: string | null
+          id: string
+          progress_percentage: number | null
+          started_at: string | null
+          status: string | null
+          survey_completed: boolean | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          access_expires_at?: string | null
+          completed_at?: string | null
+          course_id: string
+          created_at?: string | null
+          exam_status?: string | null
+          id?: string
+          progress_percentage?: number | null
+          started_at?: string | null
+          status?: string | null
+          survey_completed?: boolean | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          access_expires_at?: string | null
+          completed_at?: string | null
+          course_id?: string
+          created_at?: string | null
+          exam_status?: string | null
+          id?: string
+          progress_percentage?: number | null
+          started_at?: string | null
+          status?: string | null
+          survey_completed?: boolean | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "academy_user_course_access_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "academy_courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ad_creative_performance: {
         Row: {
           campanha_nome: string | null
