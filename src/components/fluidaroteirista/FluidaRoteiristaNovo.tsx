@@ -3,8 +3,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Wand2, 
   Sparkles, 
@@ -148,7 +146,7 @@ const FluidaRoteiristaNovo: React.FC<FluidaRoteiristANovoProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-800 p-4">
+    <div className="p-0">
       <div className="max-w-7xl mx-auto">
         {/* Header moderno */}
         <motion.div
