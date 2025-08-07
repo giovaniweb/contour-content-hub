@@ -36,19 +36,20 @@ export class AIMonitoring {
 
   async trackUsage(metrics: AIUsageMetrics): Promise<void> {
     try {
+      const estimatedCost = this.calculateCost(metrics.promptTokens, metrics.completionTokens, metrics.model);
       // Armazenar localmente
       this.costs.push({
         ...metrics,
-        estimatedCost: this.calculateCost(metrics.promptTokens, metrics.completionTokens, metrics.model)
+        estimatedCost,
       });
 
       // Enviar para Supabase se configurado
       if (metrics.userId) {
-        await this.saveToDatabase(metrics);
+        await this.saveToDatabase({ ...metrics, estimatedCost });
       }
 
       // Log para monitoramento
-      console.log(`💰 AI Cost: $${metrics.estimatedCost.toFixed(4)} | Tokens: ${metrics.totalTokens} | Service: ${metrics.service}`);
+      console.log(`💰 AI Cost: $${estimatedCost.toFixed(4)} | Tokens: ${metrics.totalTokens} | Service: ${metrics.service}`);
       
     } catch (error) {
       console.error('Erro ao rastrear uso de IA:', error);
@@ -74,18 +75,8 @@ export class AIMonitoring {
 
   private async saveToDatabase(metrics: AIUsageMetrics): Promise<void> {
     try {
-      // TODO: Implementar quando tipos do Supabase forem atualizados
-      console.log('Métricas de IA:', {
-        service: metrics.service,
-        cost: metrics.estimatedCost,
-        tokens: metrics.totalTokens,
-        model: metrics.model
-      });
-      
-      // Implementação futura quando ai_usage_metrics estiver nos tipos
-      /*
-      await supabase
-        .from('ai_usage_metrics')
+      const { error } = await supabase
+        .from('ai_usage_metrics' as any)
         .insert({
           service_name: metrics.service,
           endpoint: metrics.endpoint,
@@ -94,10 +85,13 @@ export class AIMonitoring {
           total_tokens: metrics.totalTokens,
           estimated_cost: metrics.estimatedCost,
           model: metrics.model,
-          user_id: metrics.userId,
-          response_time_ms: metrics.responseTime
-        });
-      */
+          user_id: metrics.userId || null,
+          response_time_ms: metrics.responseTime || null,
+        } as any);
+
+      if (error) {
+        console.error('Erro ao salvar métricas no banco:', error);
+      }
     } catch (error) {
       console.error('Erro ao salvar métricas no banco:', error);
     }

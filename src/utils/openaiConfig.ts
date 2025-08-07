@@ -20,6 +20,11 @@ export const API_RATE_LIMITS = {
 } as const;
 
 export const validateOpenAIConfig = (): boolean => {
-  const apiKey = process.env.OPENAI_API_KEY;
-  return Boolean(apiKey && apiKey.startsWith('sk-'));
+  try {
+    const apiKey = (typeof process !== 'undefined' && (process as any).env && (process as any).env.OPENAI_API_KEY) || null;
+    return Boolean(apiKey);
+  } catch {
+    // Em ambiente de browser, evitar crash por ausência de process
+    return true;
+  }
 };
