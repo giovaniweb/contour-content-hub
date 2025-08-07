@@ -2,23 +2,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { 
-  Wand2, 
-  Sparkles, 
-  BookOpen, 
-  Brain, 
-  Target, 
-  Zap, 
-  FileText,
-  ArrowRight,
-  CheckCircle,
-  Loader2,
-  TrendingUp,
-  Lightbulb,
-  Users,
-  Award
-} from "lucide-react";
+
+import { Sparkles, Brain, FileText, ArrowRight, CheckCircle, Zap } from "lucide-react";
 import { toast } from 'sonner';
 import { useFluidaRoteiristaNovo } from './hooks/useFluidaRoteiristaNovo';
 import ScriptFormNovo from './components/ScriptFormNovo';
@@ -148,41 +133,8 @@ const FluidaRoteiristaNovo: React.FC<FluidaRoteiristANovoProps> = ({
   return (
     <div className="p-0">
       <div className="max-w-7xl mx-auto">
-        {/* Header moderno */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-8"
-        >
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <div className="p-3 bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl shadow-xl">
-              <Brain className="w-8 h-8 text-white" />
-            </div>
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-              Fluida Roteirista 2.0
-            </h1>
-          </div>
-          
-          <p className="text-lg text-slate-300 max-w-2xl mx-auto mb-6">
-            IA Avançada com Base Científica para Roteiros Únicos e Eficazes
-          </p>
+        {/* Header removido: agora é renderizado no cabeçalho da página */}
 
-          {/* Status badges */}
-          <div className="flex items-center justify-center gap-3 flex-wrap">
-            <Badge variant="secondary" className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30">
-              <CheckCircle className="w-3 h-3 mr-1" />
-              Integração Científica
-            </Badge>
-            <Badge variant="secondary" className="bg-blue-500/20 text-blue-400 border-blue-500/30">
-              <TrendingUp className="w-3 h-3 mr-1" />
-              IA Avançada
-            </Badge>
-            <Badge variant="secondary" className="bg-purple-500/20 text-purple-400 border-purple-500/30">
-              <Award className="w-3 h-3 mr-1" />
-              Pro Version
-            </Badge>
-          </div>
-        </motion.div>
 
         {/* Step indicator */}
         <motion.div

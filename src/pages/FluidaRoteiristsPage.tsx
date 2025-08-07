@@ -5,6 +5,7 @@ import { PenTool, Wand2, Sparkles, Home, ChevronRight } from 'lucide-react';
 import FluidaRoteiristaNovo from '@/components/fluidaroteirista/FluidaRoteiristaNovo';
 import AuroraPageLayout from '@/components/layout/AuroraPageLayout';
 import StandardPageHeader from '@/components/layout/StandardPageHeader';
+import { Helmet } from 'react-helmet-async';
 
 const Breadcrumb = () => {
   const navigate = useNavigate();
@@ -60,6 +61,11 @@ const FluidaRoteiristsPage: React.FC = () => {
 
   return (
     <AuroraPageLayout containerSize="lg" padding="sm">
+      <Helmet>
+        <title>Fluida Roteirista — Roteiros IA para clínicas estéticas</title>
+        <meta name="description" content="Fluida Roteirista: gere roteiros de conteúdo com IA para clínicas estéticas com base científica e resultados profissionais." />
+        <link rel="canonical" href="/fluidaroteirista" />
+      </Helmet>
       <Breadcrumb />
       <StandardPageHeader
         icon={PenTool}
