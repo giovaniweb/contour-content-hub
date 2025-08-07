@@ -38,6 +38,19 @@ serve(async (req) => {
       return new Response(JSON.stringify({ error: "Usuário não autenticado" }), { status: 401, headers: corsHeaders });
     }
 
+    // Rate limiting por usuário
+    const { data: rateData, error: rateError } = await supabaseAdmin.rpc('check_rate_limit', {
+      p_identifier: user.id,
+      p_endpoint: 'generate-script',
+      p_max_requests: 20,
+      p_window_minutes: 1
+    });
+    if (rateError) {
+      console.error('Erro no rate limit:', rateError);
+    } else if (rateData && rateData.allowed === false) {
+      return new Response(JSON.stringify({ error: 'Limite de requisições excedido', ...rateData }), { status: 429, headers: corsHeaders });
+    }
+
     // Validate OpenAI API key
     const openAIApiKey = RequestValidator.validateOpenAIKey();
     

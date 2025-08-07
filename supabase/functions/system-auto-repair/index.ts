@@ -29,6 +29,26 @@ serve(async (req) => {
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+    // Rate limiting por IP (função pública)
+    const supabaseAdmin = createClient(
+      Deno.env.get('SUPABASE_URL') || '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || ''
+    );
+    const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || req.headers.get('cf-connecting-ip') || 'anonymous';
+    const { data: rateData, error: rateError } = await supabaseAdmin.rpc('check_rate_limit', {
+      p_identifier: ip,
+      p_endpoint: 'system-auto-repair',
+      p_max_requests: 15,
+      p_window_minutes: 1
+    });
+    if (rateError) {
+      console.error('Erro no rate limit:', rateError);
+    } else if (rateData && rateData.allowed === false) {
+      return new Response(
+        JSON.stringify({ error: 'Limite de requisições excedido', ...rateData }),
+        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     console.log("Analisando problema:", issue.component, "- Severidade:", issue.severity);
 

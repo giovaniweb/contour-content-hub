@@ -1,5 +1,6 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1";
 import { corsHeaders } from './constants.ts';
 import { CustomGptRequest } from './types.ts';
 import { buildPrompt } from './prompt-builder.ts';
@@ -43,6 +44,26 @@ serve(async (req) => {
         JSON.stringify({ error: 'Equipment data not provided' }), 
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
+    }
+    // Rate limiting usando função check_rate_limit
+    const supabaseAdmin = createClient(
+      Deno.env.get('SUPABASE_URL') || '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || ''
+    );
+    const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || req.headers.get('cf-connecting-ip') || 'anonymous';
+    const { data: rateData, error: rateError } = await supabaseAdmin.rpc('check_rate_limit', {
+      p_identifier: ip,
+      p_endpoint: 'custom-gpt',
+      p_max_requests: 30,
+      p_window_minutes: 1
+    });
+    if (rateError) {
+      console.error('Rate limit check error:', rateError);
+    } else if (rateData && rateData.allowed === false) {
+      return new Response(JSON.stringify({ error: 'Rate limit exceeded', ...rateData }), {
+        status: 429,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
     // Build prompt for OpenAI
