@@ -155,9 +155,9 @@ const FluidaRoteiristaNovo: React.FC<FluidaRoteiristANovoProps> = ({
                 <div key={step.key} className="flex items-center">
                   <div className={`
                     flex items-center justify-center w-10 h-10 rounded-full border-2 transition-all duration-300
-                    ${isActive ? 'border-purple-400 bg-purple-400 text-white' : 
-                      isCompleted ? 'border-emerald-400 bg-emerald-400 text-white' : 
-                      'border-slate-500 text-slate-500'}
+                    ${isActive ? 'border-aurora-electric-purple bg-aurora-electric-purple text-white' : 
+                      isCompleted ? 'border-aurora-emerald bg-aurora-emerald text-white' : 
+                      'border-white/20 text-white/60'}
                   `}>
                     {isCompleted ? (
                       <CheckCircle className="w-5 h-5" />
@@ -166,14 +166,14 @@ const FluidaRoteiristaNovo: React.FC<FluidaRoteiristANovoProps> = ({
                     )}
                   </div>
                   <span className={`ml-2 text-sm font-medium ${
-                    isActive ? 'text-purple-400' : 
-                    isCompleted ? 'text-emerald-400' : 
-                    'text-slate-500'
+                    isActive ? 'text-aurora-electric-purple' : 
+                    isCompleted ? 'text-aurora-emerald' : 
+                    'text-white/60'
                   }`}>
                     {step.label}
                   </span>
                   {index < 2 && (
-                    <ArrowRight className="w-4 h-4 text-slate-500 mx-3" />
+                    <ArrowRight className="w-4 h-4 text-white/40 mx-3" />
                   )}
                 </div>
               );
