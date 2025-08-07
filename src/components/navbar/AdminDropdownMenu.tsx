@@ -16,7 +16,8 @@ import {
   LayoutDashboard,
   FileText,
   Palette,
-  Plus
+  Plus,
+  GraduationCap
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -60,6 +61,7 @@ const AdminDropdownMenu: React.FC = () => {
 
   const adminMenuItems = [
     { label: "Dashboard Admin", icon: LayoutDashboard, path: "/admin" },
+    { label: "Academia", icon: GraduationCap, path: "/admin/academia" },
     { label: "Usuários", icon: Users, path: "/admin/users" },
     { label: "Equipamentos", icon: Settings, path: "/admin/equipments" },
     { label: "Fotos", icon: Image, path: "/admin/photos" },
