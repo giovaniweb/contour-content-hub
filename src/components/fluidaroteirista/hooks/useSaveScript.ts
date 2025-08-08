@@ -36,7 +36,7 @@ export function useSaveScript() {
         title,
         format,
         equipment_used,
-        approval_status: "pending"
+        approval_status: "approved"
       });
 
     if (error) {

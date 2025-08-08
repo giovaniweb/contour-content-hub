@@ -50,6 +50,24 @@ function limitToDuration(input: string, maxSeconds = 40, wordsPerSecond = 2.5): 
   return words.slice(0, maxWords).join(' ');
 }
 
+// Ajuste de pronúncia específico para TTS pt-BR (não altera o texto original exibido)
+function applyPronunciationFixes(input: string, mentor?: string): string {
+  let out = String(input || '');
+
+  // Regras pontuais solicitadas: "Cryo" -> "Crio", "HImFu" -> "Raimifu"
+  const rules: Array<{ pattern: RegExp; replace: string }> = [
+    { pattern: /\bCryo RF Max\b/gi, replace: 'Crio RF Max' },
+    { pattern: /\bCryo\b/gi, replace: 'Crio' },
+    { pattern: /\bHImFu\b/gi, replace: 'Raimifu' },
+  ];
+
+  for (const r of rules) {
+    out = out.replace(r.pattern, r.replace);
+  }
+  return out;
+}
+
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -72,12 +90,14 @@ serve(async (req) => {
       ? ELEVEN_VOICES.disney
       : (ELEVEN_VOICES[mentor?.toLowerCase?.()] || ELEVEN_VOICES.default);
 
-    // Limpar e limitar o texto para ~40s de locução publicitária
+    // Limpar, limitar e ajustar pronúncia para ~40s de locução publicitária
     const MAX_SECONDS = 40;
     const WORDS_PER_SECOND = 2.5;
-    const cleanedText = limitToDuration(cleanOffText(String(text || '')), MAX_SECONDS, WORDS_PER_SECOND);
+    const preppedText = limitToDuration(cleanOffText(String(text || '')), MAX_SECONDS, WORDS_PER_SECOND);
+    const adjustedText = applyPronunciationFixes(preppedText, mentor);
+    const pronFixApplied = preppedText !== adjustedText;
 
-    if (!cleanedText) {
+    if (!adjustedText) {
       throw new Error('Nenhum texto válido encontrado após a limpeza. Forneça apenas o roteiro.');
     }
 
@@ -87,7 +107,7 @@ serve(async (req) => {
     let modelUsed = preferredModel;
     let fallbackUsed = false;
 
-    console.log(`🎙️ [generate-audio] ElevenLabs request: voiceId=${voiceId} preferredModel=${preferredModel} mentor=${mentor} disney=${!!isDisneyMode} len=${cleanedText.length}`);
+    console.log(`🎙️ [generate-audio] ElevenLabs request: voiceId=${voiceId} preferredModel=${preferredModel} mentor=${mentor} disney=${!!isDisneyMode} len=${adjustedText.length} pronFix=${pronFixApplied}`);
 
     async function requestTTS(model_id: string) {
       return await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
@@ -98,7 +118,7 @@ serve(async (req) => {
           'Accept': 'audio/mpeg',
         },
         body: JSON.stringify({
-          text: cleanedText,
+          text: adjustedText,
           model_id,
           voice_settings: {
             stability: 0.3,
@@ -156,6 +176,7 @@ serve(async (req) => {
         mentor,
         modelUsed,
         fallbackUsed,
+        pronFixApplied,
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
