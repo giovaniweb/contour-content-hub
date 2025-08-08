@@ -41,6 +41,7 @@ serve(async (req) => {
 
     // Selecionar modelo (Alpha v3 quando solicitado)
     const modelIdPreferred = useAlpha ? 'eleven_v3' : 'eleven_multilingual_v2';
+    let modelUsed = modelIdPreferred;
 
     console.log(`🎙️ [generate-audio] ElevenLabs: voiceId=${voiceId} model=${modelIdPreferred} mentor=${mentor} alpha=${!!useAlpha}`);
 
@@ -72,6 +73,7 @@ serve(async (req) => {
       const errText = await response.text();
       console.warn(`⚠️ Alpha (v3) falhou, fazendo fallback para v2. Motivo: ${errText}`);
       response = await requestTTS('eleven_multilingual_v2');
+      modelUsed = 'eleven_multilingual_v2';
     }
 
     if (!response.ok) {
@@ -94,6 +96,7 @@ serve(async (req) => {
         audioContent: base64Audio,
         voiceId,
         mentor,
+        modelUsed,
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

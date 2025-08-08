@@ -12,48 +12,83 @@ interface AudioGenerationOptions {
 // Limpa o texto para narração (remove timestamps, marcadores e rótulos padrão)
 const cleanOffText = (input: string): string => {
   if (!input) return '';
-  let out = input;
+  let out = String(input);
 
   // 1) Remover preâmbulos típicos ("Claro! Segue o roteiro...", "Aqui está o roteiro...", etc.) no início
   out = out.replace(/^(?:\s*)?(?:claro!?|segue(?:\s+abaixo)?\s*o?\s*roteiro|aqui\s+(?:está|esta|vai)\s+o\s*roteiro)[^\n]*\n+/i, '');
 
-  // 2) Remover timestamps e durações (ex.: [0-5s] e "- 13s")
+  // 2) Remover blocos em colchetes (ex.: [ABERTURA...], créditos, rótulos)
+  out = out.replace(/\[[^\]]+\]/g, ' ');
+
+  // 3) Remover direções de palco entre parênteses
+  out = out.replace(/\((?:[^)]+)\)/g, ' ');
+
+  // 4) Remover timestamps e durações (ex.: [0-5s] e "- 13s")
   out = out.replace(/\[\d+(?:-\d+)?s\]\s*/gi, '');
   out = out.replace(/-\s*\d+\s*s\b/gi, '');
 
-  // 3) Remover marcadores e markdown básico, incluindo ** **
+  // 5) Remover marcadores e markdown básico, incluindo ** **
   out = out.replace(/^#+\s*/gm, '') // títulos markdown
            .replace(/\*\*/g, '') // negrito markdown
            .replace(/^[\s>*\-•]+/gm, ''); // marcadores no início da linha
 
-  // 4) Remover linhas que parecem cabeçalhos/seções (ex.: HEADLINE, PROBLEMA, AGITAÇÃO, SOLUÇÃO, PROVA, CTA)
+  // 6) Remover rótulos no início da linha (Narrador:, OFF:, CTA:, Story 1:, etc.)
+  out = out.replace(/^\s*(?:gancho|a(?:ç|c)ão|cena(?: \d+)?|cta|narrador|off|introdu(?:ç|c)ão|conclus(?:ã|a)o|fechamento|chamada|transi(?:ç|c)ão|story\s*\d+|slide\s*\d+)\s*:\s*/gmi, '');
+
+  // 7) Remover emojis/decorações
+  out = out.replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}\u200d]+/gu, '');
+
+  // 8) Remover linhas que parecem cabeçalhos/seções
   const headingKeywords = /(headline|problema|agit[aã]?[cç][aã]o|solu[cç][aã]o|prova\s*social|autoridade|cta|introdu[cç][aã]o|conclus[aã]o|fechamento|chamada|transi[cç][aã]o)/i;
   out = out
     .split('\n')
     .filter(line => {
       const t = line.trim();
       if (!t) return false; // remove linhas vazias múltiplas
-      // linha curta, maioria maiúscula e sem pontuação: provavelmente título
       const letters = t.replace(/[^A-Za-zÀ-ÖØ-öø-ÿ]/g, '');
       const upperRatio = letters ? (letters.replace(/[^A-ZÀ-Ö]/g, '').length / letters.length) : 0;
-      if (upperRatio > 0.8 && t.length <= 80 && !/[.!?…]$/.test(t)) return false;
-      // contém palavra-chave típica de seção
+      if (upperRatio > 0.75 && t.length <= 80 && !/[.!?…]$/.test(t)) return false;
       if (headingKeywords.test(t)) return false;
-      // termina com padrão de duração removida
       if (/\b\d+\s*s\b$/i.test(t)) return false;
       return true;
     })
     .join('\n');
 
-  // 5) Normalizações finais
-  out = out.replace(/[ \t]+/g, ' ') // espaços duplicados
-           .replace(/\n{3,}/g, '\n\n') // muitas quebras de linha
-           .split('\n')
-           .map(l => l.trim())
-           .join('\n')
+  // 9) Normalizações finais
+  out = out.replace(/[ \t]+/g, ' ')
+           .replace(/\s*\n\s*/g, '\n')
+           .replace(/\n{3,}/g, '\n\n')
+           .replace(/[–—]+/g, ' - ')
+           .replace(/\s{2,}/g, ' ')
            .trim();
 
   return out;
+};
+
+// Limita o texto a ~maxSeconds segundos de locução
+const limitToDuration = (input: string, maxSeconds = 40, wordsPerSecond = 2.5): string => {
+  const maxWords = Math.max(10, Math.floor(maxSeconds * wordsPerSecond));
+  const sentences = input
+    .split(/(?<=[.!?…])\s+/)
+    .map(s => s.trim())
+    .filter(Boolean);
+
+  const selected: string[] = [];
+  let total = 0;
+  for (const s of sentences) {
+    const count = s.split(/\s+/).filter(Boolean).length;
+    if (total + count > maxWords) break;
+    selected.push(s);
+    total += count;
+  }
+
+  let result = selected.join(' ');
+  if (!result) {
+    const words = input.split(/\s+/).filter(Boolean).slice(0, maxWords);
+    result = words.join(' ');
+  }
+  if (result.length < input.length) result = result.replace(/[.,!?…]*$/, '') + '...';
+  return result.trim();
 };
 
 export const useAudioGeneration = () => {
@@ -67,10 +102,11 @@ export const useAudioGeneration = () => {
 
     try {
       const cleaned = cleanOffText(text);
-      console.log('🎙️ Gerando áudio (limpo):', { preview: cleaned.substring(0, 80) + '...', mentor, isDisneyMode, alpha: true });
+      const finalText = limitToDuration(cleaned, 40);
+      console.log('🎙️ Gerando áudio (limpo):', { preview: finalText.substring(0, 120) + '...', mentor, isDisneyMode, alpha: true });
 
       const { data, error } = await supabase.functions.invoke('generate-audio', {
-        body: { text: cleaned, mentor, isDisneyMode, useAlpha: true }
+        body: { text: finalText, mentor, isDisneyMode, useAlpha: true }
       });
 
       if (error) {
