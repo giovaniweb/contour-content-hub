@@ -56,9 +56,9 @@ serve(async (req) => {
           text: String(text || '').trim(),
           model_id,
           voice_settings: {
-            stability: 0.5,
-            similarity_boost: 0.85,
-            style: 0.35,
+            stability: 0.35, // mais dinâmico para locução publicitária
+            similarity_boost: 0.9, // aproxima mais do timbre da voz escolhida
+            style: 0.7, // mais expressividade
             use_speaker_boost: true,
           },
         }),

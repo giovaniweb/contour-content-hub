@@ -12,16 +12,47 @@ interface AudioGenerationOptions {
 // Limpa o texto para narração (remove timestamps, marcadores e rótulos padrão)
 const cleanOffText = (input: string): string => {
   if (!input) return '';
-  // Remove timestamps tipo [0-5s]
-  let out = input.replace(/\[\d+\-\d+s\]\s*/g, '');
-  // Remove markdown básico e marcadores no início das linhas
-  out = out.replace(/^#+\s*/gm, '').replace(/^[\s>*\-•]+/gm, '');
-  // Remove rótulos comuns seguidos de ':'
-  out = out.replace(/^\s*(Gancho|A(?:ç|c)ão|Cena(?: \d+)?|CTA|Narrador|OFF|Off|Introdu(?:ç|c)ão|Conclus(?:ã|a)o|Fechamento|Chamada|Transi(?:ç|c)ão|Story\s*\d+|Slide\s*\d+)\s*:\s*/gmi, '');
-  // Normaliza espaços e quebras de linha
-  out = out.replace(/[ \t]+/g, ' ').replace(/\n{3,}/g, '\n\n');
-  // Trim por linha e no final
-  out = out.split('\n').map(l => l.trim()).join('\n').trim();
+  let out = input;
+
+  // 1) Remover preâmbulos típicos ("Claro! Segue o roteiro...", "Aqui está o roteiro...", etc.) no início
+  out = out.replace(/^(?:\s*)?(?:claro!?|segue(?:\s+abaixo)?\s*o?\s*roteiro|aqui\s+(?:está|esta|vai)\s+o\s*roteiro)[^\n]*\n+/i, '');
+
+  // 2) Remover timestamps e durações (ex.: [0-5s] e "- 13s")
+  out = out.replace(/\[\d+(?:-\d+)?s\]\s*/gi, '');
+  out = out.replace(/-\s*\d+\s*s\b/gi, '');
+
+  // 3) Remover marcadores e markdown básico, incluindo ** **
+  out = out.replace(/^#+\s*/gm, '') // títulos markdown
+           .replace(/\*\*/g, '') // negrito markdown
+           .replace(/^[\s>*\-•]+/gm, ''); // marcadores no início da linha
+
+  // 4) Remover linhas que parecem cabeçalhos/seções (ex.: HEADLINE, PROBLEMA, AGITAÇÃO, SOLUÇÃO, PROVA, CTA)
+  const headingKeywords = /(headline|problema|agit[aã]?[cç][aã]o|solu[cç][aã]o|prova\s*social|autoridade|cta|introdu[cç][aã]o|conclus[aã]o|fechamento|chamada|transi[cç][aã]o)/i;
+  out = out
+    .split('\n')
+    .filter(line => {
+      const t = line.trim();
+      if (!t) return false; // remove linhas vazias múltiplas
+      // linha curta, maioria maiúscula e sem pontuação: provavelmente título
+      const letters = t.replace(/[^A-Za-zÀ-ÖØ-öø-ÿ]/g, '');
+      const upperRatio = letters ? (letters.replace(/[^A-ZÀ-Ö]/g, '').length / letters.length) : 0;
+      if (upperRatio > 0.8 && t.length <= 80 && !/[.!?…]$/.test(t)) return false;
+      // contém palavra-chave típica de seção
+      if (headingKeywords.test(t)) return false;
+      // termina com padrão de duração removida
+      if (/\b\d+\s*s\b$/i.test(t)) return false;
+      return true;
+    })
+    .join('\n');
+
+  // 5) Normalizações finais
+  out = out.replace(/[ \t]+/g, ' ') // espaços duplicados
+           .replace(/\n{3,}/g, '\n\n') // muitas quebras de linha
+           .split('\n')
+           .map(l => l.trim())
+           .join('\n')
+           .trim();
+
   return out;
 };
 
