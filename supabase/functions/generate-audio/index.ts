@@ -7,13 +7,14 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Vozes por mentor
-const MENTOR_VOICES = {
-  'criativo': 'alloy',
-  'vendedor': 'echo', 
-  'educativo': 'fable',
-  'disney': 'nova', // Voz encantadora para modo Disney
-  'default': 'alloy'
+// Mapear vozes da ElevenLabs por mentor
+const ELEVEN_VOICES: Record<string, string> = {
+  // IDs oficiais de voz da ElevenLabs
+  criativo: 'XB0fDUnXU5powFXDhCwa', // Charlotte (energética)
+  vendedor: 'CwhRBWXzGAHq8TQ4Fs17', // Roger (convincente)
+  educativo: 'EXAVITQu4vr4xnSDYk0k2', // Sarah (clara/didática)
+  disney: 'Xb7hH8MSUJpSbSDYk0k2', // Alice (encantadora)
+  default: '9BWtsMINqrJLrRacOk9x', // Aria (padrão)
 };
 
 serve(async (req) => {
@@ -28,29 +29,38 @@ serve(async (req) => {
       throw new Error('Texto é obrigatório');
     }
 
+    const apiKey = Deno.env.get('XI_API_KEY');
+    if (!apiKey) {
+      throw new Error('XI_API_KEY não configurada');
+    }
+
     // Selecionar voz baseada no mentor
-    const voice = isDisneyMode ? MENTOR_VOICES.disney : 
-                  MENTOR_VOICES[mentor?.toLowerCase()] || MENTOR_VOICES.default;
+    const voiceId = isDisneyMode
+      ? ELEVEN_VOICES.disney
+      : (ELEVEN_VOICES[mentor?.toLowerCase()] || ELEVEN_VOICES.default);
 
-    console.log(`🎙️ Gerando áudio com voz: ${voice} para mentor: ${mentor}`);
+    console.log(`🎙️ [generate-audio] ElevenLabs: voiceId=${voiceId} mentor=${mentor}`);
 
-    const response = await fetch('https://api.openai.com/v1/audio/speech', {
+    const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${Deno.env.get('OPENAI_API_KEY')}`,
+        'xi-api-key': apiKey,
         'Content-Type': 'application/json',
+        'Accept': 'audio/mpeg',
       },
       body: JSON.stringify({
-        model: 'tts-1',
-        input: text,
-        voice: voice,
-        response_format: 'mp3',
+        text,
+        model_id: 'eleven_multilingual_v2',
+        voice_settings: {
+          stability: 0.5,
+          similarity_boost: 0.8,
+        },
       }),
     });
 
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error?.message || 'Falha ao gerar áudio');
+      const errText = await response.text();
+      throw new Error(errText || 'Falha ao gerar áudio (ElevenLabs)');
     }
 
     const arrayBuffer = await response.arrayBuffer();
@@ -59,16 +69,16 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         audioContent: base64Audio,
-        voice: voice,
-        mentor: mentor 
+        voiceId,
+        mentor,
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       }
     );
 
-  } catch (error) {
-    console.error('Erro na geração de áudio:', error);
+  } catch (error: any) {
+    console.error('Erro na geração de áudio (ElevenLabs):', error);
     return new Response(
       JSON.stringify({ error: error.message }),
       {

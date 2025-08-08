@@ -23,6 +23,9 @@ import {
 } from "lucide-react";
 import { toast } from 'sonner';
 import ImprovedScriptFormatter from './ImprovedScriptFormatter';
+import { useImageGeneration } from '@/hooks/useImageGeneration';
+import { useAudioGeneration } from '@/hooks/useAudioGeneration';
+import { useSaveScript } from '../hooks/useSaveScript';
 
 interface ScientificInsight {
   id: string;
@@ -55,7 +58,29 @@ const ScriptResultsNovo: React.FC<ScriptResultsNovoProps> = ({
   onNewScript,
   onGoBack
 }) => {
-  const [activeResult, setActiveResult] = useState(0);
+const [activeResult, setActiveResult] = useState(0);
+
+  // Hooks de geração e salvamento
+  const { generateImage, isGenerating: isGeneratingImage, generatedImageUrl } = useImageGeneration();
+  const { generateAudio, isGenerating: isGeneratingAudio, audioUrl, downloadAudio } = useAudioGeneration();
+  const { saveScript, isSaving } = useSaveScript();
+
+  const handleGenerateImage = async () => {
+    await generateImage({ roteiro: results[activeResult].content, formato: results[activeResult].format });
+  };
+
+  const handleGenerateAudio = async () => {
+    await generateAudio({ text: results[activeResult].content });
+  };
+
+  const handleApproveAndSave = async () => {
+    await saveScript({
+      content: results[activeResult].content,
+      title: `Roteiro ${results[activeResult].format}`,
+      format: results[activeResult].format,
+      equipment_used: []
+    });
+  };
 
   const handleCopyContent = async (content: string) => {
     try {
@@ -331,32 +356,58 @@ const ScriptResultsNovo: React.FC<ScriptResultsNovoProps> = ({
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3">
+<div className="space-y-3">
                 <Button
                   variant="outline"
                   size="sm"
+                  onClick={handleGenerateImage}
+                  disabled={isGeneratingImage}
                   className="w-full justify-start border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20"
                 >
                   <ImageIcon className="w-4 h-4 mr-2" />
-                  Gerar Imagem com IA
+                  {isGeneratingImage ? "Gerando imagem..." : "Gerar Imagem com IA"}
                 </Button>
+
+                {generatedImageUrl && (
+                  <div className="mt-2">
+                    <img
+                      src={generatedImageUrl}
+                      alt="Imagem gerada por IA para o roteiro"
+                      className="rounded-md border border-emerald-500/20"
+                      loading="lazy"
+                    />
+                  </div>
+                )}
 
                 <Button
                   variant="outline"
                   size="sm"
+                  onClick={handleGenerateAudio}
+                  disabled={isGeneratingAudio}
                   className="w-full justify-start border-blue-500/30 text-blue-400 hover:bg-blue-500/20"
                 >
                   <Volume2 className="w-4 h-4 mr-2" />
-                  Converter para Áudio
+                  {isGeneratingAudio ? "Gerando áudio..." : "Converter para Áudio"}
                 </Button>
+
+                {audioUrl && (
+                  <div className="mt-2 space-y-2">
+                    <audio controls src={audioUrl} className="w-full" />
+                    <Button variant="ghost" size="sm" onClick={() => downloadAudio('roteiro-fluida.mp3')} className="text-blue-300 hover:text-blue-200">
+                      Baixar áudio
+                    </Button>
+                  </div>
+                )}
 
                 <Button
                   variant="outline"
                   size="sm"
+                  onClick={handleApproveAndSave}
+                  disabled={isSaving}
                   className="w-full justify-start border-purple-500/30 text-purple-400 hover:bg-purple-500/20"
                 >
                   <CheckCircle className="w-4 h-4 mr-2" />
-                  Aprovar e Salvar
+                  {isSaving ? "Salvando..." : "Aprovar e Salvar"}
                 </Button>
               </div>
             </CardContent>
