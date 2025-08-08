@@ -17,6 +17,39 @@ const ELEVEN_VOICES: Record<string, string> = {
   default: '9BWtsMINqrJLrRacOk9x', // Aria (padrão)
 };
 
+// Text cleaners and duration limiter for OFF narration
+function cleanOffText(input: string): string {
+  const src = String(input || '');
+  // Remove timestamps like [00:12] or (00:12)
+  let out = src
+    .replace(/\[(?:\d{1,2}:)?\d{1,2}:\d{2}\]/g, ' ')
+    .replace(/\((?:\d{1,2}:)?\d{1,2}:\d{2}\)/g, ' ')
+    // Remove bracketed directions [ ... ]
+    .replace(/\[[^\]]+\]/g, ' ')
+    // Remove stage directions in parentheses
+    .replace(/\([^)]{3,}\)/g, ' ')
+    // Remove markdown headings and bullets
+    .replace(/^#{1,6}\s+/gm, '')
+    .replace(/^\s*[>*\-•–—]\s+/gm, '')
+    // Remove leading labels (OFF:, NARRAÇÃO:, CTA:, etc.)
+    .replace(/^\s*(?:OFF|NARRA(?:Ç|C)ÃO|NARRADOR|APRESENTADOR|CTA|CENA|INTRODU(?:Ç|C)ÃO|FECHAMENTO|CONCLUS(?:Ã|A)O|STORY\s*\d+|SLIDE\s*\d+)\s*[:\-–—]?\s*/gmi, '')
+    // Remove lines that are all caps (likely headings)
+    .replace(/^(?=.{3,}$)([A-ZÁÉÍÓÚÂÊÔÃÕÇ0-9\s%\-–—,:;!?"']+)$\n?/gm, '');
+
+  const lines = out
+    .split(/\r?\n/)
+    .map(l => l.trim())
+    .filter(l => l.length > 0);
+
+  return lines.join(' ').replace(/\s{2,}/g, ' ').trim();
+}
+
+function limitToDuration(input: string, maxSeconds = 40, wordsPerSecond = 2.5): string {
+  const words = String(input || '').split(/\s+/).filter(Boolean);
+  const maxWords = Math.max(1, Math.floor(maxSeconds * wordsPerSecond));
+  return words.slice(0, maxWords).join(' ');
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -37,13 +70,20 @@ serve(async (req) => {
     // Selecionar voz baseada no mentor
     const voiceId = isDisneyMode
       ? ELEVEN_VOICES.disney
-      : (ELEVEN_VOICES[mentor?.toLowerCase()] || ELEVEN_VOICES.default);
+      : (ELEVEN_VOICES[mentor?.toLowerCase?.()] || ELEVEN_VOICES.default);
 
-    // Selecionar modelo (Alpha v3 quando solicitado)
-    const modelIdPreferred = useAlpha ? 'eleven_v3' : 'eleven_multilingual_v2';
-    let modelUsed = modelIdPreferred;
+    // Limpar e limitar o texto para ~40s de locução publicitária
+    const MAX_SECONDS = 40;
+    const WORDS_PER_SECOND = 2.5;
+    const cleanedText = limitToDuration(cleanOffText(String(text || '')), MAX_SECONDS, WORDS_PER_SECOND);
 
-    console.log(`🎙️ [generate-audio] ElevenLabs: voiceId=${voiceId} model=${modelIdPreferred} mentor=${mentor} alpha=${!!useAlpha}`);
+    if (!cleanedText) {
+      throw new Error('Nenhum texto válido encontrado após a limpeza. Forneça apenas o roteiro.');
+    }
+
+    // Forçar uso do Alpha (v3)
+    const modelUsed = 'eleven_v3';
+    console.log(`🎙️ [generate-audio] ElevenLabs: voiceId=${voiceId} model=${modelUsed} mentor=${mentor} disney=${!!isDisneyMode} len=${cleanedText.length}`);
 
     async function requestTTS(model_id: string) {
       return await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
@@ -54,31 +94,23 @@ serve(async (req) => {
           'Accept': 'audio/mpeg',
         },
         body: JSON.stringify({
-          text: String(text || '').trim(),
+          text: cleanedText,
           model_id,
           voice_settings: {
-            stability: 0.35, // mais dinâmico para locução publicitária
-            similarity_boost: 0.9, // aproxima mais do timbre da voz escolhida
-            style: 0.7, // mais expressividade
+            stability: 0.3, // dinâmico para locução publicitária
+            similarity_boost: 0.92, // aproxima o timbre
+            style: 0.95, // mais expressividade
             use_speaker_boost: true,
           },
         }),
       });
     }
 
-    let response = await requestTTS(modelIdPreferred);
-
-    // Fallback automático caso o Alpha não esteja disponível via API na sua conta
-    if (!response.ok && useAlpha) {
-      const errText = await response.text();
-      console.warn(`⚠️ Alpha (v3) falhou, fazendo fallback para v2. Motivo: ${errText}`);
-      response = await requestTTS('eleven_multilingual_v2');
-      modelUsed = 'eleven_multilingual_v2';
-    }
+    const response = await requestTTS(modelUsed);
 
     if (!response.ok) {
       const errText = await response.text();
-      throw new Error(errText || 'Falha ao gerar áudio (ElevenLabs)');
+      throw new Error(`Falha ao gerar áudio com Alpha (v3). Verifique se o Alpha está habilitado na sua conta ElevenLabs e se a chave possui acesso. Detalhes: ${errText}`);
     }
 
     const arrayBuffer = await response.arrayBuffer();

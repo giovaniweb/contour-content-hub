@@ -124,8 +124,8 @@ export const useAudioGeneration = () => {
         toast({
           title: "🎙️ Áudio gerado com sucesso!",
           description: isDisneyMode ? 
-            "Voz encantadora da Fluida criada com magia Disney!" :
-            `Áudio criado com a voz do mentor ${mentor}`,
+            `Voz encantadora da Fluida (modelo: ${data?.modelUsed || 'desconhecido'}).` :
+            `Áudio criado com a voz do mentor ${mentor} (modelo: ${data?.modelUsed || 'desconhecido'}).`,
         });
 
         return url;
@@ -135,7 +135,7 @@ export const useAudioGeneration = () => {
       console.error('Erro ao gerar áudio:', error);
       toast({
         title: "Erro na geração de áudio",
-        description: "Não foi possível gerar o áudio. Tente novamente.",
+        description: (error as any)?.message ? String((error as any).message) : "Não foi possível gerar o áudio. Verifique se o ElevenLabs Alpha (v3) está habilitado e tente novamente.",
         variant: "destructive",
       });
     } finally {
