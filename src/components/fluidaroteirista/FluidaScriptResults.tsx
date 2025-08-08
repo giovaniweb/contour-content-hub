@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { FluidaScriptResult } from "./types";
+import { useSaveScript } from "./hooks/useSaveScript";
 interface FluidaScriptResultsProps {
   results: FluidaScriptResult[];
   onNewScript: () => void;
@@ -29,8 +30,9 @@ const FluidaScriptResults = ({
   const [improvedScript, setImprovedScript] = useState<string | null>(null);
   const [isGeneratingAudio, setIsGeneratingAudio] = useState(false);
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
-
-  // Função para chamar a edge function de melhoria do roteiro
+  const { saveScript, isSaving } = useSaveScript();
+ 
+   // Função para chamar a edge function de melhoria do roteiro
   const handleImproveScript = async () => {
     const roteiroBase = results && results[0] ? results[0].roteiro : "";
     if (!roteiroBase) {
@@ -96,8 +98,21 @@ const FluidaScriptResults = ({
   } : results[0];
 
   // Handlers para rodapé Aurora
-  const handleApprove = () => {
-    if (onApproveScript) onApproveScript();
+  const handleApprove = async () => {
+    const scriptObj: any = roteiroParaExibir as any;
+
+    const equipmentArray: string[] = (scriptObj?.equipamentos_utilizados || scriptObj?.equipment || [])
+      .map((e: any) => (typeof e === 'string' ? e : e?.nome || e?.name))
+      .filter(Boolean);
+
+    const saved = await saveScript({
+      content: scriptObj?.roteiro || "",
+      title: (results[0] as any)?.title || scriptObj?.title || (results[0] as any)?.topic || "Roteiro Aprovado",
+      format: (scriptObj?.formato || (results[0] as any)?.format || "reels").toLowerCase(),
+      equipment_used: equipmentArray,
+    });
+
+    if (saved && onApproveScript) onApproveScript();
   };
   const handleImprove = async () => {
     await handleImproveScript();
