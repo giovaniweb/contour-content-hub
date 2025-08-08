@@ -64,7 +64,14 @@ serve(async (req) => {
     }
 
     const arrayBuffer = await response.arrayBuffer();
-    const base64Audio = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+    // Convert to base64 in chunks to avoid "Maximum call stack size exceeded"
+    const bytes = new Uint8Array(arrayBuffer);
+    const chunkSize = 8192;
+    let binary = '';
+    for (let i = 0; i < bytes.length; i += chunkSize) {
+      binary += String.fromCharCode(...bytes.subarray(i, i + chunkSize));
+    }
+    const base64Audio = btoa(binary);
 
     return new Response(
       JSON.stringify({ 
