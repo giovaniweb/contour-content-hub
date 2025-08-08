@@ -43,6 +43,47 @@ const ImprovedScriptFormatter: React.FC<ImprovedScriptFormatterProps> = ({ scrip
   const [copiedBlock, setCopiedBlock] = useState<number | null>(null);
   const [copiedFull, setCopiedFull] = useState(false);
 
+  // Para REELS, usamos um layout minimalista (sem cards), alinhado ao estilo do site
+  const isReels = (script.formato || '').toLowerCase().includes('reels');
+  const buildMinimalOff = (input: string) => {
+    const src = String(input || '');
+    let out = src
+      // remove timestamps, marcadores e direções
+      .replace(/\[(?:[^\]]+)\]/g, ' ')
+      .replace(/\([^)]{3,}\)/g, ' ')
+      .replace(/^---+$/gm, ' ')
+      .replace(/^#+\s+/gm, ' ')
+      // remove rótulos comuns
+      .replace(/^\s*(?:off|narrador|locu[cç][aã]o|cena|gancho|desenvolvimento|solu[cç][aã]o|cta|transi[cç][aã]o)\s*[:\-–—]?\s*/gmi, '')
+      .replace(/[\t ]+/g, ' ')
+      .replace(/\s*\n\s*/g, '\n')
+      .replace(/\n{3,}/g, '\n\n')
+      .trim();
+
+    const paras = out.split(/\n+/).map(p => p.trim()).filter(Boolean);
+    return paras;
+  };
+
+  if (isReels) {
+    const paragraphs = buildMinimalOff(script.roteiro);
+    return (
+      <section className="space-y-4">
+        <header>
+          <h2 className="text-xl font-semibold tracking-tight text-foreground">OFF para Reels</h2>
+        </header>
+        <article className="text-base leading-relaxed text-foreground/80">
+          {paragraphs.length > 0 ? (
+            paragraphs.map((p, i) => (
+              <p key={i} className="mb-3 last:mb-0">{p}</p>
+            ))
+          ) : (
+            <p>{script.roteiro}</p>
+          )}
+        </article>
+      </section>
+    );
+  }
+
   const parseScriptToBlocks = (roteiro: string): ScriptBlock[] => {
     const blocks: ScriptBlock[] = [];
     

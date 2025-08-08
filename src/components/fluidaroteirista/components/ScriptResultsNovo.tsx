@@ -254,61 +254,111 @@ const [activeResult, setActiveResult] = useState(0);
       >
         {/* Coluna Principal - Roteiro */}
         <div className="lg:col-span-2">
-          <Card className="bg-slate-800/50 border-slate-700 h-full">
-            <CardHeader>
-              <CardTitle className="text-white flex items-center gap-2">
-                <FileText className="w-5 h-5 text-emerald-400" />
-                Roteiro Gerado
-                <Badge variant="secondary" className="ml-auto bg-emerald-500/20 text-emerald-400">
-                  {currentResult.format.toUpperCase()}
-                </Badge>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {/* Usando o novo formatador melhorado */}
-              <ImprovedScriptFormatter 
-                script={{
-                  roteiro: currentResult.content,
-                  formato: currentResult.format,
-                  emocao_central: 'Confiança',
-                  intencao: 'Educar e engajar',
-                  objetivo: 'Informar sobre tratamento',
-                  mentor: 'Especialista'
-                }} 
-              />
-              
-              {/* Ações do Roteiro */}
-              <div className="flex flex-wrap gap-2 pt-4 border-t border-slate-700">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleCopyContent(currentResult.content)}
-                  className="border-slate-600 text-slate-300 hover:bg-slate-700"
-                >
-                  <Copy className="w-4 h-4 mr-2" />
-                  Copiar
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleDownload(currentResult.content, currentResult.format)}
-                  className="border-slate-600 text-slate-300 hover:bg-slate-700"
-                >
-                  <Download className="w-4 h-4 mr-2" />
-                  Baixar
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleShare(currentResult.content)}
-                  className="border-slate-600 text-slate-300 hover:bg-slate-700"
-                >
-                  <Share2 className="w-4 h-4 mr-2" />
-                  Compartilhar
-                </Button>
+          {formatLc.includes('reels') ? (
+            <section className="space-y-6">
+              <header>
+                <h2 className="text-xl font-semibold tracking-tight text-foreground">Roteiro Gerado</h2>
+                <div className="mt-1 text-sm text-muted-foreground">{currentResult.format.toUpperCase()}</div>
+              </header>
+              <div className="space-y-6">
+                <ImprovedScriptFormatter 
+                  script={{
+                    roteiro: currentResult.content,
+                    formato: currentResult.format,
+                    emocao_central: 'Confiança',
+                    intencao: 'Educar e engajar',
+                    objetivo: 'Informar sobre tratamento',
+                    mentor: 'Especialista'
+                  }}
+                />
+                <div className="flex flex-wrap gap-2 pt-4">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleCopyContent(currentResult.content)}
+                    className="text-foreground border-border"
+                  >
+                    <Copy className="w-4 h-4 mr-2" />
+                    Copiar
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleDownload(currentResult.content, currentResult.format)}
+                    className="text-foreground border-border"
+                  >
+                    <Download className="w-4 h-4 mr-2" />
+                    Baixar
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleShare(currentResult.content)}
+                    className="text-foreground border-border"
+                  >
+                    <Share2 className="w-4 h-4 mr-2" />
+                    Compartilhar
+                  </Button>
+                </div>
               </div>
-            </CardContent>
-          </Card>
+            </section>
+          ) : (
+            <Card className="bg-slate-800/50 border-slate-700 h-full">
+              <CardHeader>
+                <CardTitle className="text-white flex items-center gap-2">
+                  <FileText className="w-5 h-5 text-emerald-400" />
+                  Roteiro Gerado
+                  <Badge variant="secondary" className="ml-auto bg-emerald-500/20 text-emerald-400">
+                    {currentResult.format.toUpperCase()}
+                  </Badge>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Usando o novo formatador melhorado */}
+                <ImprovedScriptFormatter 
+                  script={{
+                    roteiro: currentResult.content,
+                    formato: currentResult.format,
+                    emocao_central: 'Confiança',
+                    intencao: 'Educar e engajar',
+                    objetivo: 'Informar sobre tratamento',
+                    mentor: 'Especialista'
+                  }} 
+                />
+                
+                {/* Ações do Roteiro */}
+                <div className="flex flex-wrap gap-2 pt-4 border-t border-slate-700">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleCopyContent(currentResult.content)}
+                    className="border-slate-600 text-slate-300 hover:bg-slate-700"
+                  >
+                    <Copy className="w-4 h-4 mr-2" />
+                    Copiar
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleDownload(currentResult.content, currentResult.format)}
+                    className="border-slate-600 text-slate-300 hover:bg-slate-700"
+                  >
+                    <Download className="w-4 h-4 mr-2" />
+                    Baixar
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleShare(currentResult.content)}
+                    className="border-slate-600 text-slate-300 hover:bg-slate-700"
+                  >
+                    <Share2 className="w-4 h-4 mr-2" />
+                    Compartilhar
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
 
         {/* Coluna Lateral - Informações e Ações */}
