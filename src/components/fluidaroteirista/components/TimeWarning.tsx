@@ -25,9 +25,9 @@ const TimeWarning: React.FC<TimeWarningProps> = ({ isWithinTimeLimit, estimatedT
               <Clock className="h-4 w-4 text-red-400" />
             </div>
             <div>
-              <h3 className="font-semibold text-red-300 text-sm">⚠️ Roteiro excede 60 segundos</h3>
+              <h3 className="font-semibold text-red-300 text-sm">⚠️ Duração fora do ideal (30–45s)</h3>
               <p className="text-xs text-red-400 mt-1">
-                Recomendamos encurtar para melhor engajamento. Tempo atual: {estimatedTime}s | Ideal: 60s
+                Tempo atual: {estimatedTime}s | Ideal: 30–45s
               </p>
             </div>
           </div>

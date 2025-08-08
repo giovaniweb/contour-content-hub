@@ -130,7 +130,7 @@ const ScriptFormatter: React.FC<ScriptFormatterProps> = ({
   };
 
   const estimatedTime = estimateReadingTime(script.roteiro);
-  const isWithinTimeLimit = estimatedTime <= 60;
+  const isWithinTimeLimit = estimatedTime >= 30 && estimatedTime <= 45;
   const wordCount = script.roteiro.split(/\s+/).length;
   const hasEquipments = script.equipamentos_utilizados && script.equipamentos_utilizados.length > 0;
 
@@ -164,6 +164,7 @@ const ScriptFormatter: React.FC<ScriptFormatterProps> = ({
         <section className="space-y-4">
           <header>
             <h2 className="text-xl font-semibold tracking-tight text-foreground">OFF para Reels</h2>
+            <p className="text-sm text-foreground/60 mt-1">Tempo estimado: {estimatedTime}s • Ideal: 30–45s</p>
           </header>
           <article className="text-base leading-relaxed text-foreground/80">
             {paragraphs.length > 0 ? (
