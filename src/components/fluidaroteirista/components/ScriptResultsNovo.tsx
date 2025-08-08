@@ -137,6 +137,9 @@ const [activeResult, setActiveResult] = useState(0);
   }
 
   const currentResult = results[activeResult];
+  const formatLc = (currentResult.format || '').toLowerCase();
+  const canGenerateImage = ['carrossel','carousel','stories','story','artigo','article','blog'].some(k => formatLc.includes(k));
+  const canGenerateAudio = formatLc.includes('reels') || formatLc.includes('reel') || formatLc.includes('vídeo longo') || formatLc.includes('video longo') || formatLc.includes('video_longo') || formatLc.includes('long-form') || formatLc.includes('longform') || formatLc.includes('longo');
 
   return (
     <motion.div
@@ -357,46 +360,54 @@ const [activeResult, setActiveResult] = useState(0);
             </CardHeader>
             <CardContent>
 <div className="space-y-3">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleGenerateImage}
-                  disabled={isGeneratingImage}
-                  className="w-full justify-start border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20"
-                >
-                  <ImageIcon className="w-4 h-4 mr-2" />
-                  {isGeneratingImage ? "Gerando imagem..." : "Gerar Imagem com IA"}
-                </Button>
+                {canGenerateImage && (
+                  <>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleGenerateImage}
+                      disabled={isGeneratingImage}
+                      className="w-full justify-start border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20"
+                    >
+                      <ImageIcon className="w-4 h-4 mr-2" />
+                      {isGeneratingImage ? "Gerando imagem..." : "Gerar Imagem com IA"}
+                    </Button>
 
-                {generatedImageUrl && (
-                  <div className="mt-2">
-                    <img
-                      src={generatedImageUrl}
-                      alt="Imagem gerada por IA para o roteiro"
-                      className="rounded-md border border-emerald-500/20"
-                      loading="lazy"
-                    />
-                  </div>
+                    {generatedImageUrl && (
+                      <div className="mt-2">
+                        <img
+                          src={generatedImageUrl}
+                          alt="Imagem gerada por IA para o roteiro"
+                          className="rounded-md border border-emerald-500/20"
+                          loading="lazy"
+                        />
+                      </div>
+                    )}
+                  </>
                 )}
 
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleGenerateAudio}
-                  disabled={isGeneratingAudio}
-                  className="w-full justify-start border-blue-500/30 text-blue-400 hover:bg-blue-500/20"
-                >
-                  <Volume2 className="w-4 h-4 mr-2" />
-                  {isGeneratingAudio ? "Gerando áudio..." : "Converter para Áudio"}
-                </Button>
-
-                {audioUrl && (
-                  <div className="mt-2 space-y-2">
-                    <audio controls src={audioUrl} className="w-full" />
-                    <Button variant="ghost" size="sm" onClick={() => downloadAudio('roteiro-fluida.mp3')} className="text-blue-300 hover:text-blue-200">
-                      Baixar áudio
+                {canGenerateAudio && (
+                  <>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleGenerateAudio}
+                      disabled={isGeneratingAudio}
+                      className="w-full justify-start border-blue-500/30 text-blue-400 hover:bg-blue-500/20"
+                    >
+                      <Volume2 className="w-4 h-4 mr-2" />
+                      {isGeneratingAudio ? "Gerando áudio..." : "Converter para Áudio"}
                     </Button>
-                  </div>
+
+                    {audioUrl && (
+                      <div className="mt-2 space-y-2">
+                        <audio controls src={audioUrl} className="w-full" />
+                        <Button variant="ghost" size="sm" onClick={() => downloadAudio('roteiro-fluida.mp3')} className="text-blue-300 hover:text-blue-200">
+                          Baixar áudio
+                        </Button>
+                      </div>
+                    )}
+                  </>
                 )}
 
                 <Button
