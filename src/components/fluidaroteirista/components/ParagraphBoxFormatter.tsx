@@ -1,6 +1,5 @@
 
 import React from "react";
-import ScriptSlideCard from "./ScriptSlideCard";
 
 interface ParagraphBlock {
   titulo?: string;
@@ -12,22 +11,31 @@ interface ParagraphBoxFormatterProps {
 }
 
 /**
- * Mostra cada bloco/parágrafo do roteiro em um card separado,
- * com visual idêntico ao slide do carrossel/stories 10x.
+ * Mostra cada bloco/parágrafo do roteiro em um layout minimalista,
+ * alinhado ao estilo geral do site, sem caixas/"cards" chamativos.
  */
 const ParagraphBoxFormatter: React.FC<ParagraphBoxFormatterProps> = ({ blocks }) => {
   return (
-    <div className="w-full max-w-3xl mx-auto flex flex-col gap-7">
+    <section className="w-full max-w-3xl mx-auto space-y-6">
       {blocks.map((block, idx) => (
-        <ScriptSlideCard
-          key={idx}
-          index={idx}
-          total={blocks.length}
-          titulo={block.titulo}
-          conteudo={block.conteudo}
-        />
+        <article key={idx} className="space-y-2">
+          {block.titulo && (
+            <h3 className="text-lg font-semibold text-foreground/90 tracking-tight">
+              {block.titulo}
+            </h3>
+          )}
+          <div className="text-base leading-relaxed text-foreground/80">
+            {block.conteudo
+              .split(/\n+/)
+              .map((paragraph, pIdx) => (
+                <p key={pIdx} className="mb-3 last:mb-0">
+                  {paragraph}
+                </p>
+              ))}
+          </div>
+        </article>
       ))}
-    </div>
+    </section>
   );
 };
 

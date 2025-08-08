@@ -81,9 +81,13 @@ serve(async (req) => {
       throw new Error('Nenhum texto válido encontrado após a limpeza. Forneça apenas o roteiro.');
     }
 
-    // Forçar uso do Alpha (v3)
-    const modelUsed = 'eleven_v3';
-    console.log(`🎙️ [generate-audio] ElevenLabs: voiceId=${voiceId} model=${modelUsed} mentor=${mentor} disney=${!!isDisneyMode} len=${cleanedText.length}`);
+    // Modelo preferido: Alpha (v3), com suporte a fallback para v2 quando sem acesso
+    const preferAlpha = useAlpha !== false;
+    const preferredModel = preferAlpha ? 'eleven_v3' : 'eleven_multilingual_v2';
+    let modelUsed = preferredModel;
+    let fallbackUsed = false;
+
+    console.log(`🎙️ [generate-audio] ElevenLabs request: voiceId=${voiceId} preferredModel=${preferredModel} mentor=${mentor} disney=${!!isDisneyMode} len=${cleanedText.length}`);
 
     async function requestTTS(model_id: string) {
       return await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
@@ -97,20 +101,42 @@ serve(async (req) => {
           text: cleanedText,
           model_id,
           voice_settings: {
-            stability: 0.3, // dinâmico para locução publicitária
-            similarity_boost: 0.92, // aproxima o timbre
-            style: 0.95, // mais expressividade
+            stability: 0.3,
+            similarity_boost: 0.92,
+            style: 0.95,
             use_speaker_boost: true,
           },
         }),
       });
     }
 
-    const response = await requestTTS(modelUsed);
+    // 1) Tenta com o modelo preferido
+    let response = await requestTTS(preferredModel);
 
+    // 2) Se falhar por falta de acesso ao Alpha, faz fallback automático para Multilingual v2
     if (!response.ok) {
       const errText = await response.text();
-      throw new Error(`Falha ao gerar áudio com Alpha (v3). Verifique se o Alpha está habilitado na sua conta ElevenLabs e se a chave possui acesso. Detalhes: ${errText}`);
+      let accessDenied = false;
+      try {
+        const parsed = JSON.parse(errText);
+        const status = parsed?.detail?.status || parsed?.error?.type || parsed?.error?.code;
+        accessDenied = String(status || '').includes('model_access_denied');
+      } catch (_) {
+        accessDenied = errText.includes('model_access_denied') || errText.includes('access denied');
+      }
+
+      if (preferAlpha && accessDenied) {
+        console.warn(`⚠️ [generate-audio] Alpha (v3) sem acesso. Aplicando fallback para eleven_multilingual_v2.`);
+        response = await requestTTS('eleven_multilingual_v2');
+        if (response.ok) {
+          modelUsed = 'eleven_multilingual_v2';
+          fallbackUsed = true;
+        } else {
+          throw new Error(`Falha ao gerar áudio mesmo após fallback. Detalhes: ${errText}`);
+        }
+      } else {
+        throw new Error(`Falha ao gerar áudio (${preferredModel}). Detalhes: ${errText}`);
+      }
     }
 
     const arrayBuffer = await response.arrayBuffer();
@@ -129,6 +155,7 @@ serve(async (req) => {
         voiceId,
         mentor,
         modelUsed,
+        fallbackUsed,
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
