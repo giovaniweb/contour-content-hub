@@ -146,6 +146,38 @@ const ScriptFormatter: React.FC<ScriptFormatterProps> = ({
   const renderScriptContent = () => {
     const formato = (script.formato || "").toLowerCase();
 
+    // REELS: layout minimalista com OFF limpo (sem cards/caixas)
+    if (formato.includes('reels')) {
+      const cleaned = String(script.roteiro || '')
+        .replace(/\[[^\]]+\]/g, ' ')
+        .replace(/\([^)]{3,}\)/g, ' ')
+        .replace(/^---+$/gm, ' ')
+        .replace(/^#+\s+/gm, ' ')
+        .replace(/^\s*(?:off|narrador|locu[cç][aã]o|cena|gancho|desenvolvimento|solu[cç][aã]o|cta|transi[cç][aã]o)\s*[:\-–—]?\s*/gmi, '')
+        .replace(/[\t ]+/g, ' ')
+        .replace(/\s*\n\s*/g, '\n')
+        .replace(/\n{3,}/g, '\n\n')
+        .trim();
+      const paragraphs = cleaned.split(/\n+/).map(p => p.trim()).filter(Boolean);
+
+      return (
+        <section className="space-y-4">
+          <header>
+            <h2 className="text-xl font-semibold tracking-tight text-foreground">OFF para Reels</h2>
+          </header>
+          <article className="text-base leading-relaxed text-foreground/80">
+            {paragraphs.length > 0 ? (
+              paragraphs.map((p, i) => (
+                <p key={i} className="mb-3 last:mb-0">{p}</p>
+              ))
+            ) : (
+              <p>{script.roteiro}</p>
+            )}
+          </article>
+        </section>
+      );
+    }
+
     if (formato === "carrossel") {
       return <CarouselFormatter roteiro={script.roteiro} />;
     }
