@@ -23,7 +23,7 @@ serve(async (req) => {
   }
 
   try {
-    const { text, mentor, isDisneyMode } = await req.json();
+    const { text, mentor, isDisneyMode, useAlpha } = await req.json();
 
     if (!text) {
       throw new Error('Texto é obrigatório');
@@ -39,24 +39,40 @@ serve(async (req) => {
       ? ELEVEN_VOICES.disney
       : (ELEVEN_VOICES[mentor?.toLowerCase()] || ELEVEN_VOICES.default);
 
-    console.log(`🎙️ [generate-audio] ElevenLabs: voiceId=${voiceId} mentor=${mentor}`);
+    // Selecionar modelo (Alpha v3 quando solicitado)
+    const modelIdPreferred = useAlpha ? 'eleven_v3' : 'eleven_multilingual_v2';
 
-    const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
-      method: 'POST',
-      headers: {
-        'xi-api-key': apiKey,
-        'Content-Type': 'application/json',
-        'Accept': 'audio/mpeg',
-      },
-      body: JSON.stringify({
-        text,
-        model_id: 'eleven_multilingual_v2',
-        voice_settings: {
-          stability: 0.5,
-          similarity_boost: 0.8,
+    console.log(`🎙️ [generate-audio] ElevenLabs: voiceId=${voiceId} model=${modelIdPreferred} mentor=${mentor} alpha=${!!useAlpha}`);
+
+    async function requestTTS(model_id: string) {
+      return await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
+        method: 'POST',
+        headers: {
+          'xi-api-key': apiKey,
+          'Content-Type': 'application/json',
+          'Accept': 'audio/mpeg',
         },
-      }),
-    });
+        body: JSON.stringify({
+          text: String(text || '').trim(),
+          model_id,
+          voice_settings: {
+            stability: 0.5,
+            similarity_boost: 0.85,
+            style: 0.35,
+            use_speaker_boost: true,
+          },
+        }),
+      });
+    }
+
+    let response = await requestTTS(modelIdPreferred);
+
+    // Fallback automático caso o Alpha não esteja disponível via API na sua conta
+    if (!response.ok && useAlpha) {
+      const errText = await response.text();
+      console.warn(`⚠️ Alpha (v3) falhou, fazendo fallback para v2. Motivo: ${errText}`);
+      response = await requestTTS('eleven_multilingual_v2');
+    }
 
     if (!response.ok) {
       const errText = await response.text();

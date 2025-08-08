@@ -9,6 +9,22 @@ interface AudioGenerationOptions {
   isDisneyMode?: boolean;
 }
 
+// Limpa o texto para narração (remove timestamps, marcadores e rótulos padrão)
+const cleanOffText = (input: string): string => {
+  if (!input) return '';
+  // Remove timestamps tipo [0-5s]
+  let out = input.replace(/\[\d+\-\d+s\]\s*/g, '');
+  // Remove markdown básico e marcadores no início das linhas
+  out = out.replace(/^#+\s*/gm, '').replace(/^[\s>*\-•]+/gm, '');
+  // Remove rótulos comuns seguidos de ':'
+  out = out.replace(/^\s*(Gancho|A(?:ç|c)ão|Cena(?: \d+)?|CTA|Narrador|OFF|Off|Introdu(?:ç|c)ão|Conclus(?:ã|a)o|Fechamento|Chamada|Transi(?:ç|c)ão|Story\s*\d+|Slide\s*\d+)\s*:\s*/gmi, '');
+  // Normaliza espaços e quebras de linha
+  out = out.replace(/[ \t]+/g, ' ').replace(/\n{3,}/g, '\n\n');
+  // Trim por linha e no final
+  out = out.split('\n').map(l => l.trim()).join('\n').trim();
+  return out;
+};
+
 export const useAudioGeneration = () => {
   const { toast } = useToast();
   const [isGenerating, setIsGenerating] = useState(false);
@@ -19,10 +35,11 @@ export const useAudioGeneration = () => {
     setAudioUrl(null);
 
     try {
-      console.log('🎙️ Gerando áudio:', { text: text.substring(0, 50) + '...', mentor, isDisneyMode });
+      const cleaned = cleanOffText(text);
+      console.log('🎙️ Gerando áudio (limpo):', { preview: cleaned.substring(0, 80) + '...', mentor, isDisneyMode, alpha: true });
 
       const { data, error } = await supabase.functions.invoke('generate-audio', {
-        body: { text, mentor, isDisneyMode }
+        body: { text: cleaned, mentor, isDisneyMode, useAlpha: true }
       });
 
       if (error) {
