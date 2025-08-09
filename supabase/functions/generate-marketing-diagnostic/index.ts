@@ -68,91 +68,145 @@ serve(async (req) => {
       });
     }
 
-    // Criar prompt consolidado seguindo as especificações completas
-    const prompt = createConsolidatedFluidaPrompt(diagnosticData);
-    console.log('📝 Prompt consolidado criado, tamanho:', prompt.length);
+    // Receber tier do modelo e preparar prompts JSON-first
+    const { modelTier = 'standard', ...inputPayload } = diagnosticData || {} as any;
 
-    console.log('🌐 Iniciando chamada OpenAI...');
-    
-    // P2-001: Configurações otimizadas com modelo atualizado
-    const requestBody = {
-      model: 'gpt-4.1-mini-2025-04-14', // Modelo mais eficiente para diagnósticos
-      messages: [
-        { 
-          role: 'system', 
-          content: getConsolidatedSystemPrompt()
-        },
-        { role: 'user', content: prompt }
-      ],
-      temperature: 0.6, // Reduzido para mais consistência
-      max_tokens: 1500  // Reduzido de 4000 para otimizar custos
-    };
+    // Definir constantes de modelos e roteador local (edge function não importa do frontend)
+    type ModelTier = 'standard' | 'gpt5';
+    const GPT5_CORE = 'gpt-5';
+    const GPT5_MINI = 'gpt-5-mini';
+    const G4_1 = 'gpt-4.1';
+    const modelRouter = (tier: ModelTier): string[] => tier === 'gpt5' ? [GPT5_CORE, GPT5_MINI, G4_1] : [G4_1];
 
-    console.log('📦 Request configurado:', { model: requestBody.model, max_tokens: requestBody.max_tokens });
-    
-    // Chamada para OpenAI com timeout controlado de 60s
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => {
-      console.log('⏰ Timeout de 60s atingido');
-      controller.abort();
-    }, 60000);
-    
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${openAIApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      signal: controller.signal,
-      body: JSON.stringify(requestBody),
-    });
+    const BAN_LIST: RegExp[] = [
+      /ladeira\s*copywarrior/gi,
+      /copywarrior/gi,
+      /do\s+jeito\s+ladeira/gi,
+      /metodologia\s+ladeira/gi
+    ];
 
-    clearTimeout(timeoutId);
-    console.log('📡 Status da resposta OpenAI:', response.status);
+    const models = modelRouter(modelTier as ModelTier);
+    const systemPrompt = getStructuredSystemPrompt();
+    const userPrompt = createStructuredPrompt(inputPayload);
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('❌ OpenAI API error:', response.status, errorText);
-      
+    console.log('🧭 Model routing:', { modelTier, models });
+
+    let finalMarkdown = '';
+    let usedModel = '';
+    let totalTokens: number | null = null;
+    let latencyMs = 0;
+    let success = false;
+    let lastError: string | null = null;
+
+    for (const model of models) {
+      const attemptStart = Date.now();
+      try {
+        // 18s timeout por tentativa
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 18000);
+
+        const body = {
+          model,
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userPrompt }
+          ],
+          temperature: 0.6,
+          max_tokens: 1500,
+          response_format: { type: 'json_object' }
+        } as const;
+
+        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${openAIApiKey}`,
+            'Content-Type': 'application/json',
+          },
+          signal: controller.signal,
+          body: JSON.stringify(body),
+        });
+
+        clearTimeout(timeoutId);
+        latencyMs = Date.now() - attemptStart;
+        console.log('📡 OpenAI status:', { model, status: response.status, latencyMs });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          lastError = `OpenAI Error ${response.status}: ${errorText}`;
+          console.warn('⚠️ Tentativa falhou:', lastError);
+          continue;
+        }
+
+        const data = await response.json();
+        totalTokens = data?.usage?.total_tokens ?? null;
+        const content = data?.choices?.[0]?.message?.content;
+        if (!content) {
+          lastError = 'Resposta sem conteúdo';
+          continue;
+        }
+
+        let parsed: any;
+        try {
+          parsed = JSON.parse(content);
+        } catch (e) {
+          lastError = 'JSON inválido na resposta';
+          continue;
+        }
+
+        if (!validateStructuredDiagnostic(parsed)) {
+          lastError = 'Schema inválido (6 seções + plano 4 semanas)';
+          continue;
+        }
+
+        // Sanitizar e renderizar
+        const sanitized = sanitizeStructuredDiagnostic(parsed, BAN_LIST);
+        finalMarkdown = renderMarkdownFromStructured(sanitized);
+        usedModel = model;
+        success = true;
+        break; // sucesso; não tentar próximos modelos
+      } catch (err: any) {
+        latencyMs = Date.now() - attemptStart;
+        lastError = err?.name === 'AbortError' ? 'Timeout (18s) na tentativa' : (err?.message || 'Erro desconhecido');
+        console.warn('⚠️ Erro na tentativa:', { model, lastError });
+        continue;
+      }
+    }
+
+    // Telemetria (não bloquear a resposta em caso de erro)
+    try {
+      await supabase.rpc('update_ai_performance_metrics', {
+        p_service_name: 'generate-marketing-diagnostic',
+        p_success: success,
+        p_response_time_ms: latencyMs,
+        p_tokens_used: totalTokens,
+        p_estimated_cost: null
+      });
+    } catch (e) {
+      console.log('ℹ️ Telemetria falhou silenciosamente:', e?.message || e);
+    }
+
+    if (!success) {
+      console.warn('🔄 Todas as tentativas falharam, retornando fallback:', lastError);
       return new Response(JSON.stringify({ 
         diagnostic: generateFallbackDiagnostic(diagnosticData),
         success: false,
         fallback: true,
-        error: `OpenAI Error ${response.status}: ${errorText}`
+        error: lastError || 'Falha ao gerar diagnóstico'
       }), {
         status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    const data = await response.json();
-    console.log('📄 Resposta OpenAI recebida com sucesso');
-    
-    if (!data.choices || !data.choices[0] || !data.choices[0].message) {
-      console.error('❌ Estrutura de resposta inválida da OpenAI');
-      return new Response(JSON.stringify({ 
-        diagnostic: generateFallbackDiagnostic(diagnosticData),
-        success: false,
-        fallback: true,
-        error: 'Estrutura de resposta inválida'
-      }), {
-        status: 200,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    const diagnosticResult = data.choices[0].message.content;
-    console.log('✅ Diagnóstico gerado com sucesso, tamanho:', diagnosticResult?.length || 0);
-
-    // Validar se o diagnóstico tem a estrutura obrigatória das 6 seções
-    const hasRequiredSections = validateDiagnosticStructure(diagnosticResult);
+    // Validação extra por segurança (estrutura textual)
+    const hasRequiredSections = validateDiagnosticStructure(finalMarkdown);
     if (!hasRequiredSections) {
-      console.warn('⚠️ Diagnóstico não possui estrutura completa, usando fallback');
+      console.warn('⚠️ Markdown final sem as 6 seções, usando fallback');
       return new Response(JSON.stringify({ 
         diagnostic: generateFallbackDiagnostic(diagnosticData),
         success: false,
         fallback: true,
-        error: 'Estrutura incompleta no diagnóstico'
+        error: 'Estrutura incompleta no markdown final'
       }), {
         status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -160,15 +214,17 @@ serve(async (req) => {
     }
 
     return new Response(JSON.stringify({ 
-      diagnostic: diagnosticResult,
+      diagnostic: finalMarkdown,
       success: true,
       timestamp: new Date().toISOString(),
-      model_used: 'gpt-4.1-mini-2025-04-14',
+      model_used: usedModel,
+      model_tier: modelTier,
       clinic_type: diagnosticData.clinicType,
       equipments_validated: await validateEquipments(diagnosticData)
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
+
     
   } catch (error) {
     console.error('💥 Erro geral:', error);
@@ -188,40 +244,133 @@ serve(async (req) => {
   }
 });
 
-function getConsolidatedSystemPrompt(): string {
-  // P2-001: Prompt otimizado (reduzido de ~500 para ~200 tokens)
-  return `CONSULTOR FLUIDA - Diagnósticos para clínicas estéticas/médicas.
-
-ESTRUTURA OBRIGATÓRIA:
-📊 Diagnóstico | 💡 Conteúdo | 📅 Plano 4 Semanas | 🎨 Marca | 🧩 Enigma | 📈 Insights
-
-Linguagem: Médica=técnica, Estética=emocional. Seja conciso e prático.
-
-⚠️ Use EXATAMENTE os títulos com emojis especificados.`;
+function getStructuredSystemPrompt(): string {
+  return `Você é o CONSULTOR FLUIDA para clínicas estéticas/médicas.
+Responda ESTRITAMENTE em JSON (sem markdown, sem comentários), com este esquema:
+{
+  "secoes": [
+    { "titulo": string, "conteudo": string }, // 6 itens, na ordem
+    ...
+  ],
+  "plano4Semanas": [
+    { "semana": 1, "datasRelativas": string, "entregaveis": { "instagram": string[], "tiktok"?: string[], "youtube"?: string[], "blog"?: string[] }, "kpis": string[] },
+    { "semana": 2, ... },
+    { "semana": 3, ... },
+    { "semana": 4, ... }
+  ]
+}
+Títulos obrigatórios (exatos, nesta ordem):
+1) 📊 Diagnóstico Estratégico da Clínica
+2) 💡 Sugestões de Conteúdo Personalizado
+3) 📅 Plano de Ação Semanal
+4) 🎨 Avaliação de Marca e Atendimento
+5) 🧩 Enigma do Mentor
+6) 📈 Insights Estratégicos Fluida`;
 }
 
-function createConsolidatedFluidaPrompt(data: any): string {
-  // P2-001: Prompt otimizado (reduzido de ~300 para ~100 tokens)
-  const tipo = data.clinicType === 'clinica_medica' ? 'MED' : 'EST';
-  const key = tipo === 'MED' ? 'medical' : 'aesthetic';
-  
+function createStructuredPrompt(data: any): string {
+  const tipo = data.clinicType === 'clinica_medica' ? 'MÉDICA' : 'ESTÉTICA';
+  const key = data.clinicType === 'clinica_medica' ? 'medical' : 'aesthetic';
   const especialidade = data[`${key}Specialty`] || data[`${key}Focus`] || 'N/A';
   const equipamentos = data[`${key}Equipments`] || 'N/A';
   const ticket = data[`${key}Ticket`] || 'N/A';
   const objetivo = data[`${key}Objective`] || 'N/A';
-  
-  return `Tipo: ${tipo}
-Esp: ${especialidade}
-Equip: ${equipamentos}
-Ticket: ${ticket}
-Meta: ${data.revenueGoal || 'N/A'}
-Objetivo: ${objetivo}
-Público: ${data.targetAudience || 'N/A'}
-Desafios: ${data.mainChallenges || 'N/A'}
+  const publico = data.targetAudience || 'N/A';
+  const desafios = data.mainChallenges || 'N/A';
+  const metaReceita = data.revenueGoal || 'N/A';
 
-Gere diagnóstico FLUIDA com 6 seções obrigatórias.
-Linguagem: ${tipo === 'MED' ? 'técnico-consultiva' : 'emocional-inspiradora'}.`;
+  return `Contexto:
+Tipo de Clínica: ${tipo}
+Especialidade: ${especialidade}
+Equipamentos: ${equipamentos}
+Ticket Médio: ${ticket}
+Objetivo: ${objetivo}
+Meta de Receita: ${metaReceita}
+Público-Alvo: ${publico}
+Principais Desafios: ${desafios}
+
+Gere as 6 seções (titulo + conteudo) e um plano de 4 semanas com datas relativas, entregáveis por canal e KPIs, no JSON solicitado.`;
 }
+
+function validateStructuredDiagnostic(obj: any): boolean {
+  try {
+    if (!obj || !Array.isArray(obj.secoes) || obj.secoes.length !== 6) return false;
+    for (const s of obj.secoes) {
+      if (!s || typeof s.titulo !== 'string' || typeof s.conteudo !== 'string' || !s.titulo.trim() || !s.conteudo.trim()) return false;
+    }
+    if (!Array.isArray(obj.plano4Semanas) || obj.plano4Semanas.length !== 4) return false;
+    for (let i = 0; i < 4; i++) {
+      const w = obj.plano4Semanas[i];
+      if (!w) return false;
+      if (typeof w.semana !== 'number' || w.semana !== i + 1) return false;
+      if (typeof w.datasRelativas !== 'string' || !w.datasRelativas.trim()) return false;
+      if (typeof w.entregaveis !== 'object' || !w.entregaveis) return false;
+      if (!Array.isArray(w.kpis) || w.kpis.length === 0) return false;
+    }
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function sanitizeStructuredDiagnostic(obj: any, banList: RegExp[]): any {
+  const sanitize = (text: string) => banList.reduce((acc, re) => acc.replace(re, ''), text).replace(/\s{2,}/g, ' ').trim();
+  const clone = JSON.parse(JSON.stringify(obj));
+  clone.secoes = clone.secoes.map((s: any) => ({
+    titulo: sanitize(s.titulo),
+    conteudo: sanitize(s.conteudo)
+  }));
+  clone.plano4Semanas = clone.plano4Semanas.map((w: any) => ({
+    semana: w.semana,
+    datasRelativas: sanitize(w.datasRelativas),
+    entregaveis: Object.fromEntries(Object.entries(w.entregaveis || {}).map(([k, v]: any) => [k, Array.isArray(v) ? v.map((t: string) => sanitize(t)) : v])),
+    kpis: Array.isArray(w.kpis) ? w.kpis.map((t: string) => sanitize(t)) : []
+  }));
+  return clone;
+}
+
+function renderMarkdownFromStructured(obj: any): string {
+  const titles = [
+    '📊 Diagnóstico Estratégico da Clínica',
+    '💡 Sugestões de Conteúdo Personalizado',
+    '📅 Plano de Ação Semanal',
+    '🎨 Avaliação de Marca e Atendimento',
+    '🧩 Enigma do Mentor',
+    '📈 Insights Estratégicos Fluida'
+  ];
+
+  const secoes = obj.secoes as Array<{ titulo: string; conteudo: string }>;
+  const plano = obj.plano4Semanas as Array<{ semana: number; datasRelativas: string; entregaveis: Record<string, string[]>; kpis: string[] }>;
+
+  const s1 = `## ${titles[0]}\n\n${secoes[0].conteudo.trim()}`;
+  const s2 = `## ${titles[1]}\n\n${secoes[1].conteudo.trim()}`;
+
+  const planoLines: string[] = [
+    `## ${titles[2]}`,
+    ''
+  ];
+  for (const w of plano) {
+    planoLines.push(`**Semana ${w.semana} — ${w.datasRelativas}**`);
+    for (const [canal, itens] of Object.entries(w.entregaveis || {})) {
+      if (Array.isArray(itens) && itens.length) {
+        planoLines.push(`- ${canal}:`);
+        itens.forEach((it) => planoLines.push(`  - ${it}`));
+      }
+    }
+    if (Array.isArray(w.kpis) && w.kpis.length) {
+      planoLines.push(`- KPIs:`);
+      w.kpis.forEach((k) => planoLines.push(`  - ${k}`));
+    }
+    planoLines.push('');
+  }
+
+  const s4 = `## ${titles[3]}\n\n${secoes[3].conteudo.trim()}`;
+  const s5 = `## ${titles[4]}\n\n${secoes[4].conteudo.trim()}`;
+  const s6 = `## ${titles[5]}\n\n${secoes[5].conteudo.trim()}`;
+
+  return [s1, s2, planoLines.join('\n'), s4, s5, s6, '\n---\n*Gerado pelo Consultor Fluida*'].join('\n\n');
+}
+
 
 // Função para validar se o diagnóstico tem as 6 seções obrigatórias
 function validateDiagnosticStructure(diagnostic: string): boolean {

@@ -1,10 +1,12 @@
 
 import { supabase } from '@/integrations/supabase/client';
+import { getSelectedModelTier } from '@/types/ai';
 
 export const generateAIDiagnostic = async (diagnosticData: any): Promise<string | null> => {
   try {
+    const modelTier = getSelectedModelTier();
     const { data, error } = await supabase.functions.invoke('generate-marketing-diagnostic', {
-      body: diagnosticData
+      body: { ...diagnosticData, modelTier }
     });
 
     if (error) {

@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { getSelectedModelTier } from '@/types/ai';
 
 export const useAIDiagnostic = () => {
   const [isGenerating, setIsGenerating] = useState(false);
@@ -19,8 +20,9 @@ export const useAIDiagnostic = () => {
         setTimeout(() => reject(new Error('Timeout: A geração está demorando mais que o esperado')), 90000);
       });
       
+      const modelTier = getSelectedModelTier();
       const apiCall = supabase.functions.invoke('generate-marketing-diagnostic', {
-        body: diagnosticData
+        body: { ...diagnosticData, modelTier }
       });
       
       const { data, error } = await Promise.race([apiCall, timeoutPromise]);

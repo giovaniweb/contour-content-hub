@@ -1,6 +1,7 @@
 
 import { MarketingConsultantState } from '../types';
 import { supabase } from '@/integrations/supabase/client';
+import { getSelectedModelTier } from '@/types/ai';
 
 export const generateMarketingDiagnostic = async (state: MarketingConsultantState): Promise<string> => {
   try {
@@ -10,8 +11,10 @@ export const generateMarketingDiagnostic = async (state: MarketingConsultantStat
       stateKeys: Object.keys(state)
     });
 
+    const modelTier = getSelectedModelTier();
+
     const { data, error } = await supabase.functions.invoke('generate-marketing-diagnostic', {
-      body: state
+      body: { ...state, modelTier }
     });
 
     console.log('📡 Resposta da edge function:', { data, error });

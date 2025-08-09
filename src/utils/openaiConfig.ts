@@ -35,3 +35,22 @@ export const validateOpenAIConfig = (): boolean => {
     return true;
   }
 };
+
+// GPT-5 Mode constants and routing
+export const GPT5_CORE = 'gpt-5';
+export const GPT5_MINI = 'gpt-5-mini';
+export const G4_1 = 'gpt-4.1';
+
+export const BAN_LIST = [
+  /ladeira\s*copywarrior/gi,
+  /copywarrior/gi,
+  /do\s+jeito\s+ladeira/gi,
+  /metodologia\s+ladeira/gi
+];
+
+export type { ModelTier } from '@/types/ai';
+
+export const modelRouter = (tier: import('@/types/ai').ModelTier): string[] => {
+  if (tier === 'gpt5') return [GPT5_CORE, GPT5_MINI, G4_1];
+  return [G4_1];
+};
