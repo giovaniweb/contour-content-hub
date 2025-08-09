@@ -60,7 +60,8 @@ export const parseCarouselSlides = (roteiro: string) => {
     // Detecta múltiplos formatos de slide:
     // 1. "Slide: Titulo" ou "Slide X: Titulo" 
     // 2. "**Slide X: Titulo**"
-    const slideMatch = bloco.match(/^(?:\*\*)?Slide\s*:?\s*(\d+)?\s*:?\s*([^\n*]*?)(?:\*\*)?/i);
+    // 3. "**Slide X – Titulo**" ou "**Slide X - Titulo**"
+    const slideMatch = bloco.match(/^(?:\*\*)?Slide\s*:?\s*(\d+)?\s*[:\-–]?\s*([^\n*]*?)(?:\*\*)?/i);
     let corpo = bloco;
     if (slideMatch) {
       title = (slideMatch[2] || '').trim();
@@ -69,12 +70,19 @@ export const parseCarouselSlides = (roteiro: string) => {
       corpo = corpo.replace(/^\*\*/g, '').replace(/\*\*$/g, '');
     }
 
-    // Se título ficou vazio, pega linha antes do 1º marcador
+    // Se título ficou vazio, pega linha antes do 1º marcador OU primeira linha do corpo
     if (!title) {
       const marcadorIdx = corpo.search(/Texto:|Imagem:/i);
       if (marcadorIdx > 0) {
         title = corpo.slice(0, marcadorIdx).split("\n")[0].trim();
         corpo = corpo.slice(marcadorIdx).trim();
+      } else {
+        // Se não tem marcadores "Texto:" e "Imagem:", pega primeira linha como título
+        const linhas = corpo.split('\n').filter(l => l.trim());
+        if (linhas.length > 0) {
+          title = linhas[0].trim();
+          corpo = linhas.slice(1).join('\n').trim();
+        }
       }
     }
 
@@ -103,6 +111,11 @@ export const parseCarouselSlides = (roteiro: string) => {
     if (!imagem) {
       const iMatch = corpo.match(/Imagem:\s*([\s\S]*?)(?=\n|Texto:|$)/i);
       if (iMatch && iMatch[1]) imagem = iMatch[1].trim();
+    }
+
+    // Se não encontrou marcadores, usa o corpo todo como texto
+    if (!texto && !imagem && corpo) {
+      texto = corpo.trim();
     }
 
     // Se título virou vazio, usa default
@@ -141,18 +154,27 @@ export const parseCarouselSlides = (roteiro: string) => {
   // Divide por diferentes padrões de slide
   let blocos: string[] = [];
   
-  // Tenta primeiro o novo formato: **Slide X: Título**
-  const newFormatBlocks = processedRoteiro.split(/(?=\*\*Slide\s*\d+:)/gi)
+  // Tenta primeiro o novo formato: **Slide X –** ou **Slide X -**
+  const newFormatBlocks = processedRoteiro.split(/(?=\*\*Slide\s*\d+\s*[–-])/gi)
     .map(b => b.trim())
     .filter(Boolean);
     
   if (newFormatBlocks.length > 1) {
     blocos = newFormatBlocks;
   } else {
-    // Fallback para formato antigo: Slide X:
-    blocos = processedRoteiro.split(/(?=Slide\s*\d*:)/gi)
+    // Fallback para formato com dois pontos: **Slide X:**
+    const colonFormatBlocks = processedRoteiro.split(/(?=\*\*Slide\s*\d+:)/gi)
       .map(b => b.trim())
       .filter(Boolean);
+      
+    if (colonFormatBlocks.length > 1) {
+      blocos = colonFormatBlocks;
+    } else {
+      // Último fallback para formato antigo: Slide X:
+      blocos = processedRoteiro.split(/(?=Slide\s*\d*:)/gi)
+        .map(b => b.trim())
+        .filter(Boolean);
+    }
   }
   
   blocos = blocos.slice(0, 5);

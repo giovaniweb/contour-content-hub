@@ -26,7 +26,7 @@ const CarouselFormatter: React.FC<CarouselFormatterProps> = ({
   const equipment_used: string[] = [];
   const [isImproving, setIsImproving] = useState(false);
   const [isGeneratingImg, setIsGeneratingImg] = useState(false);
-  const [isGeneratingAudio, setIsGeneratingAudio] = useState(false);
+  
   const [isApproved, setIsApproved] = useState(false);
 
   // Calcula tempo total baseado no conteúdo real dos slides
@@ -63,14 +63,6 @@ const CarouselFormatter: React.FC<CarouselFormatterProps> = ({
     setTimeout(() => {
       toast.success("Imagem gerada!");
       setIsGeneratingImg(false);
-    }, 2000);
-  };
-  const handleGenerateAudio = async () => {
-    setIsGeneratingAudio(true);
-    toast("Gerando áudio (simulado)...");
-    setTimeout(() => {
-      toast.success("Áudio gerado!");
-      setIsGeneratingAudio(false);
     }, 2000);
   };
   if (slides.length === 0) {
