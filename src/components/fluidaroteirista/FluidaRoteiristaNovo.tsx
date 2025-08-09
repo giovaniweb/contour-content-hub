@@ -130,6 +130,8 @@ const FluidaRoteiristaNovo: React.FC<FluidaRoteiristANovoProps> = ({
     }
   };
 
+  const isSidebarVisible = (showScientificInsights || currentStep === 'results');
+
   return (
     <div className="p-0">
       <div className="max-w-7xl mx-auto">
@@ -182,32 +184,34 @@ const FluidaRoteiristaNovo: React.FC<FluidaRoteiristANovoProps> = ({
         </motion.div>
 
         {/* Main content area */}
-        <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
+        <div className={`grid gap-6 ${isSidebarVisible ? 'grid-cols-1 xl:grid-cols-4' : 'grid-cols-1'}`}>
           {/* Main content */}
-          <div className="xl:col-span-3">
+          <div className={`${isSidebarVisible ? 'xl:col-span-3' : ''} max-w-4xl mx-auto w-full`}>
             <AnimatePresence mode="wait">
               {renderStepContent()}
             </AnimatePresence>
           </div>
 
           {/* Scientific insights sidebar */}
-          <div className="xl:col-span-1">
-            <AnimatePresence>
-              {(showScientificInsights || currentStep === 'results') && (
-                <motion.div
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 20 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <RealScientificInsightsPanel
-                    insights={scientificInsights}
-                    isLoading={isGenerating}
-                  />
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
+          {isSidebarVisible && (
+            <div className="xl:col-span-1">
+              <AnimatePresence>
+                {(showScientificInsights || currentStep === 'results') && (
+                  <motion.div
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 20 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <RealScientificInsightsPanel
+                      insights={scientificInsights}
+                      isLoading={isGenerating}
+                    />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          )}
         </div>
 
         {/* Error handling */}
