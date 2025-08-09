@@ -32,8 +32,10 @@ const cleanOffText = (input: string): string => {
            .replace(/\*\*/g, '') // negrito markdown
            .replace(/^[\s>*\-•]+/gm, ''); // marcadores no início da linha
 
-  // 6) Remover rótulos no início da linha (Narrador:, OFF:, CTA:, Story 1:, etc.)
-  out = out.replace(/^\s*(?:gancho|a(?:ç|c)ão|cena(?: \d+)?|cta|narrador|off|introdu(?:ç|c)ão|conclus(?:ã|a)o|fechamento|chamada|transi(?:ç|c)ão|story\s*\d+|slide\s*\d+)\s*:\s*/gmi, '');
+  // 6) Remover rótulos no início da linha MAS preservar CTA importantes
+  out = out.replace(/^\s*(?:gancho|a(?:ç|c)ão|cena(?: \d+)?|narrador|off|introdu(?:ç|c)ão|conclus(?:ã|a)o|fechamento|chamada|transi(?:ç|c)ão|story\s*\d+|slide\s*\d+)\s*:\s*/gmi, '');
+  // CTA é preservado mas remove apenas o rótulo "CTA:"
+  out = out.replace(/^CTA\s*:\s*/gmi, '');
 
   // 7) Remover emojis/decorações
   out = out.replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}\u200d]+/gu, '');

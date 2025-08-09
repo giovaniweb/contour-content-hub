@@ -57,12 +57,16 @@ export const parseCarouselSlides = (roteiro: string) => {
     let imagem = "";
 
     // Primeira linha é título SE não houver marcador ("Texto:"/"Imagem:") nela
-    // Detecta "Slide: Titulo" ou "Slide X: Titulo" como título
-    const slideMatch = bloco.match(/^Slide\s*:?\s*(\d+)?\s*:?\s*([^\n]*)/i);
+    // Detecta múltiplos formatos de slide:
+    // 1. "Slide: Titulo" ou "Slide X: Titulo" 
+    // 2. "**Slide X: Titulo**"
+    const slideMatch = bloco.match(/^(?:\*\*)?Slide\s*:?\s*(\d+)?\s*:?\s*([^\n*]*?)(?:\*\*)?/i);
     let corpo = bloco;
     if (slideMatch) {
       title = (slideMatch[2] || '').trim();
       corpo = corpo.replace(slideMatch[0], "").trim();
+      // Remove markdown extra se existir
+      corpo = corpo.replace(/^\*\*/g, '').replace(/\*\*$/g, '');
     }
 
     // Se título ficou vazio, pega linha antes do 1º marcador
@@ -124,12 +128,34 @@ export const parseCarouselSlides = (roteiro: string) => {
   }
 
   // --- Divisão de blocos PRINCIPAL corrigida ---
-  // Divide por "Slide X:" (sempre lookahead) mas aceita Slide X: {...}, ou Slide X: <titulo>
-  const blocos: string[] = roteiro
-    .split(/(?=Slide\s*\d*:)/gi)
+  // Suporte para múltiplos formatos de carrossel:
+  // 1. "Slide X:" (padrão antigo)
+  // 2. "**Slide X: Título**" (novo formato sendo usado)
+  // 3. "**ROTEIRO CARROSSEL**\n**Slide X: Título**"
+  
+  let processedRoteiro = roteiro;
+  
+  // Remove cabeçalho se existir
+  processedRoteiro = processedRoteiro.replace(/^\*\*ROTEIRO\s+CARROSSEL\*\*\s*\n?/i, '');
+  
+  // Divide por diferentes padrões de slide
+  let blocos: string[] = [];
+  
+  // Tenta primeiro o novo formato: **Slide X: Título**
+  const newFormatBlocks = processedRoteiro.split(/(?=\*\*Slide\s*\d+:)/gi)
     .map(b => b.trim())
-    .filter(Boolean)
-    .slice(0, 5);
+    .filter(Boolean);
+    
+  if (newFormatBlocks.length > 1) {
+    blocos = newFormatBlocks;
+  } else {
+    // Fallback para formato antigo: Slide X:
+    blocos = processedRoteiro.split(/(?=Slide\s*\d*:)/gi)
+      .map(b => b.trim())
+      .filter(Boolean);
+  }
+  
+  blocos = blocos.slice(0, 5);
 
   // Processa cada bloco de slide (até 5)
   const slides: { number: number; title: string; texto: string; imagem: string }[] = blocos.map((bloco, idx) => extractFromBlock(bloco, idx));

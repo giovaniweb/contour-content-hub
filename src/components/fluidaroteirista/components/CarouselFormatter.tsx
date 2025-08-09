@@ -4,12 +4,13 @@ import { parseCarouselSlides } from '../utils/carouselParser';
 import CarouselSlideCard from './CarouselSlideCard';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Images, Instagram, Sparkles, Save, Loader2, Wand2 } from 'lucide-react';
+import { Images, Instagram, Sparkles, Save, Loader2, Wand2, Clock } from 'lucide-react';
 import CarouselSequencePreview from './CarouselSequencePreview';
 import { useSaveScript } from "../hooks/useSaveScript";
 import { toast } from "sonner";
 import { useState } from "react";
 import { sanitizeText } from '@/utils/textSanitizer';
+import { calculateContentTime } from '@/utils/timeCalculator';
 interface CarouselFormatterProps {
   roteiro: string;
 }
@@ -27,6 +28,10 @@ const CarouselFormatter: React.FC<CarouselFormatterProps> = ({
   const [isGeneratingImg, setIsGeneratingImg] = useState(false);
   const [isGeneratingAudio, setIsGeneratingAudio] = useState(false);
   const [isApproved, setIsApproved] = useState(false);
+
+  // Calcula tempo total baseado no conteúdo real dos slides
+  const totalContent = slides.map(s => s.texto).join(' ');
+  const timeInfo = calculateContentTime(totalContent);
   const handleSave = async () => {
     await saveScript({
       content: roteiro,
@@ -96,8 +101,14 @@ const CarouselFormatter: React.FC<CarouselFormatterProps> = ({
         }))} />
         </div>
         <div className="flex items-center justify-center gap-2 mt-2">
-          <Badge variant="outline" className="bg-aurora-electric-purple/20 text-aurora-electric-purple border-aurora-electric-purple/30">{slides.length} Slides</Badge>
-          <span className="text-xs text-aurora-neon-blue">Arraste ou deslize →</span>
+          <Badge variant="outline" className="bg-aurora-electric-purple/20 text-aurora-electric-purple border-aurora-electric-purple/30">
+            {slides.length} Slides
+          </Badge>
+          <Badge variant="outline" className={`${timeInfo.isOverLimit ? 'bg-aurora-pink/20 text-aurora-pink border-aurora-pink/30' : 'bg-aurora-emerald/20 text-aurora-emerald border-aurora-emerald/30'}`}>
+            <Clock className="w-3 h-3 mr-1" />
+            {timeInfo.displayTime}
+          </Badge>
+          <span className="text-xs text-aurora-neon-blue">📱 Deslize para navegar →</span>
         </div>
       </motion.div>
 
@@ -164,10 +175,10 @@ const CarouselFormatter: React.FC<CarouselFormatterProps> = ({
             <button
               onClick={handleGenerateImage}
               disabled={isGeneratingImg}
-              className="flex items-center gap-2 px-6 py-3 bg-aurora-emerald/10 text-aurora-emerald border border-aurora-emerald/20 rounded-xl font-medium hover:bg-aurora-emerald/20 hover:scale-105 transition-all duration-200"
+              className="flex items-center gap-2 px-6 py-3 bg-aurora-emerald/10 text-aurora-emerald border border-aurora-emerald/20 rounded-xl font-medium hover:bg-aurora-emerald/20 hover:scale-105 transition-all duration-200 aurora-button-enhanced"
             >
-              {isGeneratingImg ? <Loader2 className="w-4 h-4 animate-spin" /> : <span className="text-lg">🎨</span>}
-              Gerar imagem
+              {isGeneratingImg ? <Loader2 className="w-4 h-4 animate-spin" /> : <Images className="w-4 h-4" />}
+              Gerar {slides.length} Imagens
             </button>
 
           </>

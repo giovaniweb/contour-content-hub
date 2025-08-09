@@ -2,6 +2,16 @@ export function sanitizeText(input: string): string {
   if (!input) return input;
   let out = String(input);
 
+  // Remove markdown básico preservando conteúdo
+  out = out.replace(/\*\*(.*?)\*\*/g, '$1'); // Remove negrito
+  out = out.replace(/\*(.*?)\*/g, '$1'); // Remove itálico
+  out = out.replace(/^#+\s*/gm, ''); // Remove títulos markdown
+  out = out.replace(/^[\s>*\-•]+/gm, ''); // Remove marcadores
+
+  // Remove divisores visuais
+  out = out.replace(/^[-=_]{3,}$/gm, ''); // Remove linhas separadoras
+  out = out.replace(/\|/g, ''); // Remove pipes
+
   // Padrões proibidos (variações e case-insensitive)
   const patterns: RegExp[] = [
     /do\s+jeito\s+ladeira/gi,

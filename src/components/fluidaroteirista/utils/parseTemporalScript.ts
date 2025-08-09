@@ -12,6 +12,9 @@ export interface TemporalScriptBlockData {
 export function parseTemporalScript(roteiro: string): TemporalScriptBlockData[] {
   if (!roteiro) return [];
 
+  // Importa o calculador de tempo para usar tempo real quando necessário
+  const { calculateContentTime } = require('@/utils/timeCalculator');
+
   // Primeiro, tenta formato antigo: **[TIPO - tempo]**
   const oldFormatRegex = /\*\*\[([^\]]+)\s*-\s*(\d+s?)\]\*\*\s*([^*]+?)(?=\*\*\[|$)/g;
   const oldFormatBlocks: TemporalScriptBlockData[] = [];
@@ -21,8 +24,16 @@ export function parseTemporalScript(roteiro: string): TemporalScriptBlockData[] 
     const label = oldMatch[1]?.trim() || "";
     const time = oldMatch[2]?.trim() || "";
     const content = oldMatch[3]?.trim() || "";
+    
+    // Se o tempo for mocado (muito genérico), calcula o tempo real
+    let finalTime = time;
+    if (!time || time === "5s" || time === "10s") {
+      const timeInfo = calculateContentTime(content);
+      finalTime = timeInfo.displayTime;
+    }
+    
     oldFormatBlocks.push({
-      time,
+      time: finalTime,
       label,
       content,
     });
@@ -41,8 +52,16 @@ export function parseTemporalScript(roteiro: string): TemporalScriptBlockData[] 
     const time = match[1]?.trim() || "";
     const rawLabel = match[2]?.trim();
     const content = match[3]?.trim() || "";
+    
+    // Calcula tempo real baseado no conteúdo se necessário
+    let finalTime = time;
+    if (!time) {
+      const timeInfo = calculateContentTime(content);
+      finalTime = timeInfo.displayTime;
+    }
+    
     blocks.push({
-      time,
+      time: finalTime,
       label: rawLabel || undefined,
       content,
     });
