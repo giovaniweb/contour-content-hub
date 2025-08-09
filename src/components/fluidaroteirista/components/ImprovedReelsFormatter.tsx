@@ -223,81 +223,91 @@ const ImprovedReelsFormatter: React.FC<ImprovedReelsFormatterProps> = ({
   const formatLongText = (text: string): string[] => {
     if (!text) return [];
 
-    // 1) Normaliza separadores comuns em quebras de linha
-    let pre = text
-      .replace(/\r\n?/g, "\n") // normaliza CRLF
-      .replace(/\s*[\u2022•·]\s*/g, "\n• ") // bullets
-      .replace(/\s*(?:—|–)\s*/g, "\n") // em/en dash como separador
-      .replace(/\s*-{2,}\s*/g, "\n") // múltiplos hifens
-      .replace(/\s*\*\*\s*/g, "\n") // ** como divisor
-      .replace(/(^|\s)(?:\*|\-|•)\s+/gm, "\n$&"); // força quebra antes de bullets
-
-    // 2) Insere quebras antes de rótulos comuns seguidos de : - – —
-    pre = pre.replace(
-      /(?:^|\s)(gancho|intro|introdução|desenvolvimento|solução|cta|transição|exemplo|benefício|prova|oferta|urgência|conclusão|fechamento|off|narrador|locução|cena|tema|apresentação)\s*[:\-–—]/gmi,
-      "\n$1:"
-    );
-
-    // 3) Remove formatação excessiva e limpa espaços
-    const cleaned = pre
-      .replace(/\[[^\]]+\]/g, " ")
-      .replace(/\([^)]{3,}\)/g, " ")
-      .replace(/^---+$/gm, " ")
-      .replace(/^#+\s+/gm, " ")
-      .replace(/^\s*(?:off|narrador|locução|cena|gancho|desenvolvimento|solução|cta|transição)\s*[:\-–—]?\s*/gmi, "")
-      .replace(/[\t ]+/g, " ")
-      .replace(/\s*\n\s*/g, "\n")
-      .replace(/\n{3,}/g, "\n\n")
-      .trim();
-
-    // 4) Se já tem quebras naturais, usa-as
-    if (cleaned.includes("\n")) {
-      return cleaned.split(/\n+/).map((p) => p.trim()).filter(Boolean);
-    }
-
-    // 5) Trata ":" como fim de sentença quando seguido de maiúscula
-    const tmp = cleaned.replace(/:\s+(?=[A-ZÀ-Ý])/g, ". ");
-
-    // 6) Separa por sentenças (Unicode/reticências incluídas)
-    const sentenceRegex = /[^.!?…]+[.!?…]?/g;
-    const sentences = tmp.match(sentenceRegex)?.map((s) => s.trim()).filter(Boolean) || [tmp];
-
-    // 7) Agrupa em parágrafos até ~40 palavras por bloco (1–2+ sentenças)
-    const paragraphs: string[] = [];
-    let current = "";
-    let wordCount = 0;
-    const maxWords = 40;
-
-    const flush = () => {
-      if (current.trim()) paragraphs.push(current.trim());
-      current = "";
-      wordCount = 0;
+    // Detecta pontos de quebra semântica específicos
+    const addSemanticBreaks = (content: string): string => {
+      return content
+        // Quebra OBRIGATÓRIA após perguntas retóricas
+        .replace(/([.!?])\s*(?=[A-ZÀ-Ý])/g, "$1\n")
+        .replace(/(\?)\s+/g, "$1\n\n")
+        
+        // Quebra antes de estatísticas e dados numéricos
+        .replace(/\s+(\d+%)/g, "\n\n$1")
+        .replace(/\s+(segundo|de acordo|pesquisa|estudo)/gi, "\n\n$1")
+        
+        // Quebra antes de CTAs claros
+        .replace(/\s+(clique|acesse|baixe|inscreva|siga|compartilhe|comenta|vem|vamos|faça|teste)/gi, "\n\n$1")
+        
+        // Quebra antes de palavras de urgência
+        .replace(/\s+(hoje|agora|últimas|apenas|limitado|restam|rápido)/gi, "\n\n$1")
+        
+        // Quebra antes de introdução de soluções/produtos
+        .replace(/\s+(apresent|conheç|descubr|experiment|test)/gi, "\n\n$1")
+        
+        // Quebra antes de benefícios claros
+        .replace(/\s+(benefício|vantagem|resultado|melhora|transforma|consegue|alcança)/gi, "\n\n$1");
     };
 
-    for (const s of sentences) {
-      const w = s.split(/\s+/).filter(Boolean).length;
-      if (wordCount + w > maxWords && current) {
-        flush();
-      }
-      current += (current ? " " : "") + s;
-      wordCount += w;
-    }
-    if (current) flush();
+    // Aplica quebras semânticas primeiro
+    let processedText = addSemanticBreaks(text);
 
-    // 8) Fallback: se ainda ficou 1 bloco muito longo, quebra por 35 palavras
-    if (paragraphs.length <= 1) {
-      const words = cleaned.split(/\s+/).filter(Boolean);
-      if (words.length > 55) {
-        const chunks: string[] = [];
-        for (let i = 0; i < words.length; i += 35) {
-          const part = words.slice(i, i + 35).join(" ");
-          chunks.push(/[.!?…]$/.test(part) ? part : part + ".");
-        }
-        return chunks;
-      }
+    // Remove formatação excessiva
+    processedText = processedText
+      .replace(/\[[^\]]+\]/g, " ")
+      .replace(/\([^)]{3,}\)/g, " ")
+      .replace(/[\t ]+/g, " ")
+      .trim();
+
+    // Se tem quebras, divide por elas
+    if (processedText.includes("\n")) {
+      const parts = processedText
+        .split(/\n+/)
+        .map(p => p.trim())
+        .filter(Boolean)
+        .filter(p => p.length > 10); // Remove fragmentos muito pequenos
+      
+      if (parts.length > 1) return parts;
     }
 
-    return paragraphs.length > 0 ? paragraphs : [cleaned];
+    // FALLBACK AGRESSIVO: força quebra por contexto para textos de vendas
+    const forceSemanticBreak = (content: string): string[] => {
+      // Padrões específicos para texto de celulite
+      const breakPatterns = [
+        /([?!.])\s*(?=E se eu te dissesse)/i,
+        /([?!.])\s*(?=Segundo)/i, 
+        /([?!.])\s*(?=Apresento)/i,
+        /([?!.])\s*(?=Com o)/i,
+        /([?!.])\s*(?=Clique)/i,
+        /([?!.])\s*(?=Hoje)/i,
+        /([?!.])\s*(?=\d+%)/,
+        /(conhece[^.!?]*[.!?])\s*/i,
+        /(isso mesmo[^.!?]*[.!?])\s*/i,
+        /(pesquisa[^.!?]*[.!?])\s*/i
+      ];
+
+      let result = content;
+      breakPatterns.forEach(pattern => {
+        result = result.replace(pattern, "$1\n\n");
+      });
+
+      return result.split(/\n+/).map(p => p.trim()).filter(Boolean);
+    };
+
+    const semanticParts = forceSemanticBreak(processedText);
+    if (semanticParts.length > 1) return semanticParts;
+
+    // Última tentativa: quebra por sentenças e agrupa máximo 2 por bloco
+    const sentences = processedText.match(/[^.!?]+[.!?]?/g)?.filter(Boolean) || [processedText];
+    
+    if (sentences.length > 3) {
+      const chunks: string[] = [];
+      for (let i = 0; i < sentences.length; i += 2) {
+        const chunk = sentences.slice(i, i + 2).join(" ").trim();
+        chunks.push(chunk);
+      }
+      return chunks;
+    }
+
+    return [processedText];
   };
   const estimateBlockTime = (text: string): number => {
     const words = text.trim().split(/\s+/).filter(Boolean).length;
