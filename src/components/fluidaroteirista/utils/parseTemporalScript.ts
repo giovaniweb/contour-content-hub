@@ -1,4 +1,6 @@
 
+import { calculateContentTime } from '@/utils/timeCalculator';
+
 /**
  * Parser simples para roteiros temporais (ex: Reels, Stories) FluidaRoteirista
  * Separa cada bloco do tipo: [0-5s] Gancho: texto
@@ -11,9 +13,6 @@ export interface TemporalScriptBlockData {
 
 export function parseTemporalScript(roteiro: string): TemporalScriptBlockData[] {
   if (!roteiro) return [];
-
-  // Importa o calculador de tempo para usar tempo real quando necessário
-  const { calculateContentTime } = require('@/utils/timeCalculator');
 
   // Primeiro, tenta formato antigo: **[TIPO - tempo]**
   const oldFormatRegex = /\*\*\[([^\]]+)\s*-\s*(\d+s?)\]\*\*\s*([^*]+?)(?=\*\*\[|$)/g;
