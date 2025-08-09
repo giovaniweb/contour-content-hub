@@ -3,11 +3,19 @@ import { motion } from 'framer-motion';
 import { parseTemporalScript, TemporalScriptBlockData } from '../utils/parseTemporalScript';
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { Clock, Video, Sparkles } from 'lucide-react';
+import { Clock, Video, Sparkles, Target, Zap, Flame, Lightbulb, BarChart3, HelpCircle, Users, AlertTriangle, TrendingUp, Eye } from 'lucide-react';
 
 interface ImprovedReelsFormatterProps {
   roteiro: string;
   estimatedTime?: number;
+}
+
+interface ContentType {
+  type: string;
+  icon: React.ComponentType<any>;
+  color: string;
+  bgColor: string;
+  borderColor: string;
 }
 
 const ImprovedReelsFormatter: React.FC<ImprovedReelsFormatterProps> = ({ 
@@ -20,6 +28,197 @@ const ImprovedReelsFormatter: React.FC<ImprovedReelsFormatterProps> = ({
   // Se não encontrou blocos temporais válidos, força quebra em parágrafos
   const useTemporalFormat = temporalBlocks.length > 1 || 
     (temporalBlocks.length === 1 && temporalBlocks[0].time !== "");
+
+  // Detecta tipo de conteúdo baseado no texto
+  const detectContentType = (text: string): ContentType => {
+    const lower = text.toLowerCase();
+    
+    // Gancho/Hook - primeira impressão que chama atenção
+    if (
+      lower.includes('você sabia') || 
+      lower.includes('imagine') ||
+      lower.includes('e se eu te dissesse') ||
+      /^(você|vocês|tu)\s/.test(lower) ||
+      text.includes('?') && text.indexOf('?') < 100
+    ) {
+      return { 
+        type: 'Gancho', 
+        icon: Eye, 
+        color: 'text-orange-600', 
+        bgColor: 'bg-orange-50', 
+        borderColor: 'border-orange-200' 
+      };
+    }
+
+    // Problema/Dor - identifica dificuldades
+    if (
+      lower.includes('problema') || 
+      lower.includes('dificuldade') ||
+      lower.includes('frustração') ||
+      lower.includes('não consegue') ||
+      lower.includes('sofre') ||
+      lower.includes('luta') ||
+      lower.includes('desafio')
+    ) {
+      return { 
+        type: 'Problema', 
+        icon: AlertTriangle, 
+        color: 'text-red-600', 
+        bgColor: 'bg-red-50', 
+        borderColor: 'border-red-200' 
+      };
+    }
+
+    // Solução/Benefício - apresenta vantagens
+    if (
+      lower.includes('solução') || 
+      lower.includes('benefício') ||
+      lower.includes('vantagem') ||
+      lower.includes('resultado') ||
+      lower.includes('melhora') ||
+      lower.includes('transforma') ||
+      lower.includes('consegue') ||
+      lower.includes('alcança')
+    ) {
+      return { 
+        type: 'Solução', 
+        icon: Lightbulb, 
+        color: 'text-green-600', 
+        bgColor: 'bg-green-50', 
+        borderColor: 'border-green-200' 
+      };
+    }
+
+    // Prova Social - estatísticas, depoimentos
+    if (
+      /\d+%/.test(text) || 
+      /\d+\s*(pessoas|clientes|usuários)/.test(lower) ||
+      lower.includes('pesquisa') ||
+      lower.includes('estudo') ||
+      lower.includes('especialista') ||
+      lower.includes('comprovado') ||
+      lower.includes('testado')
+    ) {
+      return { 
+        type: 'Prova Social', 
+        icon: BarChart3, 
+        color: 'text-blue-600', 
+        bgColor: 'bg-blue-50', 
+        borderColor: 'border-blue-200' 
+      };
+    }
+
+    // CTA - call to action
+    if (
+      lower.includes('clique') || 
+      lower.includes('acesse') ||
+      lower.includes('baixe') ||
+      lower.includes('inscreva') ||
+      lower.includes('siga') ||
+      lower.includes('compartilhe') ||
+      lower.includes('comenta') ||
+      /^(vem|vamos|vai|faça|teste)/.test(lower)
+    ) {
+      return { 
+        type: 'CTA', 
+        icon: Target, 
+        color: 'text-purple-600', 
+        bgColor: 'bg-purple-50', 
+        borderColor: 'border-purple-200' 
+      };
+    }
+
+    // Urgência/Escassez
+    if (
+      lower.includes('hoje') || 
+      lower.includes('agora') ||
+      lower.includes('últimas') ||
+      lower.includes('apenas') ||
+      lower.includes('limitado') ||
+      lower.includes('restam') ||
+      lower.includes('rápido')
+    ) {
+      return { 
+        type: 'Urgência', 
+        icon: Flame, 
+        color: 'text-red-500', 
+        bgColor: 'bg-red-50', 
+        borderColor: 'border-red-200' 
+      };
+    }
+
+    // Pergunta retórica
+    if (text.includes('?')) {
+      return { 
+        type: 'Pergunta', 
+        icon: HelpCircle, 
+        color: 'text-indigo-600', 
+        bgColor: 'bg-indigo-50', 
+        borderColor: 'border-indigo-200' 
+      };
+    }
+
+    // Resultado/Impacto
+    if (
+      lower.includes('resultado') ||
+      lower.includes('aumento') ||
+      lower.includes('diminuição') ||
+      lower.includes('melhoria') ||
+      /\d+x/.test(lower) ||
+      lower.includes('mais')
+    ) {
+      return { 
+        type: 'Resultado', 
+        icon: TrendingUp, 
+        color: 'text-emerald-600', 
+        bgColor: 'bg-emerald-50', 
+        borderColor: 'border-emerald-200' 
+      };
+    }
+
+    // Conteúdo padrão
+    return { 
+      type: 'Conteúdo', 
+      icon: Sparkles, 
+      color: 'text-gray-600', 
+      bgColor: 'bg-gray-50', 
+      borderColor: 'border-gray-200' 
+    };
+  };
+
+  // Detecta e destaca frases de impacto
+  const highlightImpactPhrases = (text: string): React.ReactNode => {
+    // Padrões de frases de impacto
+    const impactPatterns = [
+      /\d+%[^.!?]*/g, // Percentuais
+      /\d+x\s+[^.!?]*/g, // Multiplicadores
+      /[^.!?]*[Rr]esultado[^.!?]*/g, // Resultados
+      /[^.!?]*[Tt]ransform[^.!?]*/g, // Transformações
+      /[^.!?]*[Aa]ument[^.!?]*/g, // Aumentos
+    ];
+
+    let result: React.ReactNode = text;
+    let hasHighlight = false;
+
+    impactPatterns.forEach(pattern => {
+      const matches = text.match(pattern);
+      if (matches) {
+        hasHighlight = true;
+        matches.forEach(match => {
+          result = (result as string).replace(
+            match,
+            `<mark class="bg-yellow-100 text-yellow-800 px-1 rounded font-medium">${match}</mark>`
+          );
+        });
+      }
+    });
+
+    if (hasHighlight && typeof result === 'string') {
+      return <span dangerouslySetInnerHTML={{ __html: result }} />;
+    }
+
+    return result;
+  };
 
   const formatLongText = (text: string): string[] => {
     if (!text) return [];
@@ -189,25 +388,39 @@ const ImprovedReelsFormatter: React.FC<ImprovedReelsFormatterProps> = ({
         )}
       </header>
 
-      <div className="space-y-3">
+      <div className="space-y-4">
         {paragraphs.map((paragraph, index) => {
           const blockTime = estimateBlockTime(paragraph);
+          const contentType = detectContentType(paragraph);
+          const IconComponent = contentType.icon;
+          
           return (
             <motion.div
               key={index}
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: index * 0.1 }}
+              transition={{ delay: index * 0.15 }}
             >
-              <Card className="border border-border/60 bg-gradient-to-br from-primary/5 via-background/80 to-secondary/5">
+              <Card className={`border-2 ${contentType.borderColor} ${contentType.bgColor} shadow-sm hover:shadow-md transition-shadow duration-200`}>
                 <CardContent className="p-4">
                   <div className="flex items-start gap-3">
+                    {/* Time badge */}
                     <Badge variant="secondary" className="text-xs whitespace-nowrap">
                       ~{blockTime}s
                     </Badge>
+                    
+                    {/* Content type badge with icon */}
+                    <Badge 
+                      variant="outline" 
+                      className={`text-xs whitespace-nowrap ${contentType.color} border-current flex items-center gap-1.5`}
+                    >
+                      <IconComponent className="h-3.5 w-3.5" />
+                      {contentType.type}
+                    </Badge>
+                    
                     <div className="flex-1">
-                      <div className="text-sm leading-relaxed text-foreground/80">
-                        {paragraph}
+                      <div className="text-sm leading-relaxed text-foreground/85 font-medium">
+                        {highlightImpactPhrases(paragraph)}
                       </div>
                     </div>
                   </div>
