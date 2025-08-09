@@ -86,26 +86,28 @@ const ScriptGeneratorPage: React.FC = () => {
           isProcessing={false}
         />
       ) : (
-        <Tabs defaultValue="fluidaroteirista" className="max-w-4xl mx-auto">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="fluidaroteirista" className="flex items-center gap-2">
-              <Wand2 className="h-4 w-4" />
-              Fluida Roteirista
-            </TabsTrigger>
-            <TabsTrigger value="test" className="flex items-center gap-2">
-              <TestTube className="h-4 w-4" />
-              Teste OpenAI
-            </TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="fluidaroteirista" className="mt-6">
-            <FluidaScriptGenerator onScriptGenerated={handleScriptApproved} />
-          </TabsContent>
-          
-          <TabsContent value="test" className="mt-6">
-            <ScriptGeneratorTest />
-          </TabsContent>
-        </Tabs>
+        <div className="flex items-center justify-center min-h-[70vh]">
+          <Tabs defaultValue="fluidaroteirista" className="max-w-4xl w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="fluidaroteirista" className="flex items-center gap-2">
+                <Wand2 className="h-4 w-4" />
+                Fluida Roteirista
+              </TabsTrigger>
+              <TabsTrigger value="test" className="flex items-center gap-2">
+                <TestTube className="h-4 w-4" />
+                Teste OpenAI
+              </TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="fluidaroteirista" className="mt-6">
+              <FluidaScriptGenerator onScriptGenerated={handleScriptApproved} />
+            </TabsContent>
+            
+            <TabsContent value="test" className="mt-6">
+              <ScriptGeneratorTest />
+            </TabsContent>
+          </Tabs>
+        </div>
       )}
     </div>
   );
