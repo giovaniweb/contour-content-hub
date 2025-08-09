@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import { toast } from 'sonner';
 import ImprovedScriptFormatter from './ImprovedScriptFormatter';
+import ImprovedReelsFormatter from './ImprovedReelsFormatter';
 import { useImageGeneration } from '@/hooks/useImageGeneration';
 import { useAudioGeneration } from '@/hooks/useAudioGeneration';
 import { useSaveScript } from '../hooks/useSaveScript';
@@ -70,7 +71,11 @@ const [activeResult, setActiveResult] = useState(0);
   };
 
   const handleGenerateAudio = async () => {
-    await generateAudio({ text: results[activeResult].content });
+    await generateAudio({ 
+      text: results[activeResult].content,
+      mentor: 'Especialista',
+      isDisneyMode: false
+    });
   };
 
   const handleApproveAndSave = async () => {
@@ -261,15 +266,9 @@ const [activeResult, setActiveResult] = useState(0);
                 <div className="mt-1 text-sm text-muted-foreground">{currentResult.format.toUpperCase()}</div>
               </header>
               <div className="space-y-6">
-                <ImprovedScriptFormatter 
-                  script={{
-                    roteiro: currentResult.content,
-                    formato: currentResult.format,
-                    emocao_central: 'Confiança',
-                    intencao: 'Educar e engajar',
-                    objetivo: 'Informar sobre tratamento',
-                    mentor: 'Especialista'
-                  }}
+                <ImprovedReelsFormatter 
+                  roteiro={currentResult.content}
+                  estimatedTime={45}
                 />
                 <div className="flex flex-wrap gap-2 pt-4">
                   <Button
