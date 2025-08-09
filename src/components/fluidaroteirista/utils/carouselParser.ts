@@ -58,16 +58,29 @@ export const parseCarouselSlides = (roteiro: string) => {
 
     // Primeira linha é título SE não houver marcador ("Texto:"/"Imagem:") nela
     // Detecta múltiplos formatos de slide:
-    // 1. "Slide: Titulo" ou "Slide X: Titulo" 
-    // 2. "**Slide X: Titulo**"
-    // 3. "**Slide X – Titulo**" ou "**Slide X - Titulo**"
-    const slideMatch = bloco.match(/^(?:\*\*)?Slide\s*:?\s*(\d+)?\s*[:\-–]?\s*([^\n*]*?)(?:\*\*)?/i);
+    // 1. "🔹 SLIDE X — TITULO" (formato atual com emoji)
+    // 2. "**Slide X: Titulo**" (formato anterior)
+    // 3. "Slide: Titulo" ou "Slide X: Titulo" (formato antigo)
+    
+    console.log('🔍 [extractFromBlock] Processando bloco:', bloco.substring(0, 100) + '...');
+    
+    let slideMatch = bloco.match(/^🔹\s*SLIDE\s*(\d+)\s*—\s*([^\n]*)/i);
     let corpo = bloco;
+    
     if (slideMatch) {
       title = (slideMatch[2] || '').trim();
       corpo = corpo.replace(slideMatch[0], "").trim();
-      // Remove markdown extra se existir
-      corpo = corpo.replace(/^\*\*/g, '').replace(/\*\*$/g, '');
+      console.log('✅ [extractFromBlock] Título extraído (emoji):', title);
+    } else {
+      // Fallback para formatos anteriores
+      slideMatch = bloco.match(/^(?:\*\*)?Slide\s*:?\s*(\d+)?\s*[:\-–]?\s*([^\n*]*?)(?:\*\*)?/i);
+      if (slideMatch) {
+        title = (slideMatch[2] || '').trim();
+        corpo = corpo.replace(slideMatch[0], "").trim();
+        // Remove markdown extra se existir
+        corpo = corpo.replace(/^\*\*/g, '').replace(/\*\*$/g, '');
+        console.log('✅ [extractFromBlock] Título extraído (formato anterior):', title);
+      }
     }
 
     // Se título ficou vazio, pega linha antes do 1º marcador OU primeira linha do corpo
@@ -113,10 +126,22 @@ export const parseCarouselSlides = (roteiro: string) => {
       if (iMatch && iMatch[1]) imagem = iMatch[1].trim();
     }
 
-    // Se não encontrou marcadores, usa o corpo todo como texto
+    // Se não encontrou marcadores "Texto:" e "Imagem:", usa estratégia para formato emoji
     if (!texto && !imagem && corpo) {
-      texto = corpo.trim();
+      // Remove separadores como "---" que aparecem no final de alguns slides
+      const cleanCorpo = corpo.replace(/^---+\s*/gm, '').replace(/---+\s*$/gm, '').trim();
+      
+      if (cleanCorpo) {
+        // No formato emoji, todo o conteúdo do slide vira "texto"
+        texto = cleanCorpo;
+        // Gera descrição genérica de imagem baseada no conteúdo
+        if (texto.length > 20) {
+          imagem = "Imagem ilustrativa relacionada ao conteúdo do slide, com design atrativo para Instagram";
+        }
+      }
     }
+    
+    console.log('🔍 [extractFromBlock] Resultado - Título:', title, 'Texto:', texto?.substring(0, 50) + '...', 'Imagem:', imagem?.substring(0, 50) + '...');
 
     // Se título virou vazio, usa default
     if (!title) title = defaultTitles[idx] || `Slide ${idx+1}`;
@@ -142,11 +167,12 @@ export const parseCarouselSlides = (roteiro: string) => {
 
   // --- Divisão de blocos PRINCIPAL corrigida ---
   // Suporte para múltiplos formatos de carrossel:
-  // 1. "Slide X:" (padrão antigo)
-  // 2. "**Slide X: Título**" (novo formato sendo usado)
-  // 3. "**ROTEIRO CARROSSEL**\n**Slide X: Título**"
+  // 1. "🔹 SLIDE X —" (formato atual com emoji)
+  // 2. "**Slide X: Título**" (formato anterior)  
+  // 3. "Slide X:" (padrão antigo)
   
   let processedRoteiro = roteiro;
+  console.log('🔍 [carouselParser] Roteiro original:', roteiro.substring(0, 200) + '...');
   
   // Remove cabeçalho se existir
   processedRoteiro = processedRoteiro.replace(/^\*\*ROTEIRO\s+CARROSSEL\*\*\s*\n?/i, '');
@@ -154,26 +180,41 @@ export const parseCarouselSlides = (roteiro: string) => {
   // Divide por diferentes padrões de slide
   let blocos: string[] = [];
   
-  // Tenta primeiro o novo formato: **Slide X –** ou **Slide X -**
-  const newFormatBlocks = processedRoteiro.split(/(?=\*\*Slide\s*\d+\s*[–-])/gi)
+  // 1. NOVO: Tenta primeiro o formato com emoji: 🔹 SLIDE X —
+  const emojiBlocks = processedRoteiro.split(/(?=🔹\s*SLIDE\s*\d+\s*—)/gi)
     .map(b => b.trim())
     .filter(Boolean);
     
-  if (newFormatBlocks.length > 1) {
-    blocos = newFormatBlocks;
+  console.log('🔍 [carouselParser] Emoji blocks encontrados:', emojiBlocks.length);
+  
+  if (emojiBlocks.length > 1) {
+    blocos = emojiBlocks;
+    console.log('✅ [carouselParser] Usando formato emoji');
   } else {
-    // Fallback para formato com dois pontos: **Slide X:**
-    const colonFormatBlocks = processedRoteiro.split(/(?=\*\*Slide\s*\d+:)/gi)
+    // 2. Fallback: Formato com traço: **Slide X –** ou **Slide X -**
+    const dashFormatBlocks = processedRoteiro.split(/(?=\*\*Slide\s*\d+\s*[–-])/gi)
       .map(b => b.trim())
       .filter(Boolean);
       
-    if (colonFormatBlocks.length > 1) {
-      blocos = colonFormatBlocks;
+    if (dashFormatBlocks.length > 1) {
+      blocos = dashFormatBlocks;
+      console.log('✅ [carouselParser] Usando formato com traço');
     } else {
-      // Último fallback para formato antigo: Slide X:
-      blocos = processedRoteiro.split(/(?=Slide\s*\d*:)/gi)
+      // 3. Fallback: formato com dois pontos: **Slide X:**
+      const colonFormatBlocks = processedRoteiro.split(/(?=\*\*Slide\s*\d+:)/gi)
         .map(b => b.trim())
         .filter(Boolean);
+        
+      if (colonFormatBlocks.length > 1) {
+        blocos = colonFormatBlocks;
+        console.log('✅ [carouselParser] Usando formato com dois pontos');
+      } else {
+        // 4. Último fallback: formato antigo: Slide X:
+        blocos = processedRoteiro.split(/(?=Slide\s*\d*:)/gi)
+          .map(b => b.trim())
+          .filter(Boolean);
+        console.log('✅ [carouselParser] Usando formato antigo');
+      }
     }
   }
   
