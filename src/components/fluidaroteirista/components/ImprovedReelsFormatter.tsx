@@ -1,0 +1,175 @@
+import React from 'react';
+import { motion } from 'framer-motion';
+import { parseTemporalScript, TemporalScriptBlockData } from '../utils/parseTemporalScript';
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
+import { Clock, Video, Sparkles } from 'lucide-react';
+
+interface ImprovedReelsFormatterProps {
+  roteiro: string;
+  estimatedTime?: number;
+}
+
+const ImprovedReelsFormatter: React.FC<ImprovedReelsFormatterProps> = ({ 
+  roteiro, 
+  estimatedTime 
+}) => {
+  // Primeiro, tenta parseamento temporal
+  const temporalBlocks = parseTemporalScript(roteiro);
+  
+  // Se não encontrou blocos temporais válidos, força quebra em parágrafos
+  const useTemporalFormat = temporalBlocks.length > 1 || 
+    (temporalBlocks.length === 1 && temporalBlocks[0].time !== "");
+
+  const formatLongText = (text: string): string[] => {
+    // Remove formatação excessiva e quebra em parágrafos lógicos
+    const cleaned = text
+      .replace(/\[[^\]]+\]/g, ' ')
+      .replace(/\([^)]{3,}\)/g, ' ')
+      .replace(/^---+$/gm, ' ')
+      .replace(/^#+\s+/gm, ' ')
+      .replace(/^\s*(?:off|narrador|locução|cena|gancho|desenvolvimento|solução|cta|transição)\s*[:\-–—]?\s*/gmi, '')
+      .replace(/[\t ]+/g, ' ')
+      .replace(/\s*\n\s*/g, '\n')
+      .replace(/\n{3,}/g, '\n\n')
+      .trim();
+
+    // Se já tem quebras naturais, use-as
+    if (cleaned.includes('\n')) {
+      return cleaned.split(/\n+/).map(p => p.trim()).filter(Boolean);
+    }
+
+    // Senão, quebra por frases (2-3 frases por parágrafo)
+    const sentences = cleaned.split(/[.!?]+/).map(s => s.trim()).filter(Boolean);
+    const paragraphs: string[] = [];
+    
+    for (let i = 0; i < sentences.length; i += 2) {
+      const chunk = sentences.slice(i, i + 2).join('. ') + '.';
+      paragraphs.push(chunk);
+    }
+    
+    return paragraphs.length > 0 ? paragraphs : [cleaned];
+  };
+
+  const estimateBlockTime = (text: string): number => {
+    const words = text.trim().split(/\s+/).filter(Boolean).length;
+    return Math.max(1, Math.round(words / 2.5)); // ~150 wpm
+  };
+
+  if (useTemporalFormat) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="space-y-4"
+      >
+        <header className="text-center space-y-2">
+          <div className="flex items-center justify-center gap-2">
+            <Video className="h-6 w-6 text-primary" />
+            <h2 className="text-xl font-semibold tracking-tight text-foreground">
+              Roteiro para Reels
+            </h2>
+            <Sparkles className="h-5 w-5 text-secondary" />
+          </div>
+          {estimatedTime && (
+            <Badge variant="outline" className="text-xs">
+              <Clock className="h-3 w-3 mr-1" />
+              {estimatedTime}s • Ideal: 30-45s
+            </Badge>
+          )}
+        </header>
+
+        <div className="space-y-3">
+          {temporalBlocks.map((block, index) => (
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: index * 0.1 }}
+            >
+              <Card className="border border-border/60 bg-gradient-to-br from-primary/5 via-background/80 to-secondary/5">
+                <CardContent className="p-4">
+                  <div className="flex items-start gap-3">
+                    {block.time && (
+                      <Badge variant="secondary" className="text-xs whitespace-nowrap">
+                        {block.time}
+                      </Badge>
+                    )}
+                    <div className="flex-1 space-y-1">
+                      {block.label && (
+                        <div className="font-medium text-sm text-primary">
+                          {block.label}
+                        </div>
+                      )}
+                      <div className="text-sm leading-relaxed text-foreground/80">
+                        {block.content}
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          ))}
+        </div>
+      </motion.div>
+    );
+  }
+
+  // Formato de parágrafos melhorados
+  const paragraphs = formatLongText(roteiro);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="space-y-4"
+    >
+      <header className="text-center space-y-2">
+        <div className="flex items-center justify-center gap-2">
+          <Video className="h-6 w-6 text-primary" />
+          <h2 className="text-xl font-semibold tracking-tight text-foreground">
+            OFF para Reels
+          </h2>
+          <Sparkles className="h-5 w-5 text-secondary" />
+        </div>
+        {estimatedTime && (
+          <Badge variant="outline" className="text-xs">
+            <Clock className="h-3 w-3 mr-1" />
+            {estimatedTime}s • Ideal: 30-45s
+          </Badge>
+        )}
+      </header>
+
+      <div className="space-y-3">
+        {paragraphs.map((paragraph, index) => {
+          const blockTime = estimateBlockTime(paragraph);
+          return (
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: index * 0.1 }}
+            >
+              <Card className="border border-border/60 bg-gradient-to-br from-primary/5 via-background/80 to-secondary/5">
+                <CardContent className="p-4">
+                  <div className="flex items-start gap-3">
+                    <Badge variant="secondary" className="text-xs whitespace-nowrap">
+                      ~{blockTime}s
+                    </Badge>
+                    <div className="flex-1">
+                      <div className="text-sm leading-relaxed text-foreground/80">
+                        {paragraph}
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          );
+        })}
+      </div>
+    </motion.div>
+  );
+};
+
+export default ImprovedReelsFormatter;

@@ -21,6 +21,8 @@ import ReelsTipsCard from "./ReelsTipsCard";
 import ReelsActionFooter from "./ReelsActionFooter";
 import AuroraActionFooter from "./AuroraActionFooter";
 import ScriptFlowFormatter from "./ScriptFlowFormatter";
+import MediaSuggestions from "./MediaSuggestions";
+import ImprovedReelsFormatter from "./ImprovedReelsFormatter";
 
 // Utilize apenas os utilitários importados, sem duplicidade local
 import {
@@ -148,46 +150,53 @@ const ScriptFormatter: React.FC<ScriptFormatterProps> = ({
 
     // REELS: layout minimalista com OFF limpo (sem cards/caixas)
     if (formato.includes('reels')) {
-      const cleaned = String(script.roteiro || '')
-        .replace(/\[[^\]]+\]/g, ' ')
-        .replace(/\([^)]{3,}\)/g, ' ')
-        .replace(/^---+$/gm, ' ')
-        .replace(/^#+\s+/gm, ' ')
-        .replace(/^\s*(?:off|narrador|locu[cç][aã]o|cena|gancho|desenvolvimento|solu[cç][aã]o|cta|transi[cç][aã]o)\s*[:\-–—]?\s*/gmi, '')
-        .replace(/[\t ]+/g, ' ')
-        .replace(/\s*\n\s*/g, '\n')
-        .replace(/\n{3,}/g, '\n\n')
-        .trim();
-      const paragraphs = cleaned.split(/\n+/).map(p => p.trim()).filter(Boolean);
-
       return (
-        <section className="space-y-4">
-          <header>
-            <h2 className="text-xl font-semibold tracking-tight text-foreground">OFF para Reels</h2>
-            <p className="text-sm text-foreground/60 mt-1">Tempo estimado: {estimatedTime}s • Ideal: 30–45s</p>
-          </header>
-          <article className="text-base leading-relaxed text-foreground/80">
-            {paragraphs.length > 0 ? (
-              paragraphs.map((p, i) => (
-                <p key={i} className="mb-3 last:mb-0">{p}</p>
-              ))
-            ) : (
-              <p>{script.roteiro}</p>
-            )}
-          </article>
-        </section>
+        <div className="space-y-4">
+          <ImprovedReelsFormatter 
+            roteiro={script.roteiro} 
+            estimatedTime={estimatedTime}
+          />
+          <MediaSuggestions 
+            format={formato} 
+            estimatedTime={estimatedTime}
+          />
+        </div>
       );
     }
 
     if (formato === "carrossel") {
-      return <CarouselFormatter roteiro={script.roteiro} />;
+      return (
+        <div className="space-y-4">
+          <CarouselFormatter roteiro={script.roteiro} />
+          <MediaSuggestions 
+            format={formato} 
+            estimatedTime={estimatedTime}
+          />
+        </div>
+      );
     }
     if (formato === "stories_10x") {
       const slides = parseStories10xSlides(script.roteiro);
-      return <Stories10xFormatter slides={slides} />;
+      return (
+        <div className="space-y-4">
+          <Stories10xFormatter slides={slides} />
+          <MediaSuggestions 
+            format={formato} 
+            estimatedTime={estimatedTime}
+          />
+        </div>
+      );
     }
     if (formato === "post_estatico") {
-      return <PostEstaticoFormatter roteiro={script.roteiro} />;
+      return (
+        <div className="space-y-4">
+          <PostEstaticoFormatter roteiro={script.roteiro} />
+          <MediaSuggestions 
+            format={formato} 
+            estimatedTime={estimatedTime}
+          />
+        </div>
+      );
     }
     if (isLightCopy(script.roteiro, script)) {
       const blocks = splitLightCopyBlocks(script.roteiro);
@@ -201,7 +210,15 @@ const ScriptFormatter: React.FC<ScriptFormatterProps> = ({
       );
     }
     const blocks = splitScriptBlocks(script.roteiro);
-    return <ParagraphBoxFormatter blocks={blocks} />;
+    return (
+      <div className="space-y-4">
+        <ParagraphBoxFormatter blocks={blocks} />
+        <MediaSuggestions 
+          format={formato || 'artigo'} 
+          estimatedTime={estimatedTime}
+        />
+      </div>
+    );
   };
 
   const showTimeMetric = !['post_estatico', 'carrossel', 'stories_10x'].includes((script.formato || "").toLowerCase());
