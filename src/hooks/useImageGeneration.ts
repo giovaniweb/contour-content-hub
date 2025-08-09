@@ -2,6 +2,8 @@
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { PhotographicPromptBuilder } from '@/utils/photographicPromptBuilder';
+import AIMonitoring from '@/utils/aiMonitoring';
 
 export const useImageGeneration = () => {
   const [isGenerating, setIsGenerating] = useState(false);
@@ -14,30 +16,28 @@ export const useImageGeneration = () => {
     try {
       console.log('🖼️ [useImageGeneration] Iniciando geração de imagem para script:', script.formato);
       
-      // Criar prompt baseado no roteiro
-      let imagePrompt = '';
-      
-      if (script.formato === 'carrossel') {
-        // Para carrossel, usar a primeira descrição de imagem encontrada
-        const imageMatch = script.roteiro.match(/Imagem:\s*([^\n]+)/i);
-        imagePrompt = imageMatch ? imageMatch[1] : 'Ambiente clínico moderno e profissional, iluminação suave, atmosfera acolhedora';
-      } else {
-        // Para outros formatos, criar prompt baseado no conteúdo
-        const tema = script.tema || 'tratamento estético';
-        imagePrompt = `Ambiente clínico moderno e luxuoso para ${tema}, profissional especializado, equipamentos de alta tecnologia, iluminação suave e acolhedora, atmosfera de confiança e bem-estar`;
-      }
+      // Detectar equipamentos e construir prompt fotográfico robusto (anti-alucinação)
+      const equipments = PhotographicPromptBuilder.extractEquipmentsFromScript(script);
+      const slidePrompts = PhotographicPromptBuilder.buildSlidePrompts(script);
+      const heroPrompt = slidePrompts?.[0]?.prompt || 'Professional medical clinic environment, natural lighting, clean composition';
 
-      console.log('🎨 [useImageGeneration] Prompt da imagem:', imagePrompt);
+      const equipmentName = equipments?.[0]?.nome;
+      console.log('🎯 [useImageGeneration] Equipamento detectado:', equipmentName || 'nenhum');
 
-      // Chamar edge function para gerar imagem
+      console.log('🎨 [useImageGeneration] Prompt da imagem:', heroPrompt);
+
+      const t0 = Date.now();
+      // Chamar edge function para gerar imagem (com ancoragem textual de equipamento)
       const { data, error } = await supabase.functions.invoke('generate-image', {
         body: {
-          prompt: imagePrompt,
-          quality: 'high',
+          prompt: heroPrompt,
+          quality: 'hd',
           size: '1024x1024',
-          style: 'natural'
+          style: 'natural',
+          equipmentName
         }
       });
+      const elapsed = Date.now() - t0;
 
       if (error) {
         console.error('❌ [useImageGeneration] Erro na API:', error);
@@ -45,12 +45,28 @@ export const useImageGeneration = () => {
       }
 
       if (data?.image) {
-        console.log('✅ [useImageGeneration] Imagem gerada com sucesso');
+        console.log('✅ [useImageGeneration] Imagem gerada com sucesso em', elapsed, 'ms');
         setGeneratedImageUrl(data.image);
         
+        // Observabilidade básica
+        const monitor = AIMonitoring.getInstance();
+        const estimatedPromptTokens = Math.round(heroPrompt.length / 4); // estimativa simples
+        monitor.trackUsage({
+          service: 'image',
+          endpoint: 'generate-image',
+          promptTokens: estimatedPromptTokens,
+          completionTokens: 1, // imagens não retornam tokens, marcador
+          totalTokens: estimatedPromptTokens + 1,
+          estimatedCost: 0, // calculado internamente
+          model: data?.metrics?.model || 'dall-e-3',
+          responseTime: data?.metrics?.response_time_ms || elapsed
+        }).catch((e) => console.warn('⚠️ monitor.trackUsage falhou (não crítico):', e));
+
         toast({
           title: "🖼️ Imagem gerada!",
-          description: "Sua imagem foi criada com sucesso usando IA.",
+          description: equipmentName 
+            ? `Imagem criada com contexto do equipamento ${equipmentName}.`
+            : "Sua imagem foi criada com sucesso usando IA.",
         });
         
         return data.image;
