@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { parseCarouselSlides } from '../utils/carouselParser';
+import { parseCarouselSlides, validateCarouselSlides } from '../utils/carouselParser';
 import CarouselSlideCard from './CarouselSlideCard';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { useState } from "react";
 import { sanitizeText } from '@/utils/textSanitizer';
 import { calculateContentTime } from '@/utils/timeCalculator';
+import { Helmet } from 'react-helmet-async';
 interface CarouselFormatterProps {
   roteiro: string;
 }
@@ -18,6 +19,8 @@ const CarouselFormatter: React.FC<CarouselFormatterProps> = ({
   roteiro
 }) => {
   const slides = parseCarouselSlides(sanitizeText(roteiro));
+  const validation = validateCarouselSlides(sanitizeText(roteiro));
+  const hasErrors = !validation.isValid;
   const {
     saveScript,
     isSaving
@@ -71,8 +74,13 @@ const CarouselFormatter: React.FC<CarouselFormatterProps> = ({
       </div>;
   }
   return <div className="space-y-8">
+      <Helmet>
+        <title>Carrossel Instagram | Aurora</title>
+        <meta name="description" content="Carrossel Instagram formatado com texto e imagem por slide, no tema Aurora." />
+        <link rel="canonical" href="/fluidaroteirista" />
+      </Helmet>
       {/* Header bonito do Carrossel Aurora */}
-      <motion.div initial={{
+      <motion.header initial={{
       opacity: 0,
       y: -20
     }} animate={{
@@ -102,18 +110,25 @@ const CarouselFormatter: React.FC<CarouselFormatterProps> = ({
           </Badge>
           <span className="text-xs text-aurora-neon-blue">📱 Deslize para navegar →</span>
         </div>
-      </motion.div>
+      </motion.header>
+      {/* Avisos de validação */}
+      {hasErrors && (
+        <Card className="aurora-glass border-aurora-pink/30 max-w-4xl mx-auto">
+          <CardHeader>
+            <CardTitle className="text-aurora-pink text-base">Ajustes necessários no carrossel</CardTitle>
+          </CardHeader>
+          <CardContent className="text-sm space-y-2">
+            <div className="flex flex-wrap gap-2">
+              {validation.errors.map((err, i) => (
+                <Badge key={i} variant="outline" className="bg-aurora-pink/15 text-aurora-pink border-aurora-pink/30">{err}</Badge>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Grid de Slides */}
-      <motion.div initial={{
-      opacity: 0,
-      scale: 0.97
-    }} animate={{
-      opacity: 1,
-      scale: 1
-    }} transition={{
-      delay: 0.15
-    }}>
+      <motion.div initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.15 }}>
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 max-w-5xl mx-auto">
           {slides.map((slide, index) => <CarouselSlideCard key={index} slide={slide} />)}
         </div>

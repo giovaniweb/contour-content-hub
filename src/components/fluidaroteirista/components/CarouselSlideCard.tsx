@@ -82,6 +82,8 @@ const isImagemMock = (imagem: string) => {
 const CarouselSlideCard: React.FC<CarouselSlideCardProps> = ({ slide }) => {
   const icon = getSlideIcon(slide.number);
   const theme = getSlideTheme(slide.number);
+  const textoMissing = isTextoMock(slide.texto);
+  const imagemMissing = isImagemMock(slide.imagem);
 
   // Debug logs para entender o que está vindo no slide
   console.log(`🔍 Slide ${slide.number} - Debug:`, {
@@ -148,6 +150,18 @@ const CarouselSlideCard: React.FC<CarouselSlideCardProps> = ({ slide }) => {
     >
       <Card className={`${theme.bg} ${theme.border} ${theme.glow} border-2 shadow-lg aurora-glass transition-all duration-200 h-full flex flex-col justify-between`}>
         <CardContent className="p-6 relative z-10 flex flex-col gap-4">
+          <div className="absolute top-4 right-4 flex gap-2">
+            {textoMissing && (
+              <Badge variant="outline" className="bg-aurora-pink/20 text-aurora-pink border-aurora-pink/30 text-[10px] px-2 py-0.5">
+                Sem texto
+              </Badge>
+            )}
+            {imagemMissing && (
+              <Badge variant="outline" className="bg-aurora-neon-blue/20 text-aurora-neon-blue border-aurora-neon-blue/30 text-[10px] px-2 py-0.5">
+                Sem imagem
+              </Badge>
+            )}
+          </div>
           <div className="flex items-center gap-2 mb-3">
             <div className="text-2xl aurora-float">{icon}</div>
             <h3 className={`font-bold ${theme.text} text-base sm:text-lg aurora-heading filter drop-shadow`}>{slide.title}</h3>
