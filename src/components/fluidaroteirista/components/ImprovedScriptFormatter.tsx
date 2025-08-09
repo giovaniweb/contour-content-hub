@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-
+import { sanitizeText } from '@/utils/textSanitizer';
 interface ImprovedScriptFormatterProps {
   script: {
     roteiro: string;
@@ -71,15 +71,18 @@ const ImprovedScriptFormatter: React.FC<ImprovedScriptFormatterProps> = ({ scrip
         <header>
           <h2 className="text-xl font-semibold tracking-tight text-foreground">OFF para Reels</h2>
         </header>
-        <article className="text-base leading-relaxed text-foreground/80">
+        <div className="aurora-glass rounded-xl border border-aurora-emerald/20 p-6 relative">
           {paragraphs.length > 0 ? (
             paragraphs.map((p, i) => (
-              <p key={i} className="mb-3 last:mb-0">{p}</p>
+              <div key={i} className="py-3">
+                <p className="text-base leading-relaxed text-foreground/80">{sanitizeText(p)}</p>
+                {i < paragraphs.length - 1 && <div className="my-3 h-px bg-white/10" />}
+              </div>
             ))
           ) : (
-            <p>{script.roteiro}</p>
+            <p className="text-base leading-relaxed text-foreground/80">{sanitizeText(script.roteiro)}</p>
           )}
-        </article>
+        </div>
       </section>
     );
   }
@@ -275,7 +278,7 @@ const ImprovedScriptFormatter: React.FC<ImprovedScriptFormatterProps> = ({ scrip
           <Button
             variant="outline"
             size="sm"
-            onClick={() => copyToClipboard(script.roteiro)}
+            onClick={() => copyToClipboard(sanitizeText(script.roteiro))}
             className="flex items-center gap-2"
           >
             {copiedFull ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}

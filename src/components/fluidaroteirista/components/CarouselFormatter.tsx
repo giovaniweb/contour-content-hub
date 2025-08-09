@@ -9,13 +9,14 @@ import CarouselSequencePreview from './CarouselSequencePreview';
 import { useSaveScript } from "../hooks/useSaveScript";
 import { toast } from "sonner";
 import { useState } from "react";
+import { sanitizeText } from '@/utils/textSanitizer';
 interface CarouselFormatterProps {
   roteiro: string;
 }
 const CarouselFormatter: React.FC<CarouselFormatterProps> = ({
   roteiro
 }) => {
-  const slides = parseCarouselSlides(roteiro);
+  const slides = parseCarouselSlides(sanitizeText(roteiro));
   const {
     saveScript,
     isSaving
@@ -169,14 +170,6 @@ const CarouselFormatter: React.FC<CarouselFormatterProps> = ({
               Gerar imagem
             </button>
 
-            <button
-              onClick={handleGenerateAudio}
-              disabled={isGeneratingAudio}
-              className="flex items-center gap-2 px-6 py-3 bg-aurora-neon-blue/10 text-aurora-neon-blue border border-aurora-neon-blue/20 rounded-xl font-medium hover:bg-aurora-neon-blue/20 hover:scale-105 transition-all duration-200"
-            >
-              {isGeneratingAudio ? <Loader2 className="w-4 h-4 animate-spin" /> : <span className="text-lg">🎧</span>}
-              Gerar áudio
-            </button>
           </>
         )}
 

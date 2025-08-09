@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Clock, Target, Zap, Eye } from 'lucide-react';
 import { Stories10xSlide } from '../utils/stories10xParser';
 import CopyButton from '@/components/ui/CopyButton';
-
+import { sanitizeText } from '@/utils/textSanitizer';
 interface Stories10xFormatterProps {
   slides: Stories10xSlide[];
   onApproveScript?: () => void;
@@ -77,7 +77,7 @@ function removeStoryMetaLines(slides: Stories10xSlide[]): Stories10xSlide[] {
 const Stories10xFormatter: React.FC<Stories10xFormatterProps> = ({ slides, onApproveScript }) => {
   // Remove as linhas meta técnicas dos slides
   const filteredSlides = removeStoryMetaLines(slides);
-
+  const cappedSlides = filteredSlides.slice(0, 5);
   if (filteredSlides.length === 0) {
     return (
       <div className="text-center py-8">
@@ -105,7 +105,7 @@ const Stories10xFormatter: React.FC<Stories10xFormatterProps> = ({ slides, onApp
           <span className="bg-aurora-electric-purple/10 text-aurora-electric-purple border border-aurora-electric-purple/20 rounded px-2 py-1 font-semibold text-xs">
             ⚡ Metodologia 10x
           </span>
-          <span className="text-sm text-slate-300">4 Stories • 10 segundos cada</span>
+          <span className="text-sm text-slate-300">até 5 Stories • 10-15 segundos cada</span>
         </div>
       </motion.div>
 
@@ -123,7 +123,7 @@ const Stories10xFormatter: React.FC<Stories10xFormatterProps> = ({ slides, onApp
           </CardHeader>
           <CardContent>
             <div className="flex items-center justify-center gap-4 mb-6 flex-wrap">
-              {filteredSlides.map((slide, index) => (
+              {cappedSlides.map((slide, index) => (
                 <React.Fragment key={index}>
                   <motion.div 
                     className="flex flex-col items-center"
@@ -136,13 +136,13 @@ const Stories10xFormatter: React.FC<Stories10xFormatterProps> = ({ slides, onApp
                       <div className="absolute inset-0 rounded-full bg-gradient-to-br from-aurora-electric-purple via-aurora-neon-blue to-aurora-emerald opacity-40 animate-ping" />
                     </div>
                     <div className="text-xs text-aurora-electric-purple font-medium text-center">
-                      {slide.titulo}
+                      {sanitizeText(slide.titulo)}
                     </div>
                     <div className="flex items-center gap-1 mt-1">
                       <span className="text-xs text-aurora-emerald">{slide.tempo}</span>
                     </div>
                   </motion.div>
-                  {index < filteredSlides.length - 1 && (
+                  {index < cappedSlides.length - 1 && (
                     <div className="text-aurora-electric-purple text-2xl">→</div>
                   )}
                 </React.Fragment>
@@ -154,7 +154,7 @@ const Stories10xFormatter: React.FC<Stories10xFormatterProps> = ({ slides, onApp
 
       {/* Stories Individuais */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {filteredSlides.map((slide, index) => {
+        {cappedSlides.map((slide, index) => {
           const icon = getSlideIcon(slide.tipo);
           const theme = getSlideTheme(slide.tipo);
           
@@ -176,7 +176,7 @@ const Stories10xFormatter: React.FC<Stories10xFormatterProps> = ({ slides, onApp
                         Story {slide.number} • {slide.tempo}
                       </span>
                       <h3 className={`font-bold ${theme.text} text-lg`}>
-                        {slide.titulo}
+                        {sanitizeText(slide.titulo)}
                       </h3>
                     </div>
                   </div>
@@ -190,10 +190,10 @@ const Stories10xFormatter: React.FC<Stories10xFormatterProps> = ({ slides, onApp
                       <span className="text-sm font-medium text-aurora-neon-blue">Conteúdo</span>
                     </div>
                     <p className="text-slate-200 leading-relaxed text-sm pr-12">
-                      {slide.conteudo}
+                      {sanitizeText(slide.conteudo)}
                     </p>
                     <CopyButton 
-                      text={slide.conteudo}
+                      text={sanitizeText(slide.conteudo)}
                       successMessage={`Story ${slide.number} copiado!`}
                     />
                   </div>
