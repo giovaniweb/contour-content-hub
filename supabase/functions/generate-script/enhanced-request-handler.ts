@@ -270,7 +270,7 @@ Use apenas informações gerais sobre tratamentos estéticos, sem inventar espec
     systemPrompt: string,
     userPrompt: string,
     _equipmentDetails: EquipmentDetail[],
-    opts?: { format?: string; maxStories?: number; bannedPhrases?: string[]; userId?: string }
+    opts?: { format?: string; maxStories?: number; bannedPhrases?: string[]; userId?: string; modelTier?: 'standard' | 'gpt5' }
   ) {
     console.log("🤖 Chamando OpenAI com prompts do mentor...");
 
@@ -286,8 +286,10 @@ Use apenas informações gerais sobre tratamentos estéticos, sem inventar espec
       );
     }
 
-    const modelPrimary = 'gpt-4.1-2025-04-14';
-    const modelFallback = 'gpt-4.1-mini-2025-04-14';
+    // Roteamento de modelos com fallback seguro
+    const modelChain = (opts as any)?.modelTier === 'gpt5'
+      ? ['gpt-5', 'gpt-5-mini', 'gpt-4.1-2025-04-14']
+      : ['gpt-4.1-2025-04-14', 'gpt-4.1-mini-2025-04-14'];
 
     const buildBody = (model: string) => ({
       model,
@@ -314,18 +316,21 @@ Use apenas informações gerais sobre tratamentos estéticos, sem inventar espec
       return { res, model } as const;
     };
 
-    let attempt = await doRequest(modelPrimary);
-
-    if (!attempt.res.ok) {
-      const text = await attempt.res.text();
-      console.warn(`⚠️ Falha no modelo primário (${attempt.model}):`, attempt.res.status, text);
-      console.log('🔁 Tentando fallback:', modelFallback);
-      attempt = await doRequest(modelFallback);
-      if (!attempt.res.ok) {
-        const text2 = await attempt.res.text();
-        console.error('❌ Erro da OpenAI (fallback):', attempt.res.status, text2);
-        throw new Error(`OpenAI API error: ${attempt.res.status} - ${text2}`);
+    // Tentar modelos em cadeia até sucesso
+    let lastErrorText = '';
+    let attempt: { res: Response; model: string } | null = null;
+    for (const m of modelChain) {
+      const a = await doRequest(m);
+      if (a.res.ok) {
+        attempt = a;
+        break;
       }
+      lastErrorText = await a.res.text();
+      console.warn(`⚠️ Falha no modelo (${m}):`, a.res.status, lastErrorText);
+    }
+
+    if (!attempt) {
+      throw new Error(`OpenAI API error: all models failed. Last: ${lastErrorText}`);
     }
 
     const data = await attempt.res.json();

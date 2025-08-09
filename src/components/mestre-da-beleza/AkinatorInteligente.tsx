@@ -86,7 +86,8 @@ const AkinatorInteligente: React.FC = () => {
           })),
           currentPath: `consulta_${messages.length}`,
           userProfile: user ? 'autenticado' : 'anonimo',
-          user_id: user?.id
+          user_id: user?.id,
+          modelTier: (typeof window !== 'undefined' && localStorage.getItem('aiMode') === 'gpt5') ? 'gpt5' : 'standard'
         }
       });
 

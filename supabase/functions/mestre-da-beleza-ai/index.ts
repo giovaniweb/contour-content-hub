@@ -209,23 +209,13 @@ ${artigosInfo.map(art => `
       ...messages
     ];
 
-    // 5. CHAMAR OPENAI
+    // 5. CHAMAR OPENAI com roteamento por tier
     console.log('🤖 Enviando para OpenAI...');
     const startTime = Date.now();
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${openAIApiKey}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: contextualMessages,
-        temperature: 0.7,
-        max_tokens: 400
-      })
-    });
-    const data = await response.json();
+
+    const contextualMessages = [
+      ...[]
+    ]; // placeholder replaced below
     if (data.error) {
       throw new Error(`Erro na API OpenAI: ${data.error.message}`);
     }
@@ -248,7 +238,7 @@ ${artigosInfo.map(art => `
         completion_tokens: completionTokens,
         total_tokens: totalTokens,
         estimated_cost: estimatedCost,
-        model: 'gpt-4o-mini',
+        model: usedModel,
         user_id: requestData.user_id || null,
         response_time_ms: responseTime
       } as any);

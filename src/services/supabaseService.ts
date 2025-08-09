@@ -19,6 +19,7 @@ export interface ScriptRequest {
   channel?: string;
   style?: string;
   mentor?: string;
+  modelTier?: 'standard' | 'gpt5';
 }
 
 export interface ScriptResponse {

@@ -84,7 +84,8 @@ serve(async (req) => {
       format: request.format || request.type || 'reels',
       maxStories: 5,
       bannedPhrases: ['do jeito Ladeira', 'Ladeira CopyWarrior', 'CopyWarrior'],
-      userId: user.id
+      userId: user.id,
+      modelTier: (request as any).modelTier || 'standard'
     });
     console.log("✅ Resposta recebida da OpenAI com equipamentos validados");
     

@@ -6,6 +6,13 @@ export const OPENAI_MODELS = {
   MARKETING: 'gpt-4.1-2025-04-14'
 } as const;
 
+// Modelos GPT-5 disponíveis
+export const OPENAI_GPT5_MODELS = {
+  CORE: 'gpt-5',
+  MINI: 'gpt-5-mini',
+  CHAT: 'gpt-5-chat'
+} as const;
+
 export const OPENAI_CONFIG = {
   maxTokens: 2000,
   temperature: 0.7,
