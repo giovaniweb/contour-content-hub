@@ -87,18 +87,20 @@ const AuroraActionFooter: React.FC<AuroraActionFooterProps> = ({
           {isGeneratingImage ? "Gerando imagem..." : "Gerar imagem"}
         </span>
       </AuroraFooterButton>
-      <AuroraFooterButton
-        onClick={onGenerateAudio}
-        variant="glass"
-        aria-label="Gerar áudio"
-        loading={isGeneratingAudio}
-        disabled={isGeneratingAudio}
-      >
-        <Headphones className="h-5 w-5 text-aurora-neon-blue animate-pulse" />
-        <span className="font-semibold">
-          {isGeneratingAudio ? "Gerando áudio..." : "Gerar áudio"}
-        </span>
-      </AuroraFooterButton>
+      {onGenerateAudio && (
+        <AuroraFooterButton
+          onClick={onGenerateAudio}
+          variant="glass"
+          aria-label="Gerar áudio"
+          loading={isGeneratingAudio}
+          disabled={isGeneratingAudio}
+        >
+          <Headphones className="h-5 w-5 text-aurora-neon-blue animate-pulse" />
+          <span className="font-semibold">
+            {isGeneratingAudio ? "Gerando áudio..." : "Gerar áudio"}
+          </span>
+        </AuroraFooterButton>
+      )}
     </div>
   );
 };

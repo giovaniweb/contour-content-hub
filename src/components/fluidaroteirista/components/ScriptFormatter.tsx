@@ -23,6 +23,8 @@ import AuroraActionFooter from "./AuroraActionFooter";
 import ScriptFlowFormatter from "./ScriptFlowFormatter";
 import MediaSuggestions from "./MediaSuggestions";
 import ImprovedReelsFormatter from "./ImprovedReelsFormatter";
+import ArticleFormatter from './ArticleFormatter';
+import LongVideoFormatter from './LongVideoFormatter';
 
 // Utilize apenas os utilitários importados, sem duplicidade local
 import {
@@ -31,6 +33,7 @@ import {
   splitLightCopyBlocks,
   splitScriptBlocks,
 } from "./utils/scriptUtils";
+
 
 // As listas de dados são apenas exportadas por questão de exibição/descritiva
 // Se precisar delas no componente, mantenha apenas assim:
@@ -147,6 +150,26 @@ const ScriptFormatter: React.FC<ScriptFormatterProps> = ({
   // --- Renderização do conteúdo principal do roteiro ---
   const renderScriptContent = () => {
     const formato = (script.formato || "").toLowerCase();
+
+    // Article
+    if (formato.includes('artigo') || formato.includes('article')) {
+      const ArticleFormatter = require('./ArticleFormatter').default;
+      return (
+        <div className="space-y-4">
+          <ArticleFormatter roteiro={script.roteiro} />
+        </div>
+      );
+    }
+
+    // Vídeo Longo
+    if (formato.includes('video_longo') || formato.includes('vídeo longo') || (formato.includes('video') && !formato.includes('reels'))) {
+      const LongVideoFormatter = require('./LongVideoFormatter').default;
+      return (
+        <div className="space-y-4">
+          <LongVideoFormatter roteiro={script.roteiro} />
+        </div>
+      );
+    }
 
     // REELS: layout minimalista com OFF limpo (sem cards/caixas)
     if (formato.includes('reels')) {
@@ -288,7 +311,7 @@ const ScriptFormatter: React.FC<ScriptFormatterProps> = ({
         onImproveScript={onImproveScript}
         onNewScript={onNewScript}
         onGenerateImage={onGenerateImage}
-        onGenerateAudio={onGenerateAudio}
+        onGenerateAudio={(script.formato || "").toLowerCase().includes('reels') || (script.formato || "").toLowerCase().includes('stories') || (script.formato || "").toLowerCase().includes('video') ? onGenerateAudio : undefined)
         isGeneratingAudio={isGeneratingAudio}
         isGeneratingImage={isGeneratingImage}
       />

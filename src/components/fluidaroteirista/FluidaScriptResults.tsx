@@ -170,7 +170,7 @@ const FluidaScriptResults = ({
                   padding: 0,
                   margin: 0
                 }}>
-                          {story.content}
+                          {require("@/utils/textSanitizer").sanitizeText(story.content)}
                         </pre>
                       </div>
                     </div>) : <div className="bg-gradient-to-br from-slate-900/80 via-emerald-900/40 to-slate-800/80 rounded-xl p-4 border border-emerald-400/10">
@@ -179,7 +179,7 @@ const FluidaScriptResults = ({
                 padding: 0,
                 margin: 0
               }}>
-                      {results[0].roteiro}
+                      {require("@/utils/textSanitizer").sanitizeText(results[0].roteiro)}
                     </pre>
                   </div>}
               </div>

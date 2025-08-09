@@ -268,6 +268,20 @@ const ImprovedReelsFormatter: React.FC<ImprovedReelsFormatterProps> = ({
       return sum + (timeMatch ? parseInt(timeMatch[2] || timeMatch[1]) : 3);
     }, 0);
 
+    // Agrupa em GPSC
+    const gpscOrder = ['🎯 Gancho','😤 Problema','💡 Solução','🚀 CTA'];
+    const gpscMap: Record<string, string[]> = {
+      '🎯 Gancho': [],
+      '😤 Problema': [],
+      '💡 Solução': [],
+      '🚀 CTA': [],
+    };
+    structuredBlocks.forEach((block) => {
+      const ct = detectContentType(block.content).type;
+      const key = gpscOrder.find(k => k.includes(ct.split(' ')[1])) || '💡 Solução';
+      gpscMap[key].push(block.content);
+    });
+
     return (
       <motion.div
         initial={{ opacity: 0, y: 10 }}
@@ -276,23 +290,27 @@ const ImprovedReelsFormatter: React.FC<ImprovedReelsFormatterProps> = ({
       >
         <header className="text-center space-y-2">
           <div className="flex items-center justify-center gap-2">
-            <Video className="h-6 w-6 text-primary" />
-            <h2 className="text-xl font-semibold tracking-tight text-foreground">
-              📱 Roteiro Estruturado para Reels
+            <Video className="h-6 w-6 text-aurora-electric-purple" />
+            <h2 className="text-xl font-semibold tracking-tight text-aurora-electric-purple">
+              📱 Reels — Estrutura GPSC
             </h2>
-            <Sparkles className="h-5 w-5 text-secondary" />
+            <Sparkles className="h-5 w-5 text-aurora-neon-blue" />
           </div>
-          <Badge variant="outline" className="text-xs">
+          <Badge variant="outline" className={`text-xs ${totalTime <= 45 ? 'bg-aurora-emerald/10 text-aurora-emerald border-aurora-emerald/30' : 'bg-aurora-pink/10 text-aurora-pink border-aurora-pink/30'}`}>
             <Clock className="h-3 w-3 mr-1" />
             {totalTime}s • {totalTime <= 45 ? '✅ Ideal' : '⚠️ Muito longo'}
           </Badge>
         </header>
 
-        <div className="space-y-4">
-          {structuredBlocks.map((block, index) => {
-            const contentType = detectContentType(block.content);
-            const IconComponent = contentType.icon;
-            
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {gpscOrder.map((key, index) => {
+            const title = key.replace(/^.+\s/, ''); // remove emoji
+            const content = gpscMap[key].join('\n');
+            const colorClass =
+              title === 'Gancho' ? 'border-aurora-electric-purple/30 bg-aurora-electric-purple/5' :
+              title === 'Problema' ? 'border-aurora-soft-pink/30 bg-aurora-soft-pink/5' :
+              title === 'Solução' ? 'border-aurora-emerald/30 bg-aurora-emerald/5' :
+              'border-aurora-neon-blue/30 bg-aurora-neon-blue/5';
             return (
               <motion.div
                 key={index}
@@ -300,27 +318,15 @@ const ImprovedReelsFormatter: React.FC<ImprovedReelsFormatterProps> = ({
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: index * 0.15 }}
               >
-                <Card className={`border-2 ${contentType.borderColor} ${contentType.bgColor} shadow-sm hover:shadow-md transition-all duration-200`}>
+                <Card className={`aurora-glass border-2 ${colorClass}`}>
                   <CardContent className="p-5">
                     <div className="space-y-3">
-                      {/* Header com badges */}
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <Badge variant="secondary" className="text-xs font-semibold">
-                          ⏱️ {block.time}
-                        </Badge>
-                        
-                        <Badge 
-                          variant="outline" 
-                          className={`text-xs font-medium ${contentType.color} border-current flex items-center gap-1.5`}
-                        >
-                          <IconComponent className="h-3.5 w-3.5" />
-                          {block.label || contentType.type}
-                        </Badge>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="secondary" className="text-xs font-semibold">⏱️ {Math.max(2, Math.round((gpscMap[key].join(' ').split(/\s+/).length)/3))}s</Badge>
+                        <Badge variant="outline" className="text-xs">{title}</Badge>
                       </div>
-                      
-                      {/* Conteúdo */}
-                      <div className="text-sm leading-relaxed text-foreground/90 font-medium">
-                        {highlightImpactPhrases(block.content)}
+                      <div className="text-sm leading-relaxed text-slate-200 font-medium whitespace-pre-line">
+                        {sanitizeText(content)}
                       </div>
                     </div>
                   </CardContent>
@@ -328,7 +334,7 @@ const ImprovedReelsFormatter: React.FC<ImprovedReelsFormatterProps> = ({
               </motion.div>
             );
           })}
-          
+
           {/* Footer com tempo total */}
           <motion.div
             initial={{ opacity: 0, y: 10 }}
@@ -336,23 +342,23 @@ const ImprovedReelsFormatter: React.FC<ImprovedReelsFormatterProps> = ({
             transition={{ delay: structuredBlocks.length * 0.15 + 0.2 }}
             className="mt-6"
           >
-            <Card className={`border-2 ${totalTime <= 45 ? 'border-green-200 bg-green-50' : 'border-amber-200 bg-amber-50'}`}>
-              <CardContent className="p-4">
-                <div className="flex items-center justify-center gap-3">
-                  <Clock className={`h-5 w-5 ${totalTime <= 45 ? 'text-green-600' : 'text-amber-600'}`} />
-                  <div className="text-center">
-                    <div className={`text-lg font-bold ${totalTime <= 45 ? 'text-green-600' : 'text-amber-600'}`}>
-                      ⏱️ Tempo Total: {totalTime}s
-                    </div>
-                    <div className="text-xs text-muted-foreground">
-                      {totalTime <= 45 
-                        ? '✅ Perfeito! Dentro do limite ideal para Reels' 
-                        : '⚠️ Considere reduzir para máximo 45 segundos'}
+              <Card className={`aurora-glass border-2 ${totalTime <= 45 ? 'border-aurora-emerald/30' : 'border-aurora-pink/30'}`}>
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-center gap-3">
+                    <Clock className={`h-5 w-5 ${totalTime <= 45 ? 'text-aurora-emerald' : 'text-aurora-pink'}`} />
+                    <div className="text-center">
+                      <div className={`text-lg font-bold ${totalTime <= 45 ? 'text-aurora-emerald' : 'text-aurora-pink'}`}>
+                        ⏱️ Tempo Total: {totalTime}s
+                      </div>
+                      <div className="text-xs text-slate-300">
+                        {totalTime <= 45 
+                          ? '✅ Perfeito! Dentro do limite ideal para Reels' 
+                          : '⚠️ Considere reduzir para máximo 45 segundos'}
+                      </div>
                     </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
           </motion.div>
         </div>
       </motion.div>
