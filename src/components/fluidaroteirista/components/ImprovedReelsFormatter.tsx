@@ -4,6 +4,7 @@ import { parseTemporalScript, TemporalScriptBlockData } from '../utils/parseTemp
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Clock, Video, Sparkles, Target, Zap, Flame, Lightbulb, BarChart3, HelpCircle, Users, AlertTriangle, TrendingUp, Eye } from 'lucide-react';
+import { sanitizeText } from '@/utils/textSanitizer';
 
 interface ImprovedReelsFormatterProps {
   roteiro: string;

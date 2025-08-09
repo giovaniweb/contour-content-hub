@@ -153,7 +153,6 @@ const ScriptFormatter: React.FC<ScriptFormatterProps> = ({
 
     // Article
     if (formato.includes('artigo') || formato.includes('article')) {
-      const ArticleFormatter = require('./ArticleFormatter').default;
       return (
         <div className="space-y-4">
           <ArticleFormatter roteiro={script.roteiro} />
@@ -163,7 +162,6 @@ const ScriptFormatter: React.FC<ScriptFormatterProps> = ({
 
     // Vídeo Longo
     if (formato.includes('video_longo') || formato.includes('vídeo longo') || (formato.includes('video') && !formato.includes('reels'))) {
-      const LongVideoFormatter = require('./LongVideoFormatter').default;
       return (
         <div className="space-y-4">
           <LongVideoFormatter roteiro={script.roteiro} />
@@ -311,7 +309,7 @@ const ScriptFormatter: React.FC<ScriptFormatterProps> = ({
         onImproveScript={onImproveScript}
         onNewScript={onNewScript}
         onGenerateImage={onGenerateImage}
-        onGenerateAudio={(script.formato || "").toLowerCase().includes('reels') || (script.formato || "").toLowerCase().includes('stories') || (script.formato || "").toLowerCase().includes('video') ? onGenerateAudio : undefined)
+        onGenerateAudio={((script.formato || "").toLowerCase().includes('reels') || (script.formato || "").toLowerCase().includes('stories') || (script.formato || "").toLowerCase().includes('video')) ? onGenerateAudio : undefined}
         isGeneratingAudio={isGeneratingAudio}
         isGeneratingImage={isGeneratingImage}
       />
