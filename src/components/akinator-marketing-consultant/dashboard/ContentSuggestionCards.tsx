@@ -26,11 +26,29 @@ const ContentSuggestionCards: React.FC<ContentSuggestionCardsProps> = ({
     const getSuggestions = async () => {
       setLoading(true);
       try {
+        // Extrair equipamentos selecionados do estado (IDs ou nomes), robusto a vários formatos
+        const raw = state.clinicType === 'clinica_medica' ? state.medicalEquipments : state.aestheticEquipments;
+
+        const splitList = (val?: string) =>
+          (val || '')
+            .split(/[,;\n|]/)
+            .map((s) => s.trim())
+            .filter(Boolean);
+
+        const isUuid = (v: string) =>
+          /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(v);
+
+        const items = splitList(raw);
+        const selectedEquipmentIds = items.filter(isUuid);
+        const selectedEquipmentNames = items.filter((x) => !isUuid(x));
+
         const realSuggestions = await generateContentSuggestions({
           clinicType: state.clinicType,
           medicalSpecialty: state.medicalSpecialty,
           aestheticFocus: state.aestheticFocus,
-          currentRevenue: state.currentRevenue
+          currentRevenue: state.currentRevenue,
+          selectedEquipmentIds,
+          selectedEquipmentNames,
         });
         setSuggestions(realSuggestions || []);
       } catch (e) {
@@ -41,7 +59,14 @@ const ContentSuggestionCards: React.FC<ContentSuggestionCardsProps> = ({
       setLoading(false);
     };
     getSuggestions();
-  }, [state.clinicType, state.medicalSpecialty, state.aestheticFocus, state.currentRevenue]);
+  }, [
+    state.clinicType,
+    state.medicalSpecialty,
+    state.aestheticFocus,
+    state.currentRevenue,
+    state.medicalEquipments,
+    state.aestheticEquipments,
+  ]);
 
   const handleAddToPlanner = async (suggestion: ContentSuggestion) => {
     try {

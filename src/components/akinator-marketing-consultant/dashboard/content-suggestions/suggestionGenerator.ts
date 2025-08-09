@@ -25,23 +25,45 @@ export const fetchRealEquipments = async (): Promise<Equipment[]> => {
 
 // Nova função principal: gera sugestões realmente baseadas nos dados do banco e inputs do usuário
 export const generateContentSuggestions = async (
-  { clinicType, medicalSpecialty, aestheticFocus, currentRevenue }: {
+  { clinicType, medicalSpecialty, aestheticFocus, currentRevenue, selectedEquipmentIds, selectedEquipmentNames }: {
     clinicType: string;
     medicalSpecialty?: string;
     aestheticFocus?: string;
     currentRevenue?: string;
+    selectedEquipmentIds?: string[];
+    selectedEquipmentNames?: string[];
   }
 ): Promise<ContentSuggestion[]> => {
   const suggestions: ContentSuggestion[] = [];
 
   // Busca equipamentos reais, filtrando pelo tipo de clínica do usuário
   const equipments = await fetchRealEquipments();
-  const isClinicaMedica = clinicType === 'clinica_medica';
-  const perfilEquipamentos = isClinicaMedica
-    ? equipments.filter(eq => eq.categoria === 'medico')
-    : equipments.filter(eq => eq.categoria === 'estetico');
+const isClinicaMedica = clinicType === 'clinica_medica';
+const perfilEquipamentos = isClinicaMedica
+  ? equipments.filter(eq => eq.categoria === 'medico')
+  : equipments.filter(eq => eq.categoria === 'estetico');
 
-  const especialidade = isClinicaMedica ? (medicalSpecialty || 'sua especialidade') : (aestheticFocus || 'seu foco');
+// Filtro adicional por equipamentos selecionados pelo usuário (IDs ou nomes)
+let filteredEquipments = [...perfilEquipamentos];
+
+if (selectedEquipmentIds && selectedEquipmentIds.length > 0) {
+  const idSet = new Set(selectedEquipmentIds.map(id => id.trim()));
+  filteredEquipments = filteredEquipments.filter(eq => idSet.has(eq.id));
+} else if (selectedEquipmentNames && selectedEquipmentNames.length > 0) {
+  const nameCandidates = selectedEquipmentNames
+    .map(n => n.toLowerCase().trim())
+    .filter(Boolean);
+  filteredEquipments = filteredEquipments.filter(eq => {
+    const nome = (eq.nome || '').toLowerCase();
+    return nameCandidates.some(n => nome === n || nome.includes(n));
+  });
+}
+
+console.log('🔎 Equipamentos - total:', equipments.length, 
+  '| perfil:', perfilEquipamentos.length, 
+  '| após seleção:', filteredEquipments.length);
+
+const especialidade = isClinicaMedica ? (medicalSpecialty || 'sua especialidade') : (aestheticFocus || 'seu foco');
 
   // Sugestões baseadas em especialidade real do usuário
   if (especialidade) {
@@ -68,7 +90,7 @@ export const generateContentSuggestions = async (
   }
 
   // Sugestões dinâmicas dos equipamentos reais do banco (máx. 3)
-  perfilEquipamentos.slice(0,3).forEach((eq, index) => {
+  filteredEquipments.slice(0,3).forEach((eq, index) => {
     suggestions.push({
       id: `equipment-${eq.id}`,
       title: `Explique o diferencial do equipamento ${eq.nome}`,
