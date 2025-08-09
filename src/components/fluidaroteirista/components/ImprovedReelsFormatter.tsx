@@ -223,91 +223,118 @@ const ImprovedReelsFormatter: React.FC<ImprovedReelsFormatterProps> = ({
   const formatLongText = (text: string): string[] => {
     if (!text) return [];
 
-    // Detecta pontos de quebra semântica específicos
-    const addSemanticBreaks = (content: string): string => {
-      return content
-        // Quebra OBRIGATÓRIA após perguntas retóricas
-        .replace(/([.!?])\s*(?=[A-ZÀ-Ý])/g, "$1\n")
-        .replace(/(\?)\s+/g, "$1\n\n")
-        
-        // Quebra antes de estatísticas e dados numéricos
-        .replace(/\s+(\d+%)/g, "\n\n$1")
-        .replace(/\s+(segundo|de acordo|pesquisa|estudo)/gi, "\n\n$1")
-        
-        // Quebra antes de CTAs claros
-        .replace(/\s+(clique|acesse|baixe|inscreva|siga|compartilhe|comenta|vem|vamos|faça|teste)/gi, "\n\n$1")
-        
-        // Quebra antes de palavras de urgência
-        .replace(/\s+(hoje|agora|últimas|apenas|limitado|restam|rápido)/gi, "\n\n$1")
-        
-        // Quebra antes de introdução de soluções/produtos
-        .replace(/\s+(apresent|conheç|descubr|experiment|test)/gi, "\n\n$1")
-        
-        // Quebra antes de benefícios claros
-        .replace(/\s+(benefício|vantagem|resultado|melhora|transforma|consegue|alcança)/gi, "\n\n$1");
+    // QUEBRA AGRESSIVA - padrões específicos para texto de vendas
+    const forceBreakBySalesPattern = (content: string): string[] => {
+      // Detecta padrões específicos do texto de celulite e força quebras
+      let result = content;
+      
+      // 1. HEADLINE/GANCHO - primeira frase até primeiro ponto
+      result = result.replace(/(HEADLINE MAGNÉTICA[^.!?]*[.!?])\s*/i, "$1\n\n");
+      
+      // 2. PROBLEMA URGENTE - até o final da descrição do problema
+      result = result.replace(/(PROBLEMA URGENTE[^.]*escolhas\.)\s*/i, "$1\n\n");
+      
+      // 3. AGITAÇÃO - pergunta retórica e questionamento
+      result = result.replace(/(AGITAÇÃO[^.]*funciona\?\"\s*)\s*/i, "$1\n\n");
+      
+      // 4. Quebra antes de "Chega de esconder"
+      result = result.replace(/\s+(Chega de esconder[^.]*temporárias\.)\s*/i, "\n\n$1\n\n");
+      
+      // 5. SOLUÇÃO ÚNICA - apresentação do produto
+      result = result.replace(/(SOLUÇÃO ÚNICA[^.]*Unyque PRO:)\s*/i, "\n\n$1\n\n");
+      
+      // 6. Descrição da tecnologia - até "inteligente"
+      result = result.replace(/(a tecnologia[^.]*inteligente\.)\s*/i, "$1\n\n");
+      
+      // 7. PROVA SOCIAL - estudos
+      result = result.replace(/(PROVA SOCIAL[^.]*eficaz)\s*/i, "\n\n$1");
+      
+      // 8. Adiciona asterisco como quebra
+      result = result.replace(/(\*\.)\s*/g, "$1\n\n");
+      
+      // 9. CTA FORTE - chamada final
+      result = result.replace(/(CTA FORTE[^.]*rápido\?)\s*/i, "\n\n$1\n\n");
+      
+      // 10. Quebra final antes de "Não perca"
+      result = result.replace(/\s+(Não perca[^.]*transformação!)\s*/i, "\n\n$1\n\n");
+
+      return result.split(/\n\n+/).map(p => p.trim()).filter(Boolean);
     };
 
-    // Aplica quebras semânticas primeiro
-    let processedText = addSemanticBreaks(text);
-
-    // Remove formatação excessiva
-    processedText = processedText
-      .replace(/\[[^\]]+\]/g, " ")
-      .replace(/\([^)]{3,}\)/g, " ")
-      .replace(/[\t ]+/g, " ")
-      .trim();
-
-    // Se tem quebras, divide por elas
-    if (processedText.includes("\n")) {
-      const parts = processedText
-        .split(/\n+/)
-        .map(p => p.trim())
-        .filter(Boolean)
-        .filter(p => p.length > 10); // Remove fragmentos muito pequenos
-      
-      if (parts.length > 1) return parts;
+    // Primeiro tenta quebras por padrões de vendas
+    const salesBreaks = forceBreakBySalesPattern(text);
+    if (salesBreaks.length > 1) {
+      return salesBreaks;
     }
 
-    // FALLBACK AGRESSIVO: força quebra por contexto para textos de vendas
-    const forceSemanticBreak = (content: string): string[] => {
-      // Padrões específicos para texto de celulite
-      const breakPatterns = [
-        /([?!.])\s*(?=E se eu te dissesse)/i,
-        /([?!.])\s*(?=Segundo)/i, 
-        /([?!.])\s*(?=Apresento)/i,
-        /([?!.])\s*(?=Com o)/i,
-        /([?!.])\s*(?=Clique)/i,
-        /([?!.])\s*(?=Hoje)/i,
-        /([?!.])\s*(?=\d+%)/,
-        /(conhece[^.!?]*[.!?])\s*/i,
-        /(isso mesmo[^.!?]*[.!?])\s*/i,
-        /(pesquisa[^.!?]*[.!?])\s*/i
+    // QUEBRA ALTERNATIVA - por palavras-chave específicas
+    const alternativeBreak = (content: string): string[] => {
+      const keyBreakPoints = [
+        'PROBLEMA URGENTE',
+        'AGITAÇÃO', 
+        'Chega de esconder',
+        'SOLUÇÃO ÚNICA',
+        'O segredo?',
+        'PROVA SOCIAL',
+        'CTA FORTE',
+        'Não perca'
       ];
 
-      let result = content;
-      breakPatterns.forEach(pattern => {
-        result = result.replace(pattern, "$1\n\n");
+      let processedText = content;
+      keyBreakPoints.forEach(breakPoint => {
+        const regex = new RegExp(`\\s+(${breakPoint})`, 'gi');
+        processedText = processedText.replace(regex, '\n\n$1');
       });
 
-      return result.split(/\n+/).map(p => p.trim()).filter(Boolean);
+      const parts = processedText.split(/\n\n+/).filter(Boolean);
+      return parts.length > 1 ? parts : [];
     };
 
-    const semanticParts = forceSemanticBreak(processedText);
-    if (semanticParts.length > 1) return semanticParts;
-
-    // Última tentativa: quebra por sentenças e agrupa máximo 2 por bloco
-    const sentences = processedText.match(/[^.!?]+[.!?]?/g)?.filter(Boolean) || [processedText];
-    
-    if (sentences.length > 3) {
-      const chunks: string[] = [];
-      for (let i = 0; i < sentences.length; i += 2) {
-        const chunk = sentences.slice(i, i + 2).join(" ").trim();
-        chunks.push(chunk);
-      }
-      return chunks;
+    const altBreaks = alternativeBreak(text);
+    if (altBreaks.length > 1) {
+      return altBreaks;
     }
 
-    return [processedText];
+    // ÚLTIMO RECURSO - quebra forçada por posição de caracteres
+    const emergencyBreak = (content: string): string[] => {
+      // Remove formatação e espaços extras
+      const clean = content.replace(/\s+/g, ' ').trim();
+      
+      // Se muito longo, força quebra por pontos específicos do texto
+      if (clean.length > 200) {
+        const forcePoints = [
+          clean.indexOf('Pare tudo'),
+          clean.indexOf('Chega de esconder'),
+          clean.indexOf('Conheca o Unyque PRO'),
+          clean.indexOf('Estudos mostram'),
+          clean.indexOf('Clique no link'),
+          clean.indexOf('Não perca')
+        ].filter(pos => pos > 0);
+
+        if (forcePoints.length > 0) {
+          const chunks: string[] = [];
+          let lastPos = 0;
+          
+          forcePoints.sort((a, b) => a - b).forEach(pos => {
+            if (pos > lastPos + 50) { // Evita chunks muito pequenos
+              chunks.push(clean.substring(lastPos, pos).trim());
+              lastPos = pos;
+            }
+          });
+          
+          // Adiciona o resto
+          if (lastPos < clean.length) {
+            chunks.push(clean.substring(lastPos).trim());
+          }
+          
+          return chunks.filter(chunk => chunk.length > 20);
+        }
+      }
+
+      return [clean];
+    };
+
+    return emergencyBreak(text);
   };
   const estimateBlockTime = (text: string): number => {
     const words = text.trim().split(/\s+/).filter(Boolean).length;
