@@ -23,6 +23,50 @@ export class EnhancedRequestHandler {
     );
   }
 
+  // Regras padrão
+  private readonly DEFAULT_BANNED = [
+    'do jeito ladeira',
+    'ladeira copywarrior',
+    'copywarrior'
+  ];
+
+  private sanitizeContent(content: string, opts?: { format?: string; maxStories?: number; bannedPhrases?: string[] }) {
+    let sanitized = content || '';
+
+    // Remover frases banidas (case-insensitive)
+    const banned = (opts?.bannedPhrases || []).concat(this.DEFAULT_BANNED);
+    for (const phrase of banned) {
+      const rx = new RegExp(phrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+      sanitized = sanitized.replace(rx, '').replace(/\s{2,}/g, ' ');
+    }
+
+    // Limitar Stories a N itens (heurística de seções)
+    if ((opts?.format || '').toLowerCase() === 'stories' && opts?.maxStories) {
+      sanitized = this.limitSections(sanitized, opts.maxStories);
+    }
+
+    return sanitized.trim();
+  }
+
+  private limitSections(text: string, max: number) {
+    const lines = text.split('\n');
+    const sections: string[][] = [];
+    let current: string[] = [];
+
+    const isSectionHeader = (l: string) => /^(story|storie|slides?|\d+\.|#)/i.test(l.trim());
+
+    for (const l of lines) {
+      if (isSectionHeader(l) && current.length) {
+        sections.push(current);
+        current = [];
+      }
+      current.push(l);
+    }
+    if (current.length) sections.push(current);
+
+    const limited = sections.slice(0, max).flat().join('\n');
+    return limited || text;
+  }
   /**
    * Fetch equipment details from database - updated to handle multiple equipment names
    */
@@ -220,49 +264,117 @@ Use apenas informações gerais sobre tratamentos estéticos, sem inventar espec
   }
 
   /**
-   * Call OpenAI API with mentor-enhanced prompts
+   * Call OpenAI API with mentor-enhanced prompts + guardrails, routing e métricas
    */
-  async callOpenAI(systemPrompt: string, userPrompt: string, equipmentDetails: EquipmentDetail[]) {
+  async callOpenAI(
+    systemPrompt: string,
+    userPrompt: string,
+    _equipmentDetails: EquipmentDetail[],
+    opts?: { format?: string; maxStories?: number; bannedPhrases?: string[]; userId?: string }
+  ) {
     console.log("🤖 Chamando OpenAI com prompts do mentor...");
-    
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${this.openAIApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-4.1-2025-04-14',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt }
-        ],
-        temperature: 0.8, // Increased for more creativity
-        max_tokens: 2000,
-        presence_penalty: 0.1,
-        frequency_penalty: 0.1
-      }),
-    });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('❌ Erro da OpenAI:', response.status, errorText);
-      throw new Error(`OpenAI API error: ${response.status} - ${errorText}`);
+    const guardrails: string[] = [
+      "NUNCA use as expressões: 'do jeito Ladeira', 'Ladeira CopyWarrior', 'CopyWarrior'.",
+      "Mantenha linguagem profissional e clara; evite gírias e jargões desnecessários.",
+    ];
+
+    if ((opts?.format || '').toLowerCase() === 'stories') {
+      const n = opts?.maxStories ?? 5;
+      guardrails.push(
+        `Se for Stories, gere no MÁXIMO ${n} stories, numerados de 1 a ${n}, cada um com 10-15s. Não ultrapasse ${n}.`
+      );
     }
 
-    const data = await response.json();
-    
-    if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+    const modelPrimary = 'gpt-4.1-2025-04-14';
+    const modelFallback = 'gpt-4.1-mini-2025-04-14';
+
+    const buildBody = (model: string) => ({
+      model,
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'system', content: `REGRAS E LIMITES:\n- ${guardrails.join('\n- ')}` },
+        { role: 'user', content: userPrompt },
+      ],
+      temperature: 0.8,
+      max_tokens: 2000,
+      presence_penalty: 0.1,
+      frequency_penalty: 0.1,
+    });
+
+    const doRequest = async (model: string) => {
+      const res = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${this.openAIApiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(buildBody(model)),
+      });
+      return { res, model } as const;
+    };
+
+    let attempt = await doRequest(modelPrimary);
+
+    if (!attempt.res.ok) {
+      const text = await attempt.res.text();
+      console.warn(`⚠️ Falha no modelo primário (${attempt.model}):`, attempt.res.status, text);
+      console.log('🔁 Tentando fallback:', modelFallback);
+      attempt = await doRequest(modelFallback);
+      if (!attempt.res.ok) {
+        const text2 = await attempt.res.text();
+        console.error('❌ Erro da OpenAI (fallback):', attempt.res.status, text2);
+        throw new Error(`OpenAI API error: ${attempt.res.status} - ${text2}`);
+      }
+    }
+
+    const data = await attempt.res.json();
+
+    if (!data.choices?.[0]?.message?.content) {
       console.error('❌ Resposta inválida da OpenAI:', data);
       throw new Error('Invalid OpenAI response structure');
     }
 
-    const content = data.choices[0].message.content;
-    console.log("✅ Conteúdo criativo gerado com sucesso");
-    
-    // Log para debug (primeira linha apenas)
-    console.log("📝 Preview:", content.split('\n')[0]);
-    
+    const rawContent = data.choices[0].message.content as string;
+    const content = this.sanitizeContent(rawContent, {
+      format: opts?.format,
+      maxStories: opts?.maxStories ?? 5,
+      bannedPhrases: opts?.bannedPhrases,
+    });
+
+    // Logs breves
+    console.log('✅ Conteúdo gerado');
+    console.log('📝 Preview:', content.split('\n')[0]);
+
+    // Métricas básicas de uso
+    try {
+      const usage = data.usage || {};
+      const promptTokens = usage.prompt_tokens || 0;
+      const completionTokens = usage.completion_tokens || 0;
+      const totalTokens = usage.total_tokens || (promptTokens + completionTokens);
+
+      // Estimativa (aprox) para gpt-4.1
+      const inputCost = (promptTokens / 1000) * 0.0025;
+      const outputCost = (completionTokens / 1000) * 0.01;
+      const estimatedCost = inputCost + outputCost;
+
+      await this.supabase.from('ai_usage_metrics').insert([
+        {
+          service_name: 'openai-chat',
+          endpoint: 'generate-script',
+          model: attempt.model,
+          prompt_tokens: promptTokens,
+          completion_tokens: completionTokens,
+          total_tokens: totalTokens,
+          estimated_cost: estimatedCost,
+          response_time_ms: null,
+          user_id: opts?.userId || null,
+        },
+      ]);
+    } catch (mErr) {
+      console.warn('⚠️ Falha ao gravar métricas de uso:', mErr);
+    }
+
     return content;
   }
 }

@@ -80,7 +80,12 @@ serve(async (req) => {
     
     // Call OpenAI API with enhanced prompts and equipment validation
     console.log("🤖 Chamando OpenAI API com validação de equipamentos...");
-    const content = await enhancedHandler.callOpenAI(systemPrompt, userPrompt, equipmentDetails);
+    const content = await enhancedHandler.callOpenAI(systemPrompt, userPrompt, equipmentDetails, {
+      format: request.format || request.type || 'reels',
+      maxStories: 5,
+      bannedPhrases: ['do jeito Ladeira', 'Ladeira CopyWarrior', 'CopyWarrior'],
+      userId: user.id
+    });
     console.log("✅ Resposta recebida da OpenAI com equipamentos validados");
     
     // Format the response
