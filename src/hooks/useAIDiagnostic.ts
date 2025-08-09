@@ -98,6 +98,9 @@ export const useAIDiagnostic = () => {
         diagnostic_content: diagnostic,
         input_data: inputData,
         model_used: metadata.model_used || 'gpt-4',
+        model_tier: metadata.model_tier || getSelectedModelTier(),
+        latency_ms: metadata.latency_ms ?? null,
+        tokens_used: metadata.tokens_used ?? null,
         equipments_validated: metadata.equipments_validated || [],
         success: metadata.success || false,
         created_at: new Date().toISOString()

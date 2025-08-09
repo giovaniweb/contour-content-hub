@@ -34,6 +34,11 @@ const AkinatorInteligente: React.FC = () => {
   const [sessionStarted, setSessionStarted] = useState(false);
   const [aiStats, setAiStats] = useState<AIStats>({ equipamentosUsados: 0, artigosConsultados: 0 });
   const [progress, setProgress] = useState(0);
+  const [aiMode, setAiModeState] = useState<'standard' | 'gpt5'>(() => (typeof window !== 'undefined' && localStorage.getItem('aiMode') === 'gpt5') ? 'gpt5' : 'standard');
+  const setAiMode = (mode: 'standard' | 'gpt5') => {
+    setAiModeState(mode);
+    try { localStorage.setItem('aiMode', mode); } catch {}
+  };
   const genieName = useRef(genieNames[Math.floor(Math.random() * genieNames.length)]).current;
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -184,7 +189,24 @@ const AkinatorInteligente: React.FC = () => {
               )}
             </div>
           </div>
-
+          <div className="mt-2">
+            <div className="inline-flex rounded-full border border-aurora-neon-blue/30 overflow-hidden">
+              <button
+                onClick={() => setAiMode('standard')}
+                className={`px-3 py-1 text-sm transition-colors ${aiMode === 'standard' ? 'bg-aurora-neon-blue/20 text-aurora-neon-blue' : 'text-aurora-text-muted'}`}
+                aria-pressed={aiMode === 'standard'}
+              >
+                IA: Padrão
+              </button>
+              <button
+                onClick={() => setAiMode('gpt5')}
+                className={`px-3 py-1 text-sm transition-colors ${aiMode === 'gpt5' ? 'bg-aurora-electric-purple/20 text-aurora-electric-purple' : 'text-aurora-text-muted'}`}
+                aria-pressed={aiMode === 'gpt5'}
+              >
+                GPT‑5 (Beta)
+              </button>
+            </div>
+          </div>
         </motion.div>
 
         <AnimatePresence mode="wait">

@@ -219,6 +219,8 @@ serve(async (req) => {
       timestamp: new Date().toISOString(),
       model_used: usedModel,
       model_tier: modelTier,
+      latency_ms: latencyMs,
+      tokens_used: totalTokens,
       clinic_type: diagnosticData.clinicType,
       equipments_validated: await validateEquipments(diagnosticData)
     }), {
@@ -391,7 +393,7 @@ function validateDiagnosticStructure(diagnostic: string): boolean {
   });
   
   console.log(`🔍 Estrutura validada: ${foundSections}/6 seções encontradas`);
-  return foundSections >= 5;
+  return foundSections >= 6;
 }
 
 // Função para gerar fallback estruturado
