@@ -24,9 +24,15 @@ import {
 import { toast } from 'sonner';
 import ImprovedScriptFormatter from './ImprovedScriptFormatter';
 import ImprovedReelsFormatter from './ImprovedReelsFormatter';
+import CarouselFormatter from './CarouselFormatter';
+import Stories10xFormatter from './Stories10xFormatter';
+import MediaExamples from './MediaExamples';
 import { useImageGeneration } from '@/hooks/useImageGeneration';
 import { useAudioGeneration } from '@/hooks/useAudioGeneration';
+import { useMultipleImageGeneration } from '@/hooks/useMultipleImageGeneration';
+import { usePhotographicImageGeneration } from '@/hooks/usePhotographicImageGeneration';
 import { useSaveScript } from '../hooks/useSaveScript';
+import { parseStories10xSlides } from '../utils/stories10xParser';
 
 interface ScientificInsight {
   id: string;
@@ -61,13 +67,35 @@ const ScriptResultsNovo: React.FC<ScriptResultsNovoProps> = ({
 }) => {
 const [activeResult, setActiveResult] = useState(0);
 
-  // Hooks de geração e salvamento
+  // Hooks de geração e salvamento específicos por formato
   const { generateImage, isGenerating: isGeneratingImage, generatedImageUrl } = useImageGeneration();
   const { generateAudio, isGenerating: isGeneratingAudio, audioUrl, downloadAudio } = useAudioGeneration();
+  const { 
+    generateImages: generateMultipleImages, 
+    isGenerating: isGeneratingMultipleImages, 
+    generatedImages,
+    downloadAllImages,
+    clearImages
+  } = useMultipleImageGeneration();
+  const { 
+    generatePhotographicImages, 
+    isGenerating: isGeneratingPhotographic, 
+    generatedImages: photographicImages,
+    downloadAllImages: downloadAllPhotographic
+  } = usePhotographicImageGeneration();
   const { saveScript, isSaving } = useSaveScript();
 
+  // Geração específica por formato
   const handleGenerateImage = async () => {
-    await generateImage({ roteiro: results[activeResult].content, formato: results[activeResult].format });
+    const currentFormat = formatLc;
+    
+    if (currentFormat.includes('carrossel') || currentFormat.includes('carousel')) {
+      // Carrossel: múltiplas imagens sequenciais
+      await generateMultipleImages(results[activeResult]);
+    } else if (currentFormat.includes('artigo') || currentFormat.includes('article') || currentFormat.includes('blog')) {
+      // Artigo: uma imagem principal
+      await generateImage({ roteiro: results[activeResult].content, formato: results[activeResult].format });
+    }
   };
 
   const handleGenerateAudio = async () => {
@@ -143,8 +171,16 @@ const [activeResult, setActiveResult] = useState(0);
 
   const currentResult = results[activeResult];
   const formatLc = (currentResult.format || '').toLowerCase();
-  const canGenerateImage = ['carrossel','carousel','stories','story','artigo','article','blog'].some(k => formatLc.includes(k));
-  const canGenerateAudio = formatLc.includes('reels') || formatLc.includes('reel') || formatLc.includes('vídeo longo') || formatLc.includes('video longo') || formatLc.includes('video_longo') || formatLc.includes('long-form') || formatLc.includes('longform') || formatLc.includes('longo');
+  
+  // Lógica corrigida: quem gera o quê
+  const canGenerateImage = formatLc.includes('carrossel') || formatLc.includes('carousel') || 
+                          formatLc.includes('artigo') || formatLc.includes('article') || formatLc.includes('blog');
+  
+  const canGenerateAudio = formatLc.includes('reels') || formatLc.includes('reel') || 
+                          formatLc.includes('stories') || formatLc.includes('story') ||
+                          formatLc.includes('vídeo longo') || formatLc.includes('video longo') || 
+                          formatLc.includes('video_longo') || formatLc.includes('long-form') || 
+                          formatLc.includes('longform');
 
   return (
     <motion.div
@@ -259,61 +295,31 @@ const [activeResult, setActiveResult] = useState(0);
       >
         {/* Coluna Principal - Roteiro */}
         <div className="lg:col-span-2">
-          {formatLc.includes('reels') ? (
-            <section className="space-y-6">
-              <header>
-                <h2 className="text-xl font-semibold tracking-tight text-foreground">Roteiro Gerado</h2>
-                <div className="mt-1 text-sm text-muted-foreground">{currentResult.format.toUpperCase()}</div>
-              </header>
-              <div className="space-y-6">
+          <Card className="bg-slate-800/50 border-slate-700 h-full">
+            <CardHeader>
+              <CardTitle className="text-white flex items-center gap-2">
+                <FileText className="w-5 h-5 text-emerald-400" />
+                Roteiro Gerado
+                <Badge variant="secondary" className="ml-auto bg-emerald-500/20 text-emerald-400">
+                  {currentResult.format.toUpperCase()}
+                </Badge>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Formatador específico por tipo */}
+              {formatLc.includes('carrossel') || formatLc.includes('carousel') ? (
+                <CarouselFormatter roteiro={currentResult.content} />
+              ) : formatLc.includes('stories') || formatLc.includes('story') ? (
+                <Stories10xFormatter 
+                  slides={parseStories10xSlides(currentResult.content)} 
+                  onApproveScript={() => handleApproveAndSave()}
+                />
+              ) : formatLc.includes('reels') || formatLc.includes('reel') ? (
                 <ImprovedReelsFormatter 
                   roteiro={currentResult.content}
                   estimatedTime={45}
                 />
-                <div className="flex flex-wrap gap-2 pt-4">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleCopyContent(currentResult.content)}
-                    className="text-foreground border-border"
-                  >
-                    <Copy className="w-4 h-4 mr-2" />
-                    Copiar
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleDownload(currentResult.content, currentResult.format)}
-                    className="text-foreground border-border"
-                  >
-                    <Download className="w-4 h-4 mr-2" />
-                    Baixar
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleShare(currentResult.content)}
-                    className="text-foreground border-border"
-                  >
-                    <Share2 className="w-4 h-4 mr-2" />
-                    Compartilhar
-                  </Button>
-                </div>
-              </div>
-            </section>
-          ) : (
-            <Card className="bg-slate-800/50 border-slate-700 h-full">
-              <CardHeader>
-                <CardTitle className="text-white flex items-center gap-2">
-                  <FileText className="w-5 h-5 text-emerald-400" />
-                  Roteiro Gerado
-                  <Badge variant="secondary" className="ml-auto bg-emerald-500/20 text-emerald-400">
-                    {currentResult.format.toUpperCase()}
-                  </Badge>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                {/* Usando o novo formatador melhorado */}
+              ) : (
                 <ImprovedScriptFormatter 
                   script={{
                     roteiro: currentResult.content,
@@ -324,44 +330,47 @@ const [activeResult, setActiveResult] = useState(0);
                     mentor: 'Especialista'
                   }} 
                 />
-                
-                {/* Ações do Roteiro */}
-                <div className="flex flex-wrap gap-2 pt-4 border-t border-slate-700">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleCopyContent(currentResult.content)}
-                    className="border-slate-600 text-slate-300 hover:bg-slate-700"
-                  >
-                    <Copy className="w-4 h-4 mr-2" />
-                    Copiar
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleDownload(currentResult.content, currentResult.format)}
-                    className="border-slate-600 text-slate-300 hover:bg-slate-700"
-                  >
-                    <Download className="w-4 h-4 mr-2" />
-                    Baixar
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleShare(currentResult.content)}
-                    className="border-slate-600 text-slate-300 hover:bg-slate-700"
-                  >
-                    <Share2 className="w-4 h-4 mr-2" />
-                    Compartilhar
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          )}
+              )}
+              
+              {/* Ações do Roteiro */}
+              <div className="flex flex-wrap gap-2 pt-4 border-t border-slate-700">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleCopyContent(currentResult.content)}
+                  className="border-slate-600 text-slate-300 hover:bg-slate-700"
+                >
+                  <Copy className="w-4 h-4 mr-2" />
+                  Copiar
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleDownload(currentResult.content, currentResult.format)}
+                  className="border-slate-600 text-slate-300 hover:bg-slate-700"
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  Baixar
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleShare(currentResult.content)}
+                  className="border-slate-600 text-slate-300 hover:bg-slate-700"
+                >
+                  <Share2 className="w-4 h-4 mr-2" />
+                  Compartilhar
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Coluna Lateral - Informações e Ações */}
         <div className="space-y-6">
+          {/* Exemplos de Mídia que será gerada */}
+          <MediaExamples format={currentResult.format} />
+
           {/* Base Científica */}
           <Card className="bg-slate-800/50 border-slate-700">
             <CardHeader>
@@ -408,26 +417,77 @@ const [activeResult, setActiveResult] = useState(0);
               </CardTitle>
             </CardHeader>
             <CardContent>
-<div className="space-y-3">
+              <div className="space-y-3">
                 {canGenerateImage && (
                   <>
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={handleGenerateImage}
-                      disabled={isGeneratingImage}
+                      disabled={isGeneratingImage || isGeneratingMultipleImages || isGeneratingPhotographic}
                       className="w-full justify-start border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20"
                     >
                       <ImageIcon className="w-4 h-4 mr-2" />
-                      {isGeneratingImage ? "Gerando imagem..." : "Gerar Imagem com IA"}
+                      {isGeneratingImage || isGeneratingMultipleImages || isGeneratingPhotographic 
+                        ? "Gerando imagens..." 
+                        : formatLc.includes('carrossel') 
+                          ? "Gerar Múltiplas Imagens" 
+                          : "Gerar Imagem com IA"
+                      }
                     </Button>
 
+                    {/* Carrossel: múltiplas imagens */}
+                    {generatedImages && generatedImages.length > 0 && (
+                      <div className="mt-2 space-y-2">
+                        <div className="grid grid-cols-2 gap-2">
+                          {generatedImages.slice(0, 4).map((img, index) => (
+                            <img
+                              key={index}
+                              src={img.imageUrl}
+                              alt={`Imagem ${index + 1} do carrossel`}
+                              className="rounded-md border border-emerald-500/20 aspect-square object-cover"
+                              loading="lazy"
+                            />
+                          ))}
+                        </div>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={downloadAllImages} 
+                          className="text-emerald-300 hover:text-emerald-200 w-full"
+                        >
+                          Baixar todas ({generatedImages.length})
+                        </Button>
+                      </div>
+                    )}
+
+                    {/* Fotográficas para artigos */}
+                    {photographicImages && photographicImages.length > 0 && (
+                      <div className="mt-2 space-y-2">
+                        <img
+                          src={photographicImages[0].imageUrl}
+                          alt="Imagem fotográfica para artigo"
+                          className="rounded-md border border-emerald-500/20 w-full"
+                          loading="lazy"
+                        />
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={downloadAllPhotographic} 
+                          className="text-emerald-300 hover:text-emerald-200 w-full"
+                        >
+                          Baixar imagem
+                        </Button>
+                      </div>
+                    )}
+
+                    {/* Imagem única */}
                     {generatedImageUrl && (
                       <div className="mt-2">
                         <img
                           src={generatedImageUrl}
                           alt="Imagem gerada por IA para o roteiro"
-                          className="rounded-md border border-emerald-500/20"
+                          className="rounded-md border border-emerald-500/20 w-full"
                           loading="lazy"
                         />
                       </div>
@@ -445,13 +505,25 @@ const [activeResult, setActiveResult] = useState(0);
                       className="w-full justify-start border-blue-500/30 text-blue-400 hover:bg-blue-500/20"
                     >
                       <Volume2 className="w-4 h-4 mr-2" />
-                      {isGeneratingAudio ? "Gerando áudio..." : "Converter para Áudio"}
+                      {isGeneratingAudio 
+                        ? "Gerando áudio..." 
+                        : formatLc.includes('stories') 
+                          ? "Gerar Narração Stories"
+                          : formatLc.includes('reels')
+                            ? "Gerar OFF para Reels"
+                            : "Converter para Áudio"
+                      }
                     </Button>
 
                     {audioUrl && (
                       <div className="mt-2 space-y-2">
                         <audio controls src={audioUrl} className="w-full" />
-                        <Button variant="ghost" size="sm" onClick={() => downloadAudio('roteiro-fluida.mp3')} className="text-blue-300 hover:text-blue-200">
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => downloadAudio('roteiro-fluida.mp3')} 
+                          className="text-blue-300 hover:text-blue-200 w-full"
+                        >
                           Baixar áudio
                         </Button>
                       </div>
