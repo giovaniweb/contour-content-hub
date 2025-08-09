@@ -84,7 +84,7 @@ export const useFluidaScript = () => {
         Crie o roteiro seguindo exatamente as especificações do formato selecionado.
       `;
 
-      const modelTier = (typeof window !== 'undefined' && localStorage.getItem('aiMode') === 'gpt5') ? 'gpt5' : 'standard';
+      const modelTier: 'gpt5' | 'standard' = (typeof window !== 'undefined' && localStorage.getItem('aiMode') === 'gpt5') ? 'gpt5' : 'standard';
 
       // Preparar dados para a API
       const apiData = {
