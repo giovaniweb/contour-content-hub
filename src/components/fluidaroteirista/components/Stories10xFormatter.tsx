@@ -152,72 +152,72 @@ const Stories10xFormatter: React.FC<Stories10xFormatterProps> = ({ slides, onApp
         </Card>
       </motion.div>
 
-      {/* Stories Individuais */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {cappedSlides.map((slide, index) => {
-          const icon = getSlideIcon(slide.tipo);
-          const theme = getSlideTheme(slide.tipo);
-          
-          return (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
-              whileHover={{ y: -5, scale: 1.02 }}
-              className="h-full"
-            >
-              <Card className={`${theme.bg} ${theme.border} border-2 hover:shadow-lg transition-all duration-300 h-full`}>
-                <CardHeader className="pb-3">
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="text-3xl">{icon}</div>
-                    <div className="flex-1">
-                      <span className={`${theme.badge} border mb-2 rounded px-2 py-0.5 text-xs font-semibold`}>
-                        Story {slide.number} • {slide.tempo}
-                      </span>
-                      <h3 className={`font-bold ${theme.text} text-lg`}>
-                        {sanitizeText(slide.titulo)}
-                      </h3>
-                    </div>
-                  </div>
-                </CardHeader>
+      {/* Stories Combined Text */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.4 }}
+      >
+        <Card className="aurora-glass border-aurora-electric-purple/20">
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle className="text-aurora-electric-purple text-xl">
+              📱 Roteiro Stories 10x
+            </CardTitle>
+            <CopyButton 
+              text={(() => {
+                const cleanBody = (content: string) => {
+                  return content
+                    .replace(/^\s*[-=]+\s*$/gm, '')
+                    .replace(/^\s*#+\s*$/gm, '')
+                    .trim();
+                };
 
-                <CardContent className="space-y-4">
-                  {/* Conteúdo do Story */}
-                  <div className="aurora-glass rounded-lg p-4 border border-white/10 backdrop-blur-sm relative">
-                    <div className="flex items-center gap-2 mb-3">
-                      <span className="text-aurora-neon-blue text-base">🎯</span>
-                      <span className="text-sm font-medium text-aurora-neon-blue">Conteúdo</span>
-                    </div>
-                    <p className="text-slate-200 leading-relaxed text-sm pr-12">
-                      {sanitizeText(slide.conteudo)}
-                    </p>
-                    <CopyButton 
-                      text={sanitizeText(slide.conteudo)}
-                      successMessage={`Story ${slide.number} copiado!`}
-                    />
+                return cappedSlides.map((slide, i) => {
+                  const icon = getSlideIcon(slide.tipo);
+                  const cleanContent = cleanBody(sanitizeText(slide.conteudo));
+                  return `${icon} Conteúdo do story ${slide.number || i + 1} - ✨ ${sanitizeText(slide.titulo)}:\n\n${cleanContent}`;
+                }).join('\n\n---------------------------------------------------------------\n\n');
+              })()}
+              successMessage="Roteiro Stories 10x copiado!"
+              size="sm"
+            />
+          </CardHeader>
+          <CardContent>
+            <div className="bg-black/20 rounded-lg p-6 text-sm font-mono leading-relaxed border border-white/10">
+              {cappedSlides.map((slide, i) => {
+                const icon = getSlideIcon(slide.tipo);
+                const cleanBody = (content: string) => {
+                  return content
+                    .replace(/^\s*[-=]+\s*$/gm, '')
+                    .replace(/^\s*#+\s*$/gm, '')
+                    .trim();
+                };
+                
+                const cleanContent = cleanBody(sanitizeText(slide.conteudo));
+                const hasBody = cleanContent.length > 0;
+                
+                return (
+                  <div key={i}>
+                    <h3 className="font-semibold text-white mb-1">
+                      {icon} Conteúdo do story {slide.number || i + 1} - ✨ {sanitizeText(slide.titulo)}:
+                    </h3>
+                    {hasBody && (
+                      <p className="text-white/90 whitespace-pre-wrap ml-4 mb-4">
+                        {cleanContent}
+                      </p>
+                    )}
+                    {i < cappedSlides.length - 1 && (
+                      <div className="text-aurora-electric-purple my-4 font-bold">
+                        ---------------------------------------------------------------
+                      </div>
+                    )}
                   </div>
-
-                  {/* Dispositivos de Engajamento */}
-                  {slide.dispositivo && (
-                    <div className="aurora-glass rounded-lg p-4 border border-white/10 backdrop-blur-sm">
-                      <div className="flex items-center gap-2 mb-3">
-                        <span className="text-aurora-pink">⚡</span>
-                        <span className="text-sm font-medium text-aurora-pink">Dispositivo</span>
-                      </div>
-                      <div className="flex flex-wrap gap-2">
-                        {slide.dispositivo.split(', ').map((dispositivo, i) => (
-                          <span key={i} className="text-aurora-pink border-aurora-pink/30 border px-2 py-0.5 rounded text-xs">{dispositivo}</span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </motion.div>
-          );
-        })}
-      </div>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
 
       {/* Dicas & Aprovação */}
       <motion.div
