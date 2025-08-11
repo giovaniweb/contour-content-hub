@@ -187,16 +187,24 @@ const Stories10xFormatter: React.FC<Stories10xFormatterProps> = ({ slides, onApp
                   .replace(/^\s*#+\s*$/gm, '')
                   .trim();
                 
-                // Adicionar quebras de linha inteligentes
+                // Formatação específica para Stories 10x
                 cleaned = cleaned
+                  // Quebrar linha antes de numerações com emoji (1️⃣, 2️⃣, etc.)
+                  .replace(/(?<!^)(\d️⃣)/g, '\n\n$1')
+                  // Quebrar linha antes de textos entre colchetes
+                  .replace(/(?<!^)(\[.*?\])/g, '\n$1')
+                  // Quebrar linha antes de separadores ---
+                  .replace(/(\s+---\s*)/g, '\n$1')
+                  // Adicionar linha após numerações com emoji
+                  .replace(/(\d️⃣.*?)(?=\n|$)/g, '$1\n')
                   // Quebrar após pontos finais seguidos de maiúscula
-                  .replace(/\. ([A-Z])/g, '.\n\n$1')
+                  .replace(/\. ([A-Z])/g, '.\n$1')
                   // Quebrar após dois pontos quando seguido de texto longo
-                  .replace(/: ([A-Z][^.]{50,})/g, ':\n\n$1')
+                  .replace(/: ([A-Z][^.]{40,})/g, ':\n$1')
                   // Quebrar frases muito longas (mais de 120 caracteres)
                   .split('\n')
                   .map(line => {
-                    if (line.length > 120 && !line.includes('\n')) {
+                    if (line.length > 120 && !line.includes('️⃣') && !line.includes('[')) {
                       // Procurar por vírgulas ou pontos para quebrar
                       const breakPoints = [', ', ' - ', ' e ', ' que '];
                       for (const breakPoint of breakPoints) {
@@ -211,8 +219,9 @@ const Stories10xFormatter: React.FC<Stories10xFormatterProps> = ({ slides, onApp
                     return line;
                   })
                   .join('\n')
-                  // Limpar múltiplas quebras de linha
-                  .replace(/\n{3,}/g, '\n\n')
+                  // Limpar múltiplas quebras de linha excessivas
+                  .replace(/\n{4,}/g, '\n\n\n')
+                  .replace(/^\n+|\n+$/g, '')
                   .trim();
                 
                 return cleaned;
