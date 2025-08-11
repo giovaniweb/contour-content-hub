@@ -163,9 +163,10 @@ const Stories10xFormatter: React.FC<Stories10xFormatterProps> = ({ slides, onApp
             <CopyButton 
               text={(() => {
                 const cleanBody = (content: string) => {
+                  // Limpeza mínima apenas para o texto copiado
                   return content
-                    .replace(/^\s*[-=]+\s*$/gm, '')
-                    .replace(/^\s*#+\s*$/gm, '')
+                    .replace(/^\s*[-=]{3,}\s*$/gm, '')
+                    .replace(/^\s*#{3,}\s*$/gm, '')
                     .trim();
                 };
 
@@ -182,47 +183,27 @@ const Stories10xFormatter: React.FC<Stories10xFormatterProps> = ({ slides, onApp
             {cappedSlides.map((slide, i) => {
               const icon = getSlideIcon(slide.tipo);
               const cleanBody = (content: string) => {
-                let cleaned = content
-                  .replace(/^\s*[-=]+\s*$/gm, '')
-                  .replace(/^\s*#+\s*$/gm, '')
-                  .trim();
-                
-                if (!cleaned) return '';
-                
-                // Formatação específica para Stories 10x
-                cleaned = cleaned
-                  // Quebrar linha antes de numerações com emoji (1️⃣, 2️⃣, etc.)
+                // Aplicar apenas formatação visual suave, preservando TODO o conteúdo
+                const cleaned = content
+                  // Remove apenas linhas com separadores visuais vazios
+                  .replace(/^\s*[-=]{3,}\s*$/gm, '')
+                  .replace(/^\s*#{3,}\s*$/gm, '')
+                  // Adiciona quebras de linha antes de numerações para melhor visualização
+                  .replace(/(?<!^|\n)(\d+[\.\)]\s)/g, '\n$1')
                   .replace(/(?<!^|\n)(\d️⃣)/g, '\n$1')
-                  // Quebrar linha antes de textos entre colchetes
+                  // Quebra antes de textos entre colchetes apenas se útil para leitura
                   .replace(/(?<!^|\n)(\[.*?\])/g, '\n$1')
-                  // Quebrar após pontos finais seguidos de maiúscula
-                  .replace(/\. ([A-Z])/g, '.\n$1')
-                  // Quebrar após dois pontos quando seguido de texto longo
-                  .replace(/: ([A-Z][^.]{40,})/g, ':\n$1')
-                  // Quebrar frases muito longas (mais de 100 caracteres)
-                  .split('\n')
-                  .map(line => {
-                    if (line.length > 100 && !line.includes('️⃣') && !line.includes('[')) {
-                      // Procurar por vírgulas ou pontos para quebrar
-                      const breakPoints = [', ', ' - ', ' e ', ' que '];
-                      for (const breakPoint of breakPoints) {
-                        const midPoint = Math.floor(line.length / 2);
-                        const breakIndex = line.indexOf(breakPoint, midPoint - 20);
-                        if (breakIndex > 0 && breakIndex < line.length - 15) {
-                          return line.substring(0, breakIndex + breakPoint.length).trim() + 
-                                 '\n' + line.substring(breakIndex + breakPoint.length).trim();
-                        }
-                      }
-                    }
-                    return line;
-                  })
-                  .join('\n')
-                  // Limpar múltiplas quebras de linha excessivas
+                  // Limita quebras excessivas (máximo 2 seguidas)
                   .replace(/\n{3,}/g, '\n\n')
-                  .replace(/^\n+|\n+$/g, '')
                   .trim();
                 
-                return cleaned;
+                console.log(`🧹 [Stories10xFormatter] Limpeza suave aplicada:`, {
+                  original: content.length,
+                  cleaned: cleaned.length,
+                  preview: cleaned.substring(0, 100) + '...'
+                });
+                
+                return cleaned || content; // Fallback para conteúdo original se algo der errado
               };
               
               const cleanContent = cleanBody(sanitizeText(slide.conteudo));
