@@ -26,7 +26,7 @@ const CarouselFormatter: React.FC<CarouselFormatterProps> = ({
   const totalContent = slides.map(s => s.texto).join(' ');
   const timeInfo = calculateContentTime(totalContent);
 
-  // Remove cabeçalhos e separadores residuais do corpo dos slides
+  // Remove cabeçalhos e separadores residuais do corpo dos slides, preservando quebras intencionais
   const cleanBody = (text: string) => {
     if (!text) return '';
     const lines = text.split('\n');
@@ -35,15 +35,18 @@ const CarouselFormatter: React.FC<CarouselFormatterProps> = ({
       const headerRe = /^conte[uú]do do slide(\s*\d+)?\s*[-–—:]?/i;
       const dashLineRe = /^[-–—_]{3,}$/;
       return !(headerRe.test(t) || dashLineRe.test(t));
-    }).map((l) =>
-      l
-        // remove separadores no final da linha (---, —, etc.)
+    }).map((l) => {
+      // Remove separadores no final da linha, mas preserva o conteúdo da linha
+      const cleaned = l
         .replace(/\s*[-–—_]{3,}\s*$/, '')
-        .replace(/\s*[–—]\s*$/, '')
-        .trim()
-    );
-    // normaliza quebras extras
-    return filtered.join('\n').replace(/\n{3,}/g, '\n\n').trim();
+        .replace(/\s*[–—]\s*$/, '');
+      // Não faz trim nas linhas individuais para preservar indentação
+      return cleaned;
+    });
+    
+    // Junta as linhas preservando quebras intencionais, apenas remove quebras excessivas
+    const result = filtered.join('\n').replace(/\n{3,}/g, '\n\n').trim();
+    return result;
   };
 
   const combinedText = slides.map((s, idx) => {
@@ -104,7 +107,7 @@ const CarouselFormatter: React.FC<CarouselFormatterProps> = ({
           <div className="flex justify-end mb-3">
             <CopyButton text={combinedText} successMessage="Texto do carrossel copiado!" />
           </div>
-          <article className="text-foreground whitespace-pre-wrap leading-relaxed aurora-body">
+          <article className="text-foreground leading-relaxed aurora-body">
             {slides.map((s, i) => {
               const body = cleanBody(s.texto || '');
               const hasBody = body.length > 0;
@@ -115,7 +118,7 @@ const CarouselFormatter: React.FC<CarouselFormatterProps> = ({
                   </p>
                   {hasBody && (
                     <div className="mt-3 pl-4 border-l-2 border-aurora-electric-purple/20">
-                      <p className="font-normal text-foreground leading-relaxed">{body}</p>
+                      <div className="font-normal text-foreground leading-relaxed whitespace-pre-line">{body}</div>
                     </div>
                   )}
                   {i < slides.length - 1 && <hr className="my-6 border-border border-dashed" />}
