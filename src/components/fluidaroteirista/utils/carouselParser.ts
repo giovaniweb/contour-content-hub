@@ -82,7 +82,26 @@ export const parseCarouselSlides = (roteiro: string) => {
         console.log('✅ [extractFromBlock] Título extraído (formato anterior):', title);
       }
     }
-
+    
+    // Se o corpo ficou vazio e o título parece conter conteúdo inline na mesma linha, divide-os
+    if (!corpo && title) {
+      const splitRegex = /\s(?:–|—|-|•|·|\||:)\s|\s(?:👉|→|»)\s|\s�\s/;
+      if (splitRegex.test(title)) {
+        const parts = title.split(splitRegex).filter(Boolean);
+        if (parts.length >= 2) {
+          title = (parts[0] || '').trim();
+          corpo = parts.slice(1).join(' ').trim();
+        }
+      } else if (title.length > 80) {
+        // Heurística: se a linha inteira estiver muito longa, separa por frase
+        const sentences = title.split(/(?<=[.!?])\s+/);
+        if (sentences.length > 1) {
+          title = (sentences[0] || '').trim();
+          corpo = sentences.slice(1).join(' ').trim();
+        }
+      }
+    }
+    
     // Se título ficou vazio, pega linha antes do 1º marcador OU primeira linha do corpo
     if (!title) {
       const marcadorIdx = corpo.search(/Texto:|Imagem:/i);
@@ -233,6 +252,12 @@ export const parseCarouselSlides = (roteiro: string) => {
     }
   }
   
+  // Filtra blocos irrelevantes (separadores, cabeçalhos ou vazios)
+  blocos = blocos
+    .map(b => b.trim())
+    .filter(b => b && !/^-{1,3}$/.test(b) && /(?:^|[\n\r])(?:🔹\s*)?Slide\s*\d+/i.test(b));
+
+  // Limita a 5
   blocos = blocos.slice(0, 5);
 
   // Processa cada bloco de slide (até 5)
