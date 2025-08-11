@@ -54,8 +54,8 @@ const CarouselFormatter: React.FC<CarouselFormatterProps> = ({
     const rawBody = (s.texto || '');
     const body = cleanBody(rawBody);
     const header = `🎯 Conteúdo do slide ${s.number || idx + 1} - ✨ ${title}`;
-    return body ? `${header}\n   ${body}` : `${header}`;
-  }).join('\n\n---------------------------------------------\n\n');
+    return body ? `${header} \n\n${body}` : `${header}`;
+  }).join('\n\n---------------------------------------------------------------\n\n');
 
   if (slides.length === 0) {
     return <div className="text-center py-8">
