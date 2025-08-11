@@ -182,49 +182,56 @@ const Stories10xFormatter: React.FC<Stories10xFormatterProps> = ({ slides, onApp
             {cappedSlides.map((slide, i) => {
               const icon = getSlideIcon(slide.tipo);
               const cleanBody = (content: string) => {
-                let cleaned = content
-                  .replace(/^\s*[-=]+\s*$/gm, '')
-                  .replace(/^\s*#+\s*$/gm, '')
-                  .trim();
+                // Primeiro, dividir por separadores --- para processar cada story individualmente
+                const storyParts = content.split(/\s*---\s*/);
                 
-                // Formatação específica para Stories 10x
-                cleaned = cleaned
-                  // Quebrar linha antes de numerações com emoji (1️⃣, 2️⃣, etc.)
-                  .replace(/(?<!^)(\d️⃣)/g, '\n\n$1')
-                  // Quebrar linha antes de textos entre colchetes
-                  .replace(/(?<!^)(\[.*?\])/g, '\n$1')
-                  // Quebrar linha antes de separadores ---
-                  .replace(/(\s+---\s*)/g, '\n$1')
-                  // Adicionar linha após numerações com emoji
-                  .replace(/(\d️⃣.*?)(?=\n|$)/g, '$1\n')
-                  // Quebrar após pontos finais seguidos de maiúscula
-                  .replace(/\. ([A-Z])/g, '.\n$1')
-                  // Quebrar após dois pontos quando seguido de texto longo
-                  .replace(/: ([A-Z][^.]{40,})/g, ':\n$1')
-                  // Quebrar frases muito longas (mais de 120 caracteres)
-                  .split('\n')
-                  .map(line => {
-                    if (line.length > 120 && !line.includes('️⃣') && !line.includes('[')) {
-                      // Procurar por vírgulas ou pontos para quebrar
-                      const breakPoints = [', ', ' - ', ' e ', ' que '];
-                      for (const breakPoint of breakPoints) {
-                        const midPoint = Math.floor(line.length / 2);
-                        const breakIndex = line.indexOf(breakPoint, midPoint - 30);
-                        if (breakIndex > 0 && breakIndex < line.length - 20) {
-                          return line.substring(0, breakIndex + breakPoint.length).trim() + 
-                                 '\n' + line.substring(breakIndex + breakPoint.length).trim();
+                const processedParts = storyParts.map(part => {
+                  let cleaned = part
+                    .replace(/^\s*[-=]+\s*$/gm, '')
+                    .replace(/^\s*#+\s*$/gm, '')
+                    .trim();
+                  
+                  if (!cleaned) return '';
+                  
+                  // Formatação específica para Stories 10x (apenas dentro de cada parte)
+                  cleaned = cleaned
+                    // Quebrar linha antes de numerações com emoji (1️⃣, 2️⃣, etc.) - sem dupla quebra
+                    .replace(/(?<!^|\n)(\d️⃣)/g, '\n$1')
+                    // Quebrar linha antes de textos entre colchetes
+                    .replace(/(?<!^|\n)(\[.*?\])/g, '\n$1')
+                    // Quebrar após pontos finais seguidos de maiúscula
+                    .replace(/\. ([A-Z])/g, '.\n$1')
+                    // Quebrar após dois pontos quando seguido de texto longo
+                    .replace(/: ([A-Z][^.]{40,})/g, ':\n$1')
+                    // Quebrar frases muito longas (mais de 100 caracteres)
+                    .split('\n')
+                    .map(line => {
+                      if (line.length > 100 && !line.includes('️⃣') && !line.includes('[')) {
+                        // Procurar por vírgulas ou pontos para quebrar
+                        const breakPoints = [', ', ' - ', ' e ', ' que '];
+                        for (const breakPoint of breakPoints) {
+                          const midPoint = Math.floor(line.length / 2);
+                          const breakIndex = line.indexOf(breakPoint, midPoint - 20);
+                          if (breakIndex > 0 && breakIndex < line.length - 15) {
+                            return line.substring(0, breakIndex + breakPoint.length).trim() + 
+                                   '\n' + line.substring(breakIndex + breakPoint.length).trim();
+                          }
                         }
                       }
-                    }
-                    return line;
-                  })
-                  .join('\n')
-                  // Limpar múltiplas quebras de linha excessivas
-                  .replace(/\n{4,}/g, '\n\n\n')
-                  .replace(/^\n+|\n+$/g, '')
-                  .trim();
+                      return line;
+                    })
+                    .join('\n')
+                    // Limpar múltiplas quebras de linha excessivas
+                    .replace(/\n{3,}/g, '\n\n')
+                    .replace(/^\n+|\n+$/g, '')
+                    .trim();
+                  
+                  return cleaned;
+                });
                 
-                return cleaned;
+                // Juntar as partes processadas, mas apenas se houver múltiplas partes válidas
+                const validParts = processedParts.filter(part => part.length > 0);
+                return validParts.length > 1 ? validParts.join('\n\n---\n\n') : (validParts[0] || '');
               };
               
               const cleanContent = cleanBody(sanitizeText(slide.conteudo));
