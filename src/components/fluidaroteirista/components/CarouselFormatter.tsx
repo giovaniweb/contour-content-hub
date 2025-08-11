@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { parseCarouselSlides, validateCarouselSlides } from '../utils/carouselParser';
-import CarouselSlideCard from './CarouselSlideCard';
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Images, Instagram, Sparkles, Save, Loader2, Wand2, Clock } from 'lucide-react';
@@ -12,6 +12,7 @@ import { useState } from "react";
 import { sanitizeText } from '@/utils/textSanitizer';
 import { calculateContentTime } from '@/utils/timeCalculator';
 import { Helmet } from 'react-helmet-async';
+import CopyButton from '@/components/ui/CopyButton';
 interface CarouselFormatterProps {
   roteiro: string;
 }
@@ -35,6 +36,11 @@ const CarouselFormatter: React.FC<CarouselFormatterProps> = ({
   // Calcula tempo total baseado no conteúdo real dos slides
   const totalContent = slides.map(s => s.texto).join(' ');
   const timeInfo = calculateContentTime(totalContent);
+  const combinedText = slides.map((s, idx) => {
+    const title = (s.title || `Slide ${s.number || idx + 1}`).trim();
+    const body = (s.texto || '').trim();
+    return `✨ ${title}\n${body}`;
+  }).join('\n\n--------\n\n');
   const handleSave = async () => {
     await saveScript({
       content: roteiro,
@@ -76,7 +82,7 @@ const CarouselFormatter: React.FC<CarouselFormatterProps> = ({
   return <div className="space-y-8">
       <Helmet>
         <title>Carrossel Instagram | Aurora</title>
-        <meta name="description" content="Carrossel Instagram formatado com texto e imagem por slide, no tema Aurora." />
+        <meta name="description" content="Carrossel Instagram em texto corrido, com separadores por emoji e linha entre slides." />
         <link rel="canonical" href="/fluidaroteirista" />
       </Helmet>
       {/* Header bonito do Carrossel Aurora */}
@@ -108,7 +114,7 @@ const CarouselFormatter: React.FC<CarouselFormatterProps> = ({
             <Clock className="w-3 h-3 mr-1" />
             {timeInfo.displayTime}
           </Badge>
-          <span className="text-xs text-aurora-neon-blue">📱 Deslize para navegar →</span>
+          <span className="text-xs text-aurora-neon-blue">✦ Texto corrido com separadores</span>
         </div>
       </motion.header>
       {/* Avisos de validação */}
@@ -127,13 +133,22 @@ const CarouselFormatter: React.FC<CarouselFormatterProps> = ({
         </Card>
       )}
 
-      {/* Lista de Slides empilhados */}
-      <motion.div initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.15 }}>
-        <div className="max-w-3xl mx-auto space-y-6">
-          {slides.map((slide, index) => (
-            <CarouselSlideCard key={index} slide={slide} />
-          ))}
-        </div>
+      {/* Texto corrido simples dos slides */}
+      <motion.div initial={{ opacity: 0, scale: 0.99 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.1 }}>
+        <section className="max-w-3xl mx-auto">
+          <div className="flex justify-end mb-3">
+            <CopyButton text={combinedText} successMessage="Texto do carrossel copiado!" />
+          </div>
+          <article className="text-foreground whitespace-pre-wrap leading-relaxed aurora-body">
+            {slides.map((s, i) => (
+              <div key={i}>
+                <p className="font-semibold">✨ {s.title?.trim() || `Slide ${s.number || i + 1}`}</p>
+                <p className="mt-1">{(s.texto || '').trim() || '(sem texto)'}</p>
+                {i < slides.length - 1 && <hr className="my-4 border-border" />}
+              </div>
+            ))}
+          </article>
+        </section>
       </motion.div>
 
       {/* Equipamentos Integrados */}
