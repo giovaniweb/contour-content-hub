@@ -80,6 +80,8 @@ const ScriptFormNovo: React.FC<ScriptFormNovoProps> = ({
     { value: 'artigo', label: 'Artigo Blog', icon: '📝' }
   ];
 
+  const disabledFormats = new Set(['video_longo','artigo']);
+
   const objectiveOptions = [
     { value: 'atrair', label: 'Atrair Atenção', icon: '🎯', color: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30' },
     { value: 'conectar', label: 'Criar Conexão', icon: '💖', color: 'bg-green-500/20 text-green-400 border-green-500/30' },
@@ -157,25 +159,41 @@ const ScriptFormNovo: React.FC<ScriptFormNovoProps> = ({
             >
               <Label className="text-white font-medium">Formato do Conteúdo *</Label>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                {formatOptions.map((format) => (
-                  <motion.button
-                    key={format.value}
-                    type="button"
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => handleInputChange('format', format.value)}
-                    className={`p-3 rounded-lg border transition-all duration-200 ${
-                      formData.format === format.value
-                        ? 'border-purple-500 bg-purple-500/20 text-purple-400'
-                        : 'border-slate-600 bg-slate-700/30 text-slate-300 hover:border-slate-500'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2">
-                      <span className="text-lg">{format.icon}</span>
-                      <span className="text-sm font-medium">{format.label}</span>
-                    </div>
-                  </motion.button>
-                ))}
+                {formatOptions.map((format) => {
+                  const isDisabled = disabledFormats.has(format.value);
+                  const isActive = formData.format === format.value;
+                  return (
+                    <motion.button
+                      key={format.value}
+                      type="button"
+                      whileHover={!isDisabled ? { scale: 1.02 } : undefined}
+                      whileTap={!isDisabled ? { scale: 0.98 } : undefined}
+                      onClick={() => !isDisabled && handleInputChange('format', format.value)}
+                      disabled={isDisabled}
+                      aria-disabled={isDisabled}
+                      title={isDisabled ? 'Em breve' : undefined}
+                      className={`p-3 rounded-lg border transition-all duration-200 ${
+                        isActive
+                          ? 'border-purple-500 bg-purple-500/20 text-purple-400'
+                          : 'border-slate-600 bg-slate-700/30 text-slate-300 hover:border-slate-500'
+                      } ${isDisabled ? 'opacity-60 cursor-not-allowed hover:border-slate-600' : ''}`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg">{format.icon}</span>
+                        <span className="text-sm font-medium">{format.label}</span>
+                        {isDisabled && (
+                          <span className="ml-auto flex items-center gap-1 text-xs text-slate-400">
+                            <svg width="16" height="16" viewBox="0 0 24 24" className="opacity-80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <path d="M7 10V7a5 5 0 0 1 10 0v3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                              <rect x="5" y="10" width="14" height="10" rx="2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                            </svg>
+                            Em breve
+                          </span>
+                        )}
+                      </div>
+                    </motion.button>
+                  );
+                })}
               </div>
             </motion.div>
 
