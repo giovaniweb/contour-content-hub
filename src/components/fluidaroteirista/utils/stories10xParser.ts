@@ -8,18 +8,24 @@ export interface Stories10xSlide {
   tipo: 'gancho' | 'erro' | 'virada' | 'cta';
 }
 
-// Função para limpar o conteúdo do texto preservando separadores
+// Função para limpar o conteúdo do texto preservando separadores e quebras importantes
 const cleanContent = (content: string): string => {
   return content
-    .replace(/\s+/g, ' ') // Remove espaços múltiplos mas preserva estrutura
+    .replace(/[ \t]+/g, ' ') // Remove apenas espaços e tabs múltiplos, mantém quebras de linha
+    .replace(/\n{3,}/g, '\n\n') // Limita quebras de linha excessivas a no máximo 2
     .trim(); // Remove espaços nas extremidades
 };
 
 export const parseStories10xSlides = (roteiro: string): Stories10xSlide[] => {
-  console.log('🔍 [Stories10xParser] Iniciando parse do roteiro:', roteiro);
+  console.log('🔍 [Stories10xParser] Iniciando parse do roteiro:', roteiro.substring(0, 200) + '...');
   
-  // Primeiro, tentar dividir por separadores "---" 
-  const separatorSections = roteiro.split(/\s*---+\s*/).filter(section => section.trim().length > 0);
+  // Primeiro, tentar dividir por separadores "---" com detecção melhorada
+  const separatorSections = roteiro.split(/\n?\s*---+\s*\n?/).filter(section => section.trim().length > 0);
+  
+  console.log(`🔍 [Stories10xParser] Seções encontradas por separador:`, separatorSections.length);
+  separatorSections.forEach((section, index) => {
+    console.log(`📄 [Stories10xParser] Seção ${index + 1}:`, section.substring(0, 100) + '...');
+  });
   
   if (separatorSections.length >= 4) {
     console.log('✅ [Stories10xParser] Encontrados separadores "---", usando divisão por seções');
@@ -118,29 +124,37 @@ const parseStoriesBySeparator = (sections: string[]): Stories10xSlide[] => {
     'CTA + Antecipação'
   ];
 
-  // Processar apenas os primeiros 4 stories
-  const storySections = sections.slice(0, 4);
+  // Processar todos os stories disponíveis (não limitar a 4 se houver mais conteúdo)
+  const storySections = sections.slice(0, Math.max(4, sections.length));
   
   storySections.forEach((section, index) => {
+    // Aplicar limpeza mais suave para preservar conteúdo
     const cleanedContent = cleanContent(section);
     
-    if (cleanedContent) {
+    console.log(`🔍 [Stories10xParser] Processando seção ${index + 1}:`);
+    console.log(`📝 [Stories10xParser] Conteúdo original (${section.length} chars):`, section.substring(0, 150) + '...');
+    console.log(`🧹 [Stories10xParser] Conteúdo limpo (${cleanedContent.length} chars):`, cleanedContent.substring(0, 150) + '...');
+    
+    if (cleanedContent && index < 4) {
       const dispositivos = detectarDispositivos(cleanedContent);
       
       slides.push({
         number: index + 1,
-        titulo: storyTitles[index],
+        titulo: storyTitles[index] || `Story ${index + 1}`,
         conteudo: cleanedContent,
         dispositivo: dispositivos.length > 0 ? dispositivos.join(', ') : undefined,
         tempo: '10s',
-        tipo: storyTypes[index]
+        tipo: storyTypes[index] || 'cta'
       });
       
       console.log(`✅ [Stories10xParser] Story ${index + 1} parseado por separador:`, {
-        titulo: storyTitles[index],
-        conteudo: cleanedContent.substring(0, 50) + '...',
+        titulo: storyTitles[index] || `Story ${index + 1}`,
+        conteudoLength: cleanedContent.length,
+        conteudoPreview: cleanedContent.substring(0, 100) + '...',
         dispositivos
       });
+    } else if (!cleanedContent) {
+      console.warn(`⚠️ [Stories10xParser] Seção ${index + 1} vazia após limpeza`);
     }
   });
 
