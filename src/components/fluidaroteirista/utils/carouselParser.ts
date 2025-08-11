@@ -174,9 +174,13 @@ export const parseCarouselSlides = (roteiro: string) => {
   let processedRoteiro = roteiro;
   console.log('🔍 [carouselParser] Roteiro original:', roteiro.substring(0, 200) + '...');
   
-  // Remove cabeçalho se existir
-  processedRoteiro = processedRoteiro.replace(/^\*\*ROTEIRO\s+CARROSSEL\*\*\s*\n?/i, '');
-  
+  // Remove cabeçalho se existir (negrito e simples)
+  processedRoteiro = processedRoteiro
+    .replace(/^\*\*ROTEIRO\s+CARROSSEL\*\*\s*\n?/i, '')
+    // Remove apenas o prefixo do cabeçalho quando estiver na mesma linha que o primeiro slide
+    .replace(/^ROTEIRO\s+CARROSSEL[^\n]*(?=---)/i, '')
+    .replace(/^ROTEIRO\s+CARROSSEL[^\n]*(?=Slide\s*\d+)/i, '')
+    .replace(/^ROTEIRO\s+CARROSSEL[^\n]*\n/i, '');
   // Divide por diferentes padrões de slide
   let blocos: string[] = [];
   
@@ -191,29 +195,40 @@ export const parseCarouselSlides = (roteiro: string) => {
     blocos = emojiBlocks;
     console.log('✅ [carouselParser] Usando formato emoji');
   } else {
-    // 2. Fallback: Formato com traço: **Slide X –** ou **Slide X -**
-    const dashFormatBlocks = processedRoteiro.split(/(?=\*\*Slide\s*\d+\s*[–-])/gi)
+    // 2. Novo fallback: "Slide X –" sem negrito, possivelmente precedido por '---'
+    const noBoldDashBlocks = processedRoteiro.split(/(?=(?:-{2,}\s*)?Slide\s*\d+\s*[–—-])/gi)
       .map(b => b.trim())
       .filter(Boolean);
-      
-    if (dashFormatBlocks.length > 1) {
-      blocos = dashFormatBlocks;
-      console.log('✅ [carouselParser] Usando formato com traço');
+
+    if (noBoldDashBlocks.length > 1) {
+      blocos = noBoldDashBlocks;
+      console.log('✅ [carouselParser] Usando formato com traço (sem negrito)');
     } else {
-      // 3. Fallback: formato com dois pontos: **Slide X:**
-      const colonFormatBlocks = processedRoteiro.split(/(?=\*\*Slide\s*\d+:)/gi)
+      // 3. Fallback: Formato com traço em negrito: **Slide X –** ou **Slide X -**
+      const dashFormatBlocks = processedRoteiro.split(/(?=\*\*Slide\s*\d+\s*[–—-])/gi)
         .map(b => b.trim())
         .filter(Boolean);
-        
-      if (colonFormatBlocks.length > 1) {
-        blocos = colonFormatBlocks;
-        console.log('✅ [carouselParser] Usando formato com dois pontos');
+      
+      if (dashFormatBlocks.length > 1) {
+        blocos = dashFormatBlocks;
+        console.log('✅ [carouselParser] Usando formato com traço (negrito)');
       } else {
-        // 4. Último fallback: formato antigo: Slide X:
-        blocos = processedRoteiro.split(/(?=Slide\s*\d*:)/gi)
+        // 4. Fallback: formato com dois pontos: **Slide X:**
+        const colonFormatBlocks = processedRoteiro.split(/(?=\*\*Slide\s*\d+:)/gi)
           .map(b => b.trim())
           .filter(Boolean);
-        console.log('✅ [carouselParser] Usando formato antigo');
+        
+        if (colonFormatBlocks.length > 1) {
+          blocos = colonFormatBlocks;
+          console.log('✅ [carouselParser] Usando formato com dois pontos');
+        } else {
+          // 5. Último fallback: formato antigo: Slide X:
+          const oldColonBlocks = processedRoteiro.split(/(?=Slide\s*\d*:)/gi)
+            .map(b => b.trim())
+            .filter(Boolean);
+          blocos = oldColonBlocks.length > 1 ? oldColonBlocks : [processedRoteiro.trim()];
+          console.log('✅ [carouselParser] Usando formato antigo');
+        }
       }
     }
   }
