@@ -185,7 +185,12 @@ const ScriptFormatter: React.FC<ScriptFormatterProps> = ({
       );
     }
 
-    if (formato === "carrossel") {
+    // Debug log for format detection
+    console.log('🐛 DEBUG ScriptFormatter - formato:', formato);
+    console.log('🐛 DEBUG ScriptFormatter - script.roteiro preview:', script.roteiro?.substring(0, 100));
+    
+    if (formato?.toLowerCase() === "carrossel" || formato?.toLowerCase() === "carousel") {
+      console.log('🐛 DEBUG ScriptFormatter - Entering CarouselFormatter');
       return (
         <div className="space-y-4">
           <CarouselFormatter roteiro={script.roteiro} />
