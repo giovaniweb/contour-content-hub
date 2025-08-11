@@ -26,60 +26,59 @@ serve(async (req) => {
 
     console.log('Fetching metadata for Vimeo ID:', vimeoId)
 
-    // Use Vimeo oEmbed API (more reliable)
-    const oembedUrl = `https://vimeo.com/api/oembed.json?url=https://vimeo.com/${vimeoId}&width=640&height=480`
-    const response = await fetch(oembedUrl)
-    
-    if (!response.ok) {
-      console.error('oEmbed API failed, trying fallback...')
-      // Fallback to old API
-      const fallbackResponse = await fetch(`https://vimeo.com/api/v2/video/${vimeoId}.json`)
-      if (!fallbackResponse.ok) {
-        throw new Error('Erro ao buscar dados do Vimeo')
-      }
-      const fallbackData = await fallbackResponse.json()
-      if (!fallbackData || fallbackData.length === 0) {
-        throw new Error('Vídeo não encontrado no Vimeo')
-      }
+    // Try Vimeo API v2 first (has accurate duration data)
+    try {
+      console.log('Trying Vimeo API v2 for accurate duration...')
+      const v2Response = await fetch(`https://vimeo.com/api/v2/video/${vimeoId}.json`)
       
-      const video = fallbackData[0]
-      const durationMinutes = Math.ceil(video.duration / 60)
-      
-      const metadata = {
-        title: video.title || '',
-        description: video.description || '',
-        duration_minutes: durationMinutes,
-        thumbnail_url: video.thumbnail_large || video.thumbnail_medium || video.thumbnail_small || '',
-        vimeo_id: vimeoId,
-        upload_date: video.upload_date,
-        user_name: video.user_name,
-        width: video.width,
-        height: video.height
+      if (v2Response.ok) {
+        const v2Data = await v2Response.json()
+        if (v2Data && v2Data.length > 0) {
+          const video = v2Data[0]
+          const durationMinutes = Math.max(1, Math.ceil(video.duration / 60)) // At least 1 minute
+          
+          console.log(`Duration from API v2: ${video.duration} seconds = ${durationMinutes} minutes`)
+          
+          const metadata = {
+            title: video.title || '',
+            description: video.description || '',
+            duration_minutes: durationMinutes,
+            thumbnail_url: video.thumbnail_large || video.thumbnail_medium || video.thumbnail_small || '',
+            vimeo_id: vimeoId,
+            upload_date: video.upload_date,
+            user_name: video.user_name,
+            width: video.width,
+            height: video.height
+          }
+          
+          console.log('Vimeo metadata fetched successfully via API v2:', metadata)
+          return new Response(JSON.stringify(metadata), { 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          })
+        }
       }
-      
-      console.log('Vimeo metadata fetched via fallback:', metadata)
-      return new Response(JSON.stringify(metadata), { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-      })
+    } catch (error) {
+      console.log('API v2 failed, trying oEmbed fallback...', error.message)
     }
 
-    const oembedData = await response.json()
+    // Fallback to oEmbed API (doesn't have duration but has other data)
+    console.log('Using oEmbed API as fallback...')
+    const oembedUrl = `https://vimeo.com/api/oembed.json?url=https://vimeo.com/${vimeoId}&width=640&height=480`
+    const oembedResponse = await fetch(oembedUrl)
+    
+    if (!oembedResponse.ok) {
+      throw new Error('Erro ao buscar dados do Vimeo - ambas APIs falharam')
+    }
+
+    const oembedData = await oembedResponse.json()
     
     if (!oembedData) {
       throw new Error('Vídeo não encontrado no Vimeo')
     }
 
-    // Extract duration from description or set default
-    let durationMinutes = 5 // Default fallback
-    if (oembedData.description) {
-      // Try to extract duration from description if available
-      const durationMatch = oembedData.description.match(/(\d+):(\d+)/)
-      if (durationMatch) {
-        const minutes = parseInt(durationMatch[1])
-        const seconds = parseInt(durationMatch[2])
-        durationMinutes = minutes + Math.ceil(seconds / 60)
-      }
-    }
+    // Since oEmbed doesn't provide duration, use a reasonable default
+    const durationMinutes = 5 // Default when duration is not available
+    console.log('Using default duration (oEmbed API does not provide duration):', durationMinutes)
 
     const metadata = {
       title: oembedData.title || '',
@@ -93,7 +92,7 @@ serve(async (req) => {
       height: oembedData.height || 480
     }
 
-    console.log('Vimeo metadata fetched successfully:', metadata)
+    console.log('Vimeo metadata fetched via oEmbed fallback:', metadata)
 
     return new Response(
       JSON.stringify(metadata),
