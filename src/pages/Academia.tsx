@@ -51,37 +51,43 @@ const Academia: React.FC = () => {
 
   const fetchCourses = async () => {
     try {
-      // Mock data for demo
-      const mockCourses = [
-        {
-          id: '1',
-          title: 'Introdução ao HIFU',
-          description: 'Curso completo sobre tecnologia HIFU e suas aplicações',
-          equipment_name: 'HIFU Profissional',
-          total_lessons: 5,
-          estimated_duration_hours: 3,
-          difficulty_level: 'beginner',
-          gamification_points: 150,
-          has_final_exam: true,
-          has_satisfaction_survey: false,
-          status: 'active'
-        },
-        {
-          id: '2',
-          title: 'Radiofrequência Avançada',
-          description: 'Técnicas avançadas de radiofrequência para resultados otimizados',
-          equipment_name: 'RF Excellence',
-          total_lessons: 8,
-          estimated_duration_hours: 5,
-          difficulty_level: 'advanced',
-          gamification_points: 200,
-          has_final_exam: true,
-          has_satisfaction_survey: true,
-          status: 'active'
-        }
-      ];
+      const { data, error } = await supabase
+        .from('academy_courses')
+        .select(`
+          id,
+          title,
+          description,
+          estimated_duration_hours,
+          difficulty_level,
+          gamification_points,
+          has_final_exam,
+          has_satisfaction_survey,
+          status,
+          thumbnail_url,
+          equipamentos(nome),
+          academy_lessons(id)
+        `)
+        .eq('status', 'active')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      const coursesWithLessons = data?.map(course => ({
+        id: course.id,
+        title: course.title,
+        description: course.description || '',
+        equipment_name: course.equipamentos?.nome || 'Equipamento não especificado',
+        total_lessons: course.academy_lessons?.length || 0,
+        estimated_duration_hours: course.estimated_duration_hours || 0,
+        difficulty_level: course.difficulty_level || 'beginner',
+        gamification_points: course.gamification_points || 0,
+        has_final_exam: course.has_final_exam || false,
+        has_satisfaction_survey: course.has_satisfaction_survey || false,
+        status: course.status || 'active',
+        thumbnail_url: course.thumbnail_url
+      })) || [];
       
-      setAvailableCourses(mockCourses);
+      setAvailableCourses(coursesWithLessons);
     } catch (error) {
       console.error('Error fetching courses:', error);
       toast({
@@ -94,32 +100,61 @@ const Academia: React.FC = () => {
 
   const fetchMyCourses = async () => {
     try {
-      // Mock data for demo
-      const mockMyCourses = [
-        {
-          id: '1',
-          course: {
-            id: '1',
-            title: 'Introdução ao HIFU',
-            description: 'Curso completo sobre tecnologia HIFU',
-            equipment_name: 'HIFU Profissional',
-            total_lessons: 5,
-            estimated_duration_hours: 3,
-            difficulty_level: 'beginner',
-            gamification_points: 150,
-            has_final_exam: true,
-            has_satisfaction_survey: false,
-            status: 'active'
-          },
-          status: 'in_progress',
-          progress_percentage: 60,
-          exam_status: null,
-          survey_completed: false,
-          access_expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
-        }
-      ];
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from('academy_user_course_access')
+        .select(`
+          id,
+          status,
+          progress_percentage,
+          exam_status,
+          survey_completed,
+          access_expires_at,
+          academy_courses(
+            id,
+            title,
+            description,
+            estimated_duration_hours,
+            difficulty_level,
+            gamification_points,
+            has_final_exam,
+            has_satisfaction_survey,
+            status,
+            thumbnail_url,
+            equipamentos(nome),
+            academy_lessons(id)
+          )
+        `)
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      const userCourses = data?.map(access => ({
+        id: access.id,
+        course: {
+          id: access.academy_courses.id,
+          title: access.academy_courses.title,
+          description: access.academy_courses.description || '',
+          equipment_name: access.academy_courses.equipamentos?.nome || 'Equipamento não especificado',
+          total_lessons: access.academy_courses.academy_lessons?.length || 0,
+          estimated_duration_hours: access.academy_courses.estimated_duration_hours || 0,
+          difficulty_level: access.academy_courses.difficulty_level || 'beginner',
+          gamification_points: access.academy_courses.gamification_points || 0,
+          has_final_exam: access.academy_courses.has_final_exam || false,
+          has_satisfaction_survey: access.academy_courses.has_satisfaction_survey || false,
+          status: access.academy_courses.status || 'active',
+          thumbnail_url: access.academy_courses.thumbnail_url
+        },
+        status: access.status || 'not_started',
+        progress_percentage: access.progress_percentage || 0,
+        exam_status: access.exam_status,
+        survey_completed: access.survey_completed || false,
+        access_expires_at: access.access_expires_at || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+      })) || [];
       
-      setMyCourses(mockMyCourses);
+      setMyCourses(userCourses);
     } catch (error) {
       console.error('Error fetching my courses:', error);
     } finally {
@@ -129,6 +164,25 @@ const Academia: React.FC = () => {
 
   const requestCourseAccess = async (courseId: string) => {
     try {
+      if (!user) {
+        toast({
+          variant: "destructive",
+          title: "Erro",
+          description: "Você precisa estar logado para solicitar acesso ao curso."
+        });
+        return;
+      }
+
+      const { error } = await supabase
+        .from('academy_access_requests')
+        .insert([{
+          user_id: user.id,
+          course_id: courseId,
+          status: 'pending'
+        }]);
+
+      if (error) throw error;
+
       toast({
         title: "Solicitação enviada",
         description: "Sua solicitação de acesso foi enviada para aprovação. Em breve você receberá uma resposta."
@@ -269,13 +323,22 @@ const Academia: React.FC = () => {
 
           {/* Available Courses */}
           <TabsContent value="available">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {availableCourses.map((course) => (
+            {availableCourses.length === 0 ? (
+              <div className="col-span-full flex flex-col items-center justify-center py-12">
+                <BookOpen className="h-16 w-16 text-white/30 mb-4" />
+                <h3 className="text-xl text-white/70 mb-2">Nenhum curso disponível</h3>
+                <p className="text-white/50 text-center">
+                  Não há cursos ativos no momento. Novos cursos serão adicionados em breve.
+                </p>
+              </div>
+            ) : (
+              availableCourses.map((course) => (
                 <Card key={course.id} className="aurora-glass border-aurora-electric-purple/20">
                   <CardHeader>
                     <div className="flex justify-between items-start mb-2">
                       <Badge className={`${getDifficultyColor(course.difficulty_level)} text-white`}>
-                        {course.difficulty_level}
+                        {course.difficulty_level === 'beginner' ? 'Iniciante' : 
+                         course.difficulty_level === 'intermediate' ? 'Intermediário' : 'Avançado'}
                       </Badge>
                       <div className="flex items-center gap-1 text-aurora-electric-purple">
                         <Star className="h-4 w-4" />
@@ -323,68 +386,78 @@ const Academia: React.FC = () => {
                     </Button>
                   </CardContent>
                 </Card>
-              ))}
-            </div>
+              ))
+            )}
           </TabsContent>
 
           {/* My Courses */}
           <TabsContent value="mycourses">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {myCourses.map((courseAccess) => (
-                <Card key={courseAccess.id} className="aurora-glass border-aurora-electric-purple/20">
-                  <CardHeader>
-                    <div className="flex justify-between items-start mb-2">
-                      <Badge className={`${getStatusColor(courseAccess.status)} text-white`}>
-                        {courseAccess.status === 'completed' ? 'Concluído' : 
-                         courseAccess.status === 'in_progress' ? 'Em Progresso' : 'Não Iniciado'}
+              {myCourses.length === 0 ? (
+                <div className="col-span-full flex flex-col items-center justify-center py-12">
+                  <Users className="h-16 w-16 text-white/30 mb-4" />
+                  <h3 className="text-xl text-white/70 mb-2">Nenhum curso matriculado</h3>
+                  <p className="text-white/50 text-center">
+                    Você ainda não tem acesso a nenhum curso. Solicite acesso aos cursos disponíveis.
+                  </p>
+                </div>
+              ) : (
+                myCourses.map((courseAccess) => (
+                  <Card key={courseAccess.id} className="aurora-glass border-aurora-electric-purple/20">
+                    <CardHeader>
+                      <div className="flex justify-between items-start mb-2">
+                        <Badge className={`${getStatusColor(courseAccess.status)} text-white`}>
+                          {courseAccess.status === 'completed' ? 'Concluído' : 
+                           courseAccess.status === 'in_progress' ? 'Em Progresso' : 'Não Iniciado'}
+                        </Badge>
+                        <div className="flex items-center gap-1 text-aurora-electric-purple">
+                          <Star className="h-4 w-4" />
+                          <span className="text-sm">{courseAccess.course.gamification_points} XP</span>
+                        </div>
+                      </div>
+                      <CardTitle className="aurora-text-gradient text-xl">
+                        {courseAccess.course.title}
+                      </CardTitle>
+                      <Badge variant="outline" className="text-aurora-teal border-aurora-teal w-fit">
+                        {courseAccess.course.equipment_name}
                       </Badge>
-                      <div className="flex items-center gap-1 text-aurora-electric-purple">
-                        <Star className="h-4 w-4" />
-                        <span className="text-sm">{courseAccess.course.gamification_points} XP</span>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="mb-4">
+                        <div className="flex justify-between text-sm text-white/70 mb-2">
+                          <span>Progresso</span>
+                          <span>{courseAccess.progress_percentage}%</span>
+                        </div>
+                        <Progress value={courseAccess.progress_percentage} className="h-2" />
                       </div>
-                    </div>
-                    <CardTitle className="aurora-text-gradient text-xl">
-                      {courseAccess.course.title}
-                    </CardTitle>
-                    <Badge variant="outline" className="text-aurora-teal border-aurora-teal w-fit">
-                      {courseAccess.course.equipment_name}
-                    </Badge>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="mb-4">
-                      <div className="flex justify-between text-sm text-white/70 mb-2">
-                        <span>Progresso</span>
-                        <span>{courseAccess.progress_percentage}%</span>
+                      
+                      <div className="text-sm text-white/60 mb-4">
+                        <p>Acesso expira em: {new Date(courseAccess.access_expires_at).toLocaleDateString()}</p>
                       </div>
-                      <Progress value={courseAccess.progress_percentage} className="h-2" />
-                    </div>
-                    
-                    <div className="text-sm text-white/60 mb-4">
-                      <p>Acesso expira em: {new Date(courseAccess.access_expires_at).toLocaleDateString()}</p>
-                    </div>
 
-                    <div className="flex gap-2 mb-4">
-                      {courseAccess.exam_status && (
-                        <Badge variant={courseAccess.exam_status === 'approved' ? 'default' : 'destructive'} className="text-xs">
-                          Prova: {courseAccess.exam_status === 'approved' ? 'Aprovado' : 'Reprovado'}
-                        </Badge>
-                      )}
-                      {courseAccess.survey_completed && (
-                        <Badge variant="outline" className="text-xs">
-                          Pesquisa Concluída
-                        </Badge>
-                      )}
-                    </div>
+                      <div className="flex gap-2 mb-4">
+                        {courseAccess.exam_status && (
+                          <Badge variant={courseAccess.exam_status === 'passed' ? 'default' : 'destructive'} className="text-xs">
+                            Prova: {courseAccess.exam_status === 'passed' ? 'Aprovado' : 'Reprovado'}
+                          </Badge>
+                        )}
+                        {courseAccess.survey_completed && (
+                          <Badge variant="outline" className="text-xs">
+                            Pesquisa Concluída
+                          </Badge>
+                        )}
+                      </div>
 
-                    <Button 
-                      className="w-full aurora-button"
-                      onClick={() => window.location.href = `/academia/curso/${courseAccess.course.id}`}
-                    >
-                      {courseAccess.status === 'not_started' ? 'Iniciar Curso' : 'Continuar'}
-                    </Button>
-                  </CardContent>
-                </Card>
-              ))}
+                      <Button 
+                        className="w-full aurora-button"
+                        onClick={() => window.location.href = `/academia/curso/${courseAccess.course.id}`}
+                      >
+                        {courseAccess.status === 'not_started' ? 'Iniciar Curso' : 'Continuar'}
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ))
+              )}
             </div>
           </TabsContent>
         </Tabs>
