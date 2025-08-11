@@ -182,10 +182,40 @@ const Stories10xFormatter: React.FC<Stories10xFormatterProps> = ({ slides, onApp
             {cappedSlides.map((slide, i) => {
               const icon = getSlideIcon(slide.tipo);
               const cleanBody = (content: string) => {
-                return content
+                let cleaned = content
                   .replace(/^\s*[-=]+\s*$/gm, '')
                   .replace(/^\s*#+\s*$/gm, '')
                   .trim();
+                
+                // Adicionar quebras de linha inteligentes
+                cleaned = cleaned
+                  // Quebrar após pontos finais seguidos de maiúscula
+                  .replace(/\. ([A-Z])/g, '.\n\n$1')
+                  // Quebrar após dois pontos quando seguido de texto longo
+                  .replace(/: ([A-Z][^.]{50,})/g, ':\n\n$1')
+                  // Quebrar frases muito longas (mais de 120 caracteres)
+                  .split('\n')
+                  .map(line => {
+                    if (line.length > 120 && !line.includes('\n')) {
+                      // Procurar por vírgulas ou pontos para quebrar
+                      const breakPoints = [', ', ' - ', ' e ', ' que '];
+                      for (const breakPoint of breakPoints) {
+                        const midPoint = Math.floor(line.length / 2);
+                        const breakIndex = line.indexOf(breakPoint, midPoint - 30);
+                        if (breakIndex > 0 && breakIndex < line.length - 20) {
+                          return line.substring(0, breakIndex + breakPoint.length).trim() + 
+                                 '\n' + line.substring(breakIndex + breakPoint.length).trim();
+                        }
+                      }
+                    }
+                    return line;
+                  })
+                  .join('\n')
+                  // Limpar múltiplas quebras de linha
+                  .replace(/\n{3,}/g, '\n\n')
+                  .trim();
+                
+                return cleaned;
               };
               
               const cleanContent = cleanBody(sanitizeText(slide.conteudo));
@@ -193,15 +223,17 @@ const Stories10xFormatter: React.FC<Stories10xFormatterProps> = ({ slides, onApp
               
               return (
                 <div key={i}>
-                  <h3 className="font-semibold text-white mb-1">
+                  <h3 className="font-semibold text-white mb-3">
                     {icon} Conteúdo do story {slide.number || i + 1} - ✨ {sanitizeText(slide.titulo)}:
                   </h3>
                   {hasBody && (
-                    <div className="mt-2 pl-4 border-l-2 border-aurora-electric-purple/20">
-                      <div className="font-normal !text-white leading-relaxed whitespace-pre-line">{cleanContent}</div>
+                    <div className="mt-3 pl-6 border-l-2 border-aurora-electric-purple/20">
+                      <div className="font-normal !text-white leading-loose whitespace-pre-line text-sm">
+                        {cleanContent}
+                      </div>
                     </div>
                   )}
-                  {i < cappedSlides.length - 1 && <hr className="my-6 border-border border-dashed" />}
+                  {i < cappedSlides.length - 1 && <hr className="my-8 border-border border-dashed" />}
                 </div>
               );
             })}
