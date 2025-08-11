@@ -1,67 +1,152 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { ArrowLeft, Play, BookOpen, Clock, CheckCircle } from 'lucide-react';
+import { ArrowLeft, Play, BookOpen, Clock, CheckCircle, Lock } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useCourseDetails } from '@/hooks/useCourseDetails';
+import { useLessonProgress } from '@/hooks/useLessonProgress';
+import { LessonPlayer } from '@/components/academy/LessonPlayer';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 const CourseDetail: React.FC = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [selectedLesson, setSelectedLesson] = useState<string | null>(null);
 
-  // Mock course data
-  const course = {
-    id: '1',
-    title: 'Introdução ao HIFU',
-    description: 'Curso completo sobre tecnologia HIFU e suas aplicações na estética moderna',
-    equipment_name: 'HIFU Profissional',
-    difficulty_level: 'beginner',
-    estimated_duration_hours: 3,
-    gamification_points: 150,
-    has_final_exam: true,
-    progress_percentage: 60,
-    lessons: [
-      {
-        id: '1',
-        title: 'O que é HIFU?',
-        duration_minutes: 15,
-        order_index: 1,
-        completed: true,
-        vimeo_url: 'https://vimeo.com/123456789'
-      },
-      {
-        id: '2',
-        title: 'Indicações e Contraindicações',
-        duration_minutes: 20,
-        order_index: 2,
-        completed: true,
-        vimeo_url: 'https://vimeo.com/123456790'
-      },
-      {
-        id: '3',
-        title: 'Protocolos de Tratamento',
-        duration_minutes: 25,
-        order_index: 3,
-        completed: false,
-        vimeo_url: 'https://vimeo.com/123456791'
-      }
-    ]
-  };
+  const {
+    course,
+    lessons,
+    userAccess,
+    progressPercentage,
+    totalLessons,
+    hasAccess,
+    accessExpired,
+    isLoading: courseLoading,
+    error: courseError,
+    updateProgress
+  } = useCourseDetails(id || '');
 
-  const completedLessons = course.lessons.filter(lesson => lesson.completed).length;
-  const totalLessons = course.lessons.length;
+  const {
+    isLessonCompleted,
+    markLessonComplete,
+    updateWatchTime,
+    getLessonWatchTime
+  } = useLessonProgress(id || '');
+
+  if (courseLoading) {
+    return <LoadingSpinner message="Carregando curso..." />;
+  }
+
+  if (courseError || !course) {
+    return (
+      <div className="aurora-dark-bg min-h-screen flex items-center justify-center">
+        <Card className="aurora-glass p-8 max-w-md">
+          <CardContent className="text-center">
+            <h2 className="text-xl font-semibold text-white mb-4">Curso não encontrado</h2>
+            <p className="text-white/70 mb-6">
+              {courseError || 'O curso que você está procurando não existe.'}
+            </p>
+            <Button onClick={() => navigate('/academia')} className="aurora-button">
+              Voltar para Academia
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (!hasAccess) {
+    return (
+      <div className="aurora-dark-bg min-h-screen flex items-center justify-center">
+        <Card className="aurora-glass p-8 max-w-md">
+          <CardContent className="text-center">
+            <Lock className="h-12 w-12 text-aurora-electric-purple mx-auto mb-4" />
+            <h2 className="text-xl font-semibold text-white mb-4">Acesso Negado</h2>
+            <p className="text-white/70 mb-6">
+              Você não tem acesso a este curso. Solicite acesso para poder visualizar o conteúdo.
+            </p>
+            <Button onClick={() => navigate('/academia')} className="aurora-button">
+              Voltar para Academia
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (accessExpired) {
+    return (
+      <div className="aurora-dark-bg min-h-screen flex items-center justify-center">
+        <Card className="aurora-glass p-8 max-w-md">
+          <CardContent className="text-center">
+            <Clock className="h-12 w-12 text-yellow-500 mx-auto mb-4" />
+            <h2 className="text-xl font-semibold text-white mb-4">Acesso Expirado</h2>
+            <p className="text-white/70 mb-6">
+              Seu acesso a este curso expirou. Entre em contato para renovar.
+            </p>
+            <Button onClick={() => navigate('/academia')} className="aurora-button">
+              Voltar para Academia
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Show lesson player if a lesson is selected
+  if (selectedLesson) {
+    const lesson = lessons.find(l => l.id === selectedLesson);
+    if (!lesson) {
+      setSelectedLesson(null);
+      return null;
+    }
+
+    return (
+      <LessonPlayer
+        lesson={lesson}
+        courseTitle={course.title}
+        isCompleted={isLessonCompleted(lesson.id)}
+        onComplete={() => {
+          markLessonComplete(lesson.id);
+          // Update course progress
+          const completedCount = lessons.filter(l => 
+            isLessonCompleted(l.id) || l.id === lesson.id
+          ).length;
+          const newProgress = Math.round((completedCount / totalLessons) * 100);
+          updateProgress(newProgress);
+        }}
+        onBack={() => setSelectedLesson(null)}
+        onProgress={(seconds) => updateWatchTime(lesson.id, seconds)}
+        watchTime={getLessonWatchTime(lesson.id)}
+      />
+    );
+  }
+
+  const completedLessons = lessons.filter(lesson => isLessonCompleted(lesson.id)).length;
 
   const handleLessonClick = (lesson: any) => {
-    if (!lesson.completed) {
-      toast({
-        title: "Iniciando aula",
-        description: `Abrindo: ${lesson.title}`
-      });
+    // Check if lesson is unlocked (sequential unlock logic)
+    const lessonIndex = lessons.findIndex(l => l.id === lesson.id);
+    if (lessonIndex > 0) {
+      const previousLesson = lessons[lessonIndex - 1];
+      if (!isLessonCompleted(previousLesson.id)) {
+        toast({
+          title: "Aula bloqueada",
+          description: "Complete a aula anterior para desbloquear esta aula.",
+          variant: "destructive"
+        });
+        return;
+      }
     }
+
+    setSelectedLesson(lesson.id);
   };
+
+  const canTakeExam = completedLessons === totalLessons;
 
   return (
     <div className="aurora-dark-bg min-h-screen">
@@ -98,11 +183,18 @@ const CourseDetail: React.FC = () => {
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-4">
                 <Badge className="bg-green-500 text-white">
-                  {course.difficulty_level}
+                  {course.difficulty_level === 'beginner' ? 'Iniciante' : 
+                   course.difficulty_level === 'intermediate' ? 'Intermediário' : 'Avançado'}
                 </Badge>
                 <Badge variant="outline" className="text-aurora-teal border-aurora-teal">
                   {course.equipment_name}
                 </Badge>
+                {userAccess?.status && (
+                  <Badge variant="outline" className="text-aurora-lavender border-aurora-lavender">
+                    {userAccess.status === 'in_progress' ? 'Em Progresso' : 
+                     userAccess.status === 'completed' ? 'Concluído' : 'Não Iniciado'}
+                  </Badge>
+                )}
               </div>
               
               <h1 className="aurora-text-gradient text-4xl font-light mb-4">
@@ -137,7 +229,7 @@ const CourseDetail: React.FC = () => {
                     <CheckCircle className="h-5 w-5 text-aurora-lavender" />
                     <div>
                       <p className="text-sm text-white/60">Progresso</p>
-                      <p className="text-lg font-semibold text-white">{course.progress_percentage}%</p>
+                      <p className="text-lg font-semibold text-white">{progressPercentage}%</p>
                     </div>
                   </div>
                 </div>
@@ -148,7 +240,7 @@ const CourseDetail: React.FC = () => {
                   <span>Progresso do Curso</span>
                   <span>{completedLessons} de {totalLessons} aulas concluídas</span>
                 </div>
-                <Progress value={course.progress_percentage} className="h-3" />
+                <Progress value={progressPercentage} className="h-3" />
               </div>
             </div>
           </div>
@@ -161,46 +253,71 @@ const CourseDetail: React.FC = () => {
           </h2>
 
           <div className="space-y-4">
-            {course.lessons.map((lesson, index) => (
-              <Card 
-                key={lesson.id} 
-                className={`aurora-glass border-aurora-electric-purple/20 cursor-pointer transition-all hover:border-aurora-electric-purple/40 ${
-                  lesson.completed ? 'bg-green-500/10' : ''
-                }`}
-                onClick={() => handleLessonClick(lesson)}
-              >
-                <CardContent className="p-6">
-                  <div className="flex items-center gap-4">
-                    <div className={`p-3 rounded-full ${
-                      lesson.completed 
-                        ? 'bg-green-500 text-white' 
-                        : 'bg-aurora-electric-purple/20 text-aurora-electric-purple'
-                    }`}>
-                      {lesson.completed ? (
-                        <CheckCircle className="h-5 w-5" />
-                      ) : (
-                        <Play className="h-5 w-5" />
-                      )}
-                    </div>
-                    
-                    <div className="flex-1">
-                      <h3 className="text-lg font-semibold text-white mb-1">
-                        {lesson.title}
-                      </h3>
-                      <div className="flex items-center gap-4 text-sm text-white/60">
-                        <span>Aula {lesson.order_index}</span>
-                        <span>{lesson.duration_minutes} min</span>
-                        {lesson.completed && (
-                          <Badge variant="outline" className="text-green-500 border-green-500">
-                            Concluída
-                          </Badge>
+            {lessons.map((lesson, index) => {
+              const isCompleted = isLessonCompleted(lesson.id);
+              const isLocked = index > 0 && !isLessonCompleted(lessons[index - 1].id);
+              
+              return (
+                <Card 
+                  key={lesson.id} 
+                  className={`aurora-glass border-aurora-electric-purple/20 transition-all ${
+                    isLocked 
+                      ? 'opacity-50 cursor-not-allowed' 
+                      : 'cursor-pointer hover:border-aurora-electric-purple/40'
+                  } ${isCompleted ? 'bg-green-500/10' : ''}`}
+                  onClick={() => !isLocked && handleLessonClick(lesson)}
+                >
+                  <CardContent className="p-6">
+                    <div className="flex items-center gap-4">
+                      <div className={`p-3 rounded-full ${
+                        isCompleted 
+                          ? 'bg-green-500 text-white' 
+                          : isLocked
+                            ? 'bg-gray-500/20 text-gray-500'
+                            : 'bg-aurora-electric-purple/20 text-aurora-electric-purple'
+                      }`}>
+                        {isCompleted ? (
+                          <CheckCircle className="h-5 w-5" />
+                        ) : isLocked ? (
+                          <Lock className="h-5 w-5" />
+                        ) : (
+                          <Play className="h-5 w-5" />
+                        )}
+                      </div>
+                      
+                      <div className="flex-1">
+                        <h3 className={`text-lg font-semibold mb-1 ${
+                          isLocked ? 'text-white/50' : 'text-white'
+                        }`}>
+                          {lesson.title}
+                        </h3>
+                        <div className="flex items-center gap-4 text-sm text-white/60">
+                          <span>Aula {lesson.order_index}</span>
+                          <span>{lesson.duration_minutes || 0} min</span>
+                          {isCompleted && (
+                            <Badge variant="outline" className="text-green-500 border-green-500">
+                              Concluída
+                            </Badge>
+                          )}
+                          {isLocked && (
+                            <Badge variant="outline" className="text-gray-500 border-gray-500">
+                              Bloqueada
+                            </Badge>
+                          )}
+                        </div>
+                        {lesson.description && (
+                          <p className={`text-sm mt-2 ${
+                            isLocked ? 'text-white/30' : 'text-white/70'
+                          }`}>
+                            {lesson.description}
+                          </p>
                         )}
                       </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
 
           {/* Exam Section */}
@@ -218,10 +335,18 @@ const CourseDetail: React.FC = () => {
                       </p>
                     </div>
                     <Button 
-                      disabled={completedLessons < totalLessons}
+                      disabled={!canTakeExam}
                       className="aurora-button"
+                      onClick={() => {
+                        if (canTakeExam) {
+                          toast({
+                            title: "Prova Final",
+                            description: "Funcionalidade em desenvolvimento",
+                          });
+                        }
+                      }}
                     >
-                      Fazer Prova
+                      {canTakeExam ? 'Fazer Prova' : 'Complete todas as aulas'}
                     </Button>
                   </div>
                 </CardContent>
