@@ -25,11 +25,27 @@ const CarouselFormatter: React.FC<CarouselFormatterProps> = ({
   // Calcula tempo total baseado no conteúdo real dos slides
   const totalContent = slides.map(s => s.texto).join(' ');
   const timeInfo = calculateContentTime(totalContent);
+
+  // Remove cabeçalhos e separadores residuais do corpo dos slides
+  const cleanBody = (text: string) => {
+    if (!text) return '';
+    const lines = text.split('\n');
+    const filtered = lines.filter((l) => {
+      const t = l.trim();
+      const headerRe = /^conte[uú]do do slide(\s*\d+)?\s*[-–—:]?/i;
+      const dashRe = /^[-–—_]{3,}$/;
+      return !(headerRe.test(t) || dashRe.test(t));
+    });
+    return filtered.join('\n').trim();
+  };
+
   const combinedText = slides.map((s, idx) => {
     const title = (s.title || `Slide ${s.number || idx + 1}`).trim();
-    const body = (s.texto || '').trim();
-    return body ? `✨ ${title} —\n${body}` : `✨ ${title} —`;
-  }).join('\n\n--------\n\n');
+    const rawBody = (s.texto || '');
+    const body = cleanBody(rawBody);
+    const header = `Conteúdo do slide ${s.number || idx + 1} - ✨ ${title}`;
+    return body ? `${header}\n${body}` : `${header}`;
+  }).join('\n\n---------------------------------------------\n\n');
 
   if (slides.length === 0) {
     return <div className="text-center py-8">
@@ -82,16 +98,23 @@ const CarouselFormatter: React.FC<CarouselFormatterProps> = ({
             <CopyButton text={combinedText} successMessage="Texto do carrossel copiado!" />
           </div>
           <article className="text-foreground whitespace-pre-wrap leading-relaxed aurora-body">
-            {slides.map((s, i) => (
-              <div key={i}>
-                <p className="font-semibold">✨ {s.title?.trim() || `Slide ${s.number || i + 1}`} —</p>
-                {((s.texto || '').trim()) ? (
-                  <p className="mt-1">{(s.texto || '').trim()}</p>
-                ) : (
-                  <p className="mt-1 text-muted-foreground">(adicione o conteúdo deste slide)</p>
-                )}
-              </div>
-            ))}
+            {slides.map((s, i) => {
+              const body = cleanBody(s.texto || '');
+              const hasBody = body.length > 0;
+              return (
+                <div key={i}>
+                  <p className="font-semibold">
+                    Conteúdo do slide {s.number || i + 1} - ✨ {s.title?.trim() || `Slide ${s.number || i + 1}`}
+                  </p>
+                  {hasBody ? (
+                    <p className="mt-1">{body}</p>
+                  ) : (
+                    <p className="mt-1 text-muted-foreground">(adicione o conteúdo deste slide)</p>
+                  )}
+                  {i < slides.length - 1 && <hr className="my-4 border-border border-dashed" />}
+                </div>
+              );
+            })}
           </article>
         </section>
       </motion.div>
