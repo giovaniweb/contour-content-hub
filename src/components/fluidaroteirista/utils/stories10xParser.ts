@@ -8,12 +8,21 @@ export interface Stories10xSlide {
   tipo: 'gancho' | 'erro' | 'virada' | 'cta';
 }
 
-// Função para limpar o conteúdo do texto preservando separadores e quebras importantes
+// Função para limpar o conteúdo do texto COM LIMPEZA MUITO SUAVE
 const cleanContent = (content: string): string => {
-  return content
-    .replace(/[ \t]+/g, ' ') // Remove apenas espaços e tabs múltiplos, mantém quebras de linha
-    .replace(/\n{3,}/g, '\n\n') // Limita quebras de linha excessivas a no máximo 2
-    .trim(); // Remove espaços nas extremidades
+  // Limpeza mínima - apenas normalizar espaços sem remover conteúdo
+  const cleaned = content
+    .replace(/[ \t]+/g, ' ') // Remove apenas espaços e tabs múltiplos
+    .replace(/\n{4,}/g, '\n\n\n') // Limita quebras excessivas mas permite mais respiração
+    .trim();
+  
+  console.log('🧹 [cleanContent] Limpeza aplicada:', {
+    original: content.length,
+    cleaned: cleaned.length,
+    removedChars: content.length - cleaned.length
+  });
+  
+  return cleaned;
 };
 
 export const parseStories10xSlides = (roteiro: string): Stories10xSlide[] => {
@@ -128,33 +137,56 @@ const parseStoriesBySeparator = (sections: string[]): Stories10xSlide[] => {
   const storySections = sections.slice(0, Math.max(4, sections.length));
   
   storySections.forEach((section, index) => {
-    // Aplicar limpeza mais suave para preservar conteúdo
-    const cleanedContent = cleanContent(section);
+    // Tentar extrair título real da seção
+    const extractTitle = (content: string, fallbackTitle: string): string => {
+      const lines = content.trim().split('\n');
+      const firstLine = lines[0]?.trim();
+      
+      // Padrões para títulos
+      if (firstLine?.match(/^\[.*\]$/)) return firstLine.replace(/[\[\]]/g, '');
+      if (firstLine?.match(/^Story \d+:/i)) return firstLine.replace(/^Story \d+:\s*/i, '');
+      if (firstLine?.match(/^\d+[\.\)]\s/)) return firstLine.replace(/^\d+[\.\)]\s*/, '');
+      if (firstLine?.length && firstLine.length < 50 && !firstLine.includes('.')) return firstLine;
+      
+      return fallbackTitle;
+    };
+    
+    const originalContent = section.trim();
+    const cleanedContent = cleanContent(originalContent);
+    
+    // USAR CONTEÚDO ORIGINAL COMO FALLBACK se a limpeza falhar
+    const finalContent = cleanedContent || originalContent;
     
     console.log(`🔍 [Stories10xParser] Processando seção ${index + 1}:`);
-    console.log(`📝 [Stories10xParser] Conteúdo original (${section.length} chars):`, section.substring(0, 150) + '...');
-    console.log(`🧹 [Stories10xParser] Conteúdo limpo (${cleanedContent.length} chars):`, cleanedContent.substring(0, 150) + '...');
+    console.log(`📝 [Stories10xParser] Original (${originalContent.length} chars):`, originalContent.substring(0, 150) + '...');
+    console.log(`🧹 [Stories10xParser] Limpo (${cleanedContent.length} chars):`, cleanedContent.substring(0, 150) + '...');
+    console.log(`✅ [Stories10xParser] Final (${finalContent.length} chars):`, finalContent.substring(0, 150) + '...');
     
-    if (cleanedContent && index < 4) {
-      const dispositivos = detectarDispositivos(cleanedContent);
+    // PROCESSAR TODAS AS SEÇÕES (não apenas as primeiras 4)
+    if (finalContent && index < Math.max(4, storySections.length)) {
+      const dispositivos = detectarDispositivos(finalContent);
+      const extractedTitle = extractTitle(finalContent, storyTitles[index] || `Story ${index + 1}`);
       
       slides.push({
         number: index + 1,
-        titulo: storyTitles[index] || `Story ${index + 1}`,
-        conteudo: cleanedContent,
+        titulo: extractedTitle,
+        conteudo: finalContent,
         dispositivo: dispositivos.length > 0 ? dispositivos.join(', ') : undefined,
         tempo: '10s',
         tipo: storyTypes[index] || 'cta'
       });
       
-      console.log(`✅ [Stories10xParser] Story ${index + 1} parseado por separador:`, {
-        titulo: storyTitles[index] || `Story ${index + 1}`,
-        conteudoLength: cleanedContent.length,
-        conteudoPreview: cleanedContent.substring(0, 100) + '...',
+      console.log(`✅ [Stories10xParser] Story ${index + 1} criado:`, {
+        titulo: extractedTitle,
+        conteudoLength: finalContent.length,
+        conteudoPreview: finalContent.substring(0, 100) + '...',
         dispositivos
       });
-    } else if (!cleanedContent) {
-      console.warn(`⚠️ [Stories10xParser] Seção ${index + 1} vazia após limpeza`);
+    } else if (!finalContent) {
+      console.error(`❌ [Stories10xParser] ERRO: Seção ${index + 1} completamente vazia:`, {
+        originalLength: originalContent.length,
+        cleanedLength: cleanedContent.length
+      });
     }
   });
 
