@@ -48,21 +48,56 @@ const ImprovedReelsFormatter: React.FC<ImprovedReelsFormatterProps> = ({
   // Função para construir estrutura GPSC robusta
   const buildGPSC = (roteiro: string): Record<SectionKey, string> => {
     const blocks = parseTemporalScript(roteiro);
-    
+
     const gpsc: Record<SectionKey, string> = {
-      'Gancho': '',
-      'Problema': '',
-      'Solução': '',
-      'CTA': ''
+      Gancho: '',
+      Problema: '',
+      Solução: '',
+      CTA: ''
     };
 
-    // Função helper para escolher o bucket certo baseado no conteúdo
+    // Mapa de sinônimos/variações para normalizar seções
+    const normalizeSection = (label?: string): SectionKey | undefined => {
+      if (!label) return undefined;
+      const l = label
+        .toLowerCase()
+        .replace(/[\[\]]/g, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+      if (/(gancho|hook|headline|abertura|chamada|teaser)/i.test(l)) return 'Gancho';
+      if (/(problema|dor|agita[cç][aã]o|obst[áa]culo|erro|mito)/i.test(l)) return 'Problema';
+      if (/(solu[cç][aã]o|como|passo|dica|m[eé]todo|prova|exemplo|framework|benef[ií]cio)/i.test(l)) return 'Solução';
+      if (/(cta|call\s*to\s*action|a[cç][aã]o|convite|dire[cç][aã]o|oferta|assine|comente|compartilhe|salve|segue|inscreva|clique|acesse|garanta|link)/i.test(l)) return 'CTA';
+      return undefined;
+    };
+
+    // Extrai segmentos rotulados dentro de um texto (ex: "Gancho: ... Problema: ...")
+    const extractLabeledSegments = (text: string): Array<{ key: SectionKey; content: string }> => {
+      if (!text) return [];
+      const markers = '(gancho|hook|headline|abertura|chamada|teaser|problema|dor|agita[cç][aã]o|obst[áa]culo|erro|mito|solu[cç][aã]o|como|passo|dica|m[eé]todo|prova|exemplo|framework|cta|call\\s*to\\s*action|a[cç][aã]o|convite|dire[cç][aã]o|oferta|assine|comente|compartilhe|salve|segue|inscreva|clique|acesse|garanta|link)';
+      // Insere delimitadores antes de cada marcador reconhecido quando vier seguido de ':'
+      const withDelims = text.replace(new RegExp(`(?:\\[\\s*${markers}\\s*\\]|${markers})\\s*:`, 'gi'), (m) => `|||${m}`);
+      const parts = withDelims.split('|||').filter(Boolean);
+
+      const segments: Array<{ key: SectionKey; content: string }> = [];
+      for (const part of parts) {
+        const match = part.match(new RegExp(`^(?:\\[\\s*${markers}\\s*\\]|${markers})\\s*:`, 'i'));
+        if (match) {
+          const labelRaw = match[0].replace(/[:\[\]]/g, '').trim();
+          const key = normalizeSection(labelRaw);
+          const content = part.replace(match[0], '').trim();
+          if (key && content) segments.push({ key, content });
+        }
+      }
+      return segments;
+    };
+
+    // Heurística de fallback para bucket quando não há rótulos
     const chooseBucket = (content: string): SectionKey => {
       const lower = content.toLowerCase();
-      
-      // Gancho - perguntas, hooks, atenção
       if (
-        lower.includes('você sabia') || 
+        lower.includes('você sabia') ||
         lower.includes('imagine') ||
         lower.includes('e se eu te dissesse') ||
         lower.includes('pare tudo') ||
@@ -72,10 +107,8 @@ const ImprovedReelsFormatter: React.FC<ImprovedReelsFormatterProps> = ({
       ) {
         return 'Gancho';
       }
-
-      // Problema/Dor
       if (
-        lower.includes('problema') || 
+        lower.includes('problema') ||
         lower.includes('dificuldade') ||
         lower.includes('frustração') ||
         lower.includes('não consegue') ||
@@ -87,10 +120,8 @@ const ImprovedReelsFormatter: React.FC<ImprovedReelsFormatterProps> = ({
       ) {
         return 'Problema';
       }
-
-      // CTA - call to action
       if (
-        lower.includes('clique') || 
+        lower.includes('clique') ||
         lower.includes('acesse') ||
         lower.includes('baixe') ||
         lower.includes('inscreva') ||
@@ -103,22 +134,35 @@ const ImprovedReelsFormatter: React.FC<ImprovedReelsFormatterProps> = ({
       ) {
         return 'CTA';
       }
-
-      // Solução é o padrão
       return 'Solução';
     };
 
-    // Distribui os blocos nos buckets GPSC
+    // Distribui os blocos
     if (blocks.length > 0) {
       blocks.forEach((block) => {
-        const bucket = chooseBucket(block.content);
         const cleaned = cleanForReading(block.content);
-        gpsc[bucket] += (gpsc[bucket] ? "\n\n" : "") + cleaned;
+        // Primeiro: segmentos explicitamente rotulados dentro do conteúdo
+        const labeled = extractLabeledSegments(cleaned);
+        if (labeled.length > 0) {
+          labeled.forEach(({ key, content }) => {
+            gpsc[key] += (gpsc[key] ? '\n\n' : '') + content;
+          });
+          return;
+        }
+        // Segundo: usar o label do bloco, se existir
+        const fromLabel = normalizeSection(block.label);
+        if (fromLabel) {
+          gpsc[fromLabel] += (gpsc[fromLabel] ? '\n\n' : '') + cleaned;
+          return;
+        }
+        // Terceiro: heurística
+        const bucket = chooseBucket(cleaned);
+        gpsc[bucket] += (gpsc[bucket] ? '\n\n' : '') + cleaned;
       });
     } else {
-      // Fallback: divide o roteiro limpo em 4 partes
+      // Fallback: divide o roteiro limpo em 4 partes por parágrafos
       const cleanedFull = cleanForReading(roteiro);
-      const paragraphs = cleanedFull.split(/\n\s*\n/).filter(p => p.trim());
+      const paragraphs = cleanedFull.split(/\n\s*\n/).filter((p) => p.trim());
       const quarters = Math.max(1, Math.ceil(paragraphs.length / 4));
       gpsc['Gancho'] = paragraphs.slice(0, quarters).join('\n\n');
       gpsc['Problema'] = paragraphs.slice(quarters, quarters * 2).join('\n\n');
@@ -126,25 +170,39 @@ const ImprovedReelsFormatter: React.FC<ImprovedReelsFormatterProps> = ({
       gpsc['CTA'] = paragraphs.slice(quarters * 3).join('\n\n');
     }
 
-    // Reforço: se alguma seção ficar vazia ou muito curta, reconstruir igualmente
+    // Seções vazias/curtas: fallback por tamanho, respeitando limites de palavra
     const needsRebuild = (k: SectionKey) => !gpsc[k] || gpsc[k].trim().length < 20;
     if (needsRebuild('Gancho') || needsRebuild('Problema') || needsRebuild('Solução') || needsRebuild('CTA')) {
-      const cleanedFull = cleanForReading(roteiro);
-      const parts = cleanedFull.split(/\n\s*\n/).filter(p => p.trim());
-      if (parts.length >= 4) {
-        const quarters = Math.ceil(parts.length / 4);
-        gpsc['Gancho'] = parts.slice(0, quarters).join('\n\n');
-        gpsc['Problema'] = parts.slice(quarters, quarters * 2).join('\n\n');
-        gpsc['Solução'] = parts.slice(quarters * 2, quarters * 3).join('\n\n');
-        gpsc['CTA'] = parts.slice(quarters * 3).join('\n\n');
-      } else {
-        const len = cleanedFull.length;
-        const q = Math.max(1, Math.floor(len / 4));
-        gpsc['Gancho'] = cleanedFull.slice(0, q).trim();
-        gpsc['Problema'] = cleanedFull.slice(q, 2 * q).trim();
-        gpsc['Solução'] = cleanedFull.slice(2 * q, 3 * q).trim();
-        gpsc['CTA'] = cleanedFull.slice(3 * q).trim();
-      }
+      const cleanedFull = cleanForReading(roteiro).replace(/\s*\n\s*/g, ' ').replace(/\s{2,}/g, ' ').trim();
+
+      // Split seguro em 4 partes procurando espaços próximos aos quartos
+      const safeSplitIntoFour = (text: string): Record<SectionKey, string> => {
+        const len = text.length;
+        if (len < 40) {
+          return { Gancho: text, Problema: '', Solução: '', CTA: '' };
+        }
+        const target = Math.floor(len / 4);
+        const findBreak = (idx: number) => {
+          const window = 80;
+          for (let i = idx; i < Math.min(len, idx + window); i++) if (/\s/.test(text[i])) return i;
+          for (let i = idx; i > Math.max(0, idx - window); i--) if (/\s/.test(text[i])) return i;
+          return idx;
+        };
+        const i1 = findBreak(target);
+        const i2 = findBreak(target * 2);
+        const i3 = findBreak(target * 3);
+        return {
+          Gancho: text.slice(0, i1).trim(),
+          Problema: text.slice(i1, i2).trim(),
+          Solução: text.slice(i2, i3).trim(),
+          CTA: text.slice(i3).trim(),
+        };
+      };
+
+      const rebuilt = safeSplitIntoFour(cleanedFull);
+      (['Gancho', 'Problema', 'Solução', 'CTA'] as SectionKey[]).forEach((k) => {
+        if (needsRebuild(k)) gpsc[k] = rebuilt[k];
+      });
     }
 
     return gpsc;
