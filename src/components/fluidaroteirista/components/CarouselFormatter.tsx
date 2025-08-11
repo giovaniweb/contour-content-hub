@@ -53,8 +53,8 @@ const CarouselFormatter: React.FC<CarouselFormatterProps> = ({
     const title = (s.title || `Slide ${s.number || idx + 1}`).trim();
     const rawBody = (s.texto || '');
     const body = cleanBody(rawBody);
-    const header = `Conteúdo do slide ${s.number || idx + 1} - ✨ ${title}`;
-    return body ? `${header}\n${body}` : `${header}`;
+    const header = `🎯 Conteúdo do slide ${s.number || idx + 1} - ✨ ${title}`;
+    return body ? `${header}\n   ${body}` : `${header}`;
   }).join('\n\n---------------------------------------------\n\n');
 
   if (slides.length === 0) {
@@ -118,7 +118,7 @@ const CarouselFormatter: React.FC<CarouselFormatterProps> = ({
                   </p>
                   {hasBody && (
                     <div className="mt-3 pl-4 border-l-2 border-aurora-electric-purple/20">
-                      <div className="font-normal text-foreground leading-relaxed whitespace-pre-line">{body}</div>
+                      <div className="font-normal text-muted-foreground leading-relaxed whitespace-pre-line">{body}</div>
                     </div>
                   )}
                   {i < slides.length - 1 && <hr className="my-6 border-border border-dashed" />}
