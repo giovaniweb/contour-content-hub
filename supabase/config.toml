@@ -38,6 +38,9 @@ verify_jwt = true
 [functions.pdf-text-extraction]
 verify_jwt = true
 
+[functions.get-vimeo-metadata]
+verify_jwt = true
+
 [db]
 enabled = true
 port = 54322

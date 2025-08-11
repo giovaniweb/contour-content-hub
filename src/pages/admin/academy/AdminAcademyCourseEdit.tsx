@@ -3,21 +3,21 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, Plus, GripVertical, Edit, Trash2 } from 'lucide-react';
+import { ArrowLeft, Plus } from 'lucide-react';
 import AdminLayout from '@/components/layout/AdminLayout';
 import { CourseForm } from '@/components/academy/CourseForm';
 import { LessonFormDialog } from '@/components/academy/LessonFormDialog';
+import { LessonsList } from '@/components/academy/LessonsList';
 import { useAcademyCourses } from '@/hooks/useAcademyCourses';
 import { useLessons } from '@/hooks/useLessons';
 import { CourseFormData, AcademyCourse } from '@/types/academy';
-import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 
 const AdminAcademyCourseEdit = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const { updateCourse, isLoading: courseLoading } = useAcademyCourses();
-  const { lessons, createLesson, updateLesson, deleteLesson, isLoading: lessonsLoading } = useLessons(id || '');
+  const { lessons, createLesson, updateLesson, updateLessonsOrder, deleteLesson, isLoading: lessonsLoading } = useLessons(id || '');
   
   const [course, setCourse] = useState<AcademyCourse | null>(null);
   const [showLessonForm, setShowLessonForm] = useState(false);
@@ -89,6 +89,14 @@ const AdminAcademyCourseEdit = () => {
       } catch (error) {
         console.error('Error deleting lesson:', error);
       }
+    }
+  };
+
+  const handleReorderLessons = async (reorderedLessons: any[]) => {
+    try {
+      await updateLessonsOrder(reorderedLessons);
+    } catch (error) {
+      console.error('Error reordering lessons:', error);
     }
   };
 
@@ -201,11 +209,19 @@ const AdminAcademyCourseEdit = () => {
                 </Button>
               </CardHeader>
               <CardContent>
-                {lessonsLoading ? (
-                  <div className="text-center py-8">
-                    <p className="text-slate-400">Carregando aulas...</p>
-                  </div>
-                ) : lessons.length === 0 ? (
+                <LessonsList
+                  lessons={lessons}
+                  onEdit={(lesson) => {
+                    setEditingLesson(lesson);
+                    setShowLessonForm(true);
+                  }}
+                  onDelete={handleDeleteLesson}
+                  onReorder={handleReorderLessons}
+                  onPlay={() => {}} // Not needed in admin
+                  showPlayButton={false}
+                  isAdmin={true}
+                />
+                {lessons.length === 0 && !lessonsLoading && (
                   <div className="text-center py-8">
                     <p className="text-slate-400">Nenhuma aula cadastrada</p>
                     <Button 
@@ -216,57 +232,6 @@ const AdminAcademyCourseEdit = () => {
                       <Plus className="h-4 w-4 mr-2" />
                       Adicionar Primeira Aula
                     </Button>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    {lessons.map((lesson, index) => (
-                      <div
-                        key={lesson.id}
-                        className="flex items-center gap-4 p-4 border border-slate-700 rounded-lg bg-slate-700/30"
-                      >
-                        <div className="flex items-center gap-2 text-slate-400">
-                          <GripVertical className="h-4 w-4" />
-                          <span className="text-sm font-mono">{index + 1}</span>
-                        </div>
-                        <div className="flex-1">
-                          <h4 className="font-medium text-slate-50">{lesson.title}</h4>
-                          {lesson.description && (
-                            <p className="text-sm text-slate-400 mt-1">{lesson.description}</p>
-                          )}
-                          <div className="flex items-center gap-4 mt-2">
-                            {lesson.duration_minutes && (
-                              <Badge variant="secondary" className="text-xs">
-                                {lesson.duration_minutes}min
-                              </Badge>
-                            )}
-                            {lesson.is_mandatory && (
-                              <Badge variant="default" className="text-xs bg-blue-500/20 text-blue-400">
-                                Obrigatória
-                              </Badge>
-                            )}
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Button 
-                            size="sm" 
-                            variant="outline"
-                            onClick={() => {
-                              setEditingLesson(lesson);
-                              setShowLessonForm(true);
-                            }}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button 
-                            size="sm" 
-                            variant="outline"
-                            onClick={() => handleDeleteLesson(lesson.id)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
                   </div>
                 )}
               </CardContent>
