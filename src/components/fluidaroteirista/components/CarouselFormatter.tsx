@@ -113,7 +113,7 @@ const CarouselFormatter: React.FC<CarouselFormatterProps> = ({
               const hasBody = body.length > 0;
               return (
                 <div key={i}>
-                  <h3 className="font-semibold text-aurora-emerald mb-1">
+                  <h3 className="font-semibold text-white mb-1">
                     🎯 Conteúdo do slide {s.number || i + 1} - ✨ {s.title?.trim() || `Slide ${s.number || i + 1}`}:
                   </h3>
                   {hasBody && (
