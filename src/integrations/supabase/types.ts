@@ -162,6 +162,85 @@ export type Database = {
           },
         ]
       }
+      academy_exam_options: {
+        Row: {
+          created_at: string
+          id: string
+          is_correct: boolean
+          option_text: string
+          order_index: number
+          question_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_correct?: boolean
+          option_text: string
+          order_index?: number
+          question_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_correct?: boolean
+          option_text?: string
+          order_index?: number
+          question_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "academy_exam_options_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "academy_exam_questions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      academy_exam_questions: {
+        Row: {
+          course_id: string
+          created_at: string
+          explanation: string | null
+          id: string
+          order_index: number
+          points: number
+          question_text: string
+          question_type: string
+          updated_at: string
+        }
+        Insert: {
+          course_id: string
+          created_at?: string
+          explanation?: string | null
+          id?: string
+          order_index?: number
+          points?: number
+          question_text: string
+          question_type?: string
+          updated_at?: string
+        }
+        Update: {
+          course_id?: string
+          created_at?: string
+          explanation?: string | null
+          id?: string
+          order_index?: number
+          points?: number
+          question_text?: string
+          question_type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "academy_exam_questions_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "academy_courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       academy_lessons: {
         Row: {
           course_id: string
@@ -202,6 +281,50 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "academy_lessons_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "academy_courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      academy_survey_questions: {
+        Row: {
+          course_id: string
+          created_at: string
+          id: string
+          is_required: boolean
+          options: Json | null
+          order_index: number
+          question_text: string
+          question_type: string
+          updated_at: string
+        }
+        Insert: {
+          course_id: string
+          created_at?: string
+          id?: string
+          is_required?: boolean
+          options?: Json | null
+          order_index?: number
+          question_text: string
+          question_type?: string
+          updated_at?: string
+        }
+        Update: {
+          course_id?: string
+          created_at?: string
+          id?: string
+          is_required?: boolean
+          options?: Json | null
+          order_index?: number
+          question_text?: string
+          question_type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "academy_survey_questions_course_id_fkey"
             columns: ["course_id"]
             isOneToOne: false
             referencedRelation: "academy_courses"
@@ -258,6 +381,101 @@ export type Database = {
             columns: ["course_id"]
             isOneToOne: false
             referencedRelation: "academy_courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      academy_user_exam_attempts: {
+        Row: {
+          answers: Json
+          attempt_number: number
+          completed_at: string | null
+          course_id: string
+          created_at: string
+          id: string
+          passed: boolean
+          score: number
+          started_at: string
+          total_questions: number
+          user_id: string
+        }
+        Insert: {
+          answers?: Json
+          attempt_number?: number
+          completed_at?: string | null
+          course_id: string
+          created_at?: string
+          id?: string
+          passed?: boolean
+          score?: number
+          started_at?: string
+          total_questions?: number
+          user_id: string
+        }
+        Update: {
+          answers?: Json
+          attempt_number?: number
+          completed_at?: string | null
+          course_id?: string
+          created_at?: string
+          id?: string
+          passed?: boolean
+          score?: number
+          started_at?: string
+          total_questions?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "academy_user_exam_attempts_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "academy_courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      academy_user_survey_responses: {
+        Row: {
+          course_id: string
+          created_at: string
+          id: string
+          question_id: string
+          rating: number | null
+          response_value: string | null
+          user_id: string
+        }
+        Insert: {
+          course_id: string
+          created_at?: string
+          id?: string
+          question_id: string
+          rating?: number | null
+          response_value?: string | null
+          user_id: string
+        }
+        Update: {
+          course_id?: string
+          created_at?: string
+          id?: string
+          question_id?: string
+          rating?: number | null
+          response_value?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "academy_user_survey_responses_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "academy_courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "academy_user_survey_responses_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "academy_survey_questions"
             referencedColumns: ["id"]
           },
         ]
@@ -2754,6 +2972,48 @@ export type Database = {
           id?: string
           nome?: string
           usado_count?: number | null
+        }
+        Relationships: []
+      }
+      testimonials: {
+        Row: {
+          company: string | null
+          content: string
+          created_at: string
+          id: string
+          image_url: string | null
+          is_active: boolean | null
+          is_featured: boolean | null
+          name: string
+          rating: number | null
+          role: string
+          updated_at: string
+        }
+        Insert: {
+          company?: string | null
+          content: string
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          is_featured?: boolean | null
+          name: string
+          rating?: number | null
+          role: string
+          updated_at?: string
+        }
+        Update: {
+          company?: string | null
+          content?: string
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          is_featured?: boolean | null
+          name?: string
+          rating?: number | null
+          role?: string
+          updated_at?: string
         }
         Relationships: []
       }

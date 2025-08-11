@@ -5,7 +5,9 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { X, Save } from 'lucide-react';
+import { X, Save, Loader2, Download } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 interface LessonFormData {
   title: string;
@@ -33,6 +35,9 @@ export const LessonFormDialog: React.FC<LessonFormDialogProps> = ({
   initialData,
   isLoading = false
 }) => {
+  const { toast } = useToast();
+  const [fetchingMetadata, setFetchingMetadata] = useState(false);
+  
   const [formData, setFormData] = useState<LessonFormData>({
     title: initialData?.title || '',
     description: initialData?.description || '',
@@ -41,6 +46,52 @@ export const LessonFormDialog: React.FC<LessonFormDialogProps> = ({
     is_mandatory: initialData?.is_mandatory ?? true,
     order_index: initialData?.order_index || 0
   });
+
+  const fetchVimeoMetadata = async () => {
+    if (!formData.vimeo_url) {
+      toast({
+        title: "Erro",
+        description: "Por favor, insira a URL do Vimeo primeiro",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setFetchingMetadata(true);
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('get-vimeo-metadata', {
+        body: { vimeoUrl: formData.vimeo_url }
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      // Auto-fill form with Vimeo data
+      setFormData(prev => ({
+        ...prev,
+        title: data.title || prev.title,
+        description: data.description || prev.description,
+        duration_minutes: data.duration_minutes || prev.duration_minutes
+      }));
+
+      toast({
+        title: "Sucesso!",
+        description: "Dados do Vimeo carregados com sucesso",
+      });
+
+    } catch (error) {
+      console.error('Error fetching Vimeo metadata:', error);
+      toast({
+        title: "Erro",
+        description: "Erro ao buscar dados do Vimeo. Verifique a URL e tente novamente.",
+        variant: "destructive"
+      });
+    } finally {
+      setFetchingMetadata(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -88,15 +139,31 @@ export const LessonFormDialog: React.FC<LessonFormDialogProps> = ({
 
             <div className="col-span-2">
               <Label htmlFor="vimeo_url">URL do Vídeo (Vimeo) *</Label>
-              <Input
-                id="vimeo_url"
-                value={formData.vimeo_url}
-                onChange={(e) => handleInputChange('vimeo_url', e.target.value)}
-                placeholder="https://vimeo.com/..."
-                required
-              />
+              <div className="flex gap-2">
+                <Input
+                  id="vimeo_url"
+                  value={formData.vimeo_url}
+                  onChange={(e) => handleInputChange('vimeo_url', e.target.value)}
+                  placeholder="https://vimeo.com/..."
+                  required
+                  className="flex-1"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={fetchVimeoMetadata}
+                  disabled={fetchingMetadata || !formData.vimeo_url}
+                  className="shrink-0"
+                >
+                  {fetchingMetadata ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Download className="h-4 w-4" />
+                  )}
+                </Button>
+              </div>
               <p className="text-sm text-muted-foreground mt-1">
-                Cole a URL completa do vídeo no Vimeo
+                Cole a URL completa do vídeo no Vimeo e clique no botão para buscar os dados automaticamente
               </p>
             </div>
 

@@ -84,6 +84,34 @@ export const useLessons = (courseId: string) => {
     }
   };
 
+  const updateLessonsOrder = async (updatedLessons: AcademyLesson[]) => {
+    try {
+      // Update all lessons with new order
+      const updates = updatedLessons.map(lesson => 
+        supabase
+          .from('academy_lessons')
+          .update({ order_index: lesson.order_index })
+          .eq('id', lesson.id)
+      );
+
+      await Promise.all(updates);
+
+      toast({
+        title: "Ordem atualizada!",
+        description: "A ordem das aulas foi atualizada com sucesso.",
+      });
+
+      await fetchLessons();
+    } catch (err) {
+      console.error('Error updating lesson order:', err);
+      toast({
+        title: "Erro",
+        description: "Erro ao atualizar ordem das aulas. Tente novamente.",
+        variant: "destructive"
+      });
+    }
+  };
+
   const updateLesson = async (id: string, lessonData: Partial<LessonFormData>) => {
     try {
       const { data, error: updateError } = await supabase
@@ -177,6 +205,7 @@ export const useLessons = (courseId: string) => {
     error,
     createLesson,
     updateLesson,
+    updateLessonsOrder,
     deleteLesson,
     refetch: fetchLessons
   };
