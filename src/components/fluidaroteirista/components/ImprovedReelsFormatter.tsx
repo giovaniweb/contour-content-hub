@@ -2,7 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { parseTemporalScript, TemporalScriptBlockData } from '../utils/parseTemporalScript';
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
+import CopyButton from "@/components/ui/CopyButton";
 import { Clock, Video, Sparkles, Target, AlertTriangle, Lightbulb, Eye } from 'lucide-react';
 import { sanitizeText } from '@/utils/textSanitizer';
 
@@ -117,142 +117,107 @@ const ImprovedReelsFormatter: React.FC<ImprovedReelsFormatterProps> = ({
     return sum + calculateTime(content);
   }, 0);
 
-  // Componente para cada seção GPSC
-  const SectionCard: React.FC<{ title: SectionKey; content: string; color: string }> = ({ 
-    title, 
-    content, 
-    color 
-  }) => {
-    const time = calculateTime(content);
-    const IconComponent = 
-      title === 'Gancho' ? Eye :
-      title === 'Problema' ? AlertTriangle :
-      title === 'Solução' ? Lightbulb :
-      Target;
-
-    return (
-      <Card className={`aurora-glass border-2 ${color}`}>
-        <CardContent className="p-5">
-          <div className="space-y-3">
-            <div className="flex items-center gap-2">
-              <IconComponent className="h-4 w-4" />
-              <Badge variant="outline" className="text-xs font-semibold">{title}</Badge>
-              <Badge variant="secondary" className="text-xs">⏱️ {time}s</Badge>
-            </div>
-            <div className="text-sm leading-relaxed text-slate-200 font-medium whitespace-pre-line">
-              {sanitizeText(content)}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  };
+  const sectionConfigs = [
+    { key: 'Gancho' as SectionKey, icon: '🎯', borderColor: 'border-l-aurora-electric-purple' },
+    { key: 'Problema' as SectionKey, icon: '⚠️', borderColor: 'border-l-aurora-soft-pink' },
+    { key: 'Solução' as SectionKey, icon: '💡', borderColor: 'border-l-aurora-emerald' },
+    { key: 'CTA' as SectionKey, icon: '🚀', borderColor: 'border-l-aurora-neon-blue' }
+  ];
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="space-y-4"
-    >
+    <div className="w-full max-w-4xl mx-auto space-y-8">
       {/* Header */}
-      <header className="text-center space-y-2">
-        <div className="flex items-center justify-center gap-2">
+      <motion.div 
+        className="text-center space-y-4"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+      >
+        <div className="flex items-center justify-center gap-3">
           <Video className="h-6 w-6 text-aurora-electric-purple" />
-          <h2 className="text-xl font-semibold tracking-tight text-aurora-electric-purple">
+          <h2 className="text-3xl font-bold bg-gradient-to-r from-aurora-electric-purple to-aurora-neon-blue bg-clip-text text-transparent aurora-heading">
             📱 Reels — Estrutura GPSC
           </h2>
-          <Sparkles className="h-5 w-5 text-aurora-neon-blue" />
         </div>
-        <Badge 
-          variant="outline" 
-          className={`text-xs ${
-            totalTime <= 45 
-              ? 'bg-aurora-emerald/10 text-aurora-emerald border-aurora-emerald/30' 
-              : 'bg-aurora-pink/10 text-aurora-pink border-aurora-pink/30'
-          }`}
-        >
-          <Clock className="h-3 w-3 mr-1" />
-          {totalTime}s • {totalTime <= 45 ? '✅ Ideal' : '⚠️ Muito longo'}
-        </Badge>
-      </header>
-
-      {/* Grid GPSC 2x2 */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <motion.div
-          initial={{ opacity: 0, x: -10 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0 }}
-        >
-          <SectionCard 
-            title="Gancho" 
-            content={gpscData.Gancho} 
-            color="border-aurora-electric-purple/30 bg-aurora-electric-purple/5"
+        <div className="flex items-center justify-center gap-4">
+          <Badge 
+            variant={totalTime <= 45 ? "default" : "destructive"}
+            className="text-sm px-4 py-2"
+          >
+            Tempo Total: {totalTime}s
+          </Badge>
+          {totalTime <= 45 && (
+            <Badge variant="outline" className="text-aurora-emerald border-aurora-emerald">
+              ✅ Ideal para Reels
+            </Badge>
+          )}
+          {totalTime > 45 && (
+            <Badge variant="outline" className="text-aurora-soft-pink border-aurora-soft-pink">
+              ⚠️ Acima de 45s
+            </Badge>
+          )}
+          <CopyButton 
+            text={roteiro}
+            className="aurora-button-enhanced"
           />
-        </motion.div>
+        </div>
+      </motion.div>
 
-        <motion.div
-          initial={{ opacity: 0, x: -10 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.15 }}
-        >
-          <SectionCard 
-            title="Problema" 
-            content={gpscData.Problema} 
-            color="border-aurora-soft-pink/30 bg-aurora-soft-pink/5"
-          />
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, x: -10 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.3 }}
-        >
-          <SectionCard 
-            title="Solução" 
-            content={gpscData.Solução} 
-            color="border-aurora-emerald/30 bg-aurora-emerald/5"
-          />
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, x: -10 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.45 }}
-        >
-          <SectionCard 
-            title="CTA" 
-            content={gpscData.CTA} 
-            color="border-aurora-neon-blue/30 bg-aurora-neon-blue/5"
-          />
-        </motion.div>
-      </div>
-
-      {/* Footer com tempo total */}
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.6 }}
-        className="mt-6"
-      >
-        <Card className={`aurora-glass border-2 ${totalTime <= 45 ? 'border-aurora-emerald/30' : 'border-aurora-pink/30'}`}>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-center gap-3">
-              <Clock className={`h-5 w-5 ${totalTime <= 45 ? 'text-aurora-emerald' : 'text-aurora-pink'}`} />
-              <div className="text-center">
-                <div className={`text-lg font-bold ${totalTime <= 45 ? 'text-aurora-emerald' : 'text-aurora-pink'}`}>
-                  ⏱️ Tempo Total: {totalTime}s
-                </div>
-                <div className="text-xs text-slate-300">
-                  {totalTime <= 45 
-                    ? '✅ Perfeito! Dentro do limite ideal para Reels' 
-                    : '⚠️ Considere reduzir para máximo 45 segundos'}
+      {/* GPSC Sections - Text Layout */}
+      <div className="space-y-8">
+        {sectionConfigs.map(({ key, icon, borderColor }, index) => {
+          const content = gpscData[key];
+          const sectionTime = calculateTime(content);
+          
+          return (
+            <motion.div
+              key={key}
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5, delay: index * 0.1 }}
+              className="space-y-4"
+            >
+              {/* Section Title */}
+              <div className="flex items-center gap-3">
+                <span className="text-2xl">{icon}</span>
+                <h3 className="text-xl font-bold text-aurora-electric-purple aurora-heading">
+                  {key}
+                </h3>
+                <Badge variant="secondary" className="text-xs">
+                  {sectionTime}s
+                </Badge>
+              </div>
+              
+              {/* Section Content */}
+              <div className={`pl-6 border-l-4 ${borderColor} bg-slate-900/30 rounded-r-lg p-4`}>
+                <div className="text-slate-100 leading-relaxed aurora-body whitespace-pre-line">
+                  {sanitizeText(content)}
                 </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
+              
+              {/* Separator */}
+              {index < sectionConfigs.length - 1 && (
+                <hr className="my-8 border-border border-dashed" />
+              )}
+            </motion.div>
+          );
+        })}
+      </div>
+
+      {/* Footer */}
+      <motion.div 
+        className="text-center space-y-2 pt-6 border-t border-border"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.6, delay: 0.8 }}
+      >
+        <p className="text-xs text-slate-400">
+          {totalTime <= 45 
+            ? "✅ Perfeito! Seu reel está no tempo ideal (≤ 45s)" 
+            : "⚠️ Consider reduzir o conteúdo para ficar dentro dos 45s ideais"}
+        </p>
       </motion.div>
-    </motion.div>
+    </div>
   );
 };
 
