@@ -163,6 +163,9 @@ const CarouselSlideCard: React.FC<CarouselSlideCardProps> = ({ slide }) => {
             )}
           </div>
           <div className="flex items-center gap-2 mb-3">
+            <Badge variant="outline" className={theme.badge}>
+              Slide {slide.number}
+            </Badge>
             <div className="text-2xl aurora-float">{icon}</div>
             <h3 className={`font-bold ${theme.text} text-base sm:text-lg aurora-heading filter drop-shadow`}>{slide.title}</h3>
           </div>

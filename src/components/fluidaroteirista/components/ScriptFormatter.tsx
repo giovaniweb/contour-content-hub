@@ -169,14 +169,12 @@ const ScriptFormatter: React.FC<ScriptFormatterProps> = ({
       );
     }
 
-    // REELS: layout minimalista com OFF limpo (sem cards/caixas)
-    if (formato.includes('reels')) {
+    // CARROSSEL: slides empilhados, sem estrutura de reels
+    if (formato === 'carrossel' || formato === 'carousel') {
+      console.log('🐛 DEBUG ScriptFormatter - Entering CarouselFormatter');
       return (
         <div className="space-y-4">
-          <ImprovedReelsFormatter 
-            roteiro={script.roteiro} 
-            estimatedTime={estimatedTime}
-          />
+          <CarouselFormatter roteiro={script.roteiro} />
           <MediaSuggestions 
             format={formato} 
             estimatedTime={estimatedTime}
@@ -185,15 +183,14 @@ const ScriptFormatter: React.FC<ScriptFormatterProps> = ({
       );
     }
 
-    // Debug log for format detection
-    console.log('🐛 DEBUG ScriptFormatter - formato:', formato);
-    console.log('🐛 DEBUG ScriptFormatter - script.roteiro preview:', script.roteiro?.substring(0, 100));
-    
-    if (formato?.toLowerCase() === "carrossel" || formato?.toLowerCase() === "carousel") {
-      console.log('🐛 DEBUG ScriptFormatter - Entering CarouselFormatter');
+    // REELS: layout minimalista com OFF limpo (sem cards/caixas)
+    if (formato.includes('reels')) {
       return (
         <div className="space-y-4">
-          <CarouselFormatter roteiro={script.roteiro} />
+          <ImprovedReelsFormatter 
+            roteiro={script.roteiro} 
+            estimatedTime={estimatedTime}
+          />
           <MediaSuggestions 
             format={formato} 
             estimatedTime={estimatedTime}

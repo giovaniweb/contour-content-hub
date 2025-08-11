@@ -127,10 +127,12 @@ const CarouselFormatter: React.FC<CarouselFormatterProps> = ({
         </Card>
       )}
 
-      {/* Grid de Slides */}
+      {/* Lista de Slides empilhados */}
       <motion.div initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.15 }}>
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 max-w-5xl mx-auto">
-          {slides.map((slide, index) => <CarouselSlideCard key={index} slide={slide} />)}
+        <div className="max-w-3xl mx-auto space-y-6">
+          {slides.map((slide, index) => (
+            <CarouselSlideCard key={index} slide={slide} />
+          ))}
         </div>
       </motion.div>
 
