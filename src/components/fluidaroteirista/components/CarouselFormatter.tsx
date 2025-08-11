@@ -33,10 +33,17 @@ const CarouselFormatter: React.FC<CarouselFormatterProps> = ({
     const filtered = lines.filter((l) => {
       const t = l.trim();
       const headerRe = /^conte[uú]do do slide(\s*\d+)?\s*[-–—:]?/i;
-      const dashRe = /^[-–—_]{3,}$/;
-      return !(headerRe.test(t) || dashRe.test(t));
-    });
-    return filtered.join('\n').trim();
+      const dashLineRe = /^[-–—_]{3,}$/;
+      return !(headerRe.test(t) || dashLineRe.test(t));
+    }).map((l) =>
+      l
+        // remove separadores no final da linha (---, —, etc.)
+        .replace(/\s*[-–—_]{3,}\s*$/, '')
+        .replace(/\s*[–—]\s*$/, '')
+        .trim()
+    );
+    // normaliza quebras extras
+    return filtered.join('\n').replace(/\n{3,}/g, '\n\n').trim();
   };
 
   const combinedText = slides.map((s, idx) => {
@@ -107,9 +114,9 @@ const CarouselFormatter: React.FC<CarouselFormatterProps> = ({
                     Conteúdo do slide {s.number || i + 1} - ✨ {s.title?.trim() || `Slide ${s.number || i + 1}`}
                   </p>
                   {hasBody ? (
-                    <p className="mt-1">{body}</p>
+                    <p className="mt-2">{body}</p>
                   ) : (
-                    <p className="mt-1 text-muted-foreground">(adicione o conteúdo deste slide)</p>
+                    <p className="mt-2 text-muted-foreground">Adicione o conteúdo deste slide aqui.</p>
                   )}
                   {i < slides.length - 1 && <hr className="my-4 border-border border-dashed" />}
                 </div>
