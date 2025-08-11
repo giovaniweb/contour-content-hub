@@ -1,9 +1,8 @@
 import React from 'react';
-import { motion } from 'framer-motion';
-import { parseTemporalScript, TemporalScriptBlockData } from '../utils/parseTemporalScript';
+import { parseTemporalScript } from '../utils/parseTemporalScript';
 import { Badge } from "@/components/ui/badge";
 import CopyButton from "@/components/ui/CopyButton";
-import { Clock, Video, Sparkles, Target, AlertTriangle, Lightbulb, Eye } from 'lucide-react';
+import { Video } from 'lucide-react';
 import { sanitizeText } from '@/utils/textSanitizer';
 
 interface ImprovedReelsFormatterProps {
@@ -17,7 +16,16 @@ const ImprovedReelsFormatter: React.FC<ImprovedReelsFormatterProps> = ({
   roteiro, 
   estimatedTime 
 }) => {
-  // Função para construir estrutura GPSC similar ao LongVideoFormatter
+  // Limpeza simples para leitura: remove metadados entre colchetes e divisores
+  const cleanForReading = (input: string): string => {
+    let out = sanitizeText(input || "");
+    out = out.replace(/^\s*\[[^\]]+\]\s*:?\s*/gm, ""); // [CTA], [GANCHO], etc
+    out = out.replace(/^[-=_]{3,}\s*$/gm, ""); // --- ou ===
+    out = out.replace(/\n{3,}/g, "\n\n");
+    return out.trim();
+  };
+
+  // Função para construir estrutura GPSC robusta
   const buildGPSC = (roteiro: string): Record<SectionKey, string> => {
     const blocks = parseTemporalScript(roteiro);
     
@@ -84,21 +92,39 @@ const ImprovedReelsFormatter: React.FC<ImprovedReelsFormatterProps> = ({
     if (blocks.length > 0) {
       blocks.forEach((block) => {
         const bucket = chooseBucket(block.content);
-        if (gpsc[bucket]) {
-          gpsc[bucket] += '\n\n' + block.content;
-        } else {
-          gpsc[bucket] = block.content;
-        }
+        const cleaned = cleanForReading(block.content);
+        gpsc[bucket] += (gpsc[bucket] ? "\n\n" : "") + cleaned;
       });
     } else {
-      // Fallback: divide o roteiro em 4 partes
-      const paragraphs = roteiro.split(/\n\s*\n/).filter(p => p.trim());
-      const quarters = Math.ceil(paragraphs.length / 4);
-      
+      // Fallback: divide o roteiro limpo em 4 partes
+      const cleanedFull = cleanForReading(roteiro);
+      const paragraphs = cleanedFull.split(/\n\s*\n/).filter(p => p.trim());
+      const quarters = Math.max(1, Math.ceil(paragraphs.length / 4));
       gpsc['Gancho'] = paragraphs.slice(0, quarters).join('\n\n');
       gpsc['Problema'] = paragraphs.slice(quarters, quarters * 2).join('\n\n');
       gpsc['Solução'] = paragraphs.slice(quarters * 2, quarters * 3).join('\n\n');
       gpsc['CTA'] = paragraphs.slice(quarters * 3).join('\n\n');
+    }
+
+    // Reforço: se alguma seção ficar vazia ou muito curta, reconstruir igualmente
+    const needsRebuild = (k: SectionKey) => !gpsc[k] || gpsc[k].trim().length < 20;
+    if (needsRebuild('Gancho') || needsRebuild('Problema') || needsRebuild('Solução') || needsRebuild('CTA')) {
+      const cleanedFull = cleanForReading(roteiro);
+      const parts = cleanedFull.split(/\n\s*\n/).filter(p => p.trim());
+      if (parts.length >= 4) {
+        const quarters = Math.ceil(parts.length / 4);
+        gpsc['Gancho'] = parts.slice(0, quarters).join('\n\n');
+        gpsc['Problema'] = parts.slice(quarters, quarters * 2).join('\n\n');
+        gpsc['Solução'] = parts.slice(quarters * 2, quarters * 3).join('\n\n');
+        gpsc['CTA'] = parts.slice(quarters * 3).join('\n\n');
+      } else {
+        const len = cleanedFull.length;
+        const q = Math.max(1, Math.floor(len / 4));
+        gpsc['Gancho'] = cleanedFull.slice(0, q).trim();
+        gpsc['Problema'] = cleanedFull.slice(q, 2 * q).trim();
+        gpsc['Solução'] = cleanedFull.slice(2 * q, 3 * q).trim();
+        gpsc['CTA'] = cleanedFull.slice(3 * q).trim();
+      }
     }
 
     return gpsc;
@@ -117,106 +143,61 @@ const ImprovedReelsFormatter: React.FC<ImprovedReelsFormatterProps> = ({
     return sum + calculateTime(content);
   }, 0);
 
-  const sectionConfigs = [
-    { key: 'Gancho' as SectionKey, icon: '🎯', borderColor: 'border-l-aurora-electric-purple' },
-    { key: 'Problema' as SectionKey, icon: '⚠️', borderColor: 'border-l-aurora-soft-pink' },
-    { key: 'Solução' as SectionKey, icon: '💡', borderColor: 'border-l-aurora-emerald' },
-    { key: 'CTA' as SectionKey, icon: '🚀', borderColor: 'border-l-aurora-neon-blue' }
-  ];
+const sectionConfigs = [
+  { key: 'Gancho' as SectionKey, icon: '🎯' },
+  { key: 'Problema' as SectionKey, icon: '⚠️' },
+  { key: 'Solução' as SectionKey, icon: '💡' },
+  { key: 'CTA' as SectionKey, icon: '🚀' }
+];
+
+const finalOutput = sectionConfigs
+  .map(({ key, icon }) => `${icon} ${key}\n${gpscData[key]}`.trim())
+  .join('\n\n------------------------------\n\n');
 
   return (
     <div className="w-full max-w-4xl mx-auto space-y-8">
       {/* Header */}
-      <motion.div 
-        className="text-center space-y-4"
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-      >
+      <div className="text-center space-y-3">
         <div className="flex items-center justify-center gap-3">
           <Video className="h-6 w-6 text-aurora-electric-purple" />
-          <h2 className="text-3xl font-bold bg-gradient-to-r from-aurora-electric-purple to-aurora-neon-blue bg-clip-text text-transparent aurora-heading">
-            📱 Reels — Estrutura GPSC
+          <h2 className="text-2xl font-bold bg-gradient-to-r from-aurora-electric-purple to-aurora-neon-blue bg-clip-text text-transparent aurora-heading">
+            📱 Reels — GPSC
           </h2>
         </div>
-        <div className="flex items-center justify-center gap-4">
+        <div className="flex items-center justify-center gap-3">
           <Badge 
             variant={totalTime <= 45 ? "default" : "destructive"}
-            className="text-sm px-4 py-2"
+            className="text-sm px-3 py-1"
           >
             Tempo Total: {totalTime}s
           </Badge>
-          {totalTime <= 45 && (
-            <Badge variant="outline" className="text-aurora-emerald border-aurora-emerald">
-              ✅ Ideal para Reels
-            </Badge>
-          )}
-          {totalTime > 45 && (
-            <Badge variant="outline" className="text-aurora-soft-pink border-aurora-soft-pink">
-              ⚠️ Acima de 45s
-            </Badge>
-          )}
           <CopyButton 
-            text={roteiro}
+            text={finalOutput}
             className="aurora-button-enhanced"
           />
         </div>
-      </motion.div>
+      </div>
 
-      {/* GPSC Sections - Text Layout */}
-      <div className="space-y-8">
-        {sectionConfigs.map(({ key, icon, borderColor }, index) => {
+      {/* GPSC Sections - Texto corrido */}
+      <div className="space-y-6">
+        {sectionConfigs.map(({ key, icon }, index) => {
           const content = gpscData[key];
-          const sectionTime = calculateTime(content);
-          
           return (
-            <motion.div
-              key={key}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
-              className="space-y-4"
-            >
-              {/* Section Title */}
-              <div className="flex items-center gap-3">
-                <span className="text-2xl">{icon}</span>
-                <h3 className="text-xl font-bold text-aurora-electric-purple aurora-heading">
-                  {key}
-                </h3>
-                <Badge variant="secondary" className="text-xs">
-                  {sectionTime}s
-                </Badge>
+            <div key={key} className="space-y-2">
+              <h3 className="text-base font-semibold text-aurora-electric-purple aurora-heading">
+                {icon} {key}
+              </h3>
+              <div className="text-foreground leading-relaxed aurora-body whitespace-pre-line">
+                {content}
               </div>
-              
-              {/* Section Content */}
-              <div className={`pl-6 border-l-4 ${borderColor} bg-slate-900/30 rounded-r-lg p-4`}>
-                <div className="text-slate-100 leading-relaxed aurora-body whitespace-pre-line">
-                  {sanitizeText(content)}
-                </div>
-              </div>
-              
-              {/* Separator */}
               {index < sectionConfigs.length - 1 && (
-                <hr className="my-8 border-border border-dashed" />
+                <hr className="my-6 border-border" />
               )}
-            </motion.div>
+            </div>
           );
         })}
       </div>
 
-      {/* Footer */}
-      <motion.div 
-        className="text-center space-y-2 pt-6 border-t border-border"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.6, delay: 0.8 }}
-      >
-        <p className="text-xs text-slate-400">
-          {totalTime <= 45 
-            ? "✅ Perfeito! Seu reel está no tempo ideal (≤ 45s)" 
-            : "⚠️ Consider reduzir o conteúdo para ficar dentro dos 45s ideais"}
-        </p>
-      </motion.div>
     </div>
   );
 };
