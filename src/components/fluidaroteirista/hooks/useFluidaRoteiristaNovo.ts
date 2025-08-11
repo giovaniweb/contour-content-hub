@@ -191,7 +191,7 @@ export const useFluidaRoteiristaNovo = (): UseFluidaRoteiristANovoReturn => {
       // 1. Extrair dados do formData (adaptar diferentes formatos)
       const topic = formData.topic || formData.tema || '';
       const equipment = formData.equipment || formData.equipamentos?.[0] || '';
-      const format = formData.format || formData.formato || 'reels';
+      const format = (formData.format || formData.formato || formData.tipo_conteudo || 'carrossel').toString().toLowerCase();
       
       console.log('🔍 [Hook] Buscando insights para:', { tema: topic, equipamento: equipment });
       
@@ -256,7 +256,7 @@ export const useFluidaRoteiristaNovo = (): UseFluidaRoteiristANovoReturn => {
       const result: ScriptResult = {
         id: Date.now().toString(),
         content: script,
-        format: formData.formato || 'reels',
+        format: format,
         scientificBasis: currentInsights.map(insight => insight.title),
         qualityScore: Math.floor(Math.random() * 30) + 70, // Score entre 70-100
         improvements: equipmentDetails.length === 0 ? ['Equipamento não encontrado no banco de dados'] : []
@@ -264,6 +264,7 @@ export const useFluidaRoteiristaNovo = (): UseFluidaRoteiristANovoReturn => {
 
       console.log('📋 [Hook] Resultado processado:', {
         scriptLength: script.length,
+        format,
         equipmentCount: equipmentDetails.length,
         insightsCount: currentInsights.length
       });
