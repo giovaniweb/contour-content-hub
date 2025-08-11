@@ -122,7 +122,14 @@ export const CourseForm: React.FC<CourseFormProps> = ({
             max="100"
             value={formData.estimated_duration_hours}
             onChange={(e) => handleInputChange('estimated_duration_hours', parseInt(e.target.value) || 1)}
+            placeholder="Será calculado automaticamente com base nas aulas"
+            disabled={!!initialData}
           />
+          {initialData && (
+            <p className="text-xs text-slate-400 mt-1">
+              Duração calculada automaticamente: {formData.estimated_duration_hours}h
+            </p>
+          )}
         </div>
 
         <div>

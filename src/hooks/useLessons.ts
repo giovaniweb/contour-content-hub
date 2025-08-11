@@ -71,6 +71,7 @@ export const useLessons = (courseId: string) => {
       });
 
       await fetchLessons();
+      await updateCourseDuration();
       return data;
     } catch (err) {
       console.error('Error creating lesson:', err);
@@ -100,6 +101,7 @@ export const useLessons = (courseId: string) => {
       });
 
       await fetchLessons();
+      await updateCourseDuration();
       return data;
     } catch (err) {
       console.error('Error updating lesson:', err);
@@ -127,6 +129,7 @@ export const useLessons = (courseId: string) => {
       });
 
       await fetchLessons();
+      await updateCourseDuration();
     } catch (err) {
       console.error('Error deleting lesson:', err);
       toast({
@@ -134,6 +137,31 @@ export const useLessons = (courseId: string) => {
         description: "Erro ao excluir aula. Tente novamente.",
         variant: "destructive"
       });
+    }
+  };
+
+  const updateCourseDuration = async () => {
+    if (!courseId) return;
+
+    try {
+      // Get current lessons to calculate total duration
+      const { data: currentLessons } = await supabase
+        .from('academy_lessons')
+        .select('duration_minutes')
+        .eq('course_id', courseId);
+
+      if (currentLessons) {
+        const totalMinutes = currentLessons.reduce((total, lesson) => total + (lesson.duration_minutes || 0), 0);
+        const totalHours = Math.ceil(totalMinutes / 60);
+
+        // Update course duration
+        await supabase
+          .from('academy_courses')
+          .update({ estimated_duration_hours: totalHours })
+          .eq('id', courseId);
+      }
+    } catch (err) {
+      console.error('Error updating course duration:', err);
     }
   };
 

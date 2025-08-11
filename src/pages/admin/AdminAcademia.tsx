@@ -9,20 +9,19 @@ import { useAcademyStats } from '@/hooks/useAcademyStats';
 import { useAcademyCourses } from '@/hooks/useAcademyCourses';
 import { useAcademyAccessRequests } from '@/hooks/useAcademyAccessRequests';
 import { CourseFormDialog } from '@/components/academy/CourseFormDialog';
-import { CourseDetailModal } from '@/components/academy/CourseDetailModal';
-import { CourseEditDialog } from '@/components/academy/CourseEditDialog';
 import { AccessRequestActions } from '@/components/academy/AccessRequestActions';
 import { AcademyCourse } from '@/types/academy';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { useNavigate } from 'react-router-dom';
 
 const AdminAcademia = () => {
+  const navigate = useNavigate();
   const { stats, isLoading: statsLoading } = useAcademyStats();
   const { 
     courses, 
     isLoading: coursesLoading, 
     createCourse, 
-    updateCourse,
     toggleCourseStatus 
   } = useAcademyCourses();
   const { 
@@ -31,10 +30,6 @@ const AdminAcademia = () => {
     approveRequest, 
     rejectRequest 
   } = useAcademyAccessRequests();
-
-  const [selectedCourse, setSelectedCourse] = useState<AcademyCourse | null>(null);
-  const [showCourseDetail, setShowCourseDetail] = useState(false);
-  const [showCourseEdit, setShowCourseEdit] = useState(false);
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -61,7 +56,9 @@ const AdminAcademia = () => {
             <h1 className="text-3xl font-bold text-slate-50">Academia</h1>
             <p className="text-slate-400">Gerencie cursos e acessos da academia</p>
           </div>
-          <CourseFormDialog onSubmit={createCourse} />
+          <Button onClick={() => navigate('/admin/academia/curso/novo')}>
+            Novo Curso
+          </Button>
         </div>
 
         {/* Stats Cards */}
@@ -172,10 +169,7 @@ const AdminAcademia = () => {
                             size="sm" 
                             variant="outline" 
                             className="border-slate-600"
-                            onClick={() => {
-                              setSelectedCourse(course);
-                              setShowCourseDetail(true);
-                            }}
+                            onClick={() => navigate(`/admin/academia/curso/${course.id}`)}
                           >
                             <Eye className="h-4 w-4" />
                           </Button>
@@ -183,10 +177,7 @@ const AdminAcademia = () => {
                             size="sm" 
                             variant="outline" 
                             className="border-slate-600"
-                            onClick={() => {
-                              setSelectedCourse(course);
-                              setShowCourseEdit(true);
-                            }}
+                            onClick={() => navigate(`/admin/academia/curso/editar/${course.id}`)}
                           >
                             <Edit className="h-4 w-4" />
                           </Button>
@@ -269,29 +260,6 @@ const AdminAcademia = () => {
         </Tabs>
       </div>
 
-      {/* Modals */}
-      {selectedCourse && (
-        <>
-          <CourseDetailModal
-            course={selectedCourse}
-            isOpen={showCourseDetail}
-            onClose={() => {
-              setShowCourseDetail(false);
-              setSelectedCourse(null);
-            }}
-          />
-          <CourseEditDialog
-            course={selectedCourse}
-            isOpen={showCourseEdit}
-            onClose={() => {
-              setShowCourseEdit(false);
-              setSelectedCourse(null);
-            }}
-            onSubmit={updateCourse}
-            isLoading={coursesLoading}
-          />
-        </>
-      )}
     </AdminLayout>
   );
 };
