@@ -152,17 +152,14 @@ const Stories10xFormatter: React.FC<Stories10xFormatterProps> = ({ slides, onApp
         </Card>
       </motion.div>
 
-      {/* Stories Combined Text */}
+      {/* Texto corrido simples dos Stories */}
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.4 }}
+        initial={{ opacity: 0, scale: 0.99 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ delay: 0.1 }}
       >
-        <Card className="aurora-glass border-aurora-electric-purple/20">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-aurora-electric-purple text-xl">
-              📱 Roteiro Stories 10x
-            </CardTitle>
+        <section className="max-w-3xl mx-auto">
+          <div className="flex justify-end mb-3">
             <CopyButton 
               text={(() => {
                 const cleanBody = (content: string) => {
@@ -179,44 +176,37 @@ const Stories10xFormatter: React.FC<Stories10xFormatterProps> = ({ slides, onApp
                 }).join('\n\n---------------------------------------------------------------\n\n');
               })()}
               successMessage="Roteiro Stories 10x copiado!"
-              size="sm"
             />
-          </CardHeader>
-          <CardContent>
-            <div className="bg-black/20 rounded-lg p-6 text-sm font-mono leading-relaxed border border-white/10">
-              {cappedSlides.map((slide, i) => {
-                const icon = getSlideIcon(slide.tipo);
-                const cleanBody = (content: string) => {
-                  return content
-                    .replace(/^\s*[-=]+\s*$/gm, '')
-                    .replace(/^\s*#+\s*$/gm, '')
-                    .trim();
-                };
-                
-                const cleanContent = cleanBody(sanitizeText(slide.conteudo));
-                const hasBody = cleanContent.length > 0;
-                
-                return (
-                  <div key={i}>
-                    <h3 className="font-semibold text-white mb-1">
-                      {icon} Conteúdo do story {slide.number || i + 1} - ✨ {sanitizeText(slide.titulo)}:
-                    </h3>
-                    {hasBody && (
-                      <p className="text-white/90 whitespace-pre-wrap ml-4 mb-4">
-                        {cleanContent}
-                      </p>
-                    )}
-                    {i < cappedSlides.length - 1 && (
-                      <div className="text-aurora-electric-purple my-4 font-bold">
-                        ---------------------------------------------------------------
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </CardContent>
-        </Card>
+          </div>
+          <article className="text-foreground leading-relaxed aurora-body">
+            {cappedSlides.map((slide, i) => {
+              const icon = getSlideIcon(slide.tipo);
+              const cleanBody = (content: string) => {
+                return content
+                  .replace(/^\s*[-=]+\s*$/gm, '')
+                  .replace(/^\s*#+\s*$/gm, '')
+                  .trim();
+              };
+              
+              const cleanContent = cleanBody(sanitizeText(slide.conteudo));
+              const hasBody = cleanContent.length > 0;
+              
+              return (
+                <div key={i}>
+                  <h3 className="font-semibold text-white mb-1">
+                    {icon} Conteúdo do story {slide.number || i + 1} - ✨ {sanitizeText(slide.titulo)}:
+                  </h3>
+                  {hasBody && (
+                    <div className="mt-2 pl-4 border-l-2 border-aurora-electric-purple/20">
+                      <div className="font-normal !text-white leading-relaxed whitespace-pre-line">{cleanContent}</div>
+                    </div>
+                  )}
+                  {i < cappedSlides.length - 1 && <hr className="my-6 border-border border-dashed" />}
+                </div>
+              );
+            })}
+          </article>
+        </section>
       </motion.div>
 
       {/* Dicas & Aprovação */}
