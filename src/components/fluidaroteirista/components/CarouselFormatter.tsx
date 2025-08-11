@@ -113,12 +113,12 @@ const CarouselFormatter: React.FC<CarouselFormatterProps> = ({
               const hasBody = body.length > 0;
               return (
                 <div key={i}>
-                  <p className="font-semibold text-aurora-electric-purple">
+                  <p className="font-semibold text-aurora-emerald mb-2">
                     🎯 Conteúdo do slide {s.number || i + 1} - ✨ {s.title?.trim() || `Slide ${s.number || i + 1}`}
                   </p>
                   {hasBody && (
-                    <div className="mt-3 pl-4 border-l-2 border-aurora-electric-purple/20">
-                      <div className="font-normal text-muted-foreground leading-relaxed whitespace-pre-line">{body}</div>
+                    <div className="mt-2 pl-4 border-l-2 border-aurora-electric-purple/20">
+                      <div className="font-normal text-white leading-relaxed whitespace-pre-line">{body}</div>
                     </div>
                   )}
                   {i < slides.length - 1 && <hr className="my-6 border-border border-dashed" />}
