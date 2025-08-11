@@ -33,6 +33,7 @@ import { useMultipleImageGeneration } from '@/hooks/useMultipleImageGeneration';
 import { usePhotographicImageGeneration } from '@/hooks/usePhotographicImageGeneration';
 import { useSaveScript } from '../hooks/useSaveScript';
 import { parseStories10xSlides } from '../utils/stories10xParser';
+import { buildReelsOFF } from '../utils/reelsOffBuilder';
 
 interface ScientificInsight {
   id: string;
@@ -99,8 +100,11 @@ const [activeResult, setActiveResult] = useState(0);
   };
 
   const handleGenerateAudio = async () => {
+    const format = (results[activeResult].format || '').toLowerCase();
+    const isReels = format.includes('reels') || format.includes('reel');
+    const offText = isReels ? buildReelsOFF(results[activeResult].content) : results[activeResult].content;
     await generateAudio({ 
-      text: results[activeResult].content,
+      text: offText,
       mentor: 'Especialista',
       isDisneyMode: false
     });
