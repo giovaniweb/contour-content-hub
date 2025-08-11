@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 import { parseTemporalScript } from '../utils/parseTemporalScript';
 import { Badge } from "@/components/ui/badge";
 import CopyButton from "@/components/ui/CopyButton";
@@ -16,6 +16,8 @@ const ImprovedReelsFormatter: React.FC<ImprovedReelsFormatterProps> = ({
   roteiro, 
   estimatedTime 
 }) => {
+  const [mode, setMode] = useState<'off' | 'gpsc'>('off');
+
   // Limpeza simples para leitura: remove metadados entre colchetes e divisores
   const cleanForReading = (input: string): string => {
     let out = sanitizeText(input || "");
@@ -23,6 +25,24 @@ const ImprovedReelsFormatter: React.FC<ImprovedReelsFormatterProps> = ({
     out = out.replace(/^[-=_]{3,}\s*$/gm, ""); // --- ou ===
     out = out.replace(/\n{3,}/g, "\n\n");
     return out.trim();
+  };
+
+  // Limpeza específica para OFF direto
+  const cleanForOFF = (input: string): string => {
+    let out = sanitizeText(input || '');
+    // remove [metadados]
+    out = out.replace(/\[[^\]]+\]\s*:?/g, '');
+    // remove rótulos comuns de seção no início de linha
+    out = out.replace(/^\s*(gancho|problema|solu[cç][aã]o|cta|headline|agita[cç][aã]o|prova\s+social|evid[êe]ncia\s+cient[íi]fica|refer[êe]ncia)\s*:\s*/gim, '');
+    // remove marcadores de cena
+    out = out.replace(/^\s*(cena|scene)\s*\d+\s*:\s*/gim, '');
+    // remove separadores
+    out = out.replace(/^[-=_]{3,}\s*$/gm, '');
+    // normaliza quebras: transforma múltiplas quebras em espaço
+    out = out.replace(/\s*\n\s*/g, ' ').replace(/\s{2,}/g, ' ').trim();
+    // pontuação final
+    if (out && !/[.!?]$/.test(out)) out += '.';
+    return out;
   };
 
   // Função para construir estrutura GPSC robusta
@@ -138,10 +158,20 @@ const ImprovedReelsFormatter: React.FC<ImprovedReelsFormatterProps> = ({
 
   const gpscData = buildGPSC(roteiro);
   
-  // Calcula tempo total
-  const totalTime = Object.values(gpscData).reduce((sum, content) => {
-    return sum + calculateTime(content);
-  }, 0);
+  // OFF direto
+  const buildOFF = (gpsc: Record<SectionKey, string>): string => {
+    const order: SectionKey[] = ['Gancho','Problema','Solução','CTA'];
+    const parts = order.map(k => cleanForOFF(gpsc[k])).filter(Boolean);
+    let out = parts.join(' ');
+    out = out.replace(/\s{2,}/g, ' ').trim();
+    return out;
+  };
+
+  const offOutput = useMemo(() => buildOFF(gpscData), [gpscData]);
+
+  // Tempos estimados
+  const totalTime = Object.values(gpscData).reduce((sum, content) => sum + calculateTime(content), 0);
+  const offTime = calculateTime(offOutput);
 
 const sectionConfigs = [
   { key: 'Gancho' as SectionKey, icon: '🎯' },
@@ -161,41 +191,67 @@ const finalOutput = sectionConfigs
         <div className="flex items-center justify-center gap-3">
           <Video className="h-6 w-6 text-aurora-electric-purple" />
           <h2 className="text-2xl font-bold bg-gradient-to-r from-aurora-electric-purple to-aurora-neon-blue bg-clip-text text-transparent aurora-heading">
-            📱 Reels — GPSC
+            {mode === 'off' ? '📱 Reels — OFF' : '📱 Reels — GPSC'}
           </h2>
         </div>
         <div className="flex items-center justify-center gap-3">
+          <div className="flex items-center gap-2 border border-border rounded-lg p-1">
+            <button
+              type="button"
+              onClick={() => setMode('off')}
+              className={`px-3 py-1 text-sm rounded-md ${mode === 'off' ? 'bg-accent text-accent-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+              aria-pressed={mode === 'off'}
+            >
+              OFF direto
+            </button>
+            <button
+              type="button"
+              onClick={() => setMode('gpsc')}
+              className={`px-3 py-1 text-sm rounded-md ${mode === 'gpsc' ? 'bg-accent text-accent-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+              aria-pressed={mode === 'gpsc'}
+            >
+              GPSC
+            </button>
+          </div>
           <Badge 
-            variant={totalTime <= 45 ? "default" : "destructive"}
+            variant={(mode === 'off' ? offTime : totalTime) <= 45 ? 'default' : 'destructive'}
             className="text-sm px-3 py-1"
           >
-            Tempo Total: {totalTime}s
+            Tempo Total: {mode === 'off' ? offTime : totalTime}s
           </Badge>
           <CopyButton 
-            text={finalOutput}
+            text={mode === 'off' ? offOutput : finalOutput}
             className="aurora-button-enhanced"
           />
         </div>
       </div>
 
-      {/* GPSC Sections - Texto corrido */}
+      {/* Content */}
       <div className="space-y-6">
-        {sectionConfigs.map(({ key, icon }, index) => {
-          const content = gpscData[key];
-          return (
-            <div key={key} className="space-y-2">
-              <h3 className="text-base font-semibold text-aurora-electric-purple aurora-heading">
-                {icon} {key}
-              </h3>
-              <div className="text-foreground leading-relaxed aurora-body whitespace-pre-line">
-                {content}
-              </div>
-              {index < sectionConfigs.length - 1 && (
-                <hr className="my-6 border-border" />
-              )}
-            </div>
-          );
-        })}
+        {mode === 'off' ? (
+          <div className="text-foreground leading-relaxed aurora-body whitespace-pre-wrap">
+            {offOutput}
+          </div>
+        ) : (
+          <>
+            {sectionConfigs.map(({ key, icon }, index) => {
+              const content = gpscData[key];
+              return (
+                <div key={key} className="space-y-2">
+                  <h3 className="text-base font-semibold text-aurora-electric-purple aurora-heading">
+                    {icon} {key}
+                  </h3>
+                  <div className="text-foreground leading-relaxed aurora-body whitespace-pre-line">
+                    {content}
+                  </div>
+                  {index < sectionConfigs.length - 1 && (
+                    <hr className="my-6 border-border" />
+                  )}
+                </div>
+              );
+            })}
+          </>
+        )}
       </div>
 
     </div>
