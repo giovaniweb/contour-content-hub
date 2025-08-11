@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -9,7 +9,10 @@ import { useAcademyStats } from '@/hooks/useAcademyStats';
 import { useAcademyCourses } from '@/hooks/useAcademyCourses';
 import { useAcademyAccessRequests } from '@/hooks/useAcademyAccessRequests';
 import { CourseFormDialog } from '@/components/academy/CourseFormDialog';
+import { CourseDetailModal } from '@/components/academy/CourseDetailModal';
+import { CourseEditDialog } from '@/components/academy/CourseEditDialog';
 import { AccessRequestActions } from '@/components/academy/AccessRequestActions';
+import { AcademyCourse } from '@/types/academy';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -19,6 +22,7 @@ const AdminAcademia = () => {
     courses, 
     isLoading: coursesLoading, 
     createCourse, 
+    updateCourse,
     toggleCourseStatus 
   } = useAcademyCourses();
   const { 
@@ -27,6 +31,10 @@ const AdminAcademia = () => {
     approveRequest, 
     rejectRequest 
   } = useAcademyAccessRequests();
+
+  const [selectedCourse, setSelectedCourse] = useState<AcademyCourse | null>(null);
+  const [showCourseDetail, setShowCourseDetail] = useState(false);
+  const [showCourseEdit, setShowCourseEdit] = useState(false);
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -160,10 +168,26 @@ const AdminAcademia = () => {
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
-                          <Button size="sm" variant="outline" className="border-slate-600">
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            className="border-slate-600"
+                            onClick={() => {
+                              setSelectedCourse(course);
+                              setShowCourseDetail(true);
+                            }}
+                          >
                             <Eye className="h-4 w-4" />
                           </Button>
-                          <Button size="sm" variant="outline" className="border-slate-600">
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            className="border-slate-600"
+                            onClick={() => {
+                              setSelectedCourse(course);
+                              setShowCourseEdit(true);
+                            }}
+                          >
                             <Edit className="h-4 w-4" />
                           </Button>
                           <Button 
@@ -244,6 +268,30 @@ const AdminAcademia = () => {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Modals */}
+      {selectedCourse && (
+        <>
+          <CourseDetailModal
+            course={selectedCourse}
+            isOpen={showCourseDetail}
+            onClose={() => {
+              setShowCourseDetail(false);
+              setSelectedCourse(null);
+            }}
+          />
+          <CourseEditDialog
+            course={selectedCourse}
+            isOpen={showCourseEdit}
+            onClose={() => {
+              setShowCourseEdit(false);
+              setSelectedCourse(null);
+            }}
+            onSubmit={updateCourse}
+            isLoading={coursesLoading}
+          />
+        </>
+      )}
     </AdminLayout>
   );
 };
