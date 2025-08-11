@@ -26,21 +26,21 @@ const CarouselFormatter: React.FC<CarouselFormatterProps> = ({
   const totalContent = slides.map(s => s.texto).join(' ');
   const timeInfo = calculateContentTime(totalContent);
 
-  // Remove cabeçalhos e separadores residuais do corpo dos slides, preservando quebras intencionais
+  // Remove apenas separadores residuais, preservando todo o conteúdo real
   const cleanBody = (text: string) => {
     if (!text) return '';
     const lines = text.split('\n');
     const filtered = lines.filter((l) => {
       const t = l.trim();
-      const headerRe = /^conte[uú]do do slide(\s*\d+)?\s*[-–—:]?/i;
+      // Remove apenas linhas que são APENAS separadores ou headers vazios
       const dashLineRe = /^[-–—_]{3,}$/;
-      return !(headerRe.test(t) || dashLineRe.test(t));
+      const emptyHeaderRe = /^conte[uú]do do slide(\s*\d+)?\s*[-–—:]?\s*$/i;
+      return !(dashLineRe.test(t) || emptyHeaderRe.test(t));
     }).map((l) => {
       // Remove separadores no final da linha, mas preserva o conteúdo da linha
       const cleaned = l
         .replace(/\s*[-–—_]{3,}\s*$/, '')
         .replace(/\s*[–—]\s*$/, '');
-      // Não faz trim nas linhas individuais para preservar indentação
       return cleaned;
     });
     
