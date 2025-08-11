@@ -28,7 +28,7 @@ const CarouselFormatter: React.FC<CarouselFormatterProps> = ({
   const combinedText = slides.map((s, idx) => {
     const title = (s.title || `Slide ${s.number || idx + 1}`).trim();
     const body = (s.texto || '').trim();
-    return `✨ ${title}\n${body}`;
+    return body ? `✨ ${title} —\n${body}` : `✨ ${title} —`;
   }).join('\n\n--------\n\n');
 
   if (slides.length === 0) {
@@ -84,9 +84,12 @@ const CarouselFormatter: React.FC<CarouselFormatterProps> = ({
           <article className="text-foreground whitespace-pre-wrap leading-relaxed aurora-body">
             {slides.map((s, i) => (
               <div key={i}>
-                <p className="font-semibold">✨ {s.title?.trim() || `Slide ${s.number || i + 1}`}</p>
-                <p className="mt-1">{(s.texto || '').trim() || '(sem texto)'}</p>
-                {i < slides.length - 1 && <hr className="my-4 border-border" />}
+                <p className="font-semibold">✨ {s.title?.trim() || `Slide ${s.number || i + 1}`} —</p>
+                {((s.texto || '').trim()) ? (
+                  <p className="mt-1">{(s.texto || '').trim()}</p>
+                ) : (
+                  <p className="mt-1 text-muted-foreground">(adicione o conteúdo deste slide)</p>
+                )}
               </div>
             ))}
           </article>
