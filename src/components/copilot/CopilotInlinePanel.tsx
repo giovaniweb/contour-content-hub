@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,14 +11,16 @@ interface CopilotInlinePanelProps {
   lessonId: string;
   courseTitle: string;
   lessonTitle: string;
+  vimeoUrl?: string;
 }
 
-const CopilotInlinePanel: React.FC<CopilotInlinePanelProps> = ({ lessonId, courseTitle, lessonTitle }) => {
+const CopilotInlinePanel: React.FC<CopilotInlinePanelProps> = ({ lessonId, courseTitle, lessonTitle, vimeoUrl }) => {
   const { messages, sendMessage, loading, courseId } = useCopilotChat({ lessonId });
   const [input, setInput] = useState("");
   const [indexed, setIndexed] = useState<boolean | null>(null);
-  const [showIndexer, setShowIndexer] = useState(false);
+  const [showIndexer, setShowIndexer] = useState(false); // fallback manual somente se necessário
   const [transcript, setTranscript] = useState("");
+  const [autoIndexing, setAutoIndexing] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -40,12 +43,56 @@ const CopilotInlinePanel: React.FC<CopilotInlinePanelProps> = ({ lessonId, cours
     checkIndexed();
   }, [courseId, lessonId]);
 
+  useEffect(() => {
+    // Dispara indexação automática quando não houver conteúdo indexado
+    const runAutoIngest = async () => {
+      if (indexed !== false) return;
+      if (!courseId || !lessonId || !vimeoUrl) {
+        // Sem dados suficientes para auto-indexar; cairá no fallback manual
+        setShowIndexer(true);
+        return;
+      }
+      setAutoIndexing(true);
+      try {
+        const { data, error } = await supabase.functions.invoke("auto-ingest-lesson", {
+          body: {
+            course_id: courseId,
+            lesson_id: lessonId,
+            title: `${courseTitle} — ${lessonTitle}`,
+            vimeo_url: vimeoUrl,
+            language: "pt-BR",
+          },
+        });
+        if (error) throw error;
+
+        const res = data as any;
+        if (res?.success || res?.alreadyIndexed) {
+          toast.success("Conteúdo da aula indexado automaticamente.");
+          setIndexed(true);
+          setShowIndexer(false);
+        } else if (res?.noTranscript) {
+          toast.warning("Não foi encontrada transcrição no Vimeo para esta aula. Você pode colar a transcrição manualmente.");
+          setShowIndexer(true);
+        } else {
+          toast.warning("Não foi possível indexar automaticamente. Tente o modo manual.");
+          setShowIndexer(true);
+        }
+      } catch (err: any) {
+        console.error("Falha na indexação automática:", err);
+        toast.error(err?.message || "Falha ao indexar automaticamente");
+        setShowIndexer(true);
+      } finally {
+        setAutoIndexing(false);
+      }
+    };
+    runAutoIngest();
+  }, [indexed, courseId, lessonId, vimeoUrl, courseTitle, lessonTitle]);
+
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim()) return;
     await sendMessage(input.trim());
     setInput("");
-    // Scroll to bottom
     requestAnimationFrame(() => listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: "smooth" }));
   };
 
@@ -90,24 +137,27 @@ const CopilotInlinePanel: React.FC<CopilotInlinePanelProps> = ({ lessonId, cours
       <CardContent>
         {indexed === false && (
           <div className="mb-4 rounded-md border border-border bg-card p-3 text-sm">
-            <div className="mb-2">Nenhum conteúdo desta aula foi indexado ainda.</div>
-            {!showIndexer ? (
-              <Button variant="outline" size="sm" onClick={() => setShowIndexer(true)}>
-                Indexar conteúdo
-              </Button>
-            ) : (
-              <div className="space-y-2">
+            {autoIndexing ? (
+              <div className="flex items-center justify-between">
+                <div>Indexando conteúdo da aula automaticamente...</div>
+                <div className="animate-pulse text-white/70">Aguarde</div>
+              </div>
+            ) : showIndexer ? (
+              <>
+                <div className="mb-2">Nenhuma transcrição foi encontrada automaticamente. Você pode colar o texto para indexar:</div>
                 <textarea
                   className="w-full h-32 rounded-md border border-border bg-background p-2 text-sm"
                   placeholder="Cole aqui a transcrição/texto da aula (pt-BR)"
                   value={transcript}
                   onChange={(e) => setTranscript(e.target.value)}
                 />
-                <div className="flex gap-2">
+                <div className="flex gap-2 mt-2">
                   <Button size="sm" onClick={handleIndex}>Confirmar indexação</Button>
                   <Button variant="outline" size="sm" onClick={() => setShowIndexer(false)}>Cancelar</Button>
                 </div>
-              </div>
+              </>
+            ) : (
+              <div>Nenhum conteúdo desta aula foi indexado ainda.</div>
             )}
           </div>
         )}

@@ -197,7 +197,12 @@ export const LessonPlayer: React.FC<LessonPlayerProps> = ({
             <LessonFeedback lessonId={lesson.id} />
           </div>
           <div className="order-1 md:order-2 md:col-span-5">
-            <CopilotInlinePanel lessonId={lesson.id} courseTitle={courseTitle} lessonTitle={lesson.title} />
+            <CopilotInlinePanel
+              lessonId={lesson.id}
+              courseTitle={courseTitle}
+              lessonTitle={lesson.title}
+              vimeoUrl={lesson.vimeo_url}
+            />
           </div>
         </div>
 
