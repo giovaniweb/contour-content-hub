@@ -125,9 +125,9 @@ export const VimeoPlayer: React.FC<VimeoPlayerProps> = ({
     };
 
     const onEnded = () => {
-      const count = watchedSetRef.current.size;
-      const threshold = Math.max(1, Math.floor((durationRef.current || 0) * 0.9));
-      if (count >= threshold) {
+      // Always mark as complete on video end (avoid over-restrictive thresholds)
+      if (!completedSentRef.current) {
+        completedSentRef.current = true;
         onCompleteRef.current?.();
       }
     };
@@ -147,6 +147,7 @@ export const VimeoPlayer: React.FC<VimeoPlayerProps> = ({
       setWatchedSeconds(0);
       lastSecondRef.current = -1;
       lastProgressAtRef.current = 0;
+      completedSentRef.current = false;
     };
 
     player.on('timeupdate', onTimeUpdate);

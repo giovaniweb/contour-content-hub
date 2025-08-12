@@ -9,6 +9,8 @@ export interface LessonFeedbackEntry {
   rating: number;
   comment?: string | null;
   created_at: string;
+  user_name?: string | null;
+  avatar_url?: string | null;
 }
 
 export const useLessonFeedback = (lessonId: string) => {
@@ -43,7 +45,23 @@ export const useLessonFeedback = (lessonId: string) => {
       if (listError) throw listError;
       if (mineError) throw mineError;
 
-      setFeedback(list || []);
+      let enriched: LessonFeedbackEntry[] = (list as LessonFeedbackEntry[]) || [];
+      if (enriched.length) {
+        const ids = Array.from(new Set(enriched.map(f => f.user_id)));
+        const { data: profiles, error: profError } = await supabase
+          .from('perfis')
+          .select('id, nome, foto_url')
+          .in('id', ids);
+        if (!profError && profiles) {
+          const map = new Map((profiles as any[]).map((p) => [p.id, p]));
+          enriched = enriched.map((f) => {
+            const p: any = map.get(f.user_id);
+            return { ...f, user_name: p?.nome ?? null, avatar_url: p?.foto_url ?? null };
+          });
+        }
+      }
+
+      setFeedback(enriched);
       setMyFeedback((mine as any) || null);
     } catch (e) {
       console.error('Error loading lesson feedback', e);

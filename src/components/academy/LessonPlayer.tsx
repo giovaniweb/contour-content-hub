@@ -106,7 +106,7 @@ export const LessonPlayer: React.FC<LessonPlayerProps> = ({
           </h1>
           
           {lesson.description && (
-            <p className="aurora-body text-white/70 mb-6">
+            <p className="aurora-body text-white/70 mb-6 line-clamp-3">
               {lesson.description}
             </p>
           )}
@@ -173,6 +173,9 @@ export const LessonPlayer: React.FC<LessonPlayerProps> = ({
         <div className="mb-8 flex items-center justify-between gap-4">
           <Button variant="outline" disabled={!hasPrevious} onClick={() => onPrevious && onPrevious()}>
             Anterior
+          </Button>
+          <Button variant="outline" onClick={handleVideoComplete} disabled={isCompleted}>
+            {isCompleted ? 'Concluída' : 'Marcar como concluída'}
           </Button>
           <Button className="aurora-button" disabled={!hasNext} onClick={() => onNext && onNext()}>
             Próxima aula

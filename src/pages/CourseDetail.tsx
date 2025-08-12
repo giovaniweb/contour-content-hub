@@ -209,7 +209,7 @@ const CourseDetail: React.FC = () => {
                 {course.title}
               </h1>
               
-              <p className="aurora-body text-white/70 mb-6">
+              <p className="aurora-body text-white/70 mb-6 line-clamp-3">
                 {course.description}
               </p>
 
@@ -316,7 +316,7 @@ const CourseDetail: React.FC = () => {
                         {lesson.description && (
                           <p className={`text-sm mt-2 ${
                             isLocked ? 'text-white/30' : 'text-white/70'
-                          }`}>
+                          } line-clamp-2`}>
                             {lesson.description}
                           </p>
                         )}
