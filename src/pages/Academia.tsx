@@ -335,7 +335,7 @@ const Academia: React.FC = () => {
                 </div>
               ) : (
                 availableCourses.map((course) => (
-                  <Card key={course.id} className="aurora-glass border-aurora-electric-purple/20 overflow-hidden">
+                  <Card key={course.id} className="aurora-glass border-aurora-electric-purple/20 overflow-hidden h-full flex flex-col">
                     <div className="relative">
                       <LazyImage
                         src={course.thumbnail_url}
@@ -362,8 +362,8 @@ const Academia: React.FC = () => {
                         {course.equipment_name}
                       </Badge>
                     </CardHeader>
-                    <CardContent>
-                      <p className="aurora-body text-white/70 mb-4">
+                    <CardContent className="flex flex-col flex-1">
+                      <p className="aurora-body text-white/70 mb-4 line-clamp-3">
                         {course.description}
                       </p>
                       <div className="flex items-center justify-between text-sm text-white/60 mb-4">
@@ -390,7 +390,7 @@ const Academia: React.FC = () => {
                       </div>
                       <Button 
                         onClick={() => requestCourseAccess(course.id)}
-                        className="w-full aurora-button"
+                        className="w-full aurora-button mt-auto"
                       >
                         Solicitar Acesso
                       </Button>
