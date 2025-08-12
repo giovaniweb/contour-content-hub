@@ -45,56 +45,10 @@ const CopilotInlinePanel: React.FC<CopilotInlinePanelProps> = ({ lessonId, cours
   }, [courseId, lessonId]);
 
   useEffect(() => {
-    // Dispara indexação automática quando não houver conteúdo indexado
-    const runAutoIngest = async () => {
-      if (indexed !== false) return;
-      if (!courseId || !lessonId || !vimeoUrl) {
-        // Sem dados suficientes para auto-indexar; cairá no fallback manual
-        setShowIndexer(true);
-        return;
-      }
-      setAutoIndexing(true);
-      setAutoIndexError(null);
-      try {
-        const { data, error } = await supabase.functions.invoke("auto-ingest-lesson", {
-          body: {
-            course_id: courseId,
-            lesson_id: lessonId,
-            title: `${courseTitle} — ${lessonTitle}`,
-            vimeo_url: vimeoUrl,
-            language: "pt-BR",
-          },
-        });
-        if (error) throw error;
-
-        const res = data as any;
-        if (res?.success || res?.alreadyIndexed) {
-          toast.success("Conteúdo da aula indexado automaticamente.");
-          setAutoIndexError(null);
-          setIndexed(true);
-          setShowIndexer(false);
-        } else if (res?.noTranscript) {
-          toast.warning("Não foi encontrada transcrição no Vimeo para esta aula. Você pode colar a transcrição manualmente.");
-          setShowIndexer(true);
-        } else {
-          toast.warning("Não foi possível indexar automaticamente. Tente o modo manual.");
-          setShowIndexer(true);
-        }
-      } catch (err: any) {
-        console.error("Falha na indexação automática:", err);
-        const isNetwork = err?.message?.includes("Failed to send a request") || err?.message?.includes("Failed to fetch");
-        const msg = isNetwork
-          ? "Não foi possível contatar a função de indexação (Edge Function). Usando modo manual."
-          : (err?.message || "Falha ao indexar automaticamente. Usando modo manual.");
-        setAutoIndexError(msg);
-        toast.error(msg);
-        setShowIndexer(true);
-      } finally {
-        setAutoIndexing(false);
-      }
-    };
-    runAutoIngest();
-  }, [indexed, courseId, lessonId, vimeoUrl, courseTitle, lessonTitle]);
+    if (indexed === false) {
+      setShowIndexer(true);
+    }
+  }, [indexed]);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -102,6 +56,87 @@ const CopilotInlinePanel: React.FC<CopilotInlinePanelProps> = ({ lessonId, cours
     await sendMessage(input.trim());
     setInput("");
     requestAnimationFrame(() => listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: "smooth" }));
+  };
+
+  // Conversores simples para extrair texto limpo de arquivos VTT/SRT
+  const vttToPlainText = (vtt: string) => {
+    return vtt
+      .replace(/^WEBVTT.*$/gmi, "")
+      .replace(/\d{2}:\d{2}:\d{2}\.\d{3}\s*-->\s*\d{2}:\d{2}:\d{2}\.\d{3}.*$/gmi, "")
+      .replace(/<[^>]+>/g, "")
+      .replace(/^\s*\d+\s*$/gm, "")
+      .split("\n")
+      .map((l) => l.trim())
+      .filter(Boolean)
+      .join("\n");
+  };
+
+  const srtToPlainText = (srt: string) => {
+    return srt
+      .replace(/^\s*\d+\s*$/gm, "")
+      .replace(/\d{2}:\d{2}:\d{2},\d{3}\s*-->\s*\d{2}:\d{2}:\d{2},\d{3}.*$/gmi, "")
+      .replace(/<[^>]+>/g, "")
+      .split("\n")
+      .map((l) => l.trim())
+      .filter(Boolean)
+      .join("\n");
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const raw = await file.text();
+      const ext = (file.name.split(".").pop() || "").toLowerCase();
+      let plain = raw;
+      if (ext === "vtt") plain = vttToPlainText(raw);
+      else if (ext === "srt") plain = srtToPlainText(raw);
+      setTranscript(plain.trim());
+      toast.success("Transcrição carregada do arquivo");
+    } catch (err: any) {
+      console.error("Falha ao ler arquivo:", err);
+      toast.error("Falha ao ler o arquivo de transcrição");
+    }
+  };
+
+  const handleAutoIngest = async () => {
+    if (!courseId || !lessonId || !vimeoUrl) {
+      setAutoIndexError("URL do Vimeo não disponível para buscar transcrição.");
+      return;
+    }
+    setAutoIndexing(true);
+    setAutoIndexError(null);
+    try {
+      const { data, error } = await supabase.functions.invoke("auto-ingest-lesson", {
+        body: {
+          course_id: courseId,
+          lesson_id: lessonId,
+          title: `${courseTitle} — ${lessonTitle}`,
+          vimeo_url: vimeoUrl,
+          language: "pt-BR",
+        },
+      });
+      if (error) throw error;
+      const res = data as any;
+      if (res?.success || res?.alreadyIndexed) {
+        toast.success("Conteúdo da aula indexado automaticamente.");
+        setIndexed(true);
+        setShowIndexer(false);
+      } else if (res?.noTranscript) {
+        setAutoIndexError("Não foi encontrada transcrição no Vimeo para esta aula.");
+      } else {
+        setAutoIndexError("Não foi possível indexar automaticamente. Tente o modo manual.");
+      }
+    } catch (err: any) {
+      console.error("Falha na indexação automática:", err);
+      const isNetwork = err?.message?.includes("Failed to send a request") || err?.message?.includes("Failed to fetch");
+      const msg = isNetwork
+        ? "Não foi possível contatar a função de indexação (Edge Function). Use o modo manual."
+        : (err?.message || "Falha ao indexar automaticamente. Use o modo manual.");
+      setAutoIndexError(msg);
+    } finally {
+      setAutoIndexing(false);
+    }
   };
 
   const handleIndex = async () => {
@@ -162,12 +197,23 @@ const CopilotInlinePanel: React.FC<CopilotInlinePanelProps> = ({ lessonId, cours
                   value={transcript}
                   onChange={(e) => setTranscript(e.target.value)}
                 />
-                <div className="flex gap-2 mt-2">
+                <div className="mt-2 text-xs text-foreground/70">Ou envie um arquivo .vtt/.srt com a legenda:</div>
+                <input
+                  type="file"
+                  accept=".vtt,.srt,.txt"
+                  onChange={handleFileUpload}
+                  className="mt-1 text-sm"
+                />
+                <div className="flex flex-wrap gap-2 mt-3 items-center">
                   <Button size="sm" onClick={handleIndex}>Confirmar indexação</Button>
                   <Button variant="outline" size="sm" onClick={() => setShowIndexer(false)}>Cancelar</Button>
+                  {vimeoUrl && (
+                    <Button type="button" variant="secondary" size="sm" onClick={handleAutoIngest} disabled={autoIndexing}>
+                      {autoIndexing ? "Buscando transcrição..." : "Tentar buscar transcrição do Vimeo"}
+                    </Button>
+                  )}
                 </div>
               </>
-            ) : (
               <div>Nenhum conteúdo desta aula foi indexado ainda.</div>
             )}
           </div>
