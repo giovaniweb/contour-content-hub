@@ -43,6 +43,9 @@ verify_jwt = true
 [functions.ingest-knowledge]
 verify_jwt = true
 
+[functions.auto-ingest-lesson]
+verify_jwt = true
+
 [functions.copilot-query]
 verify_jwt = true
 

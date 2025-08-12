@@ -21,6 +21,7 @@ const CopilotInlinePanel: React.FC<CopilotInlinePanelProps> = ({ lessonId, cours
   const [showIndexer, setShowIndexer] = useState(false); // fallback manual somente se necessário
   const [transcript, setTranscript] = useState("");
   const [autoIndexing, setAutoIndexing] = useState(false);
+  const [autoIndexError, setAutoIndexError] = useState<string | null>(null);
   const listRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -53,6 +54,7 @@ const CopilotInlinePanel: React.FC<CopilotInlinePanelProps> = ({ lessonId, cours
         return;
       }
       setAutoIndexing(true);
+      setAutoIndexError(null);
       try {
         const { data, error } = await supabase.functions.invoke("auto-ingest-lesson", {
           body: {
@@ -68,6 +70,7 @@ const CopilotInlinePanel: React.FC<CopilotInlinePanelProps> = ({ lessonId, cours
         const res = data as any;
         if (res?.success || res?.alreadyIndexed) {
           toast.success("Conteúdo da aula indexado automaticamente.");
+          setAutoIndexError(null);
           setIndexed(true);
           setShowIndexer(false);
         } else if (res?.noTranscript) {
@@ -79,7 +82,12 @@ const CopilotInlinePanel: React.FC<CopilotInlinePanelProps> = ({ lessonId, cours
         }
       } catch (err: any) {
         console.error("Falha na indexação automática:", err);
-        toast.error(err?.message || "Falha ao indexar automaticamente");
+        const isNetwork = err?.message?.includes("Failed to send a request") || err?.message?.includes("Failed to fetch");
+        const msg = isNetwork
+          ? "Não foi possível contatar a função de indexação (Edge Function). Usando modo manual."
+          : (err?.message || "Falha ao indexar automaticamente. Usando modo manual.");
+        setAutoIndexError(msg);
+        toast.error(msg);
         setShowIndexer(true);
       } finally {
         setAutoIndexing(false);
@@ -137,6 +145,9 @@ const CopilotInlinePanel: React.FC<CopilotInlinePanelProps> = ({ lessonId, cours
       <CardContent>
         {indexed === false && (
           <div className="mb-4 rounded-md border border-border bg-card p-3 text-sm">
+            {autoIndexError && !autoIndexing && (
+              <div className="mb-2 text-red-300">{autoIndexError}</div>
+            )}
             {autoIndexing ? (
               <div className="flex items-center justify-between">
                 <div>Indexando conteúdo da aula automaticamente...</div>
