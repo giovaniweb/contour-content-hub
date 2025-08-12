@@ -810,6 +810,95 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_knowledge_chunks: {
+        Row: {
+          chunk_index: number
+          content: string
+          created_at: string
+          embedding: string | null
+          id: string
+          metadata: Json
+          source_id: string
+          tokens: number | null
+          updated_at: string
+        }
+        Insert: {
+          chunk_index: number
+          content: string
+          created_at?: string
+          embedding?: string | null
+          id?: string
+          metadata?: Json
+          source_id: string
+          tokens?: number | null
+          updated_at?: string
+        }
+        Update: {
+          chunk_index?: number
+          content?: string
+          created_at?: string
+          embedding?: string | null
+          id?: string
+          metadata?: Json
+          source_id?: string
+          tokens?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_knowledge_chunks_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "ai_knowledge_sources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ai_knowledge_sources: {
+        Row: {
+          course_id: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          is_public: boolean
+          language: string | null
+          lesson_id: string | null
+          metadata: Json
+          source_type: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          course_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_public?: boolean
+          language?: string | null
+          lesson_id?: string | null
+          metadata?: Json
+          source_type?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          course_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_public?: boolean
+          language?: string | null
+          lesson_id?: string | null
+          metadata?: Json
+          source_type?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       ai_learning_log: {
         Row: {
           after_state: Json
@@ -854,6 +943,47 @@ export type Database = {
           validation_metrics?: Json | null
         }
         Relationships: []
+      }
+      ai_lesson_transcripts: {
+        Row: {
+          created_at: string
+          full_text: string
+          id: string
+          language: string | null
+          segments: Json | null
+          source_id: string
+          updated_at: string
+          word_count: number | null
+        }
+        Insert: {
+          created_at?: string
+          full_text: string
+          id?: string
+          language?: string | null
+          segments?: Json | null
+          source_id: string
+          updated_at?: string
+          word_count?: number | null
+        }
+        Update: {
+          created_at?: string
+          full_text?: string
+          id?: string
+          language?: string | null
+          segments?: Json | null
+          source_id?: string
+          updated_at?: string
+          word_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_lesson_transcripts_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "ai_knowledge_sources"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       ai_performance_metrics: {
         Row: {
@@ -1596,6 +1726,68 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      copilot_messages: {
+        Row: {
+          citations: Json | null
+          content: string
+          created_at: string
+          id: string
+          role: string
+          session_id: string
+        }
+        Insert: {
+          citations?: Json | null
+          content: string
+          created_at?: string
+          id?: string
+          role: string
+          session_id: string
+        }
+        Update: {
+          citations?: Json | null
+          content?: string
+          created_at?: string
+          id?: string
+          role?: string
+          session_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "copilot_messages_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "copilot_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      copilot_sessions: {
+        Row: {
+          context: Json
+          created_at: string
+          id: string
+          topic: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          context?: Json
+          created_at?: string
+          id?: string
+          topic?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          context?: Json
+          created_at?: string
+          id?: string
+          topic?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       documentos_tecnicos: {
         Row: {
@@ -3965,6 +4157,24 @@ export type Database = {
           p_tokens_used?: number
         }
         Returns: string
+      }
+      search_knowledge_chunks: {
+        Args: {
+          p_embedding: string
+          p_match_count?: number
+          p_course_id?: string
+          p_lesson_id?: string
+        }
+        Returns: {
+          chunk_id: string
+          content: string
+          metadata: Json
+          source_id: string
+          title: string
+          course_id: string
+          lesson_id: string
+          score: number
+        }[]
       }
       sparsevec_out: {
         Args: { "": unknown }
