@@ -16,6 +16,10 @@ interface LessonPlayerProps {
   onBack: () => void;
   onProgress: (watchTimeSeconds: number) => void;
   watchTime?: number;
+  hasNext?: boolean;
+  hasPrevious?: boolean;
+  onNext?: () => void;
+  onPrevious?: () => void;
 }
 
 export const LessonPlayer: React.FC<LessonPlayerProps> = ({
@@ -25,9 +29,17 @@ export const LessonPlayer: React.FC<LessonPlayerProps> = ({
   onComplete,
   onBack,
   onProgress,
-  watchTime = 0
+  watchTime = 0,
+  hasNext,
+  hasPrevious,
+  onNext,
+  onPrevious
 }) => {
   const [hasStarted, setHasStarted] = useState(false);
+  const [videoDuration, setVideoDuration] = useState<number | null>(null);
+  const [showNextSuggestion, setShowNextSuggestion] = useState(false);
+
+  const effectiveDuration = videoDuration ?? (lesson.duration_minutes ? lesson.duration_minutes * 60 : 0);
 
   const handleVideoProgress = (watchTimeSeconds: number) => {
     if (!hasStarted) setHasStarted(true);
@@ -38,10 +50,11 @@ export const LessonPlayer: React.FC<LessonPlayerProps> = ({
     if (!isCompleted) {
       onComplete();
     }
+    setShowNextSuggestion(true);
   };
 
-  const progressPercentage = lesson.duration_minutes 
-    ? Math.min((watchTime / (lesson.duration_minutes * 60)) * 100, 100)
+  const progressPercentage = effectiveDuration > 0 
+    ? Math.min((watchTime / effectiveDuration) * 100, 100)
     : 0;
 
   return (
@@ -151,8 +164,32 @@ export const LessonPlayer: React.FC<LessonPlayerProps> = ({
             onProgress={handleVideoProgress}
             onComplete={handleVideoComplete}
             autoPlay={true}
+            initialTime={watchTime}
+            onDurationChange={(d) => setVideoDuration(d)}
           />
         </div>
+
+        {/* Navegação entre aulas */}
+        <div className="mb-8 flex items-center justify-between gap-4">
+          <Button variant="outline" disabled={!hasPrevious} onClick={() => onPrevious && onPrevious()}>
+            Anterior
+          </Button>
+          <Button className="aurora-button" disabled={!hasNext} onClick={() => onNext && onNext()}>
+            Próxima aula
+          </Button>
+        </div>
+
+        {showNextSuggestion && hasNext && (
+          <Card className="aurora-glass border-aurora-electric-purple/20 mb-8">
+            <CardContent className="p-6 flex items-center justify-between">
+              <div>
+                <h3 className="text-white font-semibold mb-1">Pronto! Vá para a próxima aula</h3>
+                <p className="text-white/70">Continue seu progresso sem perder o ritmo.</p>
+              </div>
+              <Button className="aurora-button" onClick={() => onNext && onNext()}>Ir para a próxima</Button>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Feedback */}
         <div className="mb-12">

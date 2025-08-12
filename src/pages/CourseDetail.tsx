@@ -105,6 +105,10 @@ const CourseDetail: React.FC = () => {
       return null;
     }
 
+    const idx = lessons.findIndex(l => l.id === selectedLesson);
+    const hasPrevious = idx > 0;
+    const hasNext = idx >= 0 && idx < lessons.length - 1;
+
     return (
       <LessonPlayer
         lesson={lesson}
@@ -122,6 +126,10 @@ const CourseDetail: React.FC = () => {
         onBack={() => setSelectedLesson(null)}
         onProgress={(seconds) => updateWatchTime(lesson.id, seconds)}
         watchTime={getLessonWatchTime(lesson.id)}
+        hasNext={hasNext}
+        hasPrevious={hasPrevious}
+        onNext={hasNext ? () => setSelectedLesson(lessons[idx + 1].id) : undefined}
+        onPrevious={hasPrevious ? () => setSelectedLesson(lessons[idx - 1].id) : undefined}
       />
     );
   }

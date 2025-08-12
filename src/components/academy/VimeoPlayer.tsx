@@ -8,6 +8,8 @@ interface VimeoPlayerProps {
   onProgress?: (watchTimeSeconds: number) => void;
   onComplete?: () => void;
   autoPlay?: boolean;
+  initialTime?: number;
+  onDurationChange?: (durationSeconds: number) => void;
 }
 
 export const VimeoPlayer: React.FC<VimeoPlayerProps> = ({
@@ -15,18 +17,38 @@ export const VimeoPlayer: React.FC<VimeoPlayerProps> = ({
   title,
   onProgress,
   onComplete,
-  autoPlay = false
+  autoPlay = false,
+  initialTime,
+  onDurationChange
 }) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const playerRef = useRef<Player | null>(null);
+  const onProgressRef = useRef(onProgress);
+  const onCompleteRef = useRef(onComplete);
+  const lastSecondRef = useRef(-1);
+
   const [isLoading, setIsLoading] = useState(true);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
 
+  // Keep callback refs in sync without recreating player
+  useEffect(() => {
+    onProgressRef.current = onProgress;
+    onCompleteRef.current = onComplete;
+  }, [onProgress, onComplete]);
+
   // Extract Vimeo video ID from URL
   const getVimeoId = (url: string): string => {
-    const match = url.match(/vimeo\.com\/(\d+)/);
-    return match ? match[1] : '';
+    const patterns = [
+      /vimeo\.com\/(?:video\/)?(\d+)/,
+      /player\.vimeo\.com\/video\/(\d+)/,
+      /(\d+)$/
+    ];
+    for (const p of patterns) {
+      const m = url.match(p);
+      if (m && m[1]) return m[1];
+    }
+    return '';
   };
 
   const vimeoId = getVimeoId(vimeoUrl);
@@ -36,8 +58,10 @@ export const VimeoPlayer: React.FC<VimeoPlayerProps> = ({
 
     // Destroy previous instance if any
     if (playerRef.current) {
-      playerRef.current.unload().catch(() => {});
-      playerRef.current.destroy().catch(() => {});
+      try {
+        playerRef.current.unload().catch(() => {});
+        playerRef.current.destroy().catch(() => {});
+      } catch (_) {}
       playerRef.current = null;
     }
 
@@ -54,25 +78,41 @@ export const VimeoPlayer: React.FC<VimeoPlayerProps> = ({
 
     playerRef.current = player;
     setIsLoading(true);
+    lastSecondRef.current = -1;
 
-    // Load metadata
-    player.getDuration().then((d) => setDuration(Math.floor(d))).catch(() => {});
+    // Load metadata and inform parent
+    player.getDuration().then((d) => {
+      const dur = Math.floor(d || 0);
+      setDuration(dur);
+      onDurationChange?.(dur);
+    }).catch(() => {});
 
     // Events
     const onTimeUpdate = (data: { seconds: number }) => {
       const secs = Math.floor(data.seconds || 0);
-      setCurrentTime(secs);
-      onProgress?.(secs);
+      if (secs !== lastSecondRef.current) {
+        lastSecondRef.current = secs;
+        setCurrentTime(secs);
+        onProgressRef.current?.(secs);
+      }
     };
 
     const onEnded = () => {
-      onComplete?.();
+      onCompleteRef.current?.();
     };
 
     const onLoaded = () => {
       setIsLoading(false);
-      // Ensure duration after load
-      player.getDuration().then((d) => setDuration(Math.floor(d))).catch(() => {});
+      // Ensure duration after load and resume position
+      player.getDuration().then((d) => {
+        const dur = Math.floor(d || 0);
+        setDuration(dur);
+        onDurationChange?.(dur);
+      }).catch(() => {});
+
+      if (typeof initialTime === 'number' && initialTime > 0) {
+        player.setCurrentTime(initialTime).catch(() => {});
+      }
     };
 
     player.on('timeupdate', onTimeUpdate);
@@ -90,7 +130,13 @@ export const VimeoPlayer: React.FC<VimeoPlayerProps> = ({
       } catch (_) {}
       playerRef.current = null;
     };
-  }, [vimeoId, autoPlay, onProgress, onComplete]);
+  }, [vimeoId, autoPlay]);
+
+  useEffect(() => {
+    if (playerRef.current && typeof initialTime === 'number' && initialTime > 0) {
+      playerRef.current.setCurrentTime(initialTime).catch(() => {});
+    }
+  }, [initialTime]);
 
   const formatTime = (seconds: number): string => {
     const mins = Math.floor(seconds / 60);
