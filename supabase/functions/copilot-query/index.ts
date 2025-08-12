@@ -36,14 +36,14 @@ async function chatAnswer(prompt: string, apiKey: string): Promise<string> {
       "Authorization": `Bearer ${apiKey}`,
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({
-      model: "gpt-4.1-2025-04-14",
-      messages: [
-        { role: "system", content: "Você é um Copilot acadêmico da FLUIDA. Responda de forma objetiva, cite fontes (título e timestamps se houver) e mantenha a resposta em português." },
-        { role: "user", content: prompt },
-      ],
-      temperature: 0.2,
-    }),
+      body: JSON.stringify({
+        model: "gpt-4o-mini",
+        messages: [
+          { role: "system", content: "Você é o assistente Fluida Academy. Responda em português, de forma objetiva, usando SOMENTE o contexto fornecido. Sempre cite as fontes pelo número (Fonte 1, 2, ...) e inclua timestamps quando disponíveis." },
+          { role: "user", content: prompt },
+        ],
+        temperature: 0.2,
+      }),
   });
   if (!res.ok) throw new Error(`OpenAI chat error: ${await res.text()}`);
   const data = await res.json();
