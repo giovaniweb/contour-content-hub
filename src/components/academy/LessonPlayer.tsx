@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import AuroraButton from '@/components/ui/AuroraButton';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { ArrowLeft, CheckCircle, Clock, BookOpen } from 'lucide-react';
@@ -57,6 +57,7 @@ export const LessonPlayer: React.FC<LessonPlayerProps> = ({
   const progressPercentage = effectiveDuration > 0 
     ? Math.min((watchTime / effectiveDuration) * 100, 100)
     : 0;
+  const canMarkComplete = progressPercentage >= 90;
 
   return (
     <div className="aurora-dark-bg min-h-screen">
@@ -77,14 +78,15 @@ export const LessonPlayer: React.FC<LessonPlayerProps> = ({
       <div className="container mx-auto py-8 px-4 relative z-10">
         {/* Header */}
         <div className="mb-6">
-          <Button
-            variant="outline"
+          <AuroraButton
+            variant="secondary"
+            size="sm"
             onClick={onBack}
-            className="aurora-glass border-aurora-electric-purple/30 hover:bg-aurora-electric-purple/20"
+            className="aurora-glass"
           >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Voltar ao Curso
-          </Button>
+            <ArrowLeft className="h-4 w-4" />
+            <span className="ml-2">Voltar ao Curso</span>
+          </AuroraButton>
         </div>
 
         {/* Course & Lesson Info */}
@@ -171,15 +173,19 @@ export const LessonPlayer: React.FC<LessonPlayerProps> = ({
 
         {/* Navegação entre aulas */}
         <div className="mb-8 flex items-center justify-between gap-4">
-          <Button variant="outline" disabled={!hasPrevious} onClick={() => onPrevious && onPrevious()}>
+          <AuroraButton variant="secondary" disabled={!hasPrevious} onClick={() => onPrevious && onPrevious()}>
             Anterior
-          </Button>
-          <Button variant="outline" onClick={handleVideoComplete} disabled={isCompleted}>
+          </AuroraButton>
+          <AuroraButton
+            variant="primary"
+            onClick={handleVideoComplete}
+            disabled={isCompleted || !canMarkComplete}
+          >
             {isCompleted ? 'Concluída' : 'Marcar como concluída'}
-          </Button>
-          <Button className="aurora-button" disabled={!hasNext} onClick={() => onNext && onNext()}>
+          </AuroraButton>
+          <AuroraButton variant="primary" disabled={!hasNext} onClick={() => onNext && onNext()}>
             Próxima aula
-          </Button>
+          </AuroraButton>
         </div>
 
         {showNextSuggestion && hasNext && (
@@ -189,7 +195,7 @@ export const LessonPlayer: React.FC<LessonPlayerProps> = ({
                 <h3 className="text-white font-semibold mb-1">Pronto! Vá para a próxima aula</h3>
                 <p className="text-white/70">Continue seu progresso sem perder o ritmo.</p>
               </div>
-              <Button className="aurora-button" onClick={() => onNext && onNext()}>Ir para a próxima</Button>
+              <AuroraButton variant="primary" onClick={() => onNext && onNext()}>Ir para a próxima</AuroraButton>
             </CardContent>
           </Card>
         )}
