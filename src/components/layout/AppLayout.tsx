@@ -31,6 +31,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({
   const isMobile = useIsMobile();
   const navigate = useNavigate();
   const location = useLocation();
+  const showCopilotWidget = !location.pathname.startsWith('/academia') && !location.pathname.startsWith('/copilot');
 
   useEffect(() => {
     if (isLoading) return;
@@ -80,7 +81,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({
         
         {/* Bottom Navigation para mobile */}
         <MobileBottomNavWithSubmenus />
-        <UserCopilotWidget />
+        {showCopilotWidget && <UserCopilotWidget />}
       </div>
     );
   }
@@ -111,7 +112,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({
             {children}
           </div>
         </main>
-        <UserCopilotWidget />
+        {showCopilotWidget && <UserCopilotWidget />}
       </div>
     </div>
   );

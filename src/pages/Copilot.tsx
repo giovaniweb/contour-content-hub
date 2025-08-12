@@ -18,13 +18,13 @@ const CopilotPage: React.FC = () => {
   return (
     <div className="container mx-auto py-6">
       <Helmet>
-        <title>Copilot de Conhecimento | FLUIDA</title>
-        <meta name="description" content="Faça perguntas ao Copilot e receba respostas com fontes confiáveis." />
+        <title>Fluida Academy | Assistente de Estudos</title>
+        <meta name="description" content="Faça perguntas à Fluida Academy e receba respostas com fontes confiáveis." />
         <link rel="canonical" href="/copilot" />
       </Helmet>
 
       <header className="mb-6">
-        <h1 className="text-3xl font-bold">Copilot de Conhecimento</h1>
+        <h1 className="text-3xl font-bold">Fluida Academy</h1>
         <p className="text-muted-foreground mt-1">
           {courseId ? "Contexto do curso atual aplicado automaticamente." : "Consultas em conteúdos públicos."}
         </p>

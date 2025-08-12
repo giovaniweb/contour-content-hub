@@ -7,6 +7,7 @@ import { ArrowLeft, CheckCircle, Clock, BookOpen } from 'lucide-react';
 import { VimeoPlayer } from './VimeoPlayer';
 import { LessonFeedback } from './LessonFeedback';
 import { AcademyLesson } from '@/hooks/useLessons';
+import CopilotInlinePanel from '@/components/copilot/CopilotInlinePanel';
 
 interface LessonPlayerProps {
   lesson: AcademyLesson;
@@ -190,9 +191,14 @@ export const LessonPlayer: React.FC<LessonPlayerProps> = ({
           </Card>
         )}
 
-        {/* Feedback */}
-        <div className="mb-12">
-          <LessonFeedback lessonId={lesson.id} />
+        {/* Comentários + Fluida Academy (colunas) */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-12">
+          <div className="order-2 lg:order-1 lg:col-span-7">
+            <LessonFeedback lessonId={lesson.id} />
+          </div>
+          <div className="order-1 lg:order-2 lg:col-span-5">
+            <CopilotInlinePanel />
+          </div>
         </div>
 
         {/* Completion Status */}

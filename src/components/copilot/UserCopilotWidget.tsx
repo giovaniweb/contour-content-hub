@@ -22,11 +22,11 @@ const UserCopilotWidget: React.FC = () => {
         <DrawerTrigger asChild>
           <button
             className="rounded-full px-4 py-3 bg-primary text-primary-foreground shadow-lg border border-border hover:opacity-90 transition"
-            aria-label="Abrir Copilot"
+            aria-label="Abrir Fluida Academy"
           >
             <span className="inline-flex items-center gap-2">
               <Bot className="h-5 w-5" />
-              <span>Copilot</span>
+              <span>Fluida Academy</span>
             </span>
           </button>
         </DrawerTrigger>
@@ -34,7 +34,7 @@ const UserCopilotWidget: React.FC = () => {
 
       <DrawerContent className="bg-background text-foreground border-border">
         <DrawerHeader>
-          <DrawerTitle>Copilot</DrawerTitle>
+          <DrawerTitle>Fluida Academy</DrawerTitle>
           <DrawerDescription>
             Faça uma pergunta. {courseId ? "Contexto: Curso atual" : "Conteúdo público"}
           </DrawerDescription>

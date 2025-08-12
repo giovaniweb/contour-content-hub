@@ -54,8 +54,8 @@ export function useCopilotChat() {
       const citations = (data as any)?.citations || [];
       setMessages((prev) => [...prev, { role: "assistant", content: answer, citations }]);
     } catch (err: any) {
-      console.error("Copilot chat error:", err);
-      toast.error(err?.message || "Falha ao consultar o Copilot");
+      console.error("Fluida Academy chat error:", err);
+      toast.error(err?.message || "Falha ao consultar a Fluida Academy");
     } finally {
       setLoading(false);
     }

@@ -27,7 +27,7 @@ const sidebarItems = [
   { icon: Palette, label: "Artes", path: "/arts" },
   { icon: BookOpen, label: "Artigos\nCientíficos", path: "/scientific-articles" },
   { icon: GraduationCap, label: "Academia", path: "/academia" },
-  { icon: Bot, label: "Copilot", path: "/copilot" },
+  { icon: Bot, label: "Fluida\nAcademy", path: "/copilot" },
   { icon: Wrench, label: "Equipamentos", path: "/equipments" },
 ];
 
