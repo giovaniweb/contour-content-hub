@@ -324,15 +324,16 @@ const Academia: React.FC = () => {
 
           {/* Available Courses */}
           <TabsContent value="available">
-            {availableCourses.length === 0 ? (
-              <div className="col-span-full flex flex-col items-center justify-center py-12">
-                <BookOpen className="h-16 w-16 text-white/30 mb-4" />
-                <h3 className="text-xl text-white/70 mb-2">Nenhum curso disponível</h3>
-                <p className="text-white/50 text-center">
-                  Não há cursos ativos no momento. Novos cursos serão adicionados em breve.
-                </p>
-              </div>
-            ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {availableCourses.length === 0 ? (
+                <div className="col-span-full flex flex-col items-center justify-center py-12">
+                  <BookOpen className="h-16 w-16 text-white/30 mb-4" />
+                  <h3 className="text-xl text-white/70 mb-2">Nenhum curso disponível</h3>
+                  <p className="text-white/50 text-center">
+                    Não há cursos ativos no momento. Novos cursos serão adicionados em breve.
+                  </p>
+                </div>
+              ) : (
                 availableCourses.map((course) => (
                   <Card key={course.id} className="aurora-glass border-aurora-electric-purple/20 overflow-hidden">
                     <div className="relative">
@@ -396,7 +397,8 @@ const Academia: React.FC = () => {
                     </CardContent>
                   </Card>
                 ))
-            )}
+              )}
+            </div>
           </TabsContent>
 
           {/* My Courses */}
