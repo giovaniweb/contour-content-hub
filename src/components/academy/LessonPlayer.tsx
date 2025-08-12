@@ -192,12 +192,12 @@ export const LessonPlayer: React.FC<LessonPlayerProps> = ({
         )}
 
         {/* Comentários + Fluida Academy (colunas) */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-12">
-          <div className="order-2 lg:order-1 lg:col-span-7">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 mb-12">
+          <div className="order-2 md:order-1 md:col-span-7">
             <LessonFeedback lessonId={lesson.id} />
           </div>
-          <div className="order-1 lg:order-2 lg:col-span-5">
-            <CopilotInlinePanel />
+          <div className="order-1 md:order-2 md:col-span-5">
+            <CopilotInlinePanel lessonId={lesson.id} courseTitle={courseTitle} lessonTitle={lesson.title} />
           </div>
         </div>
 

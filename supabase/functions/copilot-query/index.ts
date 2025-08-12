@@ -93,6 +93,17 @@ serve(async (req) => {
     if (mErr) throw new Error(`Search error: ${mErr.message}`);
 
     const top = (matches || []).slice(0, body.top_k ?? 6);
+
+    if ((top?.length || 0) === 0) {
+      return new Response(
+        JSON.stringify({
+          answer: "Não encontrei conteúdo indexado para este curso/aula ainda. Indexe a aula para ativar respostas com fontes.",
+          citations: [],
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const context = top
       .map((m: any, i: number) => `Fonte ${i + 1} | ${m.title} (score ${(m.score ?? 0).toFixed(3)}):\n${m.content}`)
       .join("\n\n");

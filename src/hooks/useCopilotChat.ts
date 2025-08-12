@@ -17,7 +17,7 @@ function extractCourseId(pathname: string): string | null {
   return match ? match[1] : null;
 }
 
-export function useCopilotChat() {
+export function useCopilotChat(opts?: { lessonId?: string }) {
   const location = useLocation();
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -47,6 +47,7 @@ export function useCopilotChat() {
           top_k: 6,
           session_id: sessionId,
           course_id: courseId ?? null,
+          lesson_id: opts?.lessonId ?? null,
         },
       });
       if (error) throw error;
