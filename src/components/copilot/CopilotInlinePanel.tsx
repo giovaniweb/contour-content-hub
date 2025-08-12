@@ -183,39 +183,41 @@ const CopilotInlinePanel: React.FC<CopilotInlinePanelProps> = ({ lessonId, cours
             {autoIndexError && !autoIndexing && (
               <div className="mb-2 text-red-300">{autoIndexError}</div>
             )}
-            {autoIndexing ? (
-              <div className="flex items-center justify-between">
-                <div>Indexando conteúdo da aula automaticamente...</div>
-                <div className="animate-pulse text-white/70">Aguarde</div>
+          {autoIndexing ? (
+            <div className="flex items-center justify-between">
+              <div>Indexando conteúdo da aula automaticamente...</div>
+              <div className="animate-pulse text-white/70">Aguarde</div>
+            </div>
+          ) : showIndexer ? (
+            <>
+              <div className="mb-2">Nenhuma transcrição foi encontrada automaticamente. Você pode colar o texto para indexar:</div>
+              <textarea
+                className="w-full h-32 rounded-md border border-border bg-background p-2 text-sm"
+                placeholder="Cole aqui a transcrição/texto da aula (pt-BR)"
+                value={transcript}
+                onChange={(e) => setTranscript(e.target.value)}
+              />
+              <div className="mt-2 text-xs text-foreground/70">Ou envie um arquivo .vtt/.srt com a legenda:</div>
+              <input
+                type="file"
+                accept=".vtt,.srt,.txt"
+                onChange={handleFileUpload}
+                className="mt-1 text-sm"
+              />
+              <div className="flex flex-wrap gap-2 mt-3 items-center">
+                <Button size="sm" onClick={handleIndex}>Confirmar indexação</Button>
+                <Button variant="outline" size="sm" onClick={() => setShowIndexer(false)}>Cancelar</Button>
+                {vimeoUrl && (
+                  <Button type="button" variant="secondary" size="sm" onClick={handleAutoIngest} disabled={autoIndexing}>
+                    {autoIndexing ? "Buscando transcrição..." : "Tentar buscar transcrição do Vimeo"}
+                  </Button>
+                )}
               </div>
-            ) : showIndexer ? (
-              <>
-                <div className="mb-2">Nenhuma transcrição foi encontrada automaticamente. Você pode colar o texto para indexar:</div>
-                <textarea
-                  className="w-full h-32 rounded-md border border-border bg-background p-2 text-sm"
-                  placeholder="Cole aqui a transcrição/texto da aula (pt-BR)"
-                  value={transcript}
-                  onChange={(e) => setTranscript(e.target.value)}
-                />
-                <div className="mt-2 text-xs text-foreground/70">Ou envie um arquivo .vtt/.srt com a legenda:</div>
-                <input
-                  type="file"
-                  accept=".vtt,.srt,.txt"
-                  onChange={handleFileUpload}
-                  className="mt-1 text-sm"
-                />
-                <div className="flex flex-wrap gap-2 mt-3 items-center">
-                  <Button size="sm" onClick={handleIndex}>Confirmar indexação</Button>
-                  <Button variant="outline" size="sm" onClick={() => setShowIndexer(false)}>Cancelar</Button>
-                  {vimeoUrl && (
-                    <Button type="button" variant="secondary" size="sm" onClick={handleAutoIngest} disabled={autoIndexing}>
-                      {autoIndexing ? "Buscando transcrição..." : "Tentar buscar transcrição do Vimeo"}
-                    </Button>
-                  )}
-                </div>
-              </>
-              <div>Nenhum conteúdo desta aula foi indexado ainda.</div>
-            )}
+            </>
+          ) : (
+            <div>Nenhum conteúdo desta aula foi indexado ainda.</div>
+          )}
+
           </div>
         )}
 
