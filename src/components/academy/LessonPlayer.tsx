@@ -164,7 +164,6 @@ export const LessonPlayer: React.FC<LessonPlayerProps> = ({
             onProgress={handleVideoProgress}
             onComplete={handleVideoComplete}
             autoPlay={true}
-            initialTime={watchTime}
             onDurationChange={(d) => setVideoDuration(d)}
           />
         </div>

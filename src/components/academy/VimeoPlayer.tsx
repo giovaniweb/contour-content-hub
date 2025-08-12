@@ -30,6 +30,12 @@ export const VimeoPlayer: React.FC<VimeoPlayerProps> = ({
   const [isLoading, setIsLoading] = useState(true);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
+  const [watchedSeconds, setWatchedSeconds] = useState(0);
+
+  const watchedSetRef = useRef<Set<number>>(new Set());
+  const isPlayingRef = useRef(false);
+  const lastProgressAtRef = useRef(0);
+  const durationRef = useRef(0);
 
   // Keep callback refs in sync without recreating player
   useEffect(() => {
@@ -84,40 +90,72 @@ export const VimeoPlayer: React.FC<VimeoPlayerProps> = ({
     player.getDuration().then((d) => {
       const dur = Math.floor(d || 0);
       setDuration(dur);
+      durationRef.current = dur;
       onDurationChange?.(dur);
     }).catch(() => {});
 
     // Events
     const onTimeUpdate = (data: { seconds: number }) => {
       const secs = Math.floor(data.seconds || 0);
-      if (secs !== lastSecondRef.current) {
-        lastSecondRef.current = secs;
+      const last = lastSecondRef.current;
+
+      if (secs !== last) {
+        // Update current position for UI
         setCurrentTime(secs);
-        onProgressRef.current?.(secs);
+
+        // Count as watched only when playing and moving +1s (ignore seeks)
+        if (isPlayingRef.current && last >= 0 && secs === last + 1) {
+          if (!watchedSetRef.current.has(secs)) {
+            watchedSetRef.current.add(secs);
+            const count = watchedSetRef.current.size;
+            setWatchedSeconds(count);
+
+            // Throttle progress callback to ~5s
+            const now = Date.now();
+            if (now - (lastProgressAtRef.current || 0) >= 5000) {
+              lastProgressAtRef.current = now;
+              onProgressRef.current?.(count);
+            }
+          }
+        }
+
+        lastSecondRef.current = secs;
       }
     };
 
     const onEnded = () => {
-      onCompleteRef.current?.();
+      const count = watchedSetRef.current.size;
+      const threshold = Math.max(1, Math.floor((durationRef.current || 0) * 0.9));
+      if (count >= threshold) {
+        onCompleteRef.current?.();
+      }
     };
 
     const onLoaded = () => {
       setIsLoading(false);
-      // Ensure duration after load and resume position
+      // Ensure duration after load and reset counters
       player.getDuration().then((d) => {
         const dur = Math.floor(d || 0);
         setDuration(dur);
+        durationRef.current = dur;
         onDurationChange?.(dur);
       }).catch(() => {});
 
-      if (typeof initialTime === 'number' && initialTime > 0) {
-        player.setCurrentTime(initialTime).catch(() => {});
-      }
+      // Reset watched tracking on load
+      watchedSetRef.current.clear();
+      setWatchedSeconds(0);
+      lastSecondRef.current = -1;
+      lastProgressAtRef.current = 0;
     };
 
     player.on('timeupdate', onTimeUpdate);
     player.on('ended', onEnded);
     player.on('loaded', onLoaded);
+    player.on('play', () => { isPlayingRef.current = true; });
+    player.on('pause', () => { isPlayingRef.current = false; });
+    player.on('seeked', (data: { seconds: number }) => {
+      lastSecondRef.current = Math.floor((data?.seconds as number) || 0);
+    });
 
     // Cleanup
     return () => {
@@ -125,6 +163,9 @@ export const VimeoPlayer: React.FC<VimeoPlayerProps> = ({
         player.off('timeupdate', onTimeUpdate);
         player.off('ended', onEnded);
         player.off('loaded', onLoaded);
+        player.off('play');
+        player.off('pause');
+        player.off('seeked');
         player.unload().catch(() => {});
         player.destroy().catch(() => {});
       } catch (_) {}
@@ -132,11 +173,8 @@ export const VimeoPlayer: React.FC<VimeoPlayerProps> = ({
     };
   }, [vimeoId, autoPlay]);
 
-  useEffect(() => {
-    if (playerRef.current && typeof initialTime === 'number' && initialTime > 0) {
-      playerRef.current.setCurrentTime(initialTime).catch(() => {});
-    }
-  }, [initialTime]);
+  // Keep prop reactive for future resume feature without seeking to it
+  useEffect(() => { /* no-op */ }, [initialTime]);
 
   const formatTime = (seconds: number): string => {
     const mins = Math.floor(seconds / 60);
@@ -171,9 +209,9 @@ export const VimeoPlayer: React.FC<VimeoPlayerProps> = ({
         <div className="p-4">
           <h3 className="text-lg font-semibold text-white mb-2">{title}</h3>
           <div className="flex items-center gap-4 text-sm text-white/60">
-            <span>Tempo assistido: {formatTime(currentTime)}</span>
+            <span>Tempo assistido: {formatTime(watchedSeconds)}</span>
             {duration > 0 && (
-              <span>Progresso: {Math.round((currentTime / duration) * 100)}%</span>
+              <span>Progresso: {Math.round((watchedSeconds / duration) * 100)}%</span>
             )}
           </div>
         </div>
