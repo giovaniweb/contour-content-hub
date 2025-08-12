@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { ArrowLeft, CheckCircle, Clock, BookOpen } from 'lucide-react';
 import { VimeoPlayer } from './VimeoPlayer';
+import { LessonFeedback } from './LessonFeedback';
 import { AcademyLesson } from '@/hooks/useLessons';
 
 interface LessonPlayerProps {
@@ -151,6 +152,11 @@ export const LessonPlayer: React.FC<LessonPlayerProps> = ({
             onComplete={handleVideoComplete}
             autoPlay={true}
           />
+        </div>
+
+        {/* Feedback */}
+        <div className="mb-12">
+          <LessonFeedback lessonId={lesson.id} />
         </div>
 
         {/* Completion Status */}

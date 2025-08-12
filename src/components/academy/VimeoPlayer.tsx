@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Play, Pause, Volume2, VolumeX, Maximize } from 'lucide-react';
+import Player from '@vimeo/player';
 
 interface VimeoPlayerProps {
   vimeoUrl: string;
@@ -18,11 +17,11 @@ export const VimeoPlayer: React.FC<VimeoPlayerProps> = ({
   onComplete,
   autoPlay = false
 }) => {
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [isMuted, setIsMuted] = useState(false);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const playerRef = useRef<Player | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
 
   // Extract Vimeo video ID from URL
   const getVimeoId = (url: string): string => {
@@ -31,39 +30,67 @@ export const VimeoPlayer: React.FC<VimeoPlayerProps> = ({
   };
 
   const vimeoId = getVimeoId(vimeoUrl);
-  const embedUrl = vimeoId ? `https://player.vimeo.com/video/${vimeoId}?api=1&player_id=vimeo_player` : '';
 
   useEffect(() => {
-    if (!vimeoId || !onProgress) return;
+    if (!containerRef.current || !vimeoId) return;
 
-    let interval: NodeJS.Timeout;
-    
-    if (isPlaying) {
-      interval = setInterval(() => {
-        setCurrentTime(prev => {
-          const newTime = prev + 1;
-          onProgress(newTime);
-          
-          // Check if video is completed (90% watched)
-          if (duration > 0 && newTime >= duration * 0.9 && onComplete) {
-            onComplete();
-          }
-          
-          return newTime;
-        });
-      }, 1000);
+    // Destroy previous instance if any
+    if (playerRef.current) {
+      playerRef.current.unload().catch(() => {});
+      playerRef.current.destroy().catch(() => {});
+      playerRef.current = null;
     }
 
-    return () => clearInterval(interval);
-  }, [isPlaying, duration, onProgress, onComplete]);
+    const player = new Player(containerRef.current, {
+      id: parseInt(vimeoId, 10),
+      controls: true,
+      autoplay: autoPlay,
+      muted: autoPlay, // helps with browser autoplay policies
+      byline: false,
+      title: false,
+      portrait: false,
+      responsive: true
+    });
 
-  const handlePlayPause = () => {
-    setIsPlaying(!isPlaying);
-  };
+    playerRef.current = player;
+    setIsLoading(true);
 
-  const handleMute = () => {
-    setIsMuted(!isMuted);
-  };
+    // Load metadata
+    player.getDuration().then((d) => setDuration(Math.floor(d))).catch(() => {});
+
+    // Events
+    const onTimeUpdate = (data: { seconds: number }) => {
+      const secs = Math.floor(data.seconds || 0);
+      setCurrentTime(secs);
+      onProgress?.(secs);
+    };
+
+    const onEnded = () => {
+      onComplete?.();
+    };
+
+    const onLoaded = () => {
+      setIsLoading(false);
+      // Ensure duration after load
+      player.getDuration().then((d) => setDuration(Math.floor(d))).catch(() => {});
+    };
+
+    player.on('timeupdate', onTimeUpdate);
+    player.on('ended', onEnded);
+    player.on('loaded', onLoaded);
+
+    // Cleanup
+    return () => {
+      try {
+        player.off('timeupdate', onTimeUpdate);
+        player.off('ended', onEnded);
+        player.off('loaded', onLoaded);
+        player.unload().catch(() => {});
+        player.destroy().catch(() => {});
+      } catch (_) {}
+      playerRef.current = null;
+    };
+  }, [vimeoId, autoPlay, onProgress, onComplete]);
 
   const formatTime = (seconds: number): string => {
     const mins = Math.floor(seconds / 60);
@@ -90,58 +117,11 @@ export const VimeoPlayer: React.FC<VimeoPlayerProps> = ({
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-aurora-electric-purple"></div>
             </div>
           )}
-          
-          <iframe
-            src={embedUrl}
-            title={title}
-            className="w-full h-full"
-            allow="autoplay; fullscreen; picture-in-picture"
-            onLoad={() => setIsLoading(false)}
-          />
-          
-          {/* Custom Controls Overlay */}
-          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
-            <div className="flex items-center gap-4">
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={handlePlayPause}
-                className="text-white hover:bg-white/20"
-              >
-                {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
-              </Button>
-              
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={handleMute}
-                className="text-white hover:bg-white/20"
-              >
-                {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
-              </Button>
-              
-              <div className="flex-1 flex items-center gap-2 text-sm text-white">
-                <span>{formatTime(currentTime)}</span>
-                <div className="flex-1 bg-white/20 rounded-full h-1">
-                  <div 
-                    className="bg-aurora-electric-purple h-1 rounded-full transition-all"
-                    style={{ width: duration > 0 ? `${(currentTime / duration) * 100}%` : '0%' }}
-                  />
-                </div>
-                <span>{formatTime(duration)}</span>
-              </div>
-              
-              <Button
-                size="sm"
-                variant="ghost"
-                className="text-white hover:bg-white/20"
-              >
-                <Maximize className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
+
+          {/* Vimeo Player container - native controls only (no duplicate overlay) */}
+          <div ref={containerRef} className="w-full h-full" />
         </div>
-        
+
         <div className="p-4">
           <h3 className="text-lg font-semibold text-white mb-2">{title}</h3>
           <div className="flex items-center gap-4 text-sm text-white/60">

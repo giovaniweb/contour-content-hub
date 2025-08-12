@@ -17,12 +17,40 @@ export const useLessonProgress = (courseId: string) => {
 
   const fetchLessonProgress = async () => {
     try {
-      const userId = (await supabase.auth.getUser()).data.user?.id;
-      if (!userId) return;
+      const user = await supabase.auth.getUser();
+      const userId = user.data.user?.id;
+      if (!userId || !courseId) {
+        setLessonProgress([]);
+        setIsLoading(false);
+        return;
+      }
 
-      // For now, we'll simulate lesson progress since we don't have the table yet
-      // In a real implementation, you'd have an academy_lesson_progress table
-      setLessonProgress([]);
+      // Fetch lessons for the course
+      const { data: lessons, error: lessonsError } = await supabase
+        .from('academy_lessons')
+        .select('id')
+        .eq('course_id', courseId)
+        .order('order_index', { ascending: true });
+
+      if (lessonsError) throw lessonsError;
+
+      const lessonIds = (lessons || []).map((l) => l.id);
+      if (lessonIds.length === 0) {
+        setLessonProgress([]);
+        setIsLoading(false);
+        return;
+      }
+
+      // Fetch progress for those lessons
+      const { data: progressData, error: progressError } = await supabase
+        .from('academy_user_lesson_progress')
+        .select('lesson_id, user_id, completed, completed_at, watch_time_seconds')
+        .eq('user_id', userId)
+        .in('lesson_id', lessonIds);
+
+      if (progressError) throw progressError;
+
+      setLessonProgress(progressData || []);
       setIsLoading(false);
     } catch (err) {
       console.error('Error fetching lesson progress:', err);
@@ -32,15 +60,36 @@ export const useLessonProgress = (courseId: string) => {
 
   const markLessonComplete = async (lessonId: string) => {
     try {
-      const userId = (await supabase.auth.getUser()).data.user?.id;
+      const user = await supabase.auth.getUser();
+      const userId = user.data.user?.id;
       if (!userId) return;
 
-      // Simulate marking lesson as complete
+      const now = new Date().toISOString();
+
+      const { data, error } = await supabase
+        .from('academy_user_lesson_progress')
+        .upsert(
+          [{
+            user_id: userId,
+            lesson_id: lessonId,
+            completed: true,
+            completed_at: now,
+            // Do not send watch_time_seconds here to avoid overwriting
+            last_watched_at: now
+          }],
+          { onConflict: 'user_id,lesson_id' }
+        )
+        .select()
+        .maybeSingle();
+
+      if (error) throw error;
+
       const newProgress: LessonProgress = {
         lesson_id: lessonId,
         user_id: userId,
         completed: true,
-        completed_at: new Date().toISOString()
+        completed_at: now,
+        watch_time_seconds: lessonProgress.find(p => p.lesson_id === lessonId)?.watch_time_seconds
       };
 
       setLessonProgress(prev => [
@@ -49,42 +98,62 @@ export const useLessonProgress = (courseId: string) => {
       ]);
 
       toast({
-        title: "Aula concluída!",
-        description: "Seu progresso foi salvo.",
+        title: 'Aula concluída!',
+        description: 'Seu progresso foi salvo.'
       });
 
-      return newProgress;
+      return data;
     } catch (err) {
       console.error('Error marking lesson complete:', err);
       toast({
-        title: "Erro",
-        description: "Erro ao salvar progresso da aula.",
-        variant: "destructive"
+        title: 'Erro',
+        description: 'Erro ao salvar progresso da aula.',
+        variant: 'destructive'
       });
     }
   };
 
   const updateWatchTime = async (lessonId: string, watchTimeSeconds: number) => {
     try {
-      const userId = (await supabase.auth.getUser()).data.user?.id;
+      const user = await supabase.auth.getUser();
+      const userId = user.data.user?.id;
       if (!userId) return;
 
-      // Update watch time for lesson
+      const now = new Date().toISOString();
+
+      // Upsert only the fields we want to update to avoid overriding completed flags
+      const { error } = await supabase
+        .from('academy_user_lesson_progress')
+        .upsert(
+          [{
+            user_id: userId,
+            lesson_id: lessonId,
+            watch_time_seconds: Math.max(0, Math.floor(watchTimeSeconds)),
+            last_watched_at: now
+          }],
+          { onConflict: 'user_id,lesson_id' }
+        );
+
+      if (error) throw error;
+
       setLessonProgress(prev => {
         const existing = prev.find(p => p.lesson_id === lessonId);
         if (existing) {
-          return prev.map(p => 
-            p.lesson_id === lessonId 
-              ? { ...p, watch_time_seconds: watchTimeSeconds }
+          return prev.map(p =>
+            p.lesson_id === lessonId
+              ? { ...p, watch_time_seconds: Math.max(p.watch_time_seconds || 0, Math.floor(watchTimeSeconds)) }
               : p
           );
         } else {
-          return [...prev, {
-            lesson_id: lessonId,
-            user_id: userId,
-            completed: false,
-            watch_time_seconds: watchTimeSeconds
-          }];
+          return [
+            ...prev,
+            {
+              lesson_id: lessonId,
+              user_id: userId,
+              completed: false,
+              watch_time_seconds: Math.floor(watchTimeSeconds)
+            }
+          ];
         }
       });
     } catch (err) {
@@ -105,6 +174,7 @@ export const useLessonProgress = (courseId: string) => {
     if (courseId) {
       fetchLessonProgress();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [courseId]);
 
   return {
