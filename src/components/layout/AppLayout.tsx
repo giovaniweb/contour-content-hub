@@ -9,6 +9,7 @@ import MobileBottomNavWithSubmenus from "../mobile/MobileBottomNavWithSubmenus";
 import { MobileSidebar } from "@/components/ui/sidebar/mobile-sidebar";
 import MobileSidebarMenu from "../mobile/MobileSidebarMenu";
 import AuroraPageLayout from "./AuroraPageLayout";
+import UserCopilotWidget from "@/components/copilot/UserCopilotWidget";
 
 const SIDEBAR_WIDTH = 104; // igual ao Sidebar.tsx (px: w-26)
 const NAVBAR_HEIGHT = 64; // altura do navbar (h-16)
@@ -79,6 +80,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({
         
         {/* Bottom Navigation para mobile */}
         <MobileBottomNavWithSubmenus />
+        <UserCopilotWidget />
       </div>
     );
   }
@@ -109,6 +111,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({
             {children}
           </div>
         </main>
+        <UserCopilotWidget />
       </div>
     </div>
   );

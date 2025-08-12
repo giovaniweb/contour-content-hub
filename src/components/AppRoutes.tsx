@@ -44,6 +44,8 @@ const VideoCreatePage = React.lazy(() => import('@/pages/videos/VideoCreatePage'
 const VideoCreatePageAdmin = React.lazy(() => import('@/pages/admin/VideoCreatePageAdmin'));
 const BatchDownloadManager = React.lazy(() => import('@/pages/downloads/BatchDownloadManager'));
 const DownloadsManager = React.lazy(() => import('@/pages/downloads/DownloadsManager'));
+const AdminAIPanel = React.lazy(() => import('@/pages/admin/AdminAIPanel'));
+const CopilotPage = React.lazy(() => import('@/pages/Copilot'));
 
 // Lazy loading das novas páginas do perfil
 const ApprovedScripts = React.lazy(() => import('@/pages/ApprovedScripts'));
@@ -375,6 +377,17 @@ const AppRoutes: React.FC = () => {
 
         {/* Profile Menu Routes */}
         <Route 
+          path="/copilot"
+          element={
+            <AppLayout>
+              <Suspense fallback={<AuroraLoadingSkeleton />}>
+                <CopilotPage />
+              </Suspense>
+            </AppLayout>
+          } 
+        />
+        
+        <Route 
           path="/approved-scripts" 
           element={
             <AppLayout>
@@ -666,6 +679,17 @@ const AppRoutes: React.FC = () => {
               <AppLayout requireAdmin={true}>
                 <Suspense fallback={<AuroraLoadingSkeleton />}>
                   <AdminAcademyCourseView />
+                </Suspense>
+              </AppLayout>
+            } 
+          />
+
+          <Route 
+            path="/admin/ai-panel"
+            element={
+              <AppLayout requireAdmin={true}>
+                <Suspense fallback={<AuroraLoadingSkeleton />}>
+                  <AdminAIPanel />
                 </Suspense>
               </AppLayout>
             } 
