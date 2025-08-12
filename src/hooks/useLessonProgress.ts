@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -14,6 +14,7 @@ export const useLessonProgress = (courseId: string) => {
   const [lessonProgress, setLessonProgress] = useState<LessonProgress[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
+  const lastSavedRef = useRef<Record<string, number>>({});
 
   const fetchLessonProgress = async () => {
     try {
@@ -120,15 +121,23 @@ export const useLessonProgress = (courseId: string) => {
       if (!userId) return;
 
       const now = new Date().toISOString();
+      const newSecs = Math.max(0, Math.floor(watchTimeSeconds));
 
-      // Upsert only the fields we want to update to avoid overriding completed flags
+      // Debounce/guard: persist only if gained >= 5s since last save
+      const existing = lessonProgress.find(p => p.lesson_id === lessonId)?.watch_time_seconds || 0;
+      const lastSaved = lastSavedRef.current[lessonId] ?? existing;
+      if (newSecs < lastSaved + 5) {
+        // console.debug('[lessonProgress] Skip save (debounced)', { lessonId, newSecs, lastSaved });
+        return;
+      }
+
       const { error } = await supabase
         .from('academy_user_lesson_progress')
         .upsert(
           [{
             user_id: userId,
             lesson_id: lessonId,
-            watch_time_seconds: Math.max(0, Math.floor(watchTimeSeconds)),
+            watch_time_seconds: newSecs,
             last_watched_at: now
           }],
           { onConflict: 'user_id,lesson_id' }
@@ -136,12 +145,14 @@ export const useLessonProgress = (courseId: string) => {
 
       if (error) throw error;
 
+      lastSavedRef.current[lessonId] = newSecs;
+
       setLessonProgress(prev => {
-        const existing = prev.find(p => p.lesson_id === lessonId);
-        if (existing) {
+        const existingRec = prev.find(p => p.lesson_id === lessonId);
+        if (existingRec) {
           return prev.map(p =>
             p.lesson_id === lessonId
-              ? { ...p, watch_time_seconds: Math.max(p.watch_time_seconds || 0, Math.floor(watchTimeSeconds)) }
+              ? { ...p, watch_time_seconds: Math.max(p.watch_time_seconds || 0, newSecs) }
               : p
           );
         } else {
@@ -151,7 +162,7 @@ export const useLessonProgress = (courseId: string) => {
               lesson_id: lessonId,
               user_id: userId,
               completed: false,
-              watch_time_seconds: Math.floor(watchTimeSeconds)
+              watch_time_seconds: newSecs
             }
           ];
         }
@@ -160,7 +171,6 @@ export const useLessonProgress = (courseId: string) => {
       console.error('Error updating watch time:', err);
     }
   };
-
   const isLessonCompleted = (lessonId: string): boolean => {
     return lessonProgress.some(p => p.lesson_id === lessonId && p.completed);
   };

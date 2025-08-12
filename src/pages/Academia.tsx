@@ -8,6 +8,7 @@ import { BookOpen, Play, Trophy, Clock, Star, Users, Award } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
+import { LazyImage } from '@/components/ui/lazy-image';
 
 interface Course {
   id: string;
@@ -332,61 +333,69 @@ const Academia: React.FC = () => {
                 </p>
               </div>
             ) : (
-              availableCourses.map((course) => (
-                <Card key={course.id} className="aurora-glass border-aurora-electric-purple/20">
-                  <CardHeader>
-                    <div className="flex justify-between items-start mb-2">
-                      <Badge className={`${getDifficultyColor(course.difficulty_level)} text-white`}>
-                        {course.difficulty_level === 'beginner' ? 'Iniciante' : 
-                         course.difficulty_level === 'intermediate' ? 'Intermediário' : 'Avançado'}
+                availableCourses.map((course) => (
+                  <Card key={course.id} className="aurora-glass border-aurora-electric-purple/20 overflow-hidden">
+                    <div className="relative">
+                      <LazyImage
+                        src={course.thumbnail_url}
+                        alt={`Thumbnail do curso ${course.title}`}
+                        aspectRatio="video"
+                        fallbackSrc="/placeholder.svg"
+                      />
+                    </div>
+                    <CardHeader>
+                      <div className="flex justify-between items-start mb-2">
+                        <Badge className={`${getDifficultyColor(course.difficulty_level)} text-white`}>
+                          {course.difficulty_level === 'beginner' ? 'Iniciante' : 
+                           course.difficulty_level === 'intermediate' ? 'Intermediário' : 'Avançado'}
+                        </Badge>
+                        <div className="flex items-center gap-1 text-aurora-electric-purple">
+                          <Star className="h-4 w-4" />
+                          <span className="text-sm">{course.gamification_points} XP</span>
+                        </div>
+                      </div>
+                      <CardTitle className="aurora-text-gradient text-xl">
+                        {course.title}
+                      </CardTitle>
+                      <Badge variant="outline" className="text-aurora-teal border-aurora-teal w-fit">
+                        {course.equipment_name}
                       </Badge>
-                      <div className="flex items-center gap-1 text-aurora-electric-purple">
-                        <Star className="h-4 w-4" />
-                        <span className="text-sm">{course.gamification_points} XP</span>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="aurora-body text-white/70 mb-4">
+                        {course.description}
+                      </p>
+                      <div className="flex items-center justify-between text-sm text-white/60 mb-4">
+                        <div className="flex items-center gap-1">
+                          <BookOpen className="h-4 w-4" />
+                          <span>{course.total_lessons} aulas</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Clock className="h-4 w-4" />
+                          <span>{course.estimated_duration_hours}h</span>
+                        </div>
                       </div>
-                    </div>
-                    <CardTitle className="aurora-text-gradient text-xl">
-                      {course.title}
-                    </CardTitle>
-                    <Badge variant="outline" className="text-aurora-teal border-aurora-teal w-fit">
-                      {course.equipment_name}
-                    </Badge>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="aurora-body text-white/70 mb-4">
-                      {course.description}
-                    </p>
-                    <div className="flex items-center justify-between text-sm text-white/60 mb-4">
-                      <div className="flex items-center gap-1">
-                        <BookOpen className="h-4 w-4" />
-                        <span>{course.total_lessons} aulas</span>
+                      <div className="flex gap-2 mb-4">
+                        {course.has_final_exam && (
+                          <Badge variant="outline" className="text-xs">
+                            Prova Final
+                          </Badge>
+                        )}
+                        {course.has_satisfaction_survey && (
+                          <Badge variant="outline" className="text-xs">
+                            Pesquisa
+                          </Badge>
+                        )}
                       </div>
-                      <div className="flex items-center gap-1">
-                        <Clock className="h-4 w-4" />
-                        <span>{course.estimated_duration_hours}h</span>
-                      </div>
-                    </div>
-                    <div className="flex gap-2 mb-4">
-                      {course.has_final_exam && (
-                        <Badge variant="outline" className="text-xs">
-                          Prova Final
-                        </Badge>
-                      )}
-                      {course.has_satisfaction_survey && (
-                        <Badge variant="outline" className="text-xs">
-                          Pesquisa
-                        </Badge>
-                      )}
-                    </div>
-                    <Button 
-                      onClick={() => requestCourseAccess(course.id)}
-                      className="w-full aurora-button"
-                    >
-                      Solicitar Acesso
-                    </Button>
-                  </CardContent>
-                </Card>
-              ))
+                      <Button 
+                        onClick={() => requestCourseAccess(course.id)}
+                        className="w-full aurora-button"
+                      >
+                        Solicitar Acesso
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ))
             )}
           </TabsContent>
 
@@ -403,7 +412,15 @@ const Academia: React.FC = () => {
                 </div>
               ) : (
                 myCourses.map((courseAccess) => (
-                  <Card key={courseAccess.id} className="aurora-glass border-aurora-electric-purple/20">
+                  <Card key={courseAccess.id} className="aurora-glass border-aurora-electric-purple/20 overflow-hidden">
+                    <div className="relative">
+                      <LazyImage
+                        src={courseAccess.course.thumbnail_url}
+                        alt={`Thumbnail do curso ${courseAccess.course.title}`}
+                        aspectRatio="video"
+                        fallbackSrc="/placeholder.svg"
+                      />
+                    </div>
                     <CardHeader>
                       <div className="flex justify-between items-start mb-2">
                         <Badge className={`${getStatusColor(courseAccess.status)} text-white`}>

@@ -36,6 +36,7 @@ export const VimeoPlayer: React.FC<VimeoPlayerProps> = ({
   const isPlayingRef = useRef(false);
   const lastProgressAtRef = useRef(0);
   const durationRef = useRef(0);
+  const completedSentRef = useRef(false);
 
   // Keep callback refs in sync without recreating player
   useEffect(() => {
