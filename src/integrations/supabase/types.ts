@@ -4048,33 +4048,7 @@ export type Database = {
       }
     }
     Views: {
-      gpt_config_public: {
-        Row: {
-          ativo: boolean | null
-          data_configuracao: string | null
-          id: string | null
-          modelo: string | null
-          nome: string | null
-          tipo: string | null
-        }
-        Insert: {
-          ativo?: boolean | null
-          data_configuracao?: string | null
-          id?: string | null
-          modelo?: string | null
-          nome?: string | null
-          tipo?: string | null
-        }
-        Update: {
-          ativo?: boolean | null
-          data_configuracao?: string | null
-          id?: string | null
-          modelo?: string | null
-          nome?: string | null
-          tipo?: string | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       calculate_final_purchase_score: {
