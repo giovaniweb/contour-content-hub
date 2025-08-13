@@ -54,7 +54,7 @@ const AkinatorInteligente: React.FC = () => {
     
     const welcomeMessage: Message = {
       role: 'assistant',
-      content: `🔮 **Olá! Sou ${genieName}**\n\n• Especialista em estética científica\n• Acesso a equipamentos e estudos\n• Diagnóstico personalizado\n\n**Qual sua principal preocupação estética?**`,
+      content: `🧠 **MEGA CÉREBRO ativado!**\n\nSou um ChatGPT especializado em estética com múltiplos módulos:\n\n🎬 **Roteirista IA** - Crio conteúdo para Instagram\n👩‍🏫 **Professor Virtual** - Ensino protocolos da Academy\n🔍 **Consultor** - Recomendo equipamentos\n📹 **Curador** - Encontro vídeos específicos\n🔬 **Pesquisador** - Acesso estudos científicos\n\n**Como posso ajudá-lo hoje?**`,
       timestamp: new Date()
     };
 
@@ -81,16 +81,20 @@ const AkinatorInteligente: React.FC = () => {
     setProgress(prev => Math.min(prev + 15, 95));
 
     try {
-      console.log('🧠 [AkinatorInteligente] Enviando mensagem para IA...');
+      console.log('🧠 [MEGA CÉREBRO] Enviando mensagem para IA...');
       
-      const { data, error } = await supabase.functions.invoke('mestre-da-beleza-ai', {
+      // Usar o novo MEGA CÉREBRO em vez do sistema antigo
+      const { data, error } = await supabase.functions.invoke('mega-cerebro-ai', {
         body: {
           messages: [...messages, newUserMessage].map(msg => ({
             role: msg.role,
             content: msg.content
           })),
-          currentPath: `consulta_${messages.length}`,
-          userProfile: user ? 'autenticado' : 'anonimo',
+          userProfile: {
+            id: user?.id,
+            authenticated: !!user,
+            preferences: JSON.parse(localStorage.getItem('userPreferences') || '{}')
+          },
           user_id: user?.id,
           modelTier: (typeof window !== 'undefined' && localStorage.getItem('aiMode') === 'gpt5') ? 'gpt5' : 'standard'
         }
@@ -108,12 +112,15 @@ const AkinatorInteligente: React.FC = () => {
 
       setMessages(prev => [...prev, assistantMessage]);
       
-      // Atualizar estatísticas da IA
-      if (data.equipamentosUsados !== undefined && data.artigosConsultados !== undefined) {
-        setAiStats({
-          equipamentosUsados: data.equipamentosUsados,
-          artigosConsultados: data.artigosConsultados
-        });
+      // Atualizar estatísticas do MEGA CÉREBRO
+      setAiStats({
+        equipamentosUsados: data.equipmentUsed || 0,
+        artigosConsultados: data.articlesConsulted || 0
+      });
+
+      // Log da intenção detectada para debug
+      if (data.intent) {
+        console.log(`🎯 Intenção detectada: ${data.intent} (${(data.confidence * 100).toFixed(0)}% confiança)`);
       }
 
       setProgress(prev => Math.min(prev + 10, 100));
@@ -147,11 +154,12 @@ const AkinatorInteligente: React.FC = () => {
   };
 
   const quickQuestions = [
-    "Quero tratar flacidez no rosto",
-    "Tenho gordura localizada na barriga",
-    "Preciso reduzir celulite",
-    "Quero definir o contorno facial",
-    "Tenho manchas na pele"
+    "Crie um roteiro para Instagram sobre botox",
+    "Me ensine protocolo de harmonização facial", 
+    "Qual equipamento é melhor para flacidez?",
+    "Mostre vídeos sobre preenchimento labial",
+    "Quero estudar radiofrequência",
+    "Preciso de artigos sobre criolipólise"
   ];
 
   return (
@@ -221,21 +229,26 @@ const AkinatorInteligente: React.FC = () => {
               <Card className="aurora-glass border border-aurora-neon-blue/30">
                 <CardContent className="p-6 text-center">
                   <h2 className="text-2xl font-bold text-aurora-text-primary mb-3 aurora-heading-enhanced">
-                    Mestre da Beleza 2.0
+                    🧠 MEGA CÉREBRO
                   </h2>
                   <p className="text-aurora-text-muted text-base mb-4">
-                    Powered by IA + Base Científica Completa
+                    ChatGPT Especializado + Base Científica Completa
                   </p>
-                  <div className="grid grid-cols-2 gap-3 mb-4 text-sm">
-                    <div className="aurora-glass p-3 rounded-lg">
-                      <Brain className="w-6 h-6 text-aurora-neon-blue mx-auto mb-2" />
-                      <div className="text-aurora-neon-blue font-semibold">IA Avançada</div>
-                      <div className="text-aurora-text-muted">OpenAI GPT-4</div>
+                  <div className="grid grid-cols-3 gap-2 mb-4 text-xs">
+                    <div className="aurora-glass p-2 rounded-lg">
+                      <Brain className="w-5 h-5 text-aurora-neon-blue mx-auto mb-1" />
+                      <div className="text-aurora-neon-blue font-semibold">Roteirista IA</div>
+                      <div className="text-aurora-text-muted">Conteúdo</div>
                     </div>
-                    <div className="aurora-glass p-3 rounded-lg">
-                      <BookOpen className="w-6 h-6 text-aurora-cyan mx-auto mb-2" />
-                      <div className="text-aurora-cyan font-semibold">Base Científica</div>
-                      <div className="text-aurora-text-muted">Estudos + Equipamentos</div>
+                    <div className="aurora-glass p-2 rounded-lg">
+                      <BookOpen className="w-5 h-5 text-aurora-cyan mx-auto mb-1" />
+                      <div className="text-aurora-cyan font-semibold">Professor</div>
+                      <div className="text-aurora-text-muted">Academy</div>
+                    </div>
+                    <div className="aurora-glass p-2 rounded-lg">
+                      <Zap className="w-5 h-5 text-aurora-electric-purple mx-auto mb-1" />
+                      <div className="text-aurora-electric-purple font-semibold">Consultor</div>
+                      <div className="text-aurora-text-muted">Equipamentos</div>
                     </div>
                   </div>
                   <Button
@@ -243,7 +256,7 @@ const AkinatorInteligente: React.FC = () => {
                     className="aurora-button-enhanced px-6 py-2 rounded-full text-base"
                   >
                     <Sparkles className="mr-2 h-4 w-4" />
-                    Iniciar Consulta Inteligente
+                    Ativar MEGA CÉREBRO
                   </Button>
                 </CardContent>
               </Card>
