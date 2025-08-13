@@ -4049,6 +4049,10 @@ export type Database = {
         Args: { user_id_param: string }
         Returns: undefined
       }
+      check_admin_role: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
       check_rate_limit: {
         Args: {
           p_identifier: string
