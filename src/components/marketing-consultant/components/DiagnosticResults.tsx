@@ -16,6 +16,7 @@ import { toast } from 'sonner';
 import { MarketingConsultantState } from '@/components/akinator-marketing-consultant/types';
 import { calculateStrategicScore, getScoreExplanation } from '@/utils/calculateStrategicScore';
 import { DiagnosticSession } from '@/hooks/useDiagnosticPersistence';
+import { createSafeHtml } from '@/utils/security';
 
 interface DiagnosticResultsProps {
   state: MarketingConsultantState;
@@ -158,12 +159,12 @@ const DiagnosticResults: React.FC<DiagnosticResultsProps> = ({
               <TabsContent value="overview" className="mt-0">
                 {state.generatedDiagnostic ? (
                   <div className="prose prose-sm max-w-none dark:prose-invert">
-                    <div dangerouslySetInnerHTML={{ 
-                      __html: state.generatedDiagnostic
+                    <div dangerouslySetInnerHTML={createSafeHtml(
+                      state.generatedDiagnostic
                         .replace(/^## /gm, '<h3 class="text-xl font-semibold mt-4 mb-2">')
                         .replace(/\n\n/g, '</p><p>')
                         .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
-                    }} />
+                    )} />
                   </div>
                 ) : (
                   <div className="text-muted-foreground text-center py-8">
@@ -176,14 +177,14 @@ const DiagnosticResults: React.FC<DiagnosticResultsProps> = ({
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {state.generatedDiagnostic && state.generatedDiagnostic.includes('Sugestões de Conteúdo') ? (
                     <div className="prose prose-sm max-w-none dark:prose-invert">
-                      <div dangerouslySetInnerHTML={{ 
-                        __html: state.generatedDiagnostic
+                      <div dangerouslySetInnerHTML={createSafeHtml(
+                        state.generatedDiagnostic
                           .split('## 💡 Sugestões de Conteúdo Personalizado')[1]
                           .split('##')[0]
                           .replace(/\n\n/g, '</p><p>')
                           .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
                           .replace(/(\d+\.\s+\*\*[^:]+):/g, '<h4 class="font-medium">$1</h4>')
-                      }} />
+                      )} />
                     </div>
                   ) : (
                     <div className="text-muted-foreground text-center py-8">
@@ -196,14 +197,14 @@ const DiagnosticResults: React.FC<DiagnosticResultsProps> = ({
               <TabsContent value="action-plan" className="mt-0">
                 {state.generatedDiagnostic && state.generatedDiagnostic.includes('Plano de Ação') ? (
                   <div className="prose prose-sm max-w-none dark:prose-invert">
-                    <div dangerouslySetInnerHTML={{ 
-                      __html: state.generatedDiagnostic
+                    <div dangerouslySetInnerHTML={createSafeHtml(
+                      state.generatedDiagnostic
                         .split('## 📅 Plano de Ação Semanal')[1]
                         .split('##')[0]
                         .replace(/\n\n/g, '</p><p>')
                         .replace(/\*\*([^*]+)\*\*/g, '<strong class="text-primary">$1</strong>')
                         .replace(/- /g, '• ')
-                    }} />
+                    )} />
                   </div>
                 ) : (
                   <div className="text-muted-foreground text-center py-8">

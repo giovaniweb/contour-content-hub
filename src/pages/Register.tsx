@@ -30,8 +30,7 @@ const Register: React.FC = () => {
       await register({
         email,
         password,
-        name,
-        role: 'admin' // Por padrão, registrar como admin para testes
+        nome: name // Remove role assignment for security - defaults to 'user' in database
       });
       toast.success("Conta criada com sucesso", {
         description: "Você será redirecionado para o dashboard."

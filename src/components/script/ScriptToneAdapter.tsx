@@ -11,6 +11,7 @@ import DisneyStructureIndicator from './DisneyStructureIndicator';
 import { Sparkles, FileText, RefreshCw, CheckCircle, Target, HeartHandshake, Pencil } from 'lucide-react';
 import { getToneRangeByScore, getProgressBar } from './utils/toneAdaptationUtils';
 import { Progress } from "@/components/ui/progress";
+import { createSafeHtml } from '@/utils/security';
 
 interface ScriptToneAdapterProps {
   validationResult: ValidationResult;
@@ -282,12 +283,12 @@ const ScriptToneAdapter: React.FC<ScriptToneAdapterProps> = ({
                   <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0 mt-0.5" />
                   <div 
                     className="text-sm"
-                    dangerouslySetInnerHTML={{ 
-                      __html: suggestion.replace(
+                    dangerouslySetInnerHTML={createSafeHtml(
+                      suggestion.replace(
                         /\*\*(.*?)\*\*/g, 
                         '<span class="font-medium">$1</span>'
-                      ) 
-                    }}
+                      )
+                    )}
                   />
                 </li>
               ))}

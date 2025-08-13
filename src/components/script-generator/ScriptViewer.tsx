@@ -15,6 +15,7 @@ import { useToast } from "@/hooks/use-toast";
 import { ScriptHistoryItem, generatePDF, linkScriptToCalendar, updateScript } from "@/utils/api";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { createSafeHtml } from '@/utils/security';
 
 import ScriptStatusBadge from "@/components/script/ScriptStatusBadge";
 import ScriptMetadata from "@/components/script/ScriptMetadata";
@@ -193,7 +194,7 @@ const ScriptViewer: React.FC<ScriptViewerProps> = ({ script, onRefresh }) => {
       
       <CardContent className="pt-4">
         <div className="prose max-w-none mb-6">
-          <div dangerouslySetInnerHTML={{ __html: script.contentHtml }} />
+          <div dangerouslySetInnerHTML={createSafeHtml(script.contentHtml)} />
         </div>
 
         <ScriptMetadata 

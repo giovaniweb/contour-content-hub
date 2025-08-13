@@ -5,6 +5,7 @@ import { useDiagnosticPersistence } from '@/hooks/useDiagnosticPersistence';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Download, FileText } from 'lucide-react';
 import { toast } from 'sonner';
+import { createSafeHtml } from '@/utils/security';
 
 const DiagnosticReport: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -116,9 +117,9 @@ const DiagnosticReport: React.FC = () => {
           {session.state.generatedDiagnostic ? (
             <div 
               className="text-white leading-relaxed"
-              dangerouslySetInnerHTML={{ 
-                __html: session.state.generatedDiagnostic.replace(/\n/g, '<br/>') 
-              }}
+              dangerouslySetInnerHTML={createSafeHtml(
+                session.state.generatedDiagnostic.replace(/\n/g, '<br/>') 
+              )}
             />
           ) : (
             <div className="text-center py-12">

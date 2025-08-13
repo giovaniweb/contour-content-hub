@@ -2,6 +2,7 @@
 import React from "react";
 import { hasDisneyStructure } from "./utils/scriptFormatUtils";
 import DisneyStructureOverview from "./DisneyStructureOverview";
+import { createSafeHtml } from '@/utils/security';
 
 interface ScriptContentFormatterProps {
   content: string;
@@ -169,7 +170,7 @@ const ScriptContentFormatter: React.FC<ScriptContentFormatterProps> = ({ content
   return (
     <div 
       className="prose prose-sm max-w-none"
-      dangerouslySetInnerHTML={{ __html: formatContent(content) }}
+      dangerouslySetInnerHTML={createSafeHtml(formatContent(content))}
     />
   );
 };

@@ -22,6 +22,7 @@ import {
   Megaphone
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { createSafeHtml } from '@/utils/security';
 
 interface ScriptResultCardProps {
   result: CustomGptResult;
@@ -333,7 +334,7 @@ const ScriptResultCard: React.FC<ScriptResultCardProps> = ({ result }) => {
               <div className="p-6">
                 <div 
                   className="prose prose-sm max-w-none"
-                  dangerouslySetInnerHTML={{ __html: formatContent(result.content) }}
+                  dangerouslySetInnerHTML={createSafeHtml(formatContent(result.content))}
                 />
               </div>
             )}

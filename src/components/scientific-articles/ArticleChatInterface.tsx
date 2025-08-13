@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { MessageSquare, Send, Bot, User, Loader2, Sparkles, Brain, Lightbulb, FileText, Search, BookOpen, TrendingUp, HelpCircle } from 'lucide-react';
 import { UnifiedDocument } from '@/types/document';
 import { supabase } from '@/integrations/supabase/client';
+import { createSafeHtml } from '@/utils/security';
 
 interface ArticleChatInterfaceProps {
   article: UnifiedDocument;
@@ -309,13 +310,13 @@ Estou aqui para ajudar você com o artigo **"${article.titulo_extraido || 'docum
                   <div className="prose prose-invert prose-sm max-w-none">
                     <div 
                       className="text-white text-sm leading-relaxed mb-0 whitespace-pre-wrap"
-                      dangerouslySetInnerHTML={{
-                        __html: message.content
+                      dangerouslySetInnerHTML={createSafeHtml(
+                        message.content
                           .replace(/\*\*(.*?)\*\*/g, '<strong class="text-aurora-cyan">$1</strong>')
                           .replace(/\*(.*?)\*/g, '<em>$1</em>')
                           .replace(/•/g, '◦')
                           .replace(/(\d+\.)/g, '<span class="text-aurora-electric-purple font-semibold">$1</span>')
-                      }}
+                      )}
                     />
                   </div>
                   <p className="text-xs text-slate-400 mt-2 opacity-70">
