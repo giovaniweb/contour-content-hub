@@ -67,7 +67,7 @@ const VideomakerBusca = React.lazy(() => import('@/pages/VideomakerBusca'));
 const Academia = React.lazy(() => import('@/pages/Academia'));
 const CourseDetail = React.lazy(() => import('@/pages/CourseDetail'));
 const AdminAcademia = React.lazy(() => import('@/pages/admin/AdminAcademia'));
-const AdminAcademyCourseCreate = React.lazy(() => import('@/pages/admin/academy/AdminAcademyCourseCreate'));
+const AdminAcademyCourseNew = React.lazy(() => import('@/pages/admin/academy/AdminAcademyCourseNew'));
 const AdminAcademyCourseEdit = React.lazy(() => import('@/pages/admin/academy/AdminAcademyCourseEdit'));
 const AdminAcademyCourseView = React.lazy(() => import('@/pages/admin/academy/AdminAcademyCourseView'));
 
@@ -656,7 +656,7 @@ const AppRoutes: React.FC = () => {
             element={
               <AppLayout requireAdmin={true}>
                 <Suspense fallback={<AuroraLoadingSkeleton />}>
-                  <AdminAcademyCourseCreate />
+                  <AdminAcademyCourseNew />
                 </Suspense>
               </AppLayout>
             } 

@@ -8,7 +8,7 @@ import AdminLayout from '@/components/layout/AdminLayout';
 import { useAcademyStats } from '@/hooks/useAcademyStats';
 import { useAcademyCourses } from '@/hooks/useAcademyCourses';
 import { useAcademyAccessRequests } from '@/hooks/useAcademyAccessRequests';
-import { CourseFormDialog } from '@/components/academy/CourseFormDialog';
+
 import { AccessRequestActions } from '@/components/academy/AccessRequestActions';
 import { InviteUserDialog } from '@/components/academy/InviteUserDialog';
 import { InvitesManagement } from '@/components/academy/InvitesManagement';
