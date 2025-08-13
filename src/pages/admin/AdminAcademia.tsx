@@ -10,6 +10,8 @@ import { useAcademyCourses } from '@/hooks/useAcademyCourses';
 import { useAcademyAccessRequests } from '@/hooks/useAcademyAccessRequests';
 import { CourseFormDialog } from '@/components/academy/CourseFormDialog';
 import { AccessRequestActions } from '@/components/academy/AccessRequestActions';
+import { InviteUserDialog } from '@/components/academy/InviteUserDialog';
+import { InvitesManagement } from '@/components/academy/InvitesManagement';
 import { AcademyCourse } from '@/types/academy';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -56,9 +58,12 @@ const AdminAcademia = () => {
             <h1 className="text-3xl font-bold text-slate-50">Academia</h1>
             <p className="text-slate-400">Gerencie cursos e acessos da academia</p>
           </div>
-          <Button onClick={() => navigate('/admin/academia/curso/novo')}>
-            Novo Curso
-          </Button>
+          <div className="flex gap-3">
+            <InviteUserDialog />
+            <Button onClick={() => navigate('/admin/academia/curso/novo')}>
+              Novo Curso
+            </Button>
+          </div>
         </div>
 
         {/* Stats Cards */}
@@ -124,6 +129,9 @@ const AdminAcademia = () => {
             </TabsTrigger>
             <TabsTrigger value="requests" className="data-[state=active]:bg-slate-700">
               Solicitações
+            </TabsTrigger>
+            <TabsTrigger value="invites" className="data-[state=active]:bg-slate-700">
+              Convites
             </TabsTrigger>
           </TabsList>
 
@@ -256,6 +264,11 @@ const AdminAcademia = () => {
                 )}
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* Invites Tab */}
+          <TabsContent value="invites">
+            <InvitesManagement />
           </TabsContent>
         </Tabs>
       </div>

@@ -64,3 +64,38 @@ export interface CourseFormData {
   has_final_exam: boolean;
   has_satisfaction_survey: boolean;
 }
+
+// Academy Invites
+export interface AcademyInvite {
+  id: string;
+  email: string;
+  first_name: string;
+  course_ids: string[];
+  invited_by: string;
+  invite_token: string;
+  expires_at: string;
+  status: 'pending' | 'accepted' | 'expired' | 'cancelled';
+  accepted_at?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface InviteFormData {
+  email: string;
+  first_name: string;
+  course_ids: string[];
+  expires_hours?: number;
+}
+
+// Email Templates
+export interface AcademyEmailTemplate {
+  id: string;
+  template_type: 'welcome' | 'content_released' | 'invite' | 'certificate';
+  subject: string;
+  html_content: string;
+  text_content?: string;
+  variables: Record<string, any>;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}

@@ -162,6 +162,42 @@ export type Database = {
           },
         ]
       }
+      academy_email_templates: {
+        Row: {
+          created_at: string
+          html_content: string
+          id: string
+          is_active: boolean
+          subject: string
+          template_type: string
+          text_content: string | null
+          updated_at: string
+          variables: Json | null
+        }
+        Insert: {
+          created_at?: string
+          html_content: string
+          id?: string
+          is_active?: boolean
+          subject: string
+          template_type: string
+          text_content?: string | null
+          updated_at?: string
+          variables?: Json | null
+        }
+        Update: {
+          created_at?: string
+          html_content?: string
+          id?: string
+          is_active?: boolean
+          subject?: string
+          template_type?: string
+          text_content?: string | null
+          updated_at?: string
+          variables?: Json | null
+        }
+        Relationships: []
+      }
       academy_exam_options: {
         Row: {
           created_at: string
@@ -240,6 +276,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      academy_invites: {
+        Row: {
+          accepted_at: string | null
+          course_ids: string[]
+          created_at: string
+          email: string
+          expires_at: string
+          first_name: string
+          id: string
+          invite_token: string
+          invited_by: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          course_ids: string[]
+          created_at?: string
+          email: string
+          expires_at?: string
+          first_name: string
+          id?: string
+          invite_token: string
+          invited_by: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          course_ids?: string[]
+          created_at?: string
+          email?: string
+          expires_at?: string
+          first_name?: string
+          id?: string
+          invite_token?: string
+          invited_by?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       academy_lesson_feedback: {
         Row: {
@@ -4069,6 +4147,10 @@ export type Database = {
         Returns: Json
       }
       cleanup_completed_uploads: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      cleanup_expired_invites: {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
