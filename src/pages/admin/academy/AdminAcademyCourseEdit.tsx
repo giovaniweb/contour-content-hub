@@ -242,14 +242,8 @@ const AdminAcademyCourseEdit = () => {
 
       {/* Lesson Form Dialog */}
       <LessonFormDialog
-        isOpen={showLessonForm}
-        onClose={() => {
-          setShowLessonForm(false);
-          setEditingLesson(null);
-        }}
         onSubmit={handleLessonSubmit}
-        initialData={editingLesson}
-        courseId={id || ''}
+        nextOrderIndex={lessons.length + 1}
       />
     </AdminLayout>
   );

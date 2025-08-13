@@ -202,10 +202,8 @@ export const CourseDetailModal: React.FC<CourseDetailModalProps> = ({
       </Dialog>
 
       <LessonFormDialog
-        isOpen={showLessonForm}
-        onClose={() => setShowLessonForm(false)}
         onSubmit={handleCreateLesson}
-        courseId={course.id}
+        nextOrderIndex={lessons.length + 1}
       />
     </>
   );
