@@ -4019,7 +4019,6 @@ export type Database = {
           id: string | null
           modelo: string | null
           nome: string | null
-          prompt: string | null
           tipo: string | null
         }
         Insert: {
@@ -4028,7 +4027,6 @@ export type Database = {
           id?: string | null
           modelo?: string | null
           nome?: string | null
-          prompt?: string | null
           tipo?: string | null
         }
         Update: {
@@ -4037,7 +4035,6 @@ export type Database = {
           id?: string | null
           modelo?: string | null
           nome?: string | null
-          prompt?: string | null
           tipo?: string | null
         }
         Relationships: []
