@@ -4145,9 +4145,21 @@ export type Database = {
         Args: { video_id_param: string }
         Returns: Json
       }
+      get_user_role_safe: {
+        Args: { user_uuid: string }
+        Returns: string
+      }
+      has_role: {
+        Args: { required_role: string }
+        Returns: boolean
+      }
       increment_favorites_count: {
         Args: { video_id: string }
         Returns: undefined
+      }
+      is_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
       }
       log_admin_action: {
         Args: {
