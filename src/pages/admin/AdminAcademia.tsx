@@ -177,6 +177,14 @@ const AdminAcademia = () => {
                             size="sm" 
                             variant="outline" 
                             className="border-slate-600"
+                            onClick={() => navigate(`/admin/academia/curso/${course.id}/aulas`)}
+                          >
+                            <BookOpen className="h-4 w-4" />
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            className="border-slate-600"
                             onClick={() => navigate(`/admin/academia/curso/${course.id}`)}
                           >
                             <Eye className="h-4 w-4" />

@@ -70,6 +70,7 @@ const AdminAcademia = React.lazy(() => import('@/pages/admin/AdminAcademia'));
 const AdminAcademyCourseNew = React.lazy(() => import('@/pages/admin/academy/AdminAcademyCourseNew'));
 const AdminAcademyCourseEdit = React.lazy(() => import('@/pages/admin/academy/AdminAcademyCourseEdit'));
 const AdminAcademyCourseView = React.lazy(() => import('@/pages/admin/academy/AdminAcademyCourseView'));
+const AdminAcademyCourseLessons = React.lazy(() => import('@/pages/admin/academy/AdminAcademyCourseLessons'));
 
 const AppRoutes: React.FC = () => {
   return (
@@ -679,6 +680,17 @@ const AppRoutes: React.FC = () => {
               <AppLayout requireAdmin={true}>
                 <Suspense fallback={<AuroraLoadingSkeleton />}>
                   <AdminAcademyCourseView />
+                </Suspense>
+              </AppLayout>
+            } 
+          />
+
+          <Route 
+            path="/admin/academia/curso/:courseId/aulas"
+            element={
+              <AppLayout requireAdmin={true}>
+                <Suspense fallback={<AuroraLoadingSkeleton />}>
+                  <AdminAcademyCourseLessons />
                 </Suspense>
               </AppLayout>
             } 
