@@ -6,7 +6,7 @@ import { useAuth } from "@/context/AuthContext";
 import MessageBubble from "./components/MessageBubble";
 import TypingIndicator from "./components/TypingIndicator";
 import ChatInput from "./components/ChatInput";
-import WelcomeSuggestions from "./components/WelcomeSuggestions";
+import ChatFDAWelcomeScreen from "./components/ChatFDAWelcomeScreen";
 
 interface Message {
   role: 'user' | 'assistant';
@@ -144,28 +144,35 @@ const AkinatorInteligente: React.FC = () => {
     setMessages([welcomeMessage]);
   };
 
+  // Verificar se deve mostrar welcome screen (sem mensagens do usuário)
+  const hasUserMessages = messages.some(msg => msg.role === 'user');
+  const showWelcome = !hasUserMessages && !isThinking;
+
   return (
     <div className="h-full flex flex-col">
-      {/* Messages Area */}
+      {/* Messages Area - Scroll único */}
       <div className="flex-1 overflow-y-auto">
         <div className="max-w-4xl mx-auto px-4">
-          {messages.map((message, index) => (
-            <div key={index} className="py-4 border-b border-border/10">
-              <MessageBubble message={message} />
-            </div>
-          ))}
-          
-          {isThinking && (
-            <div className="py-4 border-b border-border/10">
-              <TypingIndicator />
-            </div>
-          )}
-          
-          {/* Sugestões - apenas na primeira mensagem */}
-          {messages.length === 1 && !isThinking && (
-            <div className="py-8">
-              <WelcomeSuggestions onSuggestionClick={sendMessage} />
-            </div>
+          {showWelcome ? (
+            // Welcome Screen - ChatGPT style
+            <ChatFDAWelcomeScreen onSuggestionClick={sendMessage} />
+          ) : (
+            // Chat Messages
+            <>
+              {messages.map((message, index) => (
+                <div key={index} className="py-4 border-b border-border/10">
+                  <MessageBubble message={message} />
+                </div>
+              ))}
+              
+              {isThinking && (
+                <div className="py-4 border-b border-border/10">
+                  <TypingIndicator />
+                </div>
+              )}
+              
+              <div ref={messagesEndRef} />
+            </>
           )}
         </div>
       </div>
