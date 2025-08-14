@@ -22,21 +22,19 @@ const MestreDaBelezaPage: React.FC = () => {
   ];
 
   return (
-    <AuroraPageLayout containerSize="full" padding="none" fullHeight>
-      <div className="h-screen flex flex-col">
-        <div className="flex-shrink-0">
-          <StandardPageHeader
-            icon={Sparkles}
-            title="Mestre da Beleza 2.0"
-            subtitle="IA Científica com Base Completa de Equipamentos e Estudos"
-            statusBadges={statusBadges}
-          />
-        </div>
-        <div className="flex-1 overflow-hidden">
-          <AkinatorInteligente />
-        </div>
+    <div className="min-h-screen flex flex-col bg-background">
+      <div className="flex-shrink-0">
+        <StandardPageHeader
+          icon={Sparkles}
+          title="Mestre da Beleza 2.0"
+          subtitle="IA Científica com Base Completa de Equipamentos e Estudos"
+          statusBadges={statusBadges}
+        />
       </div>
-    </AuroraPageLayout>
+      <div className="flex-1 min-h-0">
+        <AkinatorInteligente />
+      </div>
+    </div>
   );
 };
 

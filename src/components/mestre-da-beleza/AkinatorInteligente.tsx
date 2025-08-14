@@ -145,40 +145,34 @@ const AkinatorInteligente: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-full bg-background">
-      {/* Messages Area - Full width with scroll */}
+    <div className="h-full flex flex-col">
+      {/* Messages Area */}
       <div className="flex-1 overflow-y-auto">
-        <div className="w-full">
+        <div className="max-w-4xl mx-auto px-4">
           {messages.map((message, index) => (
-            <div key={index} className="w-full py-4 px-4 border-b border-border/10">
-              <div className="max-w-3xl mx-auto">
-                <MessageBubble message={message} />
-              </div>
+            <div key={index} className="py-4 border-b border-border/10">
+              <MessageBubble message={message} />
             </div>
           ))}
           
           {isThinking && (
-            <div className="w-full py-4 px-4 border-b border-border/10">
-              <div className="max-w-3xl mx-auto">
-                <TypingIndicator />
-              </div>
+            <div className="py-4 border-b border-border/10">
+              <TypingIndicator />
             </div>
           )}
           
           {/* Sugestões - apenas na primeira mensagem */}
           {messages.length === 1 && !isThinking && (
-            <div className="w-full py-8 px-4">
-              <div className="max-w-3xl mx-auto">
-                <WelcomeSuggestions onSuggestionClick={sendMessage} />
-              </div>
+            <div className="py-8">
+              <WelcomeSuggestions onSuggestionClick={sendMessage} />
             </div>
           )}
         </div>
       </div>
 
-      {/* Input fixo no bottom - ChatGPT style */}
-      <div className="flex-shrink-0 bg-background/95 backdrop-blur-sm border-t border-border/20">
-        <div className="max-w-3xl mx-auto">
+      {/* Input fixo no bottom */}
+      <div className="flex-shrink-0 border-t border-border/20 bg-background">
+        <div className="max-w-4xl mx-auto px-4">
           <ChatInput
             onSendMessage={sendMessage}
             onReset={resetSession}
