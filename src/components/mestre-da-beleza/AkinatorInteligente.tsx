@@ -145,37 +145,49 @@ const AkinatorInteligente: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-full">
-      {/* Chat Container - estilo Instagram/ChatGPT */}
-      <div className="flex-1 flex flex-col bg-background">
-        {/* Messages Area */}
-        <div className="flex-1 overflow-y-auto">
-          <div className="max-w-4xl mx-auto px-4 py-6">
-            <div className="space-y-4">
-              {messages.map((message, index) => (
-                <MessageBubble key={index} message={message} />
-              ))}
-              
-              {isThinking && <TypingIndicator />}
-              
-              {/* Sugestões - apenas na primeira mensagem */}
-              {messages.length === 1 && !isThinking && (
-                <WelcomeSuggestions onSuggestionClick={sendMessage} />
-              )}
-              
-              <div ref={messagesEndRef} />
+    // ChatGPT-style: Full viewport without containers
+    <div className="fixed inset-0 flex flex-col bg-background">
+      {/* Messages Area - Full width with scroll */}
+      <div className="flex-1 overflow-y-auto">
+        <div className="w-full">
+          {messages.map((message, index) => (
+            <div key={index} className="w-full py-4 px-4 border-b border-border/30">
+              <div className="max-w-3xl mx-auto">
+                <MessageBubble message={message} />
+              </div>
             </div>
-          </div>
+          ))}
+          
+          {isThinking && (
+            <div className="w-full py-4 px-4 border-b border-border/30">
+              <div className="max-w-3xl mx-auto">
+                <TypingIndicator />
+              </div>
+            </div>
+          )}
+          
+          {/* Sugestões - apenas na primeira mensagem */}
+          {messages.length === 1 && !isThinking && (
+            <div className="w-full py-8 px-4">
+              <div className="max-w-3xl mx-auto">
+                <WelcomeSuggestions onSuggestionClick={sendMessage} />
+              </div>
+            </div>
+          )}
         </div>
+      </div>
 
-        {/* Chat Input - sticky bottom */}
-        <ChatInput
-          onSendMessage={sendMessage}
-          onReset={resetSession}
-          disabled={isThinking}
-          aiMode={aiMode}
-          onModeChange={setAiMode}
-        />
+      {/* Input fixo no bottom - ChatGPT style */}
+      <div className="flex-shrink-0 bg-background border-t border-border/30">
+        <div className="max-w-3xl mx-auto">
+          <ChatInput
+            onSendMessage={sendMessage}
+            onReset={resetSession}
+            disabled={isThinking}
+            aiMode={aiMode}
+            onModeChange={setAiMode}
+          />
+        </div>
       </div>
     </div>
   );

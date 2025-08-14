@@ -17,13 +17,9 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
   const isUser = message.role === 'user';
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      className={`flex gap-3 ${isUser ? 'flex-row-reverse' : 'flex-row'}`}
-    >
+    <div className={`flex gap-4 ${isUser ? 'flex-row-reverse' : 'flex-row'}`}>
       {!isUser && (
-        <Avatar className="h-8 w-8 flex-shrink-0">
+        <Avatar className="h-8 w-8 flex-shrink-0 mt-1">
           <AvatarImage src="/lovable-uploads/f10b82b4-cb1b-4038-be9c-b1ba32da698b.png" />
           <AvatarFallback className="bg-primary/10">
             <Sparkles className="h-4 w-4 text-primary" />
@@ -31,14 +27,14 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
         </Avatar>
       )}
       
-      <div
-        className={`max-w-[70%] rounded-2xl px-4 py-3 ${
-          isUser
-            ? 'bg-primary text-primary-foreground'
-            : 'bg-muted/50 border border-border'
-        }`}
-      >
-        <div className="text-sm leading-relaxed">
+      <div className="flex-1 min-w-0">
+        <div
+          className={`inline-block px-4 py-3 rounded-2xl text-sm leading-relaxed ${
+            isUser
+              ? 'bg-primary text-primary-foreground ml-auto'
+              : 'bg-muted/50 border border-border'
+          }`}
+        >
           {message.content.split('\n').map((line, i) => {
             if (line.includes('**')) {
               const parts = line.split('**');
@@ -60,14 +56,14 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
           })}
         </div>
         
-        <div className={`text-xs mt-2 opacity-60 ${isUser ? 'text-right' : 'text-left'}`}>
+        <div className={`text-xs mt-1 opacity-60 ${isUser ? 'text-right' : 'text-left'}`}>
           {message.timestamp.toLocaleTimeString('pt-BR', { 
             hour: '2-digit', 
             minute: '2-digit' 
           })}
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 };
 

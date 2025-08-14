@@ -34,25 +34,25 @@ const ChatInput: React.FC<ChatInputProps> = ({
   };
 
   return (
-    <div className="border-t bg-background/95 backdrop-blur-sm p-4">
-      <div className="max-w-4xl mx-auto">
-        <div className="relative">
+    <div className="p-4">
+      <div className="flex items-end gap-3">
+        <div className="flex-1 relative">
           <Textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyPress={handleKeyPress}
             placeholder="Digite sua mensagem..."
             disabled={disabled}
-            className="pr-32 resize-none min-h-[52px] max-h-32"
+            className="resize-none min-h-[52px] max-h-32 rounded-3xl pr-24 border-2 border-border/50 focus:border-primary/50 bg-background"
             rows={1}
           />
           
-          <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-2">
+          <div className="absolute right-3 bottom-3 flex items-center gap-2">
             {/* Mode Toggle */}
-            <div className="flex rounded-lg border overflow-hidden bg-secondary/50">
+            <div className="flex rounded-full border overflow-hidden bg-secondary/50 text-xs">
               <button
                 onClick={() => onModeChange('standard')}
-                className={`px-3 py-1 text-xs transition-all ${
+                className={`px-2 py-1 transition-all ${
                   aiMode === 'standard' 
                     ? 'bg-primary text-primary-foreground' 
                     : 'text-muted-foreground hover:text-foreground'
@@ -62,7 +62,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
               </button>
               <button
                 onClick={() => onModeChange('gpt5')}
-                className={`px-3 py-1 text-xs transition-all ${
+                className={`px-2 py-1 transition-all ${
                   aiMode === 'gpt5' 
                     ? 'bg-primary text-primary-foreground' 
                     : 'text-muted-foreground hover:text-foreground'
@@ -71,29 +71,29 @@ const ChatInput: React.FC<ChatInputProps> = ({
                 GPT-5
               </button>
             </div>
-            
-            {/* Send Button */}
-            <Button
-              onClick={handleSubmit}
-              disabled={!input.trim() || disabled}
-              size="sm"
-              className="rounded-full h-8 w-8 p-0"
-            >
-              <Send className="h-4 w-4" />
-            </Button>
           </div>
         </div>
         
-        {/* Reset Button */}
-        <div className="flex justify-center mt-3">
-          <button
-            onClick={onReset}
-            className="text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
-          >
-            <RotateCcw className="h-3 w-3" />
-            Nova conversa
-          </button>
-        </div>
+        {/* Send Button */}
+        <Button
+          onClick={handleSubmit}
+          disabled={!input.trim() || disabled}
+          size="sm"
+          className="rounded-full h-12 w-12 p-0 flex-shrink-0"
+        >
+          <Send className="h-5 w-5" />
+        </Button>
+      </div>
+      
+      {/* Reset Button */}
+      <div className="flex justify-center mt-3">
+        <button
+          onClick={onReset}
+          className="text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
+        >
+          <RotateCcw className="h-3 w-3" />
+          Nova conversa
+        </button>
       </div>
     </div>
   );
