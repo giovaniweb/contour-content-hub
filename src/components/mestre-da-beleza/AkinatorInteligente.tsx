@@ -163,239 +163,232 @@ const AkinatorInteligente: React.FC = () => {
   ];
 
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col h-screen">
       <AuroraParticles />
 
-      <div className="relative z-10 w-full max-w-4xl mx-auto space-y-4">
-        
-        {/* Header com Stats */}
+      {/* Header fixo no topo */}
+      <div className="relative z-10 p-4 border-b border-muted/20">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex flex-col items-center gap-3"
+          className="flex items-center justify-between max-w-4xl mx-auto"
         >
           <div className="flex items-center gap-3">
-            <span className="animate-pulse crystal-pulse rounded-full p-3 bg-gradient-to-br from-aurora-neon-blue via-aurora-electric-purple to-aurora-cyan border-2 border-aurora-neon-blue/30">
-              <Brain className="text-white drop-shadow" size={40} />
+            <span className="rounded-full p-2 bg-gradient-to-br from-primary via-primary/80 to-primary border border-primary/30">
+              <Brain className="text-primary-foreground" size={24} />
             </span>
-            <div className="text-center">
-              <GenioMestreHeader 
-                step={isThinking ? "thinking" : sessionStarted ? "question" : "intro"} 
-                phrase={isThinking ? mysticalThinkingPhrases[0] : `${genieName} - IA Científica`}
-              />
-              {sessionStarted && (
-                <div className="flex gap-3 mt-1">
-                  <Badge variant="secondary" className="bg-aurora-neon-blue/20 text-aurora-neon-blue border-aurora-neon-blue/30">
-                    <BookOpen className="w-3 h-3 mr-1" />
-                    {aiStats.artigosConsultados} Estudos
-                  </Badge>
-                  <Badge variant="secondary" className="bg-aurora-cyan/20 text-aurora-cyan border-aurora-cyan/30">
-                    <Zap className="w-3 h-3 mr-1" />
-                    {aiStats.equipamentosUsados} Equipamentos
-                  </Badge>
-                </div>
-              )}
+            <div>
+              <h1 className="text-lg font-semibold text-foreground">MEGA CÉREBRO</h1>
+              <p className="text-sm text-muted-foreground">ChatGPT Especializado</p>
             </div>
           </div>
-          <div className="mt-2">
-            <div className="inline-flex rounded-full border border-aurora-neon-blue/30 overflow-hidden">
-              <button
-                onClick={() => setAiMode('standard')}
-                className={`px-3 py-1 text-sm transition-colors ${aiMode === 'standard' ? 'bg-aurora-neon-blue/20 text-aurora-neon-blue' : 'text-aurora-text-muted'}`}
-                aria-pressed={aiMode === 'standard'}
-              >
-                IA: Padrão
-              </button>
-              <button
-                onClick={() => setAiMode('gpt5')}
-                className={`px-3 py-1 text-sm transition-colors ${aiMode === 'gpt5' ? 'bg-aurora-electric-purple/20 text-aurora-electric-purple' : 'text-aurora-text-muted'}`}
-                aria-pressed={aiMode === 'gpt5'}
-              >
-                GPT‑5 (Beta)
-              </button>
+          
+          {sessionStarted && (
+            <div className="flex gap-2">
+              <Badge variant="secondary" className="text-xs">
+                <BookOpen className="w-3 h-3 mr-1" />
+                {aiStats.artigosConsultados}
+              </Badge>
+              <Badge variant="secondary" className="text-xs">
+                <Zap className="w-3 h-3 mr-1" />
+                {aiStats.equipamentosUsados}
+              </Badge>
             </div>
+          )}
+          
+          <div className="flex rounded-lg border border-border overflow-hidden">
+            <button
+              onClick={() => setAiMode('standard')}
+              className={`px-3 py-1 text-xs transition-colors ${aiMode === 'standard' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+            >
+              Padrão
+            </button>
+            <button
+              onClick={() => setAiMode('gpt5')}
+              className={`px-3 py-1 text-xs transition-colors ${aiMode === 'gpt5' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+            >
+              GPT-5
+            </button>
           </div>
         </motion.div>
-
-        <AnimatePresence mode="wait">
-          {!sessionStarted ? (
-            <motion.div
-              key="welcome"
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              className="space-y-4"
-            >
-              <Card className="aurora-glass border border-aurora-neon-blue/30">
-                <CardContent className="p-6 text-center">
-                  <h2 className="text-2xl font-bold text-aurora-text-primary mb-3 aurora-heading-enhanced">
-                    🧠 MEGA CÉREBRO
-                  </h2>
-                  <p className="text-aurora-text-muted text-base mb-4">
-                    ChatGPT Especializado + Base Científica Completa
-                  </p>
-                  <div className="grid grid-cols-3 gap-2 mb-4 text-xs">
-                    <div className="aurora-glass p-2 rounded-lg">
-                      <Brain className="w-5 h-5 text-aurora-neon-blue mx-auto mb-1" />
-                      <div className="text-aurora-neon-blue font-semibold">Roteirista IA</div>
-                      <div className="text-aurora-text-muted">Conteúdo</div>
-                    </div>
-                    <div className="aurora-glass p-2 rounded-lg">
-                      <BookOpen className="w-5 h-5 text-aurora-cyan mx-auto mb-1" />
-                      <div className="text-aurora-cyan font-semibold">Professor</div>
-                      <div className="text-aurora-text-muted">Academy</div>
-                    </div>
-                    <div className="aurora-glass p-2 rounded-lg">
-                      <Zap className="w-5 h-5 text-aurora-electric-purple mx-auto mb-1" />
-                      <div className="text-aurora-electric-purple font-semibold">Consultor</div>
-                      <div className="text-aurora-text-muted">Equipamentos</div>
-                    </div>
-                  </div>
-                  <Button
-                    onClick={startSession}
-                    className="aurora-button-enhanced px-6 py-2 rounded-full text-base"
-                  >
-                    <Sparkles className="mr-2 h-4 w-4" />
-                    Ativar MEGA CÉREBRO
-                  </Button>
-                </CardContent>
-              </Card>
-            </motion.div>
-          ) : (
-            <motion.div
-              key="chat"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="space-y-4"
-            >
-              {/* Chat Messages */}
-              <Card className="aurora-card border-2 border-purple-400/50 backdrop-blur-lg">
-                <CardContent className="p-4">
-                  <div className="h-80 overflow-y-auto space-y-3 mb-4">
-                    {messages.map((message, index) => (
-                      <motion.div
-                        key={index}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                      >
-                        <div
-                          className={`max-w-[85%] p-3 rounded-lg ${
-                            message.role === 'user'
-                              ? 'bg-cyan-600/30 text-cyan-100 border border-cyan-500/30'
-                              : 'bg-purple-600/30 text-purple-100 border border-purple-500/30'
-                          }`}
-                        >
-                          <div className="text-sm leading-relaxed">
-                            {message.content.split('\n').map((line, i) => {
-                              // Texto em negrito
-                              if (line.includes('**')) {
-                                const parts = line.split('**');
-                                return (
-                                  <div key={i} className="mb-1">
-                                    {parts.map((part, j) => 
-                                      j % 2 === 1 ? 
-                                        <span key={j} className="font-bold text-yellow-200">{part}</span> : 
-                                        <span key={j}>{part}</span>
-                                    )}
-                                  </div>
-                                );
-                              }
-                              // Bullets
-                              if (line.startsWith('•')) {
-                                return <div key={i} className="ml-2 mb-1 text-purple-100">{line}</div>;
-                              }
-                              // Emojis importantes
-                              if (line.match(/^[🔮✨🎯🧙‍♂️💡]/)) {
-                                return <div key={i} className="font-medium mb-1">{line}</div>;
-                              }
-                              return line ? <div key={i} className="mb-1">{line}</div> : <br key={i} />;
-                            })}
-                          </div>
-                          <div className="text-xs opacity-50 mt-2">
-                            {message.timestamp.toLocaleTimeString()}
-                          </div>
-                        </div>
-                      </motion.div>
-                    ))}
-                    
-                    {isThinking && (
-                      <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        className="flex justify-start"
-                      >
-                        <div className="bg-purple-600/30 border border-purple-500/30 p-3 rounded-lg">
-                          <div className="flex items-center gap-2">
-                            <Sparkles className="w-4 h-4 animate-pulse text-purple-300" />
-                            <span className="text-purple-200 italic text-sm">
-                              Analisando base científica...
-                            </span>
-                          </div>
-                        </div>
-                      </motion.div>
-                    )}
-                    <div ref={messagesEndRef} />
-                  </div>
-
-                  {/* Quick Questions */}
-                  {messages.length === 1 && !isThinking && (
-                    <div className="mb-4">
-                      <div className="text-xs text-purple-300 mb-2">💡 Sugestões:</div>
-                      <div className="flex flex-wrap gap-1.5">
-                        {quickQuestions.map((question, index) => (
-                          <Button
-                            key={index}
-                            variant="outline"
-                            size="sm"
-                            onClick={() => sendMessage(question)}
-                            className="text-xs bg-purple-800/20 hover:bg-purple-700/30 border-purple-500/30 text-purple-200 h-8"
-                          >
-                            {question}
-                          </Button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Input */}
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      value={currentInput}
-                      onChange={(e) => setCurrentInput(e.target.value)}
-                      onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
-                      placeholder="Descreva sua preocupação..."
-                      disabled={isThinking}
-                      className="flex-1 p-3 rounded-lg bg-purple-900/30 border border-purple-500/30 text-white text-sm placeholder-purple-300 focus:outline-none focus:border-cyan-400 disabled:opacity-50"
-                    />
-                    <Button
-                      onClick={() => sendMessage()}
-                      disabled={!currentInput.trim() || isThinking}
-                      className="bg-gradient-to-r from-cyan-600 to-purple-600 hover:from-cyan-700 hover:to-purple-700"
-                    >
-                      <ArrowRight className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Reset Button */}
-              <div className="text-center">
-                <Button
-                  onClick={resetSession}
-                  variant="ghost"
-                  size="sm"
-                  className="text-gray-300 hover:text-white"
-                >
-                  <RotateCcw className="mr-2 h-4 w-4" />
-                  Nova Consulta
-                </Button>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
       </div>
+
+      <AnimatePresence mode="wait">
+        {!sessionStarted ? (
+          /* Tela inicial */
+          <motion.div
+            key="welcome"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            className="flex-1 flex items-center justify-center p-4"
+          >
+            <div className="max-w-2xl text-center space-y-6">
+              <div className="space-y-2">
+                <h2 className="text-4xl font-bold text-foreground">🧠 MEGA CÉREBRO</h2>
+                <p className="text-lg text-muted-foreground">
+                  ChatGPT especializado em estética com base científica completa
+                </p>
+              </div>
+              
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+                <div className="p-4 rounded-lg border border-border bg-card">
+                  <Brain className="w-6 h-6 text-primary mx-auto mb-2" />
+                  <div className="font-medium text-foreground">Roteirista IA</div>
+                  <div className="text-muted-foreground">Cria conteúdo</div>
+                </div>
+                <div className="p-4 rounded-lg border border-border bg-card">
+                  <BookOpen className="w-6 h-6 text-primary mx-auto mb-2" />
+                  <div className="font-medium text-foreground">Professor</div>
+                  <div className="text-muted-foreground">Ensina protocolos</div>
+                </div>
+                <div className="p-4 rounded-lg border border-border bg-card">
+                  <Zap className="w-6 h-6 text-primary mx-auto mb-2" />
+                  <div className="font-medium text-foreground">Consultor</div>
+                  <div className="text-muted-foreground">Equipamentos</div>
+                </div>
+              </div>
+              
+              <Button
+                onClick={startSession}
+                size="lg"
+                className="text-base px-8"
+              >
+                <Sparkles className="mr-2 h-5 w-5" />
+                Começar conversa
+              </Button>
+            </div>
+          </motion.div>
+        ) : (
+          /* Interface de chat - similar ao ChatGPT */
+          <motion.div
+            key="chat"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex-1 flex flex-col"
+          >
+            {/* Área das mensagens */}
+            <div className="flex-1 overflow-y-auto">
+              <div className="max-w-4xl mx-auto px-4">
+                <div className="space-y-4 py-4">
+                  {messages.map((message, index) => (
+                    <motion.div
+                      key={index}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                    >
+                      <div
+                        className={`max-w-[80%] p-4 rounded-2xl ${
+                          message.role === 'user'
+                            ? 'bg-primary text-primary-foreground ml-12'
+                            : 'bg-muted mr-12'
+                        }`}
+                      >
+                        <div className="text-sm leading-relaxed whitespace-pre-wrap">
+                          {message.content.split('\n').map((line, i) => {
+                            if (line.includes('**')) {
+                              const parts = line.split('**');
+                              return (
+                                <div key={i} className="mb-1">
+                                  {parts.map((part, j) => 
+                                    j % 2 === 1 ? 
+                                      <span key={j} className="font-semibold">{part}</span> : 
+                                      <span key={j}>{part}</span>
+                                  )}
+                                </div>
+                              );
+                            }
+                            return line ? <div key={i} className="mb-1">{line}</div> : <br key={i} />;
+                          })}
+                        </div>
+                        <div className="text-xs opacity-70 mt-2">
+                          {message.timestamp.toLocaleTimeString()}
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+                  
+                  {isThinking && (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      className="flex justify-start"
+                    >
+                      <div className="bg-muted p-4 rounded-2xl mr-12">
+                        <div className="flex items-center gap-2">
+                          <Sparkles className="w-4 h-4 animate-pulse text-primary" />
+                          <span className="text-sm text-muted-foreground">
+                            Analisando base científica...
+                          </span>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                  <div ref={messagesEndRef} />
+                </div>
+                
+                {/* Sugestões de perguntas */}
+                {messages.length === 1 && !isThinking && (
+                  <div className="pb-4">
+                    <div className="text-sm text-muted-foreground mb-3">💡 Sugestões:</div>
+                    <div className="flex flex-wrap gap-2">
+                      {quickQuestions.map((question, index) => (
+                        <Button
+                          key={index}
+                          variant="outline"
+                          size="sm"
+                          onClick={() => sendMessage(question)}
+                          className="text-xs h-auto py-2 px-3 rounded-full"
+                        >
+                          {question}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Input fixo na parte inferior - estilo ChatGPT */}
+            <div className="border-t border-border p-4">
+              <div className="max-w-4xl mx-auto">
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={currentInput}
+                    onChange={(e) => setCurrentInput(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
+                    placeholder="Faça uma pergunta..."
+                    disabled={isThinking}
+                    className="w-full p-4 pr-12 rounded-3xl border border-border bg-background text-sm placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50"
+                  />
+                  <Button
+                    onClick={() => sendMessage()}
+                    disabled={!currentInput.trim() || isThinking}
+                    size="sm"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full w-8 h-8 p-0"
+                  >
+                    <ArrowRight className="h-4 w-4" />
+                  </Button>
+                </div>
+                
+                <div className="flex justify-center mt-2">
+                  <Button
+                    onClick={resetSession}
+                    variant="ghost"
+                    size="sm"
+                    className="text-xs text-muted-foreground"
+                  >
+                    <RotateCcw className="mr-1 h-3 w-3" />
+                    Nova conversa
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
