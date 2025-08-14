@@ -163,19 +163,19 @@ const AkinatorInteligente: React.FC = () => {
   ];
 
   return (
-    <div className="flex flex-col h-screen">
+    <div className="flex flex-col h-screen bg-background">
       <AuroraParticles />
 
-      {/* Header fixo no topo */}
-      <div className="relative z-10 p-4 border-b border-muted/20">
+      {/* Header fixo no topo com melhor contraste */}
+      <div className="relative z-10 p-4 border-b border-border/30 bg-background/95 backdrop-blur-lg">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           className="flex items-center justify-between max-w-4xl mx-auto"
         >
           <div className="flex items-center gap-3">
-            <span className="rounded-full p-2 bg-gradient-to-br from-primary via-primary/80 to-primary border border-primary/30">
-              <Brain className="text-primary-foreground" size={24} />
+            <span className="rounded-full p-2 bg-gradient-to-br from-primary/20 via-primary/30 to-primary/40 border border-primary/40 backdrop-blur-sm">
+              <Brain className="text-primary" size={24} />
             </span>
             <div>
               <h1 className="text-lg font-semibold text-foreground">MEGA CÉREBRO</h1>
@@ -185,27 +185,27 @@ const AkinatorInteligente: React.FC = () => {
           
           {sessionStarted && (
             <div className="flex gap-2">
-              <Badge variant="secondary" className="text-xs">
-                <BookOpen className="w-3 h-3 mr-1" />
+              <Badge variant="secondary" className="text-xs bg-muted/60 text-foreground border-border/40">
+                <BookOpen className="w-3 h-3 mr-1 text-primary" />
                 {aiStats.artigosConsultados}
               </Badge>
-              <Badge variant="secondary" className="text-xs">
-                <Zap className="w-3 h-3 mr-1" />
+              <Badge variant="secondary" className="text-xs bg-muted/60 text-foreground border-border/40">
+                <Zap className="w-3 h-3 mr-1 text-primary" />
                 {aiStats.equipamentosUsados}
               </Badge>
             </div>
           )}
           
-          <div className="flex rounded-lg border border-border overflow-hidden">
+          <div className="flex rounded-lg border border-border/40 overflow-hidden bg-muted/30 backdrop-blur-sm">
             <button
               onClick={() => setAiMode('standard')}
-              className={`px-3 py-1 text-xs transition-colors ${aiMode === 'standard' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+              className={`px-3 py-1 text-xs transition-all duration-200 ${aiMode === 'standard' ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'}`}
             >
               Padrão
             </button>
             <button
               onClick={() => setAiMode('gpt5')}
-              className={`px-3 py-1 text-xs transition-colors ${aiMode === 'gpt5' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+              className={`px-3 py-1 text-xs transition-all duration-200 ${aiMode === 'gpt5' ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'}`}
             >
               GPT-5
             </button>
@@ -265,12 +265,12 @@ const AkinatorInteligente: React.FC = () => {
             key="chat"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="flex-1 flex flex-col"
+            className="flex-1 flex flex-col min-h-0"
           >
-            {/* Área das mensagens */}
+            {/* Área das mensagens com scroll melhorado */}
             <div className="flex-1 overflow-y-auto">
               <div className="max-w-4xl mx-auto px-4">
-                <div className="space-y-4 py-4">
+                <div className="space-y-6 py-6">
                   {messages.map((message, index) => (
                     <motion.div
                       key={index}
@@ -279,13 +279,15 @@ const AkinatorInteligente: React.FC = () => {
                       className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
                     >
                       <div
-                        className={`max-w-[80%] p-4 rounded-2xl ${
+                        className={`max-w-[80%] p-4 rounded-2xl backdrop-blur-sm border ${
                           message.role === 'user'
-                            ? 'bg-primary text-primary-foreground ml-12'
-                            : 'bg-muted mr-12'
+                            ? 'bg-primary/90 text-primary-foreground ml-12 border-primary/20 shadow-lg shadow-primary/10'
+                            : 'bg-card/80 text-card-foreground mr-12 border-border/30 shadow-lg shadow-background/10'
                         }`}
                       >
-                        <div className="text-sm leading-relaxed whitespace-pre-wrap">
+                        <div className={`text-sm leading-relaxed whitespace-pre-wrap ${
+                          message.role === 'user' ? 'text-primary-foreground' : 'text-foreground'
+                        }`}>
                           {message.content.split('\n').map((line, i) => {
                             if (line.includes('**')) {
                               const parts = line.split('**');
@@ -293,7 +295,7 @@ const AkinatorInteligente: React.FC = () => {
                                 <div key={i} className="mb-1">
                                   {parts.map((part, j) => 
                                     j % 2 === 1 ? 
-                                      <span key={j} className="font-semibold">{part}</span> : 
+                                      <span key={j} className="font-semibold text-primary">{part}</span> : 
                                       <span key={j}>{part}</span>
                                   )}
                                 </div>
@@ -302,7 +304,9 @@ const AkinatorInteligente: React.FC = () => {
                             return line ? <div key={i} className="mb-1">{line}</div> : <br key={i} />;
                           })}
                         </div>
-                        <div className="text-xs opacity-70 mt-2">
+                        <div className={`text-xs mt-2 ${
+                          message.role === 'user' ? 'text-primary-foreground/70' : 'text-muted-foreground'
+                        }`}>
                           {message.timestamp.toLocaleTimeString()}
                         </div>
                       </div>
@@ -315,10 +319,10 @@ const AkinatorInteligente: React.FC = () => {
                       animate={{ opacity: 1 }}
                       className="flex justify-start"
                     >
-                      <div className="bg-muted p-4 rounded-2xl mr-12">
+                      <div className="bg-card/80 backdrop-blur-sm p-4 rounded-2xl mr-12 border border-border/30 shadow-lg">
                         <div className="flex items-center gap-2">
                           <Sparkles className="w-4 h-4 animate-pulse text-primary" />
-                          <span className="text-sm text-muted-foreground">
+                          <span className="text-sm text-foreground">
                             Analisando base científica...
                           </span>
                         </div>
@@ -330,8 +334,8 @@ const AkinatorInteligente: React.FC = () => {
                 
                 {/* Sugestões de perguntas */}
                 {messages.length === 1 && !isThinking && (
-                  <div className="pb-4">
-                    <div className="text-sm text-muted-foreground mb-3">💡 Sugestões:</div>
+                  <div className="pb-6">
+                    <div className="text-sm text-foreground mb-3 font-medium">💡 Sugestões:</div>
                     <div className="flex flex-wrap gap-2">
                       {quickQuestions.map((question, index) => (
                         <Button
@@ -339,7 +343,7 @@ const AkinatorInteligente: React.FC = () => {
                           variant="outline"
                           size="sm"
                           onClick={() => sendMessage(question)}
-                          className="text-xs h-auto py-2 px-3 rounded-full"
+                          className="text-xs h-auto py-2 px-3 rounded-full bg-card/50 border-border/40 text-foreground hover:bg-card/80 hover:border-primary/30 transition-all duration-200"
                         >
                           {question}
                         </Button>
@@ -350,8 +354,8 @@ const AkinatorInteligente: React.FC = () => {
               </div>
             </div>
 
-            {/* Input fixo na parte inferior - estilo ChatGPT */}
-            <div className="border-t border-border p-4">
+            {/* Input fixo na parte inferior - estilo ChatGPT otimizado */}
+            <div className="sticky bottom-0 border-t border-border/30 p-4 bg-background/95 backdrop-blur-lg">
               <div className="max-w-4xl mx-auto">
                 <div className="relative">
                   <input
@@ -361,24 +365,24 @@ const AkinatorInteligente: React.FC = () => {
                     onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
                     placeholder="Faça uma pergunta..."
                     disabled={isThinking}
-                    className="w-full p-4 pr-12 rounded-3xl border border-border bg-background text-sm placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50"
+                    className="w-full p-4 pr-12 rounded-3xl border border-border/40 bg-card/60 backdrop-blur-sm text-sm text-foreground placeholder-muted-foreground/80 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 disabled:opacity-50 shadow-lg transition-all duration-200"
                   />
                   <Button
                     onClick={() => sendMessage()}
                     disabled={!currentInput.trim() || isThinking}
                     size="sm"
-                    className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full w-8 h-8 p-0"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full w-8 h-8 p-0 bg-primary hover:bg-primary/90 shadow-md"
                   >
                     <ArrowRight className="h-4 w-4" />
                   </Button>
                 </div>
                 
-                <div className="flex justify-center mt-2">
+                <div className="flex justify-center mt-3">
                   <Button
                     onClick={resetSession}
                     variant="ghost"
                     size="sm"
-                    className="text-xs text-muted-foreground"
+                    className="text-xs text-muted-foreground hover:text-foreground transition-colors duration-200"
                   >
                     <RotateCcw className="mr-1 h-3 w-3" />
                     Nova conversa
