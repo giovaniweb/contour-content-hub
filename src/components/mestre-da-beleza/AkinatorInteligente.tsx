@@ -1,16 +1,10 @@
 import React, { useState, useRef, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-
-import { ArrowRight, RotateCcw, Sparkles, Brain, Zap, BookOpen } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { ArrowRight, RotateCcw, Sparkles, Brain } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
-import GenioMestreHeader from "./components/GenioMestreHeader";
-import AuroraParticles from "./components/AuroraParticles";
-import { mysticalIntroPhrases, mysticalThinkingPhrases } from "./genioPhrases";
 
 interface Message {
   role: 'user' | 'assistant';
@@ -177,95 +171,71 @@ const AkinatorInteligente: React.FC = () => {
   ];
 
   return (
-    <div className="flex flex-col flex-1 bg-gray-50">
-      {/* Header fixo no topo - estilo ChatGPT limpo */}
-      <div className="relative z-10 p-4 border-b border-gray-200 bg-white shadow-sm">
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="flex items-center justify-between max-w-4xl mx-auto"
-        >
-          <div className="flex items-center gap-3">
-            <div className="rounded-full p-2 bg-gradient-to-r from-blue-500 to-purple-600 shadow-md">
-              <Brain className="text-white" size={20} />
-            </div>
-            <div>
-              <h1 className="text-xl font-semibold text-gray-900">ChatFDA</h1>
-            </div>
-          </div>
-        </motion.div>
-      </div>
-
+    <div className="flex flex-col h-full max-w-4xl mx-auto">
       {/* Interface de chat - direto, sem tela inicial */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex-1 flex flex-col min-h-0"
+        className="flex flex-col h-full"
       >
         {/* Área das mensagens - estilo ChatGPT limpo */}
-        <div className="flex-1 pb-32">
-          <div className="max-w-3xl mx-auto px-4">
-            <div className="space-y-4 py-6">
-              {messages.map((message, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+        <div className="flex-1 overflow-y-auto pb-32">
+          <div className="space-y-6 py-6">
+            {messages.map((message, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+              >
+                <div
+                  className={`max-w-[75%] p-4 rounded-2xl ${
+                    message.role === 'user'
+                      ? 'bg-primary text-primary-foreground shadow-md'
+                      : 'bg-card text-card-foreground border border-border shadow-sm'
+                  }`}
                 >
-                  <div
-                    className={`max-w-[75%] p-4 rounded-2xl ${
-                      message.role === 'user'
-                        ? 'bg-blue-600 text-white ml-12 shadow-md'
-                        : 'bg-white text-gray-900 mr-12 border border-gray-200 shadow-sm'
-                    }`}
-                  >
-                    <div className={`text-sm leading-relaxed whitespace-pre-wrap ${
-                      message.role === 'user' ? 'text-white' : 'text-gray-900'
-                    }`}>
-                      {message.content.split('\n').map((line, i) => {
-                        if (line.includes('**')) {
-                          const parts = line.split('**');
-                          return (
-                              <div key={i} className="mb-1">
-                                {parts.map((part, j) => 
-                                  j % 2 === 1 ? 
-                                    <span key={j} className={`font-semibold ${message.role === 'user' ? 'text-blue-100' : 'text-blue-600'}`}>{part}</span> : 
-                                    <span key={j}>{part}</span>
-                                )}
-                              </div>
-                          );
-                        }
-                        return line ? <div key={i} className="mb-1">{line}</div> : <br key={i} />;
-                      })}
-                    </div>
-                    <div className={`text-xs mt-2 ${
-                      message.role === 'user' ? 'text-blue-100' : 'text-gray-500'
-                    }`}>
-                      {message.timestamp.toLocaleTimeString()}
-                    </div>
+                  <div className="text-sm leading-relaxed whitespace-pre-wrap">
+                    {message.content.split('\n').map((line, i) => {
+                      if (line.includes('**')) {
+                        const parts = line.split('**');
+                        return (
+                            <div key={i} className="mb-1">
+                              {parts.map((part, j) => 
+                                j % 2 === 1 ? 
+                                  <span key={j} className="font-semibold text-primary">{part}</span> : 
+                                  <span key={j}>{part}</span>
+                              )}
+                            </div>
+                        );
+                      }
+                      return line ? <div key={i} className="mb-1">{line}</div> : <br key={i} />;
+                    })}
                   </div>
-                </motion.div>
-              ))}
-              
-              {isThinking && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="flex justify-start"
-                >
-                  <div className="bg-white border border-gray-200 shadow-sm p-4 rounded-2xl mr-12">
-                    <div className="flex items-center gap-2">
-                      <Sparkles className="w-4 h-4 animate-pulse text-blue-500" />
-                      <span className="text-sm text-gray-600">
-                        Analisando base científica...
-                      </span>
-                    </div>
+                  <div className="text-xs mt-2 opacity-70">
+                    {message.timestamp.toLocaleTimeString()}
                   </div>
-                </motion.div>
-              )}
-              <div ref={messagesEndRef} />
-            </div>
+                </div>
+              </motion.div>
+            ))}
+            
+            {isThinking && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="flex justify-start"
+              >
+                <div className="bg-card border border-border shadow-sm p-4 rounded-2xl">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 animate-pulse text-primary" />
+                    <span className="text-sm text-muted-foreground">
+                      Analisando base científica...
+                    </span>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+            <div ref={messagesEndRef} />
           </div>
         </div>
 
@@ -274,16 +244,16 @@ const AkinatorInteligente: React.FC = () => {
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="fixed bottom-24 left-1/2 transform -translate-x-1/2 z-40"
+            className="absolute bottom-32 left-1/2 transform -translate-x-1/2 z-10"
           >
-            <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-4 max-w-md">
-              <div className="text-sm text-gray-600 mb-3 font-medium text-center">💡 Experimente perguntar:</div>
+            <div className="bg-card rounded-xl shadow-lg border border-border p-4 max-w-md">
+              <div className="text-sm text-muted-foreground mb-3 font-medium text-center">💡 Experimente perguntar:</div>
               <div className="flex flex-wrap gap-2 justify-center">
                 {quickQuestions.slice(0, 3).map((question, index) => (
                   <button
                     key={index}
                     onClick={() => sendMessage(question)}
-                    className="text-xs py-2 px-3 rounded-full bg-gray-100 text-gray-700 hover:bg-gray-200 transition-all duration-200 border border-gray-200"
+                    className="text-xs py-2 px-3 rounded-full bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-all duration-200 border border-border"
                   >
                     {question}
                   </button>
@@ -293,56 +263,54 @@ const AkinatorInteligente: React.FC = () => {
           </motion.div>
         )}
 
-        {/* Input fixo na parte inferior - estilo ChatGPT limpo */}
-        <div className="fixed bottom-0 left-0 right-0 ml-0 md:ml-[104px] border-t border-gray-200 p-4 bg-white shadow-lg z-50">
-          <div className="max-w-3xl mx-auto">
-            <div className="relative">
-              <input
-                type="text"
-                value={currentInput}
-                onChange={(e) => setCurrentInput(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
-                placeholder="Faça uma pergunta..."
-                disabled={isThinking}
-                className="w-full p-4 pr-32 rounded-xl border border-gray-300 bg-white text-sm text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 shadow-sm transition-all duration-200"
-              />
-              
-              {/* Controles no input - Padrão/GPT-5 + Enviar */}
-              <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-2">
-                <div className="flex rounded-lg border border-gray-300 overflow-hidden bg-gray-50">
-                  <button
-                    onClick={() => setAiMode('standard')}
-                    className={`px-3 py-1 text-xs transition-all duration-200 ${aiMode === 'standard' ? 'bg-blue-600 text-white' : 'text-gray-600 hover:text-gray-800 hover:bg-gray-100'}`}
-                  >
-                    Padrão
-                  </button>
-                  <button
-                    onClick={() => setAiMode('gpt5')}
-                    className={`px-3 py-1 text-xs transition-all duration-200 ${aiMode === 'gpt5' ? 'bg-blue-600 text-white' : 'text-gray-600 hover:text-gray-800 hover:bg-gray-100'}`}
-                  >
-                    GPT-5
-                  </button>
-                </div>
-                <Button
-                  onClick={() => sendMessage()}
-                  disabled={!currentInput.trim() || isThinking}
-                  size="sm"
-                  className="rounded-lg w-8 h-8 p-0 bg-blue-600 hover:bg-blue-700 text-white shadow-sm"
-                >
-                  <ArrowRight className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
+        {/* Input sticky na parte inferior - dentro do container */}
+        <div className="sticky bottom-0 left-0 right-0 border-t border-border p-4 bg-background/95 backdrop-blur-sm z-20">
+          <div className="relative">
+            <input
+              type="text"
+              value={currentInput}
+              onChange={(e) => setCurrentInput(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
+              placeholder="Faça uma pergunta..."
+              disabled={isThinking}
+              className="w-full p-4 pr-32 rounded-xl border border-border bg-background text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-ring disabled:opacity-50 shadow-sm transition-all duration-200"
+            />
             
-            <div className="flex justify-center mt-3">
-              <button
-                onClick={resetSession}
-                className="text-xs text-gray-500 hover:text-gray-700 transition-colors duration-200 flex items-center gap-1"
+            {/* Controles no input - Padrão/GPT-5 + Enviar */}
+            <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-2">
+              <div className="flex rounded-lg border border-border overflow-hidden bg-secondary">
+                <button
+                  onClick={() => setAiMode('standard')}
+                  className={`px-3 py-1 text-xs transition-all duration-200 ${aiMode === 'standard' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground hover:bg-secondary/80'}`}
+                >
+                  Padrão
+                </button>
+                <button
+                  onClick={() => setAiMode('gpt5')}
+                  className={`px-3 py-1 text-xs transition-all duration-200 ${aiMode === 'gpt5' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground hover:bg-secondary/80'}`}
+                >
+                  GPT-5
+                </button>
+              </div>
+              <Button
+                onClick={() => sendMessage()}
+                disabled={!currentInput.trim() || isThinking}
+                size="sm"
+                className="rounded-lg w-8 h-8 p-0"
               >
-                <RotateCcw className="h-3 w-3" />
-                Nova conversa
-              </button>
+                <ArrowRight className="h-4 w-4" />
+              </Button>
             </div>
+          </div>
+          
+          <div className="flex justify-center mt-3">
+            <button
+              onClick={resetSession}
+              className="text-xs text-muted-foreground hover:text-foreground transition-colors duration-200 flex items-center gap-1"
+            >
+              <RotateCcw className="h-3 w-3" />
+              Nova conversa
+            </button>
           </div>
         </div>
       </motion.div>
