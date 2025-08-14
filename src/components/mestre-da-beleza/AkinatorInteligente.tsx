@@ -163,7 +163,7 @@ const AkinatorInteligente: React.FC = () => {
   ];
 
   return (
-    <div className="flex flex-col h-screen bg-white">
+    <div className="flex flex-col flex-1 bg-gray-50">
       {/* Header fixo no topo - estilo ChatGPT */}
       <div className="relative z-10 p-4 border-b border-gray-200 bg-white shadow-sm">
         <motion.div
@@ -252,7 +252,7 @@ const AkinatorInteligente: React.FC = () => {
             className="flex-1 flex flex-col min-h-0"
           >
             {/* Área das mensagens - estilo ChatGPT */}
-            <div className="flex-1 overflow-y-auto bg-gray-50">
+            <div className="flex-1 bg-gray-50 pb-32">
               <div className="max-w-3xl mx-auto px-4">
                 <div className="space-y-4 py-6">
                   {messages.map((message, index) => (
@@ -337,7 +337,7 @@ const AkinatorInteligente: React.FC = () => {
             </div>
 
             {/* Input fixo na parte inferior - estilo ChatGPT */}
-            <div className="sticky bottom-0 border-t border-gray-200 p-4 bg-white">
+            <div className="fixed bottom-0 left-0 right-0 ml-0 md:ml-[104px] border-t border-gray-200 p-4 bg-white shadow-lg z-50">
               <div className="max-w-3xl mx-auto">
                 <div className="relative">
                   <input
