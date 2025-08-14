@@ -151,7 +151,7 @@ const AkinatorInteligente: React.FC = () => {
   return (
     <div className="h-full flex flex-col">
       {/* Messages Area - Scroll único */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto aurora-scroll">
         <div className="max-w-4xl mx-auto px-4">
           {showWelcome ? (
             // Welcome Screen - ChatGPT style
@@ -178,7 +178,7 @@ const AkinatorInteligente: React.FC = () => {
       </div>
 
       {/* Input fixo no bottom */}
-      <div className="flex-shrink-0 border-t border-border/20 bg-background">
+      <div className="flex-shrink-0 border-t border-border/20 bg-card/30 backdrop-blur-sm">
         <div className="max-w-4xl mx-auto px-4">
           <ChatInput
             onSendMessage={sendMessage}
