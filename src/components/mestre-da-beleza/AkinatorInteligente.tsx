@@ -145,13 +145,12 @@ const AkinatorInteligente: React.FC = () => {
   };
 
   return (
-    // ChatGPT-style: Full viewport without containers
-    <div className="fixed inset-0 flex flex-col bg-background">
+    <div className="flex flex-col h-full bg-background">
       {/* Messages Area - Full width with scroll */}
       <div className="flex-1 overflow-y-auto">
         <div className="w-full">
           {messages.map((message, index) => (
-            <div key={index} className="w-full py-4 px-4 border-b border-border/30">
+            <div key={index} className="w-full py-4 px-4 border-b border-border/10">
               <div className="max-w-3xl mx-auto">
                 <MessageBubble message={message} />
               </div>
@@ -159,7 +158,7 @@ const AkinatorInteligente: React.FC = () => {
           ))}
           
           {isThinking && (
-            <div className="w-full py-4 px-4 border-b border-border/30">
+            <div className="w-full py-4 px-4 border-b border-border/10">
               <div className="max-w-3xl mx-auto">
                 <TypingIndicator />
               </div>
@@ -178,7 +177,7 @@ const AkinatorInteligente: React.FC = () => {
       </div>
 
       {/* Input fixo no bottom - ChatGPT style */}
-      <div className="flex-shrink-0 bg-background border-t border-border/30">
+      <div className="flex-shrink-0 bg-background/95 backdrop-blur-sm border-t border-border/20">
         <div className="max-w-3xl mx-auto">
           <ChatInput
             onSendMessage={sendMessage}

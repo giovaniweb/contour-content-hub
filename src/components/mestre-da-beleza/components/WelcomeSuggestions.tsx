@@ -18,7 +18,7 @@ const WelcomeSuggestions: React.FC<WelcomeSuggestionsProps> = ({ onSuggestionCli
   return (
     <div className="py-8">
       <div className="text-center mb-6">
-        <p className="text-sm text-muted-foreground">💡 Experimente perguntar:</p>
+        <p className="text-sm text-white/70">💡 Experimente perguntar:</p>
       </div>
       
       <div className="flex flex-wrap gap-3 justify-center">
@@ -26,7 +26,7 @@ const WelcomeSuggestions: React.FC<WelcomeSuggestionsProps> = ({ onSuggestionCli
           <button
             key={index}
             onClick={() => onSuggestionClick(suggestion)}
-            className="text-sm py-3 px-4 rounded-2xl bg-muted/50 border border-border hover:bg-muted transition-all duration-200 hover:border-primary/50"
+            className="text-sm py-3 px-4 rounded-2xl bg-muted/30 border border-border/50 hover:bg-muted/50 transition-all duration-200 hover:border-primary/50 text-white/90 hover:text-white"
           >
             {suggestion}
           </button>

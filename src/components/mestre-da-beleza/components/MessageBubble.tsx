@@ -32,7 +32,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
           className={`inline-block px-4 py-3 rounded-2xl text-sm leading-relaxed ${
             isUser
               ? 'bg-primary text-primary-foreground ml-auto'
-              : 'bg-muted/50 border border-border'
+              : 'bg-muted/30 border border-border/50 text-white'
           }`}
         >
           {message.content.split('\n').map((line, i) => {
@@ -56,7 +56,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
           })}
         </div>
         
-        <div className={`text-xs mt-1 opacity-60 ${isUser ? 'text-right' : 'text-left'}`}>
+        <div className={`text-xs mt-1 ${isUser ? 'text-right text-white/60' : 'text-left text-white/60'}`}>
           {message.timestamp.toLocaleTimeString('pt-BR', { 
             hour: '2-digit', 
             minute: '2-digit' 
