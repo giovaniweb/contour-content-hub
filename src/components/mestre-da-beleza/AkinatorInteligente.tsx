@@ -163,33 +163,33 @@ const AkinatorInteligente: React.FC = () => {
   ];
 
   return (
-    <div className="flex flex-col flex-1 bg-gray-50">
-      {/* Header fixo no topo - estilo ChatGPT */}
-      <div className="relative z-10 p-4 border-b border-gray-200 bg-white shadow-sm">
+    <div className="flex flex-col flex-1 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+      {/* Header fixo no topo - estilo ChatGPT Aurora */}
+      <div className="relative z-10 p-4 border-b border-slate-700/50 bg-slate-800/90 backdrop-blur-sm shadow-lg">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           className="flex items-center justify-between max-w-4xl mx-auto"
         >
           <div className="flex items-center gap-3">
-            <div className="rounded-full p-2 bg-blue-600">
+            <div className="rounded-full p-2 bg-gradient-to-r from-blue-500 to-purple-600 shadow-lg">
               <Brain className="text-white" size={20} />
             </div>
             <div>
-              <h1 className="text-xl font-semibold text-gray-900">MEGA CÉREBRO</h1>
+              <h1 className="text-xl font-semibold text-slate-100">MEGA CÉREBRO</h1>
             </div>
           </div>
           
-          <div className="flex rounded-lg border border-gray-200 overflow-hidden bg-gray-50">
+          <div className="flex rounded-lg border border-slate-600 overflow-hidden bg-slate-700/50 backdrop-blur-sm">
             <button
               onClick={() => setAiMode('standard')}
-              className={`px-4 py-2 text-sm transition-all duration-200 ${aiMode === 'standard' ? 'bg-blue-600 text-white' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'}`}
+              className={`px-4 py-2 text-sm transition-all duration-200 ${aiMode === 'standard' ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white' : 'text-slate-300 hover:text-slate-100 hover:bg-slate-600/50'}`}
             >
               Padrão
             </button>
             <button
               onClick={() => setAiMode('gpt5')}
-              className={`px-4 py-2 text-sm transition-all duration-200 ${aiMode === 'gpt5' ? 'bg-blue-600 text-white' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'}`}
+              className={`px-4 py-2 text-sm transition-all duration-200 ${aiMode === 'gpt5' ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white' : 'text-slate-300 hover:text-slate-100 hover:bg-slate-600/50'}`}
             >
               GPT-5
             </button>
@@ -209,34 +209,34 @@ const AkinatorInteligente: React.FC = () => {
           >
             <div className="max-w-2xl text-center space-y-8">
               <div className="space-y-4">
-                <h2 className="text-5xl font-bold text-gray-900">🧠 MEGA CÉREBRO</h2>
-                <p className="text-xl text-gray-600">
+                <h2 className="text-5xl font-bold bg-gradient-to-r from-blue-400 via-purple-500 to-cyan-400 bg-clip-text text-transparent">🧠 MEGA CÉREBRO</h2>
+                <p className="text-xl text-slate-300">
                   ChatGPT especializado em estética com base científica completa
                 </p>
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm">
-                <div className="p-6 rounded-xl border border-gray-200 bg-white shadow-sm">
-                  <Brain className="w-8 h-8 text-blue-600 mx-auto mb-3" />
-                  <div className="font-semibold text-gray-900 mb-1">Roteirista IA</div>
-                  <div className="text-gray-600">Cria conteúdo para redes sociais</div>
+                <div className="p-6 rounded-xl border border-slate-600 bg-slate-800/70 backdrop-blur-sm shadow-lg">
+                  <Brain className="w-8 h-8 text-blue-400 mx-auto mb-3" />
+                  <div className="font-semibold text-slate-100 mb-1">Roteirista IA</div>
+                  <div className="text-slate-300">Cria conteúdo para redes sociais</div>
                 </div>
-                <div className="p-6 rounded-xl border border-gray-200 bg-white shadow-sm">
-                  <BookOpen className="w-8 h-8 text-blue-600 mx-auto mb-3" />
-                  <div className="font-semibold text-gray-900 mb-1">Professor Virtual</div>
-                  <div className="text-gray-600">Ensina protocolos avançados</div>
+                <div className="p-6 rounded-xl border border-slate-600 bg-slate-800/70 backdrop-blur-sm shadow-lg">
+                  <BookOpen className="w-8 h-8 text-purple-400 mx-auto mb-3" />
+                  <div className="font-semibold text-slate-100 mb-1">Professor Virtual</div>
+                  <div className="text-slate-300">Ensina protocolos avançados</div>
                 </div>
-                <div className="p-6 rounded-xl border border-gray-200 bg-white shadow-sm">
-                  <Zap className="w-8 h-8 text-blue-600 mx-auto mb-3" />
-                  <div className="font-semibold text-gray-900 mb-1">Consultor Expert</div>
-                  <div className="text-gray-600">Recomenda equipamentos</div>
+                <div className="p-6 rounded-xl border border-slate-600 bg-slate-800/70 backdrop-blur-sm shadow-lg">
+                  <Zap className="w-8 h-8 text-cyan-400 mx-auto mb-3" />
+                  <div className="font-semibold text-slate-100 mb-1">Consultor Expert</div>
+                  <div className="text-slate-300">Recomenda equipamentos</div>
                 </div>
               </div>
               
               <Button
                 onClick={startSession}
                 size="lg"
-                className="text-base px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg"
+                className="text-base px-8 py-3 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-200"
               >
                 <Sparkles className="mr-2 h-5 w-5" />
                 Começar conversa
@@ -251,8 +251,8 @@ const AkinatorInteligente: React.FC = () => {
             animate={{ opacity: 1, y: 0 }}
             className="flex-1 flex flex-col min-h-0"
           >
-            {/* Área das mensagens - estilo ChatGPT */}
-            <div className="flex-1 bg-gray-50 pb-32">
+            {/* Área das mensagens - estilo ChatGPT Aurora */}
+            <div className="flex-1 pb-32">
               <div className="max-w-3xl mx-auto px-4">
                 <div className="space-y-4 py-6">
                   {messages.map((message, index) => (
@@ -265,12 +265,12 @@ const AkinatorInteligente: React.FC = () => {
                       <div
                         className={`max-w-[75%] p-4 rounded-2xl ${
                           message.role === 'user'
-                            ? 'bg-blue-600 text-white ml-12'
-                            : 'bg-white text-gray-900 mr-12 border border-gray-200 shadow-sm'
+                            ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white ml-12 shadow-lg'
+                            : 'bg-slate-800/80 backdrop-blur-sm text-slate-100 mr-12 border border-slate-600 shadow-lg'
                         }`}
                       >
                         <div className={`text-sm leading-relaxed whitespace-pre-wrap ${
-                          message.role === 'user' ? 'text-white' : 'text-gray-900'
+                          message.role === 'user' ? 'text-white' : 'text-slate-100'
                         }`}>
                           {message.content.split('\n').map((line, i) => {
                             if (line.includes('**')) {
@@ -279,7 +279,7 @@ const AkinatorInteligente: React.FC = () => {
                                   <div key={i} className="mb-1">
                                     {parts.map((part, j) => 
                                       j % 2 === 1 ? 
-                                        <span key={j} className={`font-semibold ${message.role === 'user' ? 'text-blue-100' : 'text-blue-600'}`}>{part}</span> : 
+                                        <span key={j} className={`font-semibold ${message.role === 'user' ? 'text-blue-100' : 'text-blue-400'}`}>{part}</span> : 
                                         <span key={j}>{part}</span>
                                     )}
                                   </div>
@@ -289,7 +289,7 @@ const AkinatorInteligente: React.FC = () => {
                           })}
                         </div>
                         <div className={`text-xs mt-2 ${
-                          message.role === 'user' ? 'text-blue-100' : 'text-gray-500'
+                          message.role === 'user' ? 'text-blue-100' : 'text-slate-400'
                         }`}>
                           {message.timestamp.toLocaleTimeString()}
                         </div>
@@ -303,10 +303,10 @@ const AkinatorInteligente: React.FC = () => {
                       animate={{ opacity: 1 }}
                       className="flex justify-start"
                     >
-                      <div className="bg-white border border-gray-200 shadow-sm p-4 rounded-2xl mr-12">
+                      <div className="bg-slate-800/80 backdrop-blur-sm border border-slate-600 shadow-lg p-4 rounded-2xl mr-12">
                         <div className="flex items-center gap-2">
-                          <Sparkles className="w-4 h-4 animate-pulse text-blue-600" />
-                          <span className="text-sm text-gray-900">
+                          <Sparkles className="w-4 h-4 animate-pulse text-blue-400" />
+                          <span className="text-sm text-slate-100">
                             Analisando base científica...
                           </span>
                         </div>
@@ -319,13 +319,13 @@ const AkinatorInteligente: React.FC = () => {
                 {/* Sugestões de perguntas */}
                 {messages.length === 1 && !isThinking && (
                   <div className="pb-6">
-                    <div className="text-sm text-gray-700 mb-3 font-medium">💡 Sugestões:</div>
+                    <div className="text-sm text-slate-300 mb-3 font-medium">💡 Sugestões:</div>
                     <div className="flex flex-wrap gap-2">
                       {quickQuestions.map((question, index) => (
                         <button
                           key={index}
                           onClick={() => sendMessage(question)}
-                          className="text-xs py-2 px-4 rounded-full bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 shadow-sm"
+                          className="text-xs py-2 px-4 rounded-full bg-slate-800/70 backdrop-blur-sm border border-slate-600 text-slate-300 hover:bg-slate-700/70 hover:border-slate-500 transition-all duration-200 shadow-sm"
                         >
                           {question}
                         </button>
@@ -336,8 +336,8 @@ const AkinatorInteligente: React.FC = () => {
               </div>
             </div>
 
-            {/* Input fixo na parte inferior - estilo ChatGPT */}
-            <div className="fixed bottom-0 left-0 right-0 ml-0 md:ml-[104px] border-t border-gray-200 p-4 bg-white shadow-lg z-50">
+            {/* Input fixo na parte inferior - estilo ChatGPT Aurora */}
+            <div className="fixed bottom-0 left-0 right-0 ml-0 md:ml-[104px] border-t border-slate-700/50 p-4 bg-slate-800/90 backdrop-blur-sm shadow-xl z-50">
               <div className="max-w-3xl mx-auto">
                 <div className="relative">
                   <input
@@ -347,13 +347,13 @@ const AkinatorInteligente: React.FC = () => {
                     onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
                     placeholder="Faça uma pergunta..."
                     disabled={isThinking}
-                    className="w-full p-4 pr-12 rounded-xl border border-gray-300 bg-white text-sm text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 shadow-sm transition-all duration-200"
+                    className="w-full p-4 pr-12 rounded-xl border border-slate-600 bg-slate-700/70 backdrop-blur-sm text-sm text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 shadow-lg transition-all duration-200"
                   />
                   <Button
                     onClick={() => sendMessage()}
                     disabled={!currentInput.trim() || isThinking}
                     size="sm"
-                    className="absolute right-2 top-1/2 -translate-y-1/2 rounded-lg w-8 h-8 p-0 bg-blue-600 hover:bg-blue-700 text-white"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 rounded-lg w-8 h-8 p-0 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg"
                   >
                     <ArrowRight className="h-4 w-4" />
                   </Button>
@@ -362,7 +362,7 @@ const AkinatorInteligente: React.FC = () => {
                 <div className="flex justify-center mt-3">
                   <button
                     onClick={resetSession}
-                    className="text-xs text-gray-500 hover:text-gray-700 transition-colors duration-200 flex items-center gap-1"
+                    className="text-xs text-slate-400 hover:text-slate-200 transition-colors duration-200 flex items-center gap-1"
                   >
                     <RotateCcw className="h-3 w-3" />
                     Nova conversa
