@@ -13,7 +13,7 @@ function App() {
     <BrowserRouter>
       <AuthProvider>
         <SidebarProvider defaultOpen={false}>
-          <div className="App aurora-dark-bg min-h-screen">
+          <div className="App aurora-dark-bg">
             {/* Aurora background effects */}
             <div className="aurora-particles"></div>
             <div className="aurora-glow"></div>

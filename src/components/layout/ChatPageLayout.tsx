@@ -12,7 +12,7 @@ const ChatPageLayout: React.FC<ChatPageLayoutProps> = ({
   showHeader = true 
 }) => {
   return (
-    <div className="h-screen flex flex-col bg-background overflow-hidden">
+    <div className="fixed inset-0 flex flex-col bg-background overflow-hidden">
       {showHeader && (
         <div className="flex-shrink-0 border-b border-border/10 bg-card/50 backdrop-blur-sm">
           <div className="px-4 py-3">

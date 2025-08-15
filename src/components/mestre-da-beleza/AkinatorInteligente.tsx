@@ -150,8 +150,8 @@ const AkinatorInteligente: React.FC = () => {
 
   return (
     <div className="h-full flex flex-col">
-      {/* Messages Area - Scroll único */}
-      <div className="flex-1 overflow-y-auto aurora-scroll">
+      {/* Messages Area - Scroll único com padding para o input fixo */}
+      <div className="flex-1 overflow-y-auto aurora-scroll pb-24">
         <div className="max-w-4xl mx-auto px-4">
           {showWelcome ? (
             // Welcome Screen - ChatGPT style
