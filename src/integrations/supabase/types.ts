@@ -2671,6 +2671,54 @@ export type Database = {
         }
         Relationships: []
       }
+      mestre_da_beleza_sessions: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          current_question_index: number
+          current_step: string
+          diagnostic_result: Json | null
+          id: string
+          profile_data: Json
+          recommendations: Json | null
+          responses: Json
+          score_data: Json | null
+          session_id: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          current_question_index?: number
+          current_step?: string
+          diagnostic_result?: Json | null
+          id?: string
+          profile_data?: Json
+          recommendations?: Json | null
+          responses?: Json
+          score_data?: Json | null
+          session_id: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          current_question_index?: number
+          current_step?: string
+          diagnostic_result?: Json | null
+          id?: string
+          profile_data?: Json
+          recommendations?: Json | null
+          responses?: Json
+          score_data?: Json | null
+          session_id?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       multi_agent_sessions: {
         Row: {
           agents_involved: string[]

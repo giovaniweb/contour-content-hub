@@ -27,16 +27,7 @@ const AkinatorInteligente: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>(() => {
     const welcomeMessage: Message = {
       role: 'assistant',
-      content: `👋 **Olá! Sou o ChatFDA**, sua IA especializada em estética.
-
-🎯 **Posso ajudar você com:**
-• **Roteiros** para Instagram e redes sociais
-• **Protocolos** e técnicas avançadas
-• **Equipamentos** - qual escolher e como usar
-• **Vídeos** específicos da nossa base
-• **Artigos científicos** e estudos
-
-**Como posso te ajudar hoje?** ✨`,
+      content: `👋 Olá! Sou o ChatFDA. Como posso te ajudar hoje? ✨`,
       timestamp: new Date()
     };
     return [welcomeMessage];
@@ -73,8 +64,8 @@ const AkinatorInteligente: React.FC = () => {
     try {
       console.log('🤖 [ChatFDA] Enviando mensagem para IA...');
       
-      // Usar o ChatFDA em vez do sistema antigo
-      const { data, error } = await supabase.functions.invoke('mega-cerebro-ai', {
+      // Usar o Mestre da Beleza AI corrigido
+      const { data, error } = await supabase.functions.invoke('mestre-da-beleza-ai', {
         body: {
           messages: [...messages, newUserMessage].map(msg => ({
             role: msg.role,
@@ -129,16 +120,7 @@ const AkinatorInteligente: React.FC = () => {
   const resetSession = () => {
     const welcomeMessage: Message = {
       role: 'assistant',
-      content: `👋 **Olá! Sou o ChatFDA**, sua IA especializada em estética.
-
-🎯 **Posso ajudar você com:**
-• **Roteiros** para Instagram e redes sociais
-• **Protocolos** e técnicas avançadas
-• **Equipamentos** - qual escolher e como usar
-• **Vídeos** específicos da nossa base
-• **Artigos científicos** e estudos
-
-**Como posso te ajudar hoje?** ✨`,
+      content: `👋 Olá! Sou o ChatFDA. Como posso te ajudar hoje? ✨`,
       timestamp: new Date()
     };
     setMessages([welcomeMessage]);
