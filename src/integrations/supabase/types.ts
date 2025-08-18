@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.3 (519615d)"
@@ -4139,8 +4139,8 @@ export type Database = {
       }
       check_rate_limit: {
         Args: {
-          p_identifier: string
           p_endpoint: string
+          p_identifier: string
           p_max_requests?: number
           p_window_minutes?: number
         }
@@ -4156,24 +4156,24 @@ export type Database = {
       }
       coordinate_agents: {
         Args: {
-          p_session_id: string
-          p_task_type: string
           p_agent_ids: string[]
+          p_session_id: string
           p_strategy?: Json
+          p_task_type: string
         }
         Returns: string
       }
       create_unified_document: {
         Args: {
-          p_title: string
-          p_content: string
-          p_conclusion: string
-          p_keywords: string[]
           p_authors: string[]
-          p_raw_text: string
-          p_file_path: string
-          p_user_id: string
+          p_conclusion: string
+          p_content: string
           p_equipamento_id?: string
+          p_file_path: string
+          p_keywords: string[]
+          p_raw_text: string
+          p_title: string
+          p_user_id: string
         }
         Returns: string
       }
@@ -4220,64 +4220,64 @@ export type Database = {
       log_admin_action: {
         Args: {
           p_action_type: string
-          p_target_user_id?: string
-          p_old_values?: Json
           p_new_values?: Json
+          p_old_values?: Json
+          p_target_user_id?: string
         }
         Returns: undefined
       }
       register_ai_feedback: {
         Args: {
-          p_user_id: string
-          p_session_id: string
-          p_ai_service: string
-          p_prompt_used: string
           p_ai_response: string
-          p_user_feedback: Json
-          p_feedback_type?: string
+          p_ai_service: string
           p_context_data?: Json
+          p_feedback_type?: string
+          p_prompt_used: string
           p_response_time_ms?: number
+          p_session_id: string
           p_tokens_used?: number
+          p_user_feedback: Json
+          p_user_id: string
         }
         Returns: string
       }
       search_knowledge_chunks: {
         Args: {
-          p_embedding: string
-          p_match_count?: number
           p_course_id?: string
+          p_embedding: string
           p_lesson_id?: string
+          p_match_count?: number
         }
         Returns: {
           chunk_id: string
           content: string
-          metadata: Json
-          source_id: string
-          title: string
           course_id: string
           lesson_id: string
+          metadata: Json
           score: number
+          source_id: string
+          title: string
         }[]
       }
       store_user_memory: {
         Args: {
-          p_user_id: string
-          p_memory_type: string
-          p_key: string
-          p_value: Json
-          p_importance?: number
           p_expires_hours?: number
+          p_importance?: number
+          p_key: string
+          p_memory_type: string
+          p_user_id: string
+          p_value: Json
         }
         Returns: string
       }
       update_ai_performance_metrics: {
         Args: {
+          p_estimated_cost?: number
+          p_rating?: number
+          p_response_time_ms?: number
           p_service_name: string
           p_success?: boolean
-          p_response_time_ms?: number
-          p_rating?: number
           p_tokens_used?: number
-          p_estimated_cost?: number
         }
         Returns: undefined
       }
