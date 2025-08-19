@@ -125,6 +125,61 @@ export const useAcademyCourses = () => {
     }
   };
 
+  const deleteCourse = async (id: string) => {
+    if (!confirm('Tem certeza que deseja excluir este curso? Esta ação não pode ser desfeita e removerá todas as aulas associadas.')) {
+      return;
+    }
+
+    try {
+      // Delete lessons first (cascade)
+      const { error: lessonsError } = await supabase
+        .from('academy_lessons')
+        .delete()
+        .eq('course_id', id);
+
+      if (lessonsError) throw lessonsError;
+
+      // Delete course access records
+      const { error: accessError } = await supabase
+        .from('academy_user_course_access')
+        .delete()
+        .eq('course_id', id);
+
+      if (accessError) throw accessError;
+
+      // Delete access requests
+      const { error: requestsError } = await supabase
+        .from('academy_access_requests')
+        .delete()
+        .eq('course_id', id);
+
+      if (requestsError) throw requestsError;
+
+      // Finally delete the course
+      const { error: courseError } = await supabase
+        .from('academy_courses')
+        .delete()
+        .eq('id', id);
+
+      if (courseError) throw courseError;
+
+      toast({
+        title: "Curso excluído!",
+        description: "O curso e todos os dados associados foram removidos com sucesso.",
+      });
+
+      await fetchCourses();
+    } catch (err) {
+      console.error('Error deleting course:', err);
+      toast({
+        title: "Erro",
+        description: "Erro ao excluir curso. Tente novamente.",
+        variant: "destructive"
+      });
+      throw err;
+    }
+  };
+
   useEffect(() => {
     fetchCourses();
   }, []);
@@ -136,6 +191,7 @@ export const useAcademyCourses = () => {
     createCourse,
     updateCourse,
     toggleCourseStatus,
+    deleteCourse,
     refetch: fetchCourses
   };
 };

@@ -30,8 +30,34 @@ export const LessonForm: React.FC<LessonFormProps> = ({
     is_mandatory: initialData?.is_mandatory ?? true
   });
 
+  const validateVimeoUrl = (url: string) => {
+    const vimeoRegex = /^https?:\/\/(www\.)?vimeo\.com\/\d+/;
+    return vimeoRegex.test(url);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!formData.title.trim()) {
+      alert('Título é obrigatório');
+      return;
+    }
+    
+    if (!formData.vimeo_url.trim()) {
+      alert('URL do Vimeo é obrigatória');
+      return;
+    }
+    
+    if (!validateVimeoUrl(formData.vimeo_url)) {
+      alert('URL do Vimeo inválida. Use o formato: https://vimeo.com/123456789');
+      return;
+    }
+    
+    if (!formData.duration_minutes || formData.duration_minutes < 1) {
+      alert('Duração deve ser pelo menos 1 minuto');
+      return;
+    }
+    
     onSubmit(formData);
   };
 
@@ -74,7 +100,14 @@ export const LessonForm: React.FC<LessonFormProps> = ({
           onChange={(e) => handleInputChange('vimeo_url', e.target.value)}
           placeholder="https://vimeo.com/123456789"
           required
+          className={formData.vimeo_url && !validateVimeoUrl(formData.vimeo_url) ? 
+            'border-red-500 focus:border-red-500' : ''}
         />
+        {formData.vimeo_url && !validateVimeoUrl(formData.vimeo_url) && (
+          <p className="text-xs text-red-400 mt-1">
+            URL inválida. Use o formato: https://vimeo.com/123456789
+          </p>
+        )}
       </div>
 
       <div className="grid grid-cols-2 gap-4">
@@ -121,7 +154,8 @@ export const LessonForm: React.FC<LessonFormProps> = ({
         </Button>
         <Button
           type="submit"
-          disabled={!formData.title || !formData.vimeo_url || isLoading}
+          disabled={!formData.title || !formData.vimeo_url || isLoading || 
+                   !validateVimeoUrl(formData.vimeo_url) || formData.duration_minutes < 1}
         >
           {isLoading ? 'Salvando...' : 'Salvar Aula'}
         </Button>

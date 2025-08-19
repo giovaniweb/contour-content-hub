@@ -9,18 +9,28 @@ interface LessonFormDialogProps {
   onSubmit: (data: LessonFormData) => Promise<void>;
   isLoading?: boolean;
   nextOrderIndex?: number;
+  isOpen?: boolean;
+  onClose?: () => void;
 }
 
 export const LessonFormDialog: React.FC<LessonFormDialogProps> = ({
   onSubmit,
   isLoading = false,
-  nextOrderIndex = 1
+  nextOrderIndex = 1,
+  isOpen,
+  onClose
 }) => {
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = isOpen !== undefined ? isOpen : internalOpen;
+  const setOpen = onClose !== undefined ? onClose : setInternalOpen;
 
   const handleSubmit = async (data: LessonFormData) => {
     await onSubmit(data);
-    setOpen(false);
+    if (onClose) {
+      onClose();
+    } else {
+      setInternalOpen(false);
+    }
   };
 
   return (
@@ -38,7 +48,7 @@ export const LessonFormDialog: React.FC<LessonFormDialogProps> = ({
         <LessonForm 
           onSubmit={handleSubmit}
           isLoading={isLoading}
-          onCancel={() => setOpen(false)}
+          onCancel={() => onClose ? onClose() : setInternalOpen(false)}
           nextOrderIndex={nextOrderIndex}
         />
       </DialogContent>

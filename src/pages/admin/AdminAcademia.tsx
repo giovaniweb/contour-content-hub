@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { BookOpen, Users, Award, Clock, Eye, Edit, ToggleLeft, ToggleRight } from 'lucide-react';
+import { BookOpen, Users, Award, Clock, Eye, Edit, ToggleLeft, ToggleRight, Trash2 } from 'lucide-react';
 import AdminLayout from '@/components/layout/AdminLayout';
 import { useAcademyStats } from '@/hooks/useAcademyStats';
 import { useAcademyCourses } from '@/hooks/useAcademyCourses';
@@ -24,7 +24,8 @@ const AdminAcademia = () => {
     courses, 
     isLoading: coursesLoading, 
     createCourse, 
-    toggleCourseStatus 
+    toggleCourseStatus,
+    deleteCourse 
   } = useAcademyCourses();
   const { 
     requests, 
@@ -211,6 +212,14 @@ const AdminAcademia = () => {
                             ) : (
                               <ToggleLeft className="h-4 w-4 text-slate-400" />
                             )}
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            className="border-red-600 text-red-400 hover:bg-red-600/20"
+                            onClick={() => deleteCourse(course.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
                       </div>

@@ -7,9 +7,10 @@ import { ArrowLeft, Plus } from 'lucide-react';
 import AdminLayout from '@/components/layout/AdminLayout';
 import { CourseForm } from '@/components/academy/CourseForm';
 import { LessonFormDialog } from '@/components/academy/LessonFormDialog';
+import { LessonEditDialog } from '@/components/academy/LessonEditDialog';
 import { LessonsList } from '@/components/academy/LessonsList';
 import { useAcademyCourses } from '@/hooks/useAcademyCourses';
-import { useLessons } from '@/hooks/useLessons';
+import { useAcademyLessons } from '@/hooks/useAcademyLessons';
 import { CourseFormData, AcademyCourse } from '@/types/academy';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -17,7 +18,7 @@ const AdminAcademyCourseEdit = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const { updateCourse, isLoading: courseLoading } = useAcademyCourses();
-  const { lessons, createLesson, updateLesson, updateLessonsOrder, deleteLesson, isLoading: lessonsLoading } = useLessons(id || '');
+  const { lessons, createLesson, updateLesson, reorderLessons, deleteLesson, isLoading: lessonsLoading } = useAcademyLessons(id || '');
   
   const [course, setCourse] = useState<AcademyCourse | null>(null);
   const [showLessonForm, setShowLessonForm] = useState(false);
@@ -94,7 +95,7 @@ const AdminAcademyCourseEdit = () => {
 
   const handleReorderLessons = async (reorderedLessons: any[]) => {
     try {
-      await updateLessonsOrder(reorderedLessons);
+      await reorderLessons(reorderedLessons);
     } catch (error) {
       console.error('Error reordering lessons:', error);
     }
@@ -213,7 +214,6 @@ const AdminAcademyCourseEdit = () => {
                   lessons={lessons}
                   onEdit={(lesson) => {
                     setEditingLesson(lesson);
-                    setShowLessonForm(true);
                   }}
                   onDelete={handleDeleteLesson}
                   onReorder={handleReorderLessons}
@@ -241,10 +241,31 @@ const AdminAcademyCourseEdit = () => {
       </div>
 
       {/* Lesson Form Dialog */}
-      <LessonFormDialog
-        onSubmit={handleLessonSubmit}
-        nextOrderIndex={lessons.length + 1}
-      />
+      {showLessonForm && (
+        <LessonFormDialog
+          onSubmit={handleLessonSubmit}
+          nextOrderIndex={lessons.length + 1}
+          isOpen={showLessonForm}
+          onClose={() => {
+            setShowLessonForm(false);
+            setEditingLesson(null);
+          }}
+        />
+      )}
+
+      {/* Lesson Edit Dialog */}
+      {editingLesson && (
+        <LessonEditDialog
+          lesson={editingLesson}
+          isOpen={!!editingLesson}
+          onClose={() => setEditingLesson(null)}
+          onSubmit={async (id, data) => {
+            await updateLesson(id, data);
+            setEditingLesson(null);
+          }}
+          isLoading={lessonsLoading}
+        />
+      )}
     </AdminLayout>
   );
 };

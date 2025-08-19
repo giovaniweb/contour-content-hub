@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { AcademyCourse, AcademyUserAccess } from '@/types/academy';
-import { AcademyLesson } from './useLessons';
+import { AcademyLesson } from './useAcademyLessons';
 import { useToast } from '@/hooks/use-toast';
 
 export interface CourseProgress {

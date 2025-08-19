@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, Edit, Clock, Users, Award, PlayCircle } from 'lucide-react';
 import AdminLayout from '@/components/layout/AdminLayout';
-import { useLessons } from '@/hooks/useLessons';
+import { useAcademyLessons } from '@/hooks/useAcademyLessons';
 import { AcademyCourse } from '@/types/academy';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
@@ -14,7 +14,7 @@ import { ptBR } from 'date-fns/locale';
 const AdminAcademyCourseView = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  const { lessons, isLoading: lessonsLoading } = useLessons(id || '');
+  const { lessons, isLoading: lessonsLoading } = useAcademyLessons(id || '');
   
   const [course, setCourse] = useState<AcademyCourse | null>(null);
   const [isLoading, setIsLoading] = useState(true);

@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Edit, Trash2, GripVertical, Play, Clock } from 'lucide-react';
-import { AcademyLesson } from '@/hooks/useLessons';
+import { AcademyLesson } from '@/hooks/useAcademyLessons';
 
 interface LessonsListProps {
   lessons: AcademyLesson[];

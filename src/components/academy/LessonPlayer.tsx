@@ -6,7 +6,7 @@ import { Progress } from '@/components/ui/progress';
 import { ArrowLeft, CheckCircle, Clock, BookOpen } from 'lucide-react';
 import { VimeoPlayer } from './VimeoPlayer';
 import { LessonFeedback } from './LessonFeedback';
-import { AcademyLesson } from '@/hooks/useLessons';
+import { AcademyLesson } from '@/hooks/useAcademyLessons';
 import CopilotInlinePanel from '@/components/copilot/CopilotInlinePanel';
 
 interface LessonPlayerProps {
