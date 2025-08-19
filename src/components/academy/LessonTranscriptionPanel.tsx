@@ -26,13 +26,16 @@ export const LessonTranscriptionPanel: React.FC<LessonTranscriptionPanelProps> =
     setIsTranscribing(true);
     setTranscriptionStatus('processing');
 
+    // Clean the Vimeo URL before processing
+    const cleanUrl = vimeoUrl.trim().replace(/[#?].*$/, '');
+
     try {
       const { data, error } = await supabase.functions.invoke('auto-ingest-lesson', {
         body: {
           course_id: courseId,
           lesson_id: lessonId,
           title: lessonTitle,
-          vimeo_url: vimeoUrl,
+          vimeo_url: cleanUrl,
           language: 'pt-BR'
         }
       });
@@ -60,13 +63,34 @@ export const LessonTranscriptionPanel: React.FC<LessonTranscriptionPanelProps> =
           description: "Este vídeo não possui legendas/transcrição no Vimeo.",
           variant: "destructive"
         });
+      } else if (data?.invalidUrl) {
+        setTranscriptionStatus('failed');
+        toast({
+          title: "URL do Vimeo inválida",
+          description: `Formato esperado: https://vimeo.com/123456789. URL recebida: ${data.receivedUrl}`,
+          variant: "destructive"
+        });
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro na transcrição:', error);
       setTranscriptionStatus('failed');
+      
+      let errorMessage = "Não foi possível processar a transcrição da aula.";
+      
+      // Handle specific error cases
+      if (error?.message?.includes('Invalid Vimeo URL') || error?.message?.includes('URL do Vimeo inválida')) {
+        errorMessage = `URL do Vimeo inválida. Formato esperado: https://vimeo.com/123456789`;
+      } else if (error?.message?.includes('The requested video couldn\'t be found')) {
+        errorMessage = "Vídeo não encontrado no Vimeo. Verifique se o ID está correto e o vídeo existe.";
+      } else if (error?.message?.includes('Missing VIMEO_ACCESS_TOKEN')) {
+        errorMessage = "Token de acesso do Vimeo não configurado.";
+      } else if (error?.message?.includes('Authorization')) {
+        errorMessage = "Erro de autorização com o Vimeo. Verifique as permissões do token.";
+      }
+      
       toast({
         title: "Erro na transcrição",
-        description: "Não foi possível processar a transcrição da aula.",
+        description: errorMessage,
         variant: "destructive"
       });
     } finally {
@@ -114,6 +138,11 @@ export const LessonTranscriptionPanel: React.FC<LessonTranscriptionPanelProps> =
             <p className="text-sm text-muted-foreground mb-2">
               {getStatusText()}
             </p>
+            {isTranscribing && (
+              <p className="text-xs text-muted-foreground mb-1">
+                Processando: {vimeoUrl.trim().replace(/[#?].*$/, '')}
+              </p>
+            )}
             <p className="text-xs text-muted-foreground">
               A transcrição permite que os alunos façam perguntas sobre o conteúdo da aula usando IA.
             </p>

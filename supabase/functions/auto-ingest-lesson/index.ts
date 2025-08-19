@@ -18,25 +18,46 @@ type AutoIngestBody = {
 };
 
 function extractVimeoId(url: string): string | null {
+  // Clean and normalize the URL first
+  const cleanUrl = url.trim().replace(/[#?].*$/, ''); // Remove everything after # or ?
+  console.log(`Processing Vimeo URL: "${url}" -> cleaned: "${cleanUrl}"`);
+  
   const regexes = [
     /vimeo\.com\/(\d+)/,
     /player\.vimeo\.com\/video\/(\d+)/,
     /vimeo\.com\/channels\/[^/]+\/(\d+)/,
     /vimeo\.com\/groups\/[^/]+\/videos\/(\d+)/,
   ];
+  
   for (const r of regexes) {
-    const m = url.match(r);
-    if (m && m[1]) return m[1];
+    const m = cleanUrl.match(r);
+    if (m && m[1]) {
+      console.log(`Extracted Vimeo ID: ${m[1]}`);
+      return m[1];
+    }
   }
+  
+  console.error(`Could not extract Vimeo ID from URL: "${cleanUrl}"`);
   return null;
 }
 
 async function fetchVttFromVimeo(videoId: string, token: string): Promise<string | null> {
+  console.log(`Fetching texttracks for Vimeo ID: ${videoId}`);
+  
   const listRes = await fetch(`https://api.vimeo.com/videos/${videoId}/texttracks`, {
     headers: { Authorization: `Bearer ${token}` },
   });
+  
   if (!listRes.ok) {
-    console.error("Vimeo texttracks error:", await listRes.text());
+    const errorText = await listRes.text();
+    console.error(`Vimeo texttracks error (${listRes.status}):`, errorText);
+    
+    if (listRes.status === 404) {
+      console.error("Video not found - check if Vimeo ID is correct and video exists");
+    } else if (listRes.status === 401 || listRes.status === 403) {
+      console.error("Authorization error - check VIMEO_ACCESS_TOKEN permissions");
+    }
+    
     return null;
   }
   const list = await listRes.json();
@@ -180,9 +201,15 @@ serve(async (req) => {
       );
     }
 
+    console.log(`Processing lesson: ${body.title} with URL: "${body.vimeo_url}"`);
+    
     const vimeoId = extractVimeoId(body.vimeo_url);
     if (!vimeoId) {
-      return new Response(JSON.stringify({ error: "Invalid Vimeo URL" }), {
+      return new Response(JSON.stringify({ 
+        error: "URL do Vimeo inválida. Formato esperado: https://vimeo.com/123456789",
+        invalidUrl: true,
+        receivedUrl: body.vimeo_url
+      }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
