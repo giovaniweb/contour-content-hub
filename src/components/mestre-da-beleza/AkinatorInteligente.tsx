@@ -3,15 +3,27 @@ import { motion } from "framer-motion";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
+import { useIntentProcessor } from "@/hooks/useIntentProcessor";
 import MessageBubble from "./components/MessageBubble";
 import TypingIndicator from "./components/TypingIndicator";
 import ChatInput from "./components/ChatInput";
 import ChatFDAWelcomeScreen from "./components/ChatFDAWelcomeScreen";
+import IntentActionsPanel from "./components/IntentActionsPanel";
 
 interface Message {
   role: 'user' | 'assistant';
   content: string;
   timestamp: Date;
+  intent?: {
+    category: string;
+    action: string;
+    confidence: number;
+  };
+  actions?: {
+    type: string;
+    label: string;
+    data: any;
+  }[];
 }
 
 interface AIStats {
@@ -24,6 +36,7 @@ const genieNames = ["Jasmin AI", "Akinario Quantum", "Mirabella Neural", "O Gên
 const AkinatorInteligente: React.FC = () => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { processIntent } = useIntentProcessor();
   const [messages, setMessages] = useState<Message[]>(() => {
     const welcomeMessage: Message = {
       role: 'assistant',
@@ -64,7 +77,18 @@ const AkinatorInteligente: React.FC = () => {
     try {
       console.log('🤖 [ChatFDA] Enviando mensagem para IA...');
       
-      // Usar o Mestre da Beleza AI corrigido
+      // 1. DETECTAR INTENÇÃO AUTOMATICAMENTE
+      let intentResult = null;
+      try {
+        intentResult = await processIntent({
+          mensagem_usuario: userMessage
+        });
+        console.log('🎯 Intenção detectada:', intentResult);
+      } catch (intentError) {
+        console.warn('⚠️ Erro na detecção de intenção:', intentError);
+      }
+      
+      // 2. CHAMAR MESTRE DA BELEZA AI
       const { data, error } = await supabase.functions.invoke('mestre-da-beleza-ai', {
         body: {
           messages: [...messages, newUserMessage].map(msg => ({
@@ -77,7 +101,8 @@ const AkinatorInteligente: React.FC = () => {
             preferences: JSON.parse(localStorage.getItem('userPreferences') || '{}')
           },
           user_id: user?.id,
-          modelTier: (typeof window !== 'undefined' && localStorage.getItem('aiMode') === 'gpt5') ? 'gpt5' : 'standard'
+          modelTier: (typeof window !== 'undefined' && localStorage.getItem('aiMode') === 'gpt5') ? 'gpt5' : 'standard',
+          intent: intentResult // Passar intenção detectada
         }
       });
 
@@ -85,16 +110,25 @@ const AkinatorInteligente: React.FC = () => {
         throw error;
       }
 
+      // 3. GERAR AÇÕES BASEADAS NA INTENÇÃO
+      const actions = generateActionsFromIntent(intentResult, userMessage);
+
       const assistantMessage: Message = {
         role: 'assistant',
         content: data.content,
-        timestamp: new Date()
+        timestamp: new Date(),
+        intent: intentResult ? {
+          category: intentResult.categoria,
+          action: intentResult.acao_recomendada,
+          confidence: 0.8 // Mock confidence
+        } : undefined,
+        actions
       };
 
       setMessages(prev => [...prev, assistantMessage]);
       
-      if (data.intent) {
-        console.log(`🎯 Intenção detectada: ${data.intent} (${(data.confidence * 100).toFixed(0)}% confiança)`);
+      if (intentResult) {
+        console.log(`🎯 Intenção detectada: ${intentResult.intencao} (${intentResult.categoria})`);
       }
 
     } catch (error) {
@@ -115,6 +149,58 @@ const AkinatorInteligente: React.FC = () => {
     } finally {
       setIsThinking(false);
     }
+  };
+
+  // Função para gerar ações baseadas na intenção detectada
+  const generateActionsFromIntent = (intentResult: any, userMessage: string) => {
+    if (!intentResult) return [];
+
+    const actions = [];
+    
+    // Detectar palavras-chave para ações específicas
+    const lowerMessage = userMessage.toLowerCase();
+    
+    if (lowerMessage.includes('roteiro') || lowerMessage.includes('script')) {
+      actions.push({
+        type: 'generate_script',
+        label: '🎬 Gerar Roteiro',
+        data: { topic: userMessage }
+      });
+    }
+    
+    if (lowerMessage.includes('artigo') || lowerMessage.includes('estudo') || lowerMessage.includes('pesquisa')) {
+      actions.push({
+        type: 'search_articles',
+        label: '📚 Buscar Artigos',
+        data: { query: userMessage }
+      });
+    }
+    
+    if (lowerMessage.includes('video') || lowerMessage.includes('vídeo')) {
+      actions.push({
+        type: 'search_videos',
+        label: '🎥 Buscar Vídeos',
+        data: { query: userMessage }
+      });
+    }
+    
+    if (lowerMessage.includes('equipamento') || lowerMessage.includes('aparelho')) {
+      actions.push({
+        type: 'equipment_info',
+        label: '🔧 Ver Equipamentos',
+        data: { query: userMessage }
+      });
+    }
+    
+    if (lowerMessage.includes('tratamento') || lowerMessage.includes('protocolo') || lowerMessage.includes('paciente')) {
+      actions.push({
+        type: 'treatment_protocol',
+        label: '💉 Ver Protocolos',
+        data: { query: userMessage }
+      });
+    }
+
+    return actions;
   };
 
   const resetSession = () => {
@@ -144,6 +230,33 @@ const AkinatorInteligente: React.FC = () => {
               {messages.map((message, index) => (
                 <div key={index} className="py-4 border-b border-border/10">
                   <MessageBubble message={message} />
+                  {message.actions && message.actions.length > 0 && (
+                    <div className="mt-3">
+                      <IntentActionsPanel 
+                        actions={message.actions}
+                        onActionClick={(action) => {
+                          console.log('🎯 Ação executada:', action);
+                          // Aqui você pode implementar navegação ou outras ações
+                          if (action.type === 'generate_script') {
+                            // Redirecionar para gerador de roteiros
+                            window.location.href = '/roteirista';
+                          } else if (action.type === 'search_articles') {
+                            // Buscar artigos relacionados
+                            sendMessage(`Mostre-me artigos científicos sobre: ${action.data.query}`);
+                          } else if (action.type === 'search_videos') {
+                            // Buscar vídeos relacionados
+                            sendMessage(`Mostre-me vídeos sobre: ${action.data.query}`);
+                          } else if (action.type === 'equipment_info') {
+                            // Mostrar informações de equipamentos
+                            sendMessage(`Quais equipamentos são recomendados para: ${action.data.query}`);
+                          } else if (action.type === 'treatment_protocol') {
+                            // Mostrar protocolos de tratamento
+                            sendMessage(`Qual o melhor protocolo para: ${action.data.query}`);
+                          }
+                        }}
+                      />
+                    </div>
+                  )}
                 </div>
               ))}
               

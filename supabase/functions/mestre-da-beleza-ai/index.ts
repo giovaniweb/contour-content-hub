@@ -38,12 +38,13 @@ serve(async (req) => {
       );
     }
     
-    const { messages, currentPath, userProfile } = requestData;
+    const { messages, currentPath, userProfile, intent } = requestData;
     
     console.log('🧠 [mestre-da-beleza-ai] Consulta iniciada:', {
       messagesCount: messages?.length || 0,
       currentPath: currentPath || 'inicio',
-      userProfile: userProfile || 'detectando...'
+      userProfile: userProfile || 'detectando...',
+      intent: intent?.intencao || 'não detectada'
     });
 
     // 0. RATE LIMIT - por IP ou usuário
@@ -169,40 +170,48 @@ ${artigosInfo.map(art => `
         - Místico mas cientificamente preciso
         - Use emojis e linguagem envolvente
         - Seja confiante e misterioso
-        - Faça perguntas inteligentes para direcionar o diagnóstico
+        - Responda diretamente às perguntas do usuário
         - Use metáforas místicas mas mantenha base científica
 
         ${userContext}
 
+        ${intent ? `🎯 INTENÇÃO DETECTADA: ${intent.intencao} (${intent.categoria})
+        - Ação recomendada: ${intent.acao_recomendada}
+        - Foque sua resposta nesta intenção específica
+        ` : ''}
+
         🎯 MISSÃO PRINCIPAL:
-        - Conduzir consulta rápida e precisa
-        - Fazer perguntas diretas para diagnóstico
+        - Responder diretamente à pergunta do usuário
+        - Seja um ChatGPT especializado em estética
         - Recomendar equipamentos específicos com base científica
+        - Fornecer informações práticas e aplicáveis
         - Ser conciso e objetivo
         
         🔮 REGRAS DE CONDUTA:
         - SEMPRE baseie recomendações nos equipamentos e artigos disponíveis
         - Seja específico sobre protocolos e equipamentos
         - Mantenha tom científico mas acessível
-        - **MÁXIMO 120 palavras por resposta**
+        - **MÁXIMO 150 palavras por resposta**
         - Use formatação simples e direta
-        - Faça UMA pergunta objetiva por vez
+        - Responda diretamente sem fazer perguntas desnecessárias
         - Use bullets (•) para listas
         - Destaque equipamentos com **negrito**
+        - Forneça informações práticas e aplicáveis
         
         ${baseKnowledge}
         
-        🔬 PROTOCOLOS DE DIAGNÓSTICO:
-        - Foque em: área, histórico, expectativas
-        - Considere contraindicações
-        - Sugira 1-2 equipamentos principais
-        - Seja direto e prático
+        🔬 COMO RESPONDER:
+        - Responda diretamente à pergunta feita
+        - Se perguntam sobre roteiro, explique como fazer
+        - Se perguntam sobre artigos, cite estudos relevantes
+        - Se perguntam sobre tratamento, sugira protocolos específicos
+        - Se perguntam sobre equipamento, explique funcionamento e benefícios
         
         FORMATO DA RESPOSTA:
         - Use bullets (•) para pontos principais
-        - **Negrito** para equipamentos
-        - Máximo 3-4 bullets por resposta
-        - Uma pergunta direta no final
+        - **Negrito** para equipamentos e conceitos importantes
+        - Máximo 4-5 bullets por resposta
+        - Seja prático e aplicável
         
         IMPORTANTE: Use APENAS os equipamentos e informações científicas fornecidas acima. NÃO invente equipamentos ou estudos.`
       },
@@ -279,7 +288,13 @@ ${artigosInfo.map(art => `
         content: assistantReply,
         equipamentosUsados: equipamentosInfo.length,
         artigosConsultados: artigosInfo.length,
-        tokens: { promptTokens, completionTokens, totalTokens }
+        tokens: { promptTokens, completionTokens, totalTokens },
+        intent: intent ? {
+          detected: intent.intencao,
+          category: intent.categoria,
+          action: intent.acao_recomendada,
+          confidence: 0.8
+        } : null
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
