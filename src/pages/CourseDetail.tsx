@@ -7,8 +7,8 @@ import { Progress } from '@/components/ui/progress';
 import { ArrowLeft, Play, BookOpen, Clock, CheckCircle, Lock } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useCourseDetails } from '@/hooks/useCourseDetails';
-import { useLessonProgress } from '@/hooks/useLessonProgress';
 import { LessonPlayer } from '@/components/academy/LessonPlayer';
+import { LessonStatusBadge } from '@/components/academy/LessonStatusBadge';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 const CourseDetail: React.FC = () => {
@@ -27,15 +27,13 @@ const CourseDetail: React.FC = () => {
     accessExpired,
     isLoading: courseLoading,
     error: courseError,
-    updateProgress
-  } = useCourseDetails(id || '');
-
-  const {
+    updateProgress,
+    isLessonUnlocked,
     isLessonCompleted,
     markLessonComplete,
     updateWatchTime,
     getLessonWatchTime
-  } = useLessonProgress(id || '');
+  } = useCourseDetails(id || '');
 
   if (courseLoading) {
     return <LoadingSpinner message="Carregando curso..." />;
@@ -137,18 +135,28 @@ const CourseDetail: React.FC = () => {
   const completedLessons = lessons.filter(lesson => isLessonCompleted(lesson.id)).length;
 
   const handleLessonClick = (lesson: any) => {
-    // Check if lesson is unlocked (sequential unlock logic)
-    const lessonIndex = lessons.findIndex(l => l.id === lesson.id);
-    if (lessonIndex > 0) {
-      const previousLesson = lessons[lessonIndex - 1];
-      if (!isLessonCompleted(previousLesson.id)) {
-        toast({
-          title: "Aula bloqueada",
-          description: "Complete a aula anterior para desbloquear esta aula.",
-          variant: "destructive"
-        });
-        return;
+    // Check if lesson is unlocked using unified logic
+    if (!isLessonUnlocked(lesson)) {
+      // Find which mandatory lesson needs to be completed
+      const lessonIndex = lessons.findIndex(l => l.id === lesson.id);
+      let blockingLesson = null;
+      
+      for (let i = lessonIndex - 1; i >= 0; i--) {
+        const prevLesson = lessons[i];
+        if (prevLesson.is_mandatory && !isLessonCompleted(prevLesson.id)) {
+          blockingLesson = prevLesson;
+          break;
+        }
       }
+      
+      toast({
+        title: "Aula bloqueada",
+        description: blockingLesson 
+          ? `Complete a aula obrigatória "${blockingLesson.title}" para desbloquear esta aula.`
+          : "Complete as aulas obrigatórias anteriores para desbloquear esta aula.",
+        variant: "destructive"
+      });
+      return;
     }
 
     setSelectedLesson(lesson.id);
@@ -263,30 +271,30 @@ const CourseDetail: React.FC = () => {
           <div className="space-y-4">
             {lessons.map((lesson, index) => {
               const isCompleted = isLessonCompleted(lesson.id);
-              const isLocked = index > 0 && !isLessonCompleted(lessons[index - 1].id);
+              const isUnlocked = isLessonUnlocked(lesson);
               
               return (
                 <Card 
                   key={lesson.id} 
                   className={`aurora-glass border-aurora-electric-purple/20 transition-all ${
-                    isLocked 
+                    !isUnlocked 
                       ? 'opacity-50 cursor-not-allowed' 
                       : 'cursor-pointer hover:border-aurora-electric-purple/40'
                   } ${isCompleted ? 'bg-green-500/10' : ''}`}
-                  onClick={() => !isLocked && handleLessonClick(lesson)}
+                  onClick={() => isUnlocked && handleLessonClick(lesson)}
                 >
                   <CardContent className="p-6">
                     <div className="flex items-center gap-4">
                       <div className={`p-3 rounded-full ${
                         isCompleted 
                           ? 'bg-green-500 text-white' 
-                          : isLocked
+                          : !isUnlocked
                             ? 'bg-gray-500/20 text-gray-500'
                             : 'bg-aurora-electric-purple/20 text-aurora-electric-purple'
                       }`}>
                         {isCompleted ? (
                           <CheckCircle className="h-5 w-5" />
-                        ) : isLocked ? (
+                        ) : !isUnlocked ? (
                           <Lock className="h-5 w-5" />
                         ) : (
                           <Play className="h-5 w-5" />
@@ -294,28 +302,30 @@ const CourseDetail: React.FC = () => {
                       </div>
                       
                       <div className="flex-1">
-                        <h3 className={`text-lg font-semibold mb-1 ${
-                          isLocked ? 'text-white/50' : 'text-white'
-                        }`}>
-                          {lesson.title}
-                        </h3>
-                        <div className="flex items-center gap-4 text-sm text-white/60">
+                        <div className="flex items-center justify-between mb-2">
+                          <h3 className={`text-lg font-semibold ${
+                            !isUnlocked ? 'text-white/50' : 'text-white'
+                          }`}>
+                            {lesson.title}
+                          </h3>
+                          <LessonStatusBadge 
+                            isCompleted={isCompleted}
+                            isUnlocked={isUnlocked}
+                            isMandatory={lesson.is_mandatory}
+                          />
+                        </div>
+                        <div className="flex items-center gap-4 text-sm text-white/60 mb-2">
                           <span>Aula {lesson.order_index}</span>
                           <span>{lesson.duration_minutes || 0} min</span>
-                          {isCompleted && (
-                            <Badge variant="outline" className="text-green-500 border-green-500">
-                              Concluída
-                            </Badge>
-                          )}
-                          {isLocked && (
-                            <Badge variant="outline" className="text-gray-500 border-gray-500">
-                              Bloqueada
+                          {lesson.is_mandatory && (
+                            <Badge variant="outline" className="text-orange-400 border-orange-400 text-xs">
+                              Obrigatória
                             </Badge>
                           )}
                         </div>
                         {lesson.description && (
-                          <p className={`text-sm mt-2 ${
-                            isLocked ? 'text-white/30' : 'text-white/70'
+                          <p className={`text-sm ${
+                            !isUnlocked ? 'text-white/30' : 'text-white/70'
                           } line-clamp-2`}>
                             {lesson.description}
                           </p>

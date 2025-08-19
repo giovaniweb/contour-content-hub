@@ -199,6 +199,104 @@ export const useCourseDetails = (courseId: string) => {
     return previousProgress?.completed || false;
   };
 
+  const isLessonCompleted = (lessonId: string): boolean => {
+    return courseProgress.lessonProgress?.[lessonId]?.completed || false;
+  };
+
+  const getLessonWatchTime = (lessonId: string): number => {
+    return courseProgress.lessonProgress?.[lessonId]?.watchTime || 0;
+  };
+
+  const markLessonComplete = async (lessonId: string) => {
+    try {
+      const user = await supabase.auth.getUser();
+      const userId = user.data.user?.id;
+      if (!userId) return;
+
+      const now = new Date().toISOString();
+
+      const { error } = await supabase
+        .from('academy_user_lesson_progress')
+        .upsert(
+          [{
+            user_id: userId,
+            lesson_id: lessonId,
+            completed: true,
+            completed_at: now,
+            last_watched_at: now
+          }],
+          { onConflict: 'user_id,lesson_id' }
+        );
+
+      if (error) throw error;
+
+      // Update local state
+      setCourseProgress(prev => ({
+        ...prev,
+        lessonProgress: {
+          ...prev.lessonProgress,
+          [lessonId]: {
+            completed: true,
+            watchTime: prev.lessonProgress[lessonId]?.watchTime || 0
+          }
+        }
+      }));
+
+      toast({
+        title: 'Aula concluída!',
+        description: 'Seu progresso foi salvo.'
+      });
+
+    } catch (err) {
+      console.error('Error marking lesson complete:', err);
+      toast({
+        title: 'Erro',
+        description: 'Erro ao salvar progresso da aula.',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  const updateWatchTime = async (lessonId: string, watchTimeSeconds: number) => {
+    try {
+      const user = await supabase.auth.getUser();
+      const userId = user.data.user?.id;
+      if (!userId) return;
+
+      const now = new Date().toISOString();
+      const newSecs = Math.max(0, Math.floor(watchTimeSeconds));
+
+      const { error } = await supabase
+        .from('academy_user_lesson_progress')
+        .upsert(
+          [{
+            user_id: userId,
+            lesson_id: lessonId,
+            watch_time_seconds: newSecs,
+            last_watched_at: now
+          }],
+          { onConflict: 'user_id,lesson_id' }
+        );
+
+      if (error) throw error;
+
+      // Update local state
+      setCourseProgress(prev => ({
+        ...prev,
+        lessonProgress: {
+          ...prev.lessonProgress,
+          [lessonId]: {
+            completed: prev.lessonProgress[lessonId]?.completed || false,
+            watchTime: Math.max(prev.lessonProgress[lessonId]?.watchTime || 0, newSecs)
+          }
+        }
+      }));
+
+    } catch (err) {
+      console.error('Error updating watch time:', err);
+    }
+  };
+
   useEffect(() => {
     if (courseId) {
       fetchCourseDetails();
@@ -211,6 +309,10 @@ export const useCourseDetails = (courseId: string) => {
     error,
     updateProgress,
     isLessonUnlocked,
+    isLessonCompleted,
+    getLessonWatchTime,
+    markLessonComplete,
+    updateWatchTime,
     refetch: fetchCourseDetails
   };
 };
