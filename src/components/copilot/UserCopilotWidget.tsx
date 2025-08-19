@@ -18,20 +18,6 @@ const UserCopilotWidget: React.FC = () => {
 
   return (
     <Drawer open={open} onOpenChange={setOpen}>
-      <div className="fixed bottom-4 right-4 z-50">
-        <DrawerTrigger asChild>
-          <button
-            className="rounded-full px-4 py-3 bg-primary text-primary-foreground shadow-lg border border-border hover:opacity-90 transition"
-            aria-label="Abrir Fluida Academy"
-          >
-            <span className="inline-flex items-center gap-2">
-              <Bot className="h-5 w-5" />
-              <span>Fluida Academy</span>
-            </span>
-          </button>
-        </DrawerTrigger>
-      </div>
-
       <DrawerContent className="bg-background text-foreground border-border">
         <DrawerHeader>
           <DrawerTitle>Fluida Academy</DrawerTitle>
