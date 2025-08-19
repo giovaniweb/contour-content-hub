@@ -13,6 +13,7 @@ export interface CourseProgress {
   totalLessons: number;
   hasAccess: boolean;
   accessExpired: boolean;
+  lessonProgress: Record<string, { completed: boolean; watchTime: number }>;
 }
 
 export const useCourseDetails = (courseId: string) => {
@@ -24,7 +25,8 @@ export const useCourseDetails = (courseId: string) => {
     completedLessons: 0,
     totalLessons: 0,
     hasAccess: false,
-    accessExpired: false
+    accessExpired: false,
+    lessonProgress: {}
   });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -56,12 +58,34 @@ export const useCourseDetails = (courseId: string) => {
 
       if (lessonsError) throw lessonsError;
 
+      // Fetch lesson progress for the user
+      const userId = (await supabase.auth.getUser()).data.user?.id;
+      let lessonProgress: Record<string, { completed: boolean; watchTime: number }> = {};
+      
+      if (userId) {
+        const { data: progressData, error: progressError } = await supabase
+          .from('academy_user_lesson_progress')
+          .select('lesson_id, completed, watch_time_seconds')
+          .eq('user_id', userId)
+          .in('lesson_id', lessonsData?.map(l => l.id) || []);
+
+        if (!progressError && progressData) {
+          lessonProgress = progressData.reduce((acc, progress) => {
+            acc[progress.lesson_id] = {
+              completed: progress.completed,
+              watchTime: progress.watch_time_seconds
+            };
+            return acc;
+          }, {} as Record<string, { completed: boolean; watchTime: number }>);
+        }
+      }
+
       // Fetch user access
       const { data: userAccessData, error: accessError } = await supabase
         .from('academy_user_course_access')
         .select('*')
         .eq('course_id', courseId)
-        .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
+        .eq('user_id', userId)
         .maybeSingle();
 
       if (accessError) throw accessError;
@@ -97,7 +121,8 @@ export const useCourseDetails = (courseId: string) => {
         completedLessons,
         totalLessons,
         hasAccess,
-        accessExpired
+        accessExpired,
+        lessonProgress
       });
 
     } catch (err) {
@@ -152,6 +177,28 @@ export const useCourseDetails = (courseId: string) => {
     }
   };
 
+  const isLessonUnlocked = (lesson: any): boolean => {
+    if (!courseProgress?.lessons) return false;
+    
+    // First lesson is always unlocked
+    if (lesson.order_index === 1) return true;
+    
+    // Non-mandatory lessons don't block progress
+    if (!lesson.is_mandatory) return true;
+    
+    // Find previous mandatory lesson
+    const previousLessons = courseProgress.lessons
+      .filter((l: any) => l.order_index < lesson.order_index && l.is_mandatory)
+      .sort((a: any, b: any) => b.order_index - a.order_index);
+    
+    if (previousLessons.length === 0) return true;
+    
+    const previousLesson = previousLessons[0];
+    const previousProgress = courseProgress.lessonProgress?.[previousLesson.id];
+    
+    return previousProgress?.completed || false;
+  };
+
   useEffect(() => {
     if (courseId) {
       fetchCourseDetails();
@@ -163,6 +210,7 @@ export const useCourseDetails = (courseId: string) => {
     isLoading,
     error,
     updateProgress,
+    isLessonUnlocked,
     refetch: fetchCourseDetails
   };
 };

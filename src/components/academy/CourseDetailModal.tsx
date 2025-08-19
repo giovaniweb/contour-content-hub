@@ -7,7 +7,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Plus, Play, Edit, Trash2, GripVertical } from 'lucide-react';
 import { AcademyCourse } from '@/types/academy';
 import { useAcademyLessons } from '@/hooks/useAcademyLessons';
+import { useCourseDetails } from '@/hooks/useCourseDetails';
 import { LessonFormDialog } from './LessonFormDialog';
+import { LessonStatusBadge } from './LessonStatusBadge';
 
 interface CourseDetailModalProps {
   course: AcademyCourse;
@@ -22,6 +24,7 @@ export const CourseDetailModal: React.FC<CourseDetailModalProps> = ({
 }) => {
   const [showLessonForm, setShowLessonForm] = useState(false);
   const { lessons, isLoading, createLesson, updateLesson, deleteLesson } = useAcademyLessons(course.id);
+  const { isLessonUnlocked } = useCourseDetails(course.id);
 
   const handleCreateLesson = async (lessonData: any) => {
     await createLesson(lessonData);

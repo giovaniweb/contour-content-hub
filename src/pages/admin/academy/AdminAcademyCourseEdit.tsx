@@ -9,6 +9,7 @@ import { CourseForm } from '@/components/academy/CourseForm';
 import { LessonFormDialog } from '@/components/academy/LessonFormDialog';
 import { LessonEditDialog } from '@/components/academy/LessonEditDialog';
 import { LessonsList } from '@/components/academy/LessonsList';
+import { LessonTranscriptionPanel } from '@/components/academy/LessonTranscriptionPanel';
 import { useAcademyCourses } from '@/hooks/useAcademyCourses';
 import { useAcademyLessons } from '@/hooks/useAcademyLessons';
 import { CourseFormData, AcademyCourse } from '@/types/academy';
@@ -210,6 +211,24 @@ const AdminAcademyCourseEdit = () => {
                 </Button>
               </CardHeader>
               <CardContent>
+                {/* Transcription Panel */}
+                {lessons.length > 0 && (
+                  <div className="mb-6">
+                    <h4 className="text-lg font-medium mb-3 text-slate-50">Processamento de Transcrições</h4>
+                    <div className="grid gap-4">
+                      {lessons.map((lesson) => (
+                        <LessonTranscriptionPanel
+                          key={lesson.id}
+                          courseId={id!}
+                          lessonId={lesson.id}
+                          lessonTitle={lesson.title}
+                          vimeoUrl={lesson.vimeo_url}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 <LessonsList
                   lessons={lessons}
                   onEdit={(lesson) => {
