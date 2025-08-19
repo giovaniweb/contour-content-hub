@@ -5,6 +5,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { LessonFormData } from '@/hooks/useAcademyLessons';
+import { supabase } from '@/integrations/supabase/client';
+import { Loader2, Download } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 interface LessonFormProps {
   onSubmit: (data: LessonFormData) => Promise<void>;
@@ -21,6 +24,7 @@ export const LessonForm: React.FC<LessonFormProps> = ({
   initialData,
   nextOrderIndex = 1
 }) => {
+  const { toast } = useToast();
   const [formData, setFormData] = useState<LessonFormData>({
     title: initialData?.title || '',
     description: initialData?.description || '',
@@ -29,6 +33,7 @@ export const LessonForm: React.FC<LessonFormProps> = ({
     duration_minutes: initialData?.duration_minutes || 30,
     is_mandatory: initialData?.is_mandatory ?? true
   });
+  const [isFetchingMetadata, setIsFetchingMetadata] = useState(false);
 
   const validateVimeoUrl = (url: string) => {
     const vimeoRegex = /^https?:\/\/(www\.)?vimeo\.com\/\d+/;
@@ -68,6 +73,49 @@ export const LessonForm: React.FC<LessonFormProps> = ({
     }));
   };
 
+  const fetchVimeoMetadata = async () => {
+    if (!formData.vimeo_url || !validateVimeoUrl(formData.vimeo_url)) {
+      toast({
+        title: "Erro",
+        description: "URL do Vimeo inválida",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsFetchingMetadata(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('get-vimeo-metadata', {
+        body: { vimeoUrl: formData.vimeo_url }
+      });
+
+      if (error) throw error;
+
+      if (data?.duration_minutes) {
+        setFormData(prev => ({
+          ...prev,
+          duration_minutes: data.duration_minutes,
+          title: prev.title || data.title || '',
+          description: prev.description || data.description || ''
+        }));
+        
+        toast({
+          title: "Metadados obtidos!",
+          description: `Duração: ${data.duration_minutes} minutos`,
+        });
+      }
+    } catch (error) {
+      console.error('Erro ao buscar metadados:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível obter metadados do vídeo",
+        variant: "destructive"
+      });
+    } finally {
+      setIsFetchingMetadata(false);
+    }
+  };
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="space-y-2">
@@ -94,15 +142,31 @@ export const LessonForm: React.FC<LessonFormProps> = ({
 
       <div className="space-y-2">
         <Label htmlFor="vimeo_url">URL do Vídeo Vimeo *</Label>
-        <Input
-          id="vimeo_url"
-          value={formData.vimeo_url}
-          onChange={(e) => handleInputChange('vimeo_url', e.target.value)}
-          placeholder="https://vimeo.com/123456789"
-          required
-          className={formData.vimeo_url && !validateVimeoUrl(formData.vimeo_url) ? 
-            'border-red-500 focus:border-red-500' : ''}
-        />
+        <div className="flex gap-2">
+          <Input
+            id="vimeo_url"
+            value={formData.vimeo_url}
+            onChange={(e) => handleInputChange('vimeo_url', e.target.value)}
+            placeholder="https://vimeo.com/123456789"
+            required
+            className={formData.vimeo_url && !validateVimeoUrl(formData.vimeo_url) ? 
+              'border-red-500 focus:border-red-500' : ''}
+          />
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={fetchVimeoMetadata}
+            disabled={!formData.vimeo_url || !validateVimeoUrl(formData.vimeo_url) || isFetchingMetadata}
+          >
+            {isFetchingMetadata ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Download className="h-4 w-4" />
+            )}
+            {isFetchingMetadata ? 'Buscando...' : 'Metadados'}
+          </Button>
+        </div>
         {formData.vimeo_url && !validateVimeoUrl(formData.vimeo_url) && (
           <p className="text-xs text-red-400 mt-1">
             URL inválida. Use o formato: https://vimeo.com/123456789
