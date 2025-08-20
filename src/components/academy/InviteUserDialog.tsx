@@ -5,7 +5,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { UserPlus } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { UserPlus, Mail, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
 import { useAcademyCourses } from '@/hooks/useAcademyCourses';
 import { useAcademyInvites } from '@/hooks/useAcademyInvites';
 import { InviteFormData } from '@/types/academy';
@@ -23,16 +24,61 @@ export const InviteUserDialog: React.FC<InviteUserDialogProps> = ({ onInviteCrea
     expires_hours: 24
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [emailError, setEmailError] = useState<string>('');
+  const [nameError, setNameError] = useState<string>('');
 
   const { courses } = useAcademyCourses();
   const { createInvite } = useAcademyInvites();
 
   const activeCourses = courses.filter(course => course.status === 'active');
 
+  // Real-time email validation
+  const validateEmail = (email: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email) {
+      setEmailError('E-mail é obrigatório');
+      return false;
+    }
+    if (!emailRegex.test(email)) {
+      setEmailError('Formato de e-mail inválido');
+      return false;
+    }
+    setEmailError('');
+    return true;
+  };
+
+  // Real-time name validation
+  const validateName = (name: string) => {
+    if (!name || name.trim().length < 2) {
+      setNameError('Nome deve ter pelo menos 2 caracteres');
+      return false;
+    }
+    setNameError('');
+    return true;
+  };
+
+  const handleEmailChange = (email: string) => {
+    setFormData(prev => ({ ...prev, email }));
+    if (email) validateEmail(email);
+  };
+
+  const handleNameChange = (name: string) => {
+    setFormData(prev => ({ ...prev, first_name: name }));
+    if (name) validateName(name);
+  };
+
+  const isFormValid = () => {
+    return validateEmail(formData.email) && 
+           validateName(formData.first_name) && 
+           formData.course_ids.length > 0;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.email || !formData.first_name || formData.course_ids.length === 0) {
+    if (!isFormValid()) {
+      validateEmail(formData.email);
+      validateName(formData.first_name);
       return;
     }
 
@@ -47,6 +93,8 @@ export const InviteUserDialog: React.FC<InviteUserDialogProps> = ({ onInviteCrea
         course_ids: [],
         expires_hours: 24
       });
+      setEmailError('');
+      setNameError('');
       
       setOpen(false);
       onInviteCreated?.();
@@ -90,11 +138,19 @@ export const InviteUserDialog: React.FC<InviteUserDialogProps> = ({ onInviteCrea
             <Input
               id="first_name"
               value={formData.first_name}
-              onChange={(e) => setFormData(prev => ({ ...prev, first_name: e.target.value }))}
+              onChange={(e) => handleNameChange(e.target.value)}
               placeholder="Nome do usuário"
-              className="bg-slate-700 border-slate-600 text-slate-50"
+              className={`bg-slate-700 border-slate-600 text-slate-50 ${
+                nameError ? 'border-red-500 focus:border-red-500' : ''
+              }`}
               required
             />
+            {nameError && (
+              <p className="text-red-400 text-sm flex items-center gap-1">
+                <AlertCircle className="h-3 w-3" />
+                {nameError}
+              </p>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -103,11 +159,26 @@ export const InviteUserDialog: React.FC<InviteUserDialogProps> = ({ onInviteCrea
               id="email"
               type="email"
               value={formData.email}
-              onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+              onChange={(e) => handleEmailChange(e.target.value)}
               placeholder="email@exemplo.com"
-              className="bg-slate-700 border-slate-600 text-slate-50"
+              className={`bg-slate-700 border-slate-600 text-slate-50 ${
+                emailError ? 'border-red-500 focus:border-red-500' : 
+                formData.email && !emailError ? 'border-green-500' : ''
+              }`}
               required
             />
+            {emailError && (
+              <p className="text-red-400 text-sm flex items-center gap-1">
+                <AlertCircle className="h-3 w-3" />
+                {emailError}
+              </p>
+            )}
+            {formData.email && !emailError && (
+              <p className="text-green-400 text-sm flex items-center gap-1">
+                <CheckCircle className="h-3 w-3" />
+                E-mail válido
+              </p>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -163,10 +234,20 @@ export const InviteUserDialog: React.FC<InviteUserDialogProps> = ({ onInviteCrea
             </Button>
             <Button 
               type="submit" 
-              disabled={isSubmitting || formData.course_ids.length === 0}
-              className="bg-primary hover:bg-primary/90"
+              disabled={isSubmitting || !isFormValid()}
+              className="bg-primary hover:bg-primary/90 disabled:opacity-50"
             >
-              {isSubmitting ? 'Enviando...' : 'Enviar Convite'}
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Enviando convite...
+                </>
+              ) : (
+                <>
+                  <Mail className="h-4 w-4 mr-2" />
+                  Enviar Convite
+                </>
+              )}
             </Button>
           </div>
         </form>
