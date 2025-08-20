@@ -4249,6 +4249,10 @@ export type Database = {
         Args: { video_id_param: string }
         Returns: Json
       }
+      get_user_email_safe: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       get_user_role_safe: {
         Args: { user_uuid: string }
         Returns: string
