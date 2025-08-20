@@ -352,42 +352,34 @@ const getFormatInstructions = (formato: string, canal: string, tempoLimite?: num
     `,
     
     reels: `
-    🎥 REELS INSTAGRAM - METODOLOGIA CRIATIVA:
+    🎥 REELS INSTAGRAM - ROTEIRO CONCISO (40 segundos máximo):
     
-    🔥 ESTRUTURA VIRAL PARA REELS (60 segundos):
+    🚨 LIMITES RÍGIDOS DE PALAVRA:
+    - TOTAL: máximo 100 palavras (90-110 ideais)
+    - Gancho: máximo 15 palavras (3 segundos)
+    - Problema: máximo 25 palavras (8 segundos)  
+    - Solução: máximo 35 palavras (15 segundos)
+    - CTA: máximo 15 palavras (8 segundos)
     
-    [GANCHO IRRESISTÍVEL - 0s a 3s]
-    - Primeira frase DEVE parar o scroll
-    - Use provocações tipo: "Eu pensei que era mentira, mas..."
-    - Crie curiosidade imediata
-    - NÃO apresente solução ainda
+    📝 EXEMPLO DE ESTRUTURA IDEAL:
+    🎯 Gancho: "Você sente que a pele está perdendo firmeza, mesmo cuidando da dieta e do treino?"
+    ⚠️ Problema: "A flacidez não escolhe idade. A cada ano perdemos colágeno e massa muscular."
+    💡 Solução: "O Supreme PRO trata músculo em profundidade e estimula colágeno naturalmente."
+    🚀 CTA: "Agende uma demonstração e ofereça o diferencial que seus pacientes procuram."
     
-    [DESENVOLVIMENTO ENVOLVENTE - 3s a 40s]
-    - Conte uma história real e identificável
-    - Use analogias criativas que todo mundo entende
-    - Apresente o problema de forma visual e emocional
-    - Construa conexão com a audiência
-    - Use linguagem natural, como conversa entre amigos
+    🔥 REGRAS DE CONCISÃO OBRIGATÓRIAS:
+    - Uma frase por seção (máximo duas se necessário)
+    - Sem rodeios ou explicações longas
+    - Direto ao ponto, sem floreios
+    - Linguagem simples e impactante
+    - Cada palavra deve ser essencial
     
-    [VIRADA INTELIGENTE - 40s a 55s]
-    - Apresente a solução como "descoberta"
-    - Integre equipamentos específicos naturalmente
-    - Use tecnologia como "super arma"
-    - Mostre benefícios de forma tangível
-    
-    [CTA MAGNÉTICO - 55s a 60s]
-    - Convite irresistível, não ordem
-    - Gerar FOMO inteligente
-    - Deixar gostinho de "quero mais"
-    - CTA específico e claro
-    
-    🎬 INSTRUÇÕES DE PRODUÇÃO:
-    - Marque tempos exatos: [0-3s], [3-40s], etc.
-    - Inclua sugestões de enquadramentos
-    - Sugira momentos de close, cortes, transições
-    - Descreva expressões e ambiente
-    - Linguagem dinâmica e visual
-    ${tempoLimite ? `- Tempo total: ${tempoLimite}s` : ''}
+    ❌ PROIBIDO:
+    - Explicações técnicas longas
+    - Múltiplas frases por seção
+    - Conectores desnecessários ("além disso", "por isso", etc.)
+    - Repetições ou redundâncias
+    - Qualquer texto que ultrapasse os limites de palavra
     `,
     
     short: `

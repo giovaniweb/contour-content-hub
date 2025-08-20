@@ -125,6 +125,45 @@ export const rebalanceGPSC = (gpsc: Record<SectionKey, string>): Record<SectionK
   return gpsc;
 };
 
+// Word limits per GPSC section for concise Reels
+const SECTION_WORD_LIMITS: Record<SectionKey, number> = {
+  'Gancho': 15,
+  'Problema': 25, 
+  'Solução': 35,
+  'CTA': 15
+};
+
+// Limit section to specific word count
+const limitSectionWords = (text: string, maxWords: number): string => {
+  if (!text) return text;
+  
+  const words = text.trim().split(/\s+/);
+  if (words.length <= maxWords) return text;
+  
+  // Try to cut at sentence boundary first
+  const sentences = text.match(/[^.!?]+[.!?]*/g) || [text];
+  let result = '';
+  let wordCount = 0;
+  
+  for (const sentence of sentences) {
+    const sentenceWords = sentence.trim().split(/\s+/).length;
+    if (wordCount + sentenceWords <= maxWords) {
+      result += sentence;
+      wordCount += sentenceWords;
+    } else {
+      break;
+    }
+  }
+  
+  // If no complete sentences fit, truncate words
+  if (!result.trim()) {
+    result = words.slice(0, maxWords).join(' ');
+    if (!result.match(/[.!?]$/)) result += '.';
+  }
+  
+  return result.trim();
+};
+
 // Build GPSC structure robustly from roteiro
 export const buildReelsGPSC = (roteiro: string): Record<SectionKey, string> => {
   const blocks = parseTemporalScript(roteiro);
@@ -271,7 +310,13 @@ export const buildReelsGPSC = (roteiro: string): Record<SectionKey, string> => {
     });
   }
 
-  return rebalanceGPSC(gpsc);
+  // Apply word limits to each section
+  const limitedGpsc = rebalanceGPSC(gpsc);
+  (['Gancho', 'Problema', 'Solução', 'CTA'] as SectionKey[]).forEach((key) => {
+    limitedGpsc[key] = limitSectionWords(limitedGpsc[key], SECTION_WORD_LIMITS[key]);
+  });
+  
+  return limitedGpsc;
 };
 
 // Build OFF from GPSC with final OFF cleanup

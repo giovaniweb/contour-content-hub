@@ -275,8 +275,8 @@ export const FORMATO_CONFIGS: Record<string, any> = {
     estrutura: "imagem_texto"
   },
   reels: {
-    tempo_limite_segundos: 60,
-    palavras_max: 120,
+    tempo_limite_segundos: 40,
+    palavras_max: 100,
     estrutura: "roteiro_video"
   },
   short: {
