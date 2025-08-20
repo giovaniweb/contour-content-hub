@@ -361,18 +361,19 @@ const getFormatInstructions = (formato: string, canal: string, tempoLimite?: num
     - Solução: 35-40 palavras (14 segundos)
     - CTA: 15-20 palavras (7 segundos)
     
-    📝 EXEMPLO DE ESTRUTURA IDEAL:
-    🎯 Gancho: "Você sente que a pele está perdendo firmeza, mesmo cuidando da dieta e do treino?"
-    ⚠️ Problema: "A flacidez não escolhe idade. A cada ano perdemos colágeno e massa muscular."
-    💡 Solução: "O Supreme PRO trata músculo em profundidade e estimula colágeno naturalmente."
-    🚀 CTA: "Agende uma demonstração e ofereça o diferencial que seus pacientes procuram."
+    📝 EXEMPLO DE ESTRUTURA IDEAL (TOM LEANDRO LADEIRA - PACIENTE FINAL):
+    🎯 Gancho: "A real é que ninguém te conta: flacidez não some só na academia!"
+    ⚠️ Problema: "Você malha, faz dieta, usa creme... mas a pele continua 'mole', né?"
+    💡 Solução: "O Supreme PRO estimula o músculo por baixo da pele - resultado que você sente na hora!"
+    🚀 CTA: "Pergunta pro seu médico sobre o Supreme PRO hoje mesmo. Sem enrolação!"
     
-    🔥 REGRAS DE CONCISÃO BALANCEADAS:
-    - Uma a duas frases por seção conforme necessário
-    - Conteúdo completo mas sem rodeios
-    - Direto ao ponto, mantendo clareza
-    - Linguagem simples e impactante
-    - Priorizar completude da mensagem
+    🔥 TOM LEANDRO LADEIRA OBRIGATÓRIO:
+    - Linguagem DIRETA do paciente final (não técnica para médicos)
+    - Bordões: "A real é que...", "Sem enrolação", "Você sente..."
+    - Tom provocativo e emocional, não comercial
+    - Identificação real com problemas do dia a dia
+    - CTA sempre para AÇÃO DO PACIENTE, nunca do médico
+    - Linguagem simples, coloquial e impactante
     
     ❌ PROIBIDO:
     - Explicações técnicas longas
