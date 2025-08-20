@@ -8,7 +8,7 @@ const corsHeaders = {
 };
 
 // Voz específica do Fluida criada no ElevenLabs
-const FLUIDA_VOICE_ID = '9BWtsMINqrJLrRacOk9x'; // TODO: Substituir pelo voice ID específico do Fluida
+const FLUIDA_VOICE_ID = 'dLN8IFpwIveHCuhgX4ee'; // Voz personalizada do Fluida
 const DISNEY_VOICE_ID = 'Xb7hH8MSUJpSbSDYk0k2'; // Alice (encantadora) para modo Disney
 
 // Text cleaners and duration limiter for OFF narration
