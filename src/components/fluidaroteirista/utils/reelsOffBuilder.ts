@@ -125,20 +125,25 @@ export const rebalanceGPSC = (gpsc: Record<SectionKey, string>): Record<SectionK
   return gpsc;
 };
 
-// Word limits per GPSC section for concise Reels
+// Word limits per GPSC section for balanced Reels (30-40 seconds)
 const SECTION_WORD_LIMITS: Record<SectionKey, number> = {
-  'Gancho': 15,
-  'Problema': 25, 
-  'Solução': 35,
-  'CTA': 15
+  'Gancho': 20,    // 6 seconds
+  'Problema': 25,  // 8 seconds
+  'Solução': 40,   // 14 seconds
+  'CTA': 20        // 7 seconds
+  // Total: ~105 words (35 seconds)
 };
 
-// Limit section to specific word count
+// Limit section to specific word count with balanced approach
 const limitSectionWords = (text: string, maxWords: number): string => {
   if (!text) return text;
   
   const words = text.trim().split(/\s+/);
   if (words.length <= maxWords) return text;
+  
+  // Allow +3 words flexibility for completeness
+  const flexibleLimit = maxWords + 3;
+  if (words.length <= flexibleLimit) return text;
   
   // Try to cut at sentence boundary first
   const sentences = text.match(/[^.!?]+[.!?]*/g) || [text];
@@ -147,17 +152,22 @@ const limitSectionWords = (text: string, maxWords: number): string => {
   
   for (const sentence of sentences) {
     const sentenceWords = sentence.trim().split(/\s+/).length;
-    if (wordCount + sentenceWords <= maxWords) {
+    if (wordCount + sentenceWords <= flexibleLimit) {
       result += sentence;
       wordCount += sentenceWords;
+    } else if (wordCount === 0) {
+      // If first sentence is too long, truncate it but keep at least one sentence
+      const truncated = sentence.trim().split(/\s+/).slice(0, maxWords).join(' ');
+      result = truncated + (truncated.match(/[.!?]$/) ? '' : '.');
+      break;
     } else {
       break;
     }
   }
   
-  // If no complete sentences fit, truncate words
-  if (!result.trim()) {
-    result = words.slice(0, maxWords).join(' ');
+  // Ensure we have at least something meaningful (minimum 8 words)
+  if (result.trim().split(/\s+/).length < 8 && words.length >= 8) {
+    result = words.slice(0, Math.max(8, maxWords)).join(' ');
     if (!result.match(/[.!?]$/)) result += '.';
   }
   

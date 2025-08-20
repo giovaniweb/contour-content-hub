@@ -354,12 +354,12 @@ const getFormatInstructions = (formato: string, canal: string, tempoLimite?: num
     reels: `
     🎥 REELS INSTAGRAM - ROTEIRO CONCISO (40 segundos máximo):
     
-    🚨 LIMITES RÍGIDOS DE PALAVRA:
-    - TOTAL: máximo 100 palavras (90-110 ideais)
-    - Gancho: máximo 15 palavras (3 segundos)
-    - Problema: máximo 25 palavras (8 segundos)  
-    - Solução: máximo 35 palavras (15 segundos)
-    - CTA: máximo 15 palavras (8 segundos)
+    🚨 LIMITES BALANCEADOS DE PALAVRA:
+    - TOTAL: 90-110 palavras (30-40 segundos)
+    - Gancho: 15-20 palavras (6 segundos)
+    - Problema: 20-25 palavras (8 segundos)  
+    - Solução: 35-40 palavras (14 segundos)
+    - CTA: 15-20 palavras (7 segundos)
     
     📝 EXEMPLO DE ESTRUTURA IDEAL:
     🎯 Gancho: "Você sente que a pele está perdendo firmeza, mesmo cuidando da dieta e do treino?"
@@ -367,12 +367,12 @@ const getFormatInstructions = (formato: string, canal: string, tempoLimite?: num
     💡 Solução: "O Supreme PRO trata músculo em profundidade e estimula colágeno naturalmente."
     🚀 CTA: "Agende uma demonstração e ofereça o diferencial que seus pacientes procuram."
     
-    🔥 REGRAS DE CONCISÃO OBRIGATÓRIAS:
-    - Uma frase por seção (máximo duas se necessário)
-    - Sem rodeios ou explicações longas
-    - Direto ao ponto, sem floreios
+    🔥 REGRAS DE CONCISÃO BALANCEADAS:
+    - Uma a duas frases por seção conforme necessário
+    - Conteúdo completo mas sem rodeios
+    - Direto ao ponto, mantendo clareza
     - Linguagem simples e impactante
-    - Cada palavra deve ser essencial
+    - Priorizar completude da mensagem
     
     ❌ PROIBIDO:
     - Explicações técnicas longas
