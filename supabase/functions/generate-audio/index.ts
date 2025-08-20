@@ -7,15 +7,9 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Mapear vozes da ElevenLabs por mentor
-const ELEVEN_VOICES: Record<string, string> = {
-  // IDs oficiais de voz da ElevenLabs
-  criativo: 'XB0fDUnXU5powFXDhCwa', // Charlotte (energética)
-  vendedor: 'CwhRBWXzGAHq8TQ4Fs17', // Roger (convincente)
-  educativo: 'EXAVITQu4vr4xnSDYk0k2', // Sarah (clara/didática)
-  disney: 'Xb7hH8MSUJpSbSDYk0k2', // Alice (encantadora)
-  default: '9BWtsMINqrJLrRacOk9x', // Aria (padrão)
-};
+// Voz específica do Fluida criada no ElevenLabs
+const FLUIDA_VOICE_ID = '9BWtsMINqrJLrRacOk9x'; // TODO: Substituir pelo voice ID específico do Fluida
+const DISNEY_VOICE_ID = 'Xb7hH8MSUJpSbSDYk0k2'; // Alice (encantadora) para modo Disney
 
 // Text cleaners and duration limiter for OFF narration
 function cleanOffText(input: string): string {
@@ -85,10 +79,8 @@ serve(async (req) => {
       throw new Error('XI_API_KEY não configurada');
     }
 
-    // Selecionar voz baseada no mentor
-    const voiceId = isDisneyMode
-      ? ELEVEN_VOICES.disney
-      : (ELEVEN_VOICES[mentor?.toLowerCase?.()] || ELEVEN_VOICES.default);
+    // Selecionar voz: Fluida específica ou Disney
+    const voiceId = isDisneyMode ? DISNEY_VOICE_ID : FLUIDA_VOICE_ID;
 
     // Limpar, limitar e ajustar pronúncia para ~40s de locução publicitária
     const MAX_SECONDS = 40;
@@ -121,7 +113,7 @@ serve(async (req) => {
           text: adjustedText,
           model_id,
           voice_settings: {
-            stability: 0.3,
+            stability: 0.5, // Corrigido: valor válido (0.0, 0.5 ou 1.0)
             similarity_boost: 0.92,
             style: 0.95,
             use_speaker_boost: true,

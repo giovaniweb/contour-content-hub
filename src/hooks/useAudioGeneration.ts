@@ -125,7 +125,7 @@ export const useAudioGeneration = () => {
 
         toast({
           title: "🎙️ Áudio gerado com sucesso!",
-          description: `${isDisneyMode ? 'Voz encantadora da Fluida' : `Voz do mentor ${mentor || 'padrão'}` } (modelo: ${data?.modelUsed || 'desconhecido'}${data?.fallbackUsed ? ' • fallback aplicado' : ''}).`,
+          description: `${isDisneyMode ? 'Voz encantadora da Fluida' : 'Voz personalizada do Fluida'} (modelo: ${data?.modelUsed || 'desconhecido'}${data?.fallbackUsed ? ' • fallback aplicado' : ''}).`,
         });
 
         return url;
