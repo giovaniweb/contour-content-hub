@@ -125,24 +125,24 @@ export const rebalanceGPSC = (gpsc: Record<SectionKey, string>): Record<SectionK
   return gpsc;
 };
 
-// Word limits per GPSC section for balanced Reels (30-40 seconds)
+// Word limits per GPSC section for balanced Reels (35-45 seconds)
 const SECTION_WORD_LIMITS: Record<SectionKey, number> = {
-  'Gancho': 20,    // 6 seconds
-  'Problema': 25,  // 8 seconds
-  'Solução': 40,   // 14 seconds
-  'CTA': 20        // 7 seconds
-  // Total: ~105 words (35 seconds)
+  'Gancho': 25,    // 8 seconds - mais espaço para impacto
+  'Problema': 30,  // 10 seconds - mais contexto emocional
+  'Solução': 45,   // 15 seconds - detalhes do benefício
+  'CTA': 25        // 8 seconds - ação clara e completa
+  // Total: ~125 words (41 seconds)
 };
 
-// Limit section to specific word count with balanced approach
+// Limit section to specific word count with balanced approach (MENOS AGRESSIVO)
 const limitSectionWords = (text: string, maxWords: number): string => {
   if (!text) return text;
   
   const words = text.trim().split(/\s+/);
   if (words.length <= maxWords) return text;
   
-  // Allow +3 words flexibility for completeness
-  const flexibleLimit = maxWords + 3;
+  // Allow +8 words flexibility for completeness (mais flexível)
+  const flexibleLimit = maxWords + 8;
   if (words.length <= flexibleLimit) return text;
   
   // Try to cut at sentence boundary first
@@ -156,8 +156,8 @@ const limitSectionWords = (text: string, maxWords: number): string => {
       result += sentence;
       wordCount += sentenceWords;
     } else if (wordCount === 0) {
-      // If first sentence is too long, truncate it but keep at least one sentence
-      const truncated = sentence.trim().split(/\s+/).slice(0, maxWords).join(' ');
+      // If first sentence is too long, prioritize keeping complete thought
+      const truncated = sentence.trim().split(/\s+/).slice(0, Math.max(maxWords, 15)).join(' ');
       result = truncated + (truncated.match(/[.!?]$/) ? '' : '.');
       break;
     } else {
@@ -165,9 +165,9 @@ const limitSectionWords = (text: string, maxWords: number): string => {
     }
   }
   
-  // Ensure we have at least something meaningful (minimum 8 words)
-  if (result.trim().split(/\s+/).length < 8 && words.length >= 8) {
-    result = words.slice(0, Math.max(8, maxWords)).join(' ');
+  // Ensure we have at least something meaningful (minimum 12 words for completeness)
+  if (result.trim().split(/\s+/).length < 12 && words.length >= 12) {
+    result = words.slice(0, Math.max(12, maxWords)).join(' ');
     if (!result.match(/[.!?]$/)) result += '.';
   }
   
@@ -240,17 +240,25 @@ export const buildReelsGPSC = (roteiro: string): Record<SectionKey, string> => {
       }
       const lower = cleaned.toLowerCase();
       let bucket: SectionKey = 'Solução';
+      
+      // GANCHO: Frases provocativas, questionamentos, hooks emocionais
       if (
         lower.includes('você sabia') ||
         lower.includes('imagine') ||
         lower.includes('e se eu te dissesse') ||
         lower.includes('pare tudo') ||
         lower.includes('atenção') ||
+        lower.includes('a real é que') ||
+        lower.includes('ninguém te conta') ||
         /^(você|vocês|tu)\s/.test(lower) ||
-        (cleaned.includes('?') && cleaned.indexOf('?') < 150)
+        (cleaned.includes('?') && cleaned.indexOf('?') < 150) ||
+        lower.includes('olha só') ||
+        lower.includes('escuta isso')
       ) {
         bucket = 'Gancho';
-      } else if (
+      }
+      // PROBLEMA: Identificação de dores, frustrações, limitações
+      else if (
         lower.includes('problema') ||
         lower.includes('dificuldade') ||
         lower.includes('frustração') ||
@@ -259,10 +267,21 @@ export const buildReelsGPSC = (roteiro: string): Record<SectionKey, string> => {
         lower.includes('luta') ||
         lower.includes('desafio') ||
         lower.includes('celulite') ||
-        lower.includes('incomoda')
+        lower.includes('incomoda') ||
+        lower.includes('continua') ||
+        lower.includes('mas a pele') ||
+        lower.includes('mesmo fazendo') ||
+        lower.includes('tentou de tudo')
       ) {
         bucket = 'Problema';
-      } else if (
+      }
+      // CTA: Chamadas para ação clara e direta
+      else if (
+        lower.includes('pergunta pro seu médico') ||
+        lower.includes('procure um profissional') ||
+        lower.includes('fale com') ||
+        lower.includes('sem enrolação') ||
+        lower.includes('hoje mesmo') ||
         lower.includes('clique') ||
         lower.includes('acesse') ||
         lower.includes('baixe') ||
