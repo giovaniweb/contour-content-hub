@@ -10,58 +10,62 @@ const corsHeaders = {
 // Voz específica do Fluida criada no ElevenLabs
 const FLUIDA_VOICE_ID = 'dLN8IFpwIveHCuhgX4ee'; // Voz personalizada do Fluida
 
-// Preparação inteligente de texto para narração energética
-function prepareForEnergeticNarration(input: string): string {
+// Limpeza mínima preservando estrutura narrativa já otimizada pelo frontend
+function cleanTextForTTS(input: string): string {
   const src = String(input || '');
   
-  // Limpeza mínima preservando conteúdo narrativo
+  // Remove apenas elementos técnicos sem destruir a estrutura narrativa
   let out = src
-    // Remove apenas timestamps específicos
+    // Remove timestamps específicos
     .replace(/\[(?:\d{1,2}:)?\d{1,2}:\d{2}\]/g, '')
     .replace(/\((?:\d{1,2}:)?\d{1,2}:\d{2}\)/g, '')
-    // Remove apenas rótulos técnicos mas preserva conteúdo
-    .replace(/^\s*(?:OFF|NARRA(?:Ç|C)ÃO|NARRADOR|APRESENTADOR|CTA|CENA|INTRODU(?:Ç|C)ÃO|FECHAMENTO|CONCLUS(?:Ã|A)O|STORY\s*\d+|SLIDE\s*\d+)\s*[:\-–—]?\s*/gmi, '')
-    // Remove markdown headers mas preserva conteúdo
+    // Remove markdown headers mas preserva conteúdo e estrutura
     .replace(/^#{1,6}\s+/gm, '')
-    // Remove bullets mas preserva texto
-    .replace(/^\s*[>*\-•–—]\s+/gm, '');
+    // Normaliza espaços múltiplos mas preserva quebras de linha estruturais
+    .replace(/[ \t]+/g, ' ')
+    .replace(/\n{3,}/g, '\n\n');
 
-  // Divide em linhas e processa
-  const lines = out
-    .split(/\r?\n/)
-    .map(l => l.trim())
-    .filter(l => l.length > 2); // Mantém linhas com conteúdo mínimo
-
-  // Junta com conectores naturais para fluidez
-  let result = lines.join('. ').replace(/\s{2,}/g, ' ').trim();
-  
-  // Adiciona pausas estratégicas para cadência dinâmica
-  result = result
-    .replace(/([.!?])\s+/g, '$1 ') // Normaliza pontuação
-    .replace(/([,;:])\s*/g, '$1 ') // Adiciona espaço após vírgulas
-    .replace(/\b(mas|porém|contudo|entretanto|então|agora|vamos|imagine|olha)\b/gi, ', $1') // Conectores com pausa
-    .replace(/\s+/g, ' ') // Remove espaços duplos
-    .trim();
-
-  return result;
+  return out.trim();
 }
 
-// Corte inteligente por tempo com preservação de frases completas
-function limitToDurationSmart(input: string, maxSeconds = 38, wordsPerSecond = 3.5): string {
+// Corte inteligente preservando estrutura narrativa e parágrafos
+function limitToDurationSmart(input: string, maxSeconds = 38): string {
   const text = String(input || '').trim();
   if (!text) return '';
 
-  // Calcula limite baseado em caracteres (mais preciso que palavras)
-  const avgCharsPerSecond = wordsPerSecond * 5.5; // Média de caracteres por palavra em PT-BR
+  // Configuração mais precisa para PT-BR narração dinâmica
+  const avgCharsPerSecond = 14; // 12-15 chars/segundo para TTS PT-BR energético
   const maxChars = Math.floor(maxSeconds * avgCharsPerSecond);
   
   // Se já está dentro do limite, retorna direto
   if (text.length <= maxChars) return text;
 
-  // Encontra ponto de corte ideal (fim de frase)
-  const sentences = text.split(/([.!?]+\s*)/);
+  console.log(`⏱️ [limitToDurationSmart] Texto ${text.length} chars > limite ${maxChars} chars. Aplicando corte inteligente.`);
+
+  // Primeiro: tenta cortar por parágrafos (estrutura narrativa GPSC)
+  const paragraphs = text.split(/\n\s*\n/);
   let result = '';
   let currentLength = 0;
+
+  for (const paragraph of paragraphs) {
+    if (currentLength + paragraph.length + 2 <= maxChars) { // +2 para quebras de linha
+      result += (result ? '\n\n' : '') + paragraph;
+      currentLength += paragraph.length + 2;
+    } else {
+      break;
+    }
+  }
+
+  // Se conseguiu preservar parágrafos completos, retorna
+  if (result.trim() && result.length >= maxChars * 0.7) { // Pelo menos 70% do limite
+    console.log(`✂️ [limitToDurationSmart] Cortado por parágrafos: ${result.length} chars`);
+    return result.trim();
+  }
+
+  // Fallback: corte por frases dentro do primeiro parágrafo
+  const sentences = text.split(/([.!?]+\s*)/);
+  result = '';
+  currentLength = 0;
 
   for (let i = 0; i < sentences.length; i++) {
     const sentence = sentences[i];
@@ -73,19 +77,7 @@ function limitToDurationSmart(input: string, maxSeconds = 38, wordsPerSecond = 3
     }
   }
 
-  // Se não conseguiu formar frases completas, corta por palavras mas mantém coerência
-  if (!result.trim()) {
-    const words = text.split(/\s+/);
-    const maxWords = Math.floor(maxSeconds * wordsPerSecond);
-    result = words.slice(0, maxWords).join(' ');
-    
-    // Garante que não corta no meio de uma palavra composta
-    if (result.endsWith('-')) {
-      const lastSpace = result.lastIndexOf(' ');
-      result = result.substring(0, lastSpace);
-    }
-  }
-
+  console.log(`✂️ [limitToDurationSmart] Cortado por frases: ${result.length} chars`);
   return result.trim();
 }
 
@@ -127,21 +119,22 @@ serve(async (req) => {
     // Usar apenas a voz específica do Fluida
     const voiceId = FLUIDA_VOICE_ID;
 
-    // Processamento inteligente do texto para narração energética (30-38s)
+    // Processamento mínimo preservando estrutura narrativa do frontend
     const MAX_SECONDS = 38;
-    const processedText = prepareForEnergeticNarration(String(text || ''));
-    const limitedText = limitToDurationSmart(processedText, MAX_SECONDS, 3.5);
+    const originalText = String(text || '');
+    const cleanedText = cleanTextForTTS(originalText);
+    const limitedText = limitToDurationSmart(cleanedText, MAX_SECONDS);
     const finalText = applyPronunciationFixes(limitedText, mentor);
     
     const pronFixApplied = limitedText !== finalText;
-    const textWasLimited = processedText.length > limitedText.length;
+    const textWasLimited = cleanedText.length > limitedText.length;
 
     if (!finalText || finalText.length < 10) {
       throw new Error('Texto muito curto ou inválido após processamento. Forneça um roteiro com mais conteúdo.');
     }
 
-    // Cálculo de tempo estimado mais preciso
-    const estimatedSeconds = Math.round(finalText.length / (3.5 * 5.5)); // chars / (words/sec * chars/word)
+    // Cálculo de tempo estimado mais preciso (14 chars/segundo)
+    const estimatedSeconds = Math.round(finalText.length / 14);
     
     // Modelo preferido: Alpha (v3), com suporte a fallback para v2
     const preferAlpha = useAlpha !== false;
@@ -150,11 +143,20 @@ serve(async (req) => {
     let fallbackUsed = false;
 
     console.log(`🎙️ [generate-audio] Fluida Voice (Energética):`);
-    console.log(`   📝 Original: ${String(text || '').length} chars`);
-    console.log(`   ✂️ Processado: ${processedText.length} chars`);
-    console.log(`   ⏱️ Final: ${finalText.length} chars (~${estimatedSeconds}s)`);
+    console.log(`   📝 Original: ${originalText.length} chars`);
+    console.log(`   🧹 Limpo: ${cleanedText.length} chars`);
+    console.log(`   ✂️ Limitado: ${limitedText.length} chars`);
+    console.log(`   ⏱️ Final: ${finalText.length} chars (~${estimatedSeconds}s @ 14chars/s)`);
     console.log(`   🔧 Ajustes: pronúncia=${pronFixApplied}, limitado=${textWasLimited}`);
     console.log(`   🎯 Modelo: ${preferredModel}, Mentor: ${mentor || 'N/A'}`);
+    
+    // Log do texto final para debug
+    console.log(`   📄 Texto final para TTS:`);
+    console.log(`"${finalText.substring(0, 200)}${finalText.length > 200 ? '...' : ''}"`);
+
+    if (textWasLimited) {
+      console.warn(`⚠️ [generate-audio] Texto foi cortado de ${cleanedText.length} para ${limitedText.length} chars para caber em ${MAX_SECONDS}s`);
+    }
 
     async function requestTTS(model_id: string) {
       return await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
