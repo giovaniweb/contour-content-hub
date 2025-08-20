@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,6 +10,16 @@ import { UserPlus, Mail, CheckCircle, AlertCircle, Loader2 } from 'lucide-react'
 import { useAcademyCourses } from '@/hooks/useAcademyCourses';
 import { useAcademyInvites } from '@/hooks/useAcademyInvites';
 import { InviteFormData } from '@/types/academy';
+
+// Pure validation functions outside component - NO RE-RENDERS
+const isEmailValid = (email: string): boolean => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return email && emailRegex.test(email);
+};
+
+const isNameValid = (name: string): boolean => {
+  return name && name.trim().length >= 2;
+};
 
 interface InviteUserDialogProps {
   onInviteCreated?: () => void;
@@ -32,18 +42,8 @@ export const InviteUserDialog: React.FC<InviteUserDialogProps> = ({ onInviteCrea
 
   const activeCourses = courses.filter(course => course.status === 'active');
 
-  // Pure validation functions (no side effects)
-  const isEmailValid = useCallback((email: string): boolean => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return email && emailRegex.test(email);
-  }, []);
-
-  const isNameValid = useCallback((name: string): boolean => {
-    return name && name.trim().length >= 2;
-  }, []);
-
-  // Functions to validate and update error states
-  const validateAndSetEmailError = useCallback((email: string) => {
+  // Simple validation functions inline
+  const validateEmail = (email: string) => {
     if (!email) {
       setEmailError('E-mail é obrigatório');
       return false;
@@ -54,40 +54,41 @@ export const InviteUserDialog: React.FC<InviteUserDialogProps> = ({ onInviteCrea
     }
     setEmailError('');
     return true;
-  }, [isEmailValid]);
+  };
 
-  const validateAndSetNameError = useCallback((name: string) => {
+  const validateName = (name: string) => {
     if (!isNameValid(name)) {
       setNameError('Nome deve ter pelo menos 2 caracteres');
       return false;
     }
     setNameError('');
     return true;
-  }, [isNameValid]);
+  };
 
-  // Memoized form validation (no side effects)
+  // Memoized form validation - ONLY essential dependencies
   const isFormValid = useMemo(() => {
     return isEmailValid(formData.email) && 
            isNameValid(formData.first_name) && 
            formData.course_ids.length > 0;
-  }, [formData.email, formData.first_name, formData.course_ids.length, isEmailValid, isNameValid]);
+  }, [formData.email, formData.first_name, formData.course_ids.length]);
 
-  const handleEmailChange = useCallback((email: string) => {
+  // Simple inline handlers - no useCallback
+  const handleEmailChange = (email: string) => {
     setFormData(prev => ({ ...prev, email }));
-    if (email) validateAndSetEmailError(email);
-  }, [validateAndSetEmailError]);
+    if (email) validateEmail(email);
+  };
 
-  const handleNameChange = useCallback((name: string) => {
+  const handleNameChange = (name: string) => {
     setFormData(prev => ({ ...prev, first_name: name }));
-    if (name) validateAndSetNameError(name);
-  }, [validateAndSetNameError]);
+    if (name) validateName(name);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!isFormValid) {
-      validateAndSetEmailError(formData.email);
-      validateAndSetNameError(formData.first_name);
+      validateEmail(formData.email);
+      validateName(formData.first_name);
       return;
     }
 
