@@ -168,7 +168,7 @@ serve(async (req) => {
           text: finalText,
           model_id,
           voice_settings: {
-            stability: 0.4,        // Mais expressivo para narração energética
+            stability: 0.5,        // Ajustado para valor aceito pela API (0.0, 0.5, 1.0)
             similarity_boost: 0.75, // Natural mas controlado
             style: 0.85,           // Expressivo mas não exagerado
             use_speaker_boost: true, // Mantém clareza
@@ -180,19 +180,35 @@ serve(async (req) => {
     // 1) Tenta com o modelo preferido
     let response = await requestTTS(preferredModel);
 
-    // 2) Se falhar por falta de acesso ao Alpha, faz fallback automático para Multilingual v2
+    // 2) Se falhar, verifica tipo de erro e aplica fallback apropriado
     if (!response.ok) {
       const errText = await response.text();
       let accessDenied = false;
+      let invalidTTDStability = false;
+      
       try {
         const parsed = JSON.parse(errText);
         const status = parsed?.detail?.status || parsed?.error?.type || parsed?.error?.code;
         accessDenied = String(status || '').includes('model_access_denied');
+        invalidTTDStability = String(status || '').includes('invalid_ttd_stability');
       } catch (_) {
         accessDenied = errText.includes('model_access_denied') || errText.includes('access denied');
+        invalidTTDStability = errText.includes('invalid_ttd_stability') || errText.includes('Invalid TTD stability');
       }
 
-      if (preferAlpha && accessDenied) {
+      // Fallback para erro de stability inválido
+      if (invalidTTDStability) {
+        console.warn(`⚠️ [generate-audio] Erro de stability detectado. Aplicando fallback para eleven_multilingual_v2.`);
+        response = await requestTTS('eleven_multilingual_v2');
+        if (response.ok) {
+          modelUsed = 'eleven_multilingual_v2';
+          fallbackUsed = true;
+        } else {
+          throw new Error(`Falha ao gerar áudio mesmo após fallback para stability. Detalhes: ${errText}`);
+        }
+      }
+      // Fallback para erro de acesso ao modelo
+      else if (preferAlpha && accessDenied) {
         console.warn(`⚠️ [generate-audio] Alpha (v3) sem acesso. Aplicando fallback para eleven_multilingual_v2.`);
         response = await requestTTS('eleven_multilingual_v2');
         if (response.ok) {
