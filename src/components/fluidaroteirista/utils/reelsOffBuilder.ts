@@ -192,8 +192,36 @@ const limitSectionWords = (text: string, maxWords: number): string => {
 
 // Build GPSC structure robustly from roteiro
 export const buildReelsGPSC = (roteiro: string): Record<SectionKey, string> => {
-  const blocks = parseTemporalScript(roteiro);
+  // PRIORIDADE 1: Se já está no formato GPSC perfeito, usar diretamente
+  if (roteiro.includes('🎯 Gancho') && roteiro.includes('⚠️ Problema') && 
+      roteiro.includes('💡 Solução') && roteiro.includes('🚀 CTA')) {
+    
+    console.log('✅ GPSC já estruturado - preservando formato original');
+    
+    const gpsc: Record<SectionKey, string> = {
+      Gancho: '',
+      Problema: '', 
+      Solução: '',
+      CTA: ''
+    };
+    
+    // Extrair seções preservando texto original
+    const sections = roteiro.split(/\n\n/);
+    const ganchoMatch = sections.find(s => s.startsWith('🎯 Gancho'));
+    const problemaMatch = sections.find(s => s.startsWith('⚠️ Problema'));
+    const solucaoMatch = sections.find(s => s.startsWith('💡 Solução'));
+    const ctaMatch = sections.find(s => s.startsWith('🚀 CTA'));
+    
+    if (ganchoMatch) gpsc.Gancho = ganchoMatch.replace(/^🎯 Gancho\s*\n?/, '').trim();
+    if (problemaMatch) gpsc.Problema = problemaMatch.replace(/^⚠️ Problema\s*\n?/, '').trim();
+    if (solucaoMatch) gpsc.Solução = solucaoMatch.replace(/^💡 Solução\s*\n?/, '').trim();
+    if (ctaMatch) gpsc.CTA = ctaMatch.replace(/^🚀 CTA\s*\n?/, '').trim();
+    
+    return gpsc;
+  }
 
+  // FALLBACK: Processamento automático para formatos não-GPSC
+  const blocks = parseTemporalScript(roteiro);
   const gpsc: Record<SectionKey, string> = {
     Gancho: '',
     Problema: '',
@@ -372,19 +400,26 @@ export const buildReelsOFF = (roteiro: string): string => {
     
     console.log('✅ Formato GPSC detectado - usando diretamente');
     
-    // Extrair cada seção do formato GPSC
-    const sections = roteiro.split('\n\n');
-    const ganchoSection = sections.find(s => s.startsWith('🎯 Gancho'))?.replace('🎯 Gancho\n', '') || '';
-    const problemaSection = sections.find(s => s.startsWith('⚠️ Problema'))?.replace('⚠️ Problema\n', '') || '';
-    const solucaoSection = sections.find(s => s.startsWith('💡 Solução'))?.replace('💡 Solução\n', '') || '';
-    const ctaSection = sections.find(s => s.startsWith('🚀 CTA'))?.replace('🚀 CTA\n', '') || '';
+    // Extrair cada seção do formato GPSC preservando quebras
+    const sections = roteiro.split(/\n\n/);
+    const ganchoSection = sections.find(s => s.startsWith('🎯 Gancho'))?.replace(/^🎯 Gancho\s*\n?/, '') || '';
+    const problemaSection = sections.find(s => s.startsWith('⚠️ Problema'))?.replace(/^⚠️ Problema\s*\n?/, '') || '';
+    const solucaoSection = sections.find(s => s.startsWith('💡 Solução'))?.replace(/^💡 Solução\s*\n?/, '') || '';
+    const ctaSection = sections.find(s => s.startsWith('🚀 CTA'))?.replace(/^🚀 CTA\s*\n?/, '') || '';
     
-    // Limpar referências técnicas de cada seção
+    // Aplicar apenas limpeza científica LEVE, preservando texto
+    const lightClean = (text: string): string => {
+      return text
+        .replace(/\b(?:segundo\s+estudos?|evidência\s+científica|comprovado\s+cientificamente|literatura\s+médica)\b[^.!?]*[.!?]?/gi, '')
+        .replace(/\s{2,}/g, ' ')
+        .trim();
+    };
+    
     const cleanedSections = [
-      cleanForOFF(ganchoSection),
-      cleanForOFF(problemaSection), 
-      cleanForOFF(solucaoSection),
-      cleanForOFF(ctaSection)
+      lightClean(ganchoSection),
+      lightClean(problemaSection), 
+      lightClean(solucaoSection),
+      lightClean(ctaSection)
     ].filter(Boolean);
     
     return cleanedSections.join(' ').replace(/\s{2,}/g, ' ').trim();
