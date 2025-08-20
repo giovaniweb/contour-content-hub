@@ -352,37 +352,32 @@ const getFormatInstructions = (formato: string, canal: string, tempoLimite?: num
     `,
     
     reels: `
-    🎥 REELS INSTAGRAM - ROTEIRO CONCISO (40 segundos máximo):
+    🎥 REELS FORMATO GPSC OBRIGATÓRIO:
     
-    🚨 LIMITES OTIMIZADOS DE PALAVRA:
-    - TOTAL: 85-105 palavras (28-35 segundos)
-    - Gancho: 12-18 palavras (provocação concisa)
-    - Problema: 18-25 palavras (dor específica)  
-    - Solução: 30-35 palavras (benefício tangível)
-    - CTA: 12-18 palavras (ação clara)
+    🚨 FORMATO GPSC EXATO - COPIE ESTA ESTRUTURA:
+    🎯 Gancho (12-18 palavras)
+    ⚠️ Problema (18-25 palavras)  
+    💡 Solução (30-35 palavras)
+    🚀 CTA (12-18 palavras)
     
-    📝 EXEMPLO DE ESTRUTURA IDEAL (TOM LEANDRO LADEIRA - PACIENTE FINAL):
-    🎯 Gancho: "Flacidez incomoda? Descubra a resposta que a ciência já aprovou!" (12 palavras)
-    ⚠️ Problema: "Você olha no espelho e sente que a pele firme parece só uma lembrança?" (15 palavras)
-    💡 Solução: "Resultados visíveis logo nas primeiras sessões, sem dor, sem cortes e com respaldo científico comprovado." (16 palavras)  
-    🚀 CTA: "Quer sentir sua pele mais firme, mais jovem e sua autoestima renovada?" (12 palavras)
+    📋 EXEMPLO EXATO (USE COMO MODELO):
+    🎯 Gancho
+    Você sente que a pele está perdendo firmeza, mesmo cuidando da dieta e do treino?
     
-    🔥 TOM LEANDRO LADEIRA OBRIGATÓRIO:
-    - Linguagem DIRETA do paciente final (não técnica para médicos)
-    - Bordões: "A real é que...", "Sem enrolação", "Você sente...", "Olha só"
-    - Tom provocativo e emocional, não comercial
-    - Identificação real com problemas do dia a dia
-    - CTA sempre para AÇÃO DO PACIENTE, nunca do médico
-    - Linguagem simples, coloquial e impactante
-    - CADA SEÇÃO DEVE SER CONCISA: Uma frase por seção (exceto Solução que pode ter 2)
+    ⚠️ Problema  
+    A cada ano nosso corpo perde colágeno e massa muscular, deixando a pele mais solta.
     
-    ❌ PROIBIDO ABSOLUTO:
-    - Referências científicas ou estudos no roteiro final
-    - Explicações técnicas longas
-    - Múltiplas frases desnecessárias por seção
-    - Textos que soam corporativos ou médicos
-    - Qualquer menção a "literatura", "pesquisas", "evidências científicas"
-    - Qualquer texto que ultrapasse os limites de palavra por seção
+    💡 Solução
+    O Supreme PRO trata músculo em profundidade e estimula colágeno de forma natural – com sessões rápidas.
+    
+    🚀 CTA
+    Agende uma demonstração e ofereça o diferencial que seus pacientes procuram.
+    
+    🔥 TOM OBRIGATÓRIO:
+    - Linguagem direta para paciente final
+    - Tom provocativo mas não comercial
+    - Identificação com problemas reais
+    - Bordões: "A real é que...", "Você sente...", "Olha só"
     `,
     
     short: `
