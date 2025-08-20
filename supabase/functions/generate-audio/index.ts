@@ -9,39 +9,84 @@ const corsHeaders = {
 
 // Voz específica do Fluida criada no ElevenLabs
 const FLUIDA_VOICE_ID = 'dLN8IFpwIveHCuhgX4ee'; // Voz personalizada do Fluida
-const DISNEY_VOICE_ID = 'Xb7hH8MSUJpSbSDYk0k2'; // Alice (encantadora) para modo Disney
 
-// Text cleaners and duration limiter for OFF narration
-function cleanOffText(input: string): string {
+// Preparação inteligente de texto para narração energética
+function prepareForEnergeticNarration(input: string): string {
   const src = String(input || '');
-  // Remove timestamps like [00:12] or (00:12)
+  
+  // Limpeza mínima preservando conteúdo narrativo
   let out = src
-    .replace(/\[(?:\d{1,2}:)?\d{1,2}:\d{2}\]/g, ' ')
-    .replace(/\((?:\d{1,2}:)?\d{1,2}:\d{2}\)/g, ' ')
-    // Remove bracketed directions [ ... ]
-    .replace(/\[[^\]]+\]/g, ' ')
-    // Remove stage directions in parentheses
-    .replace(/\([^)]{3,}\)/g, ' ')
-    // Remove markdown headings and bullets
-    .replace(/^#{1,6}\s+/gm, '')
-    .replace(/^\s*[>*\-•–—]\s+/gm, '')
-    // Remove leading labels (OFF:, NARRAÇÃO:, CTA:, etc.)
+    // Remove apenas timestamps específicos
+    .replace(/\[(?:\d{1,2}:)?\d{1,2}:\d{2}\]/g, '')
+    .replace(/\((?:\d{1,2}:)?\d{1,2}:\d{2}\)/g, '')
+    // Remove apenas rótulos técnicos mas preserva conteúdo
     .replace(/^\s*(?:OFF|NARRA(?:Ç|C)ÃO|NARRADOR|APRESENTADOR|CTA|CENA|INTRODU(?:Ç|C)ÃO|FECHAMENTO|CONCLUS(?:Ã|A)O|STORY\s*\d+|SLIDE\s*\d+)\s*[:\-–—]?\s*/gmi, '')
-    // Remove lines that are all caps (likely headings)
-    .replace(/^(?=.{3,}$)([A-ZÁÉÍÓÚÂÊÔÃÕÇ0-9\s%\-–—,:;!?"']+)$\n?/gm, '');
+    // Remove markdown headers mas preserva conteúdo
+    .replace(/^#{1,6}\s+/gm, '')
+    // Remove bullets mas preserva texto
+    .replace(/^\s*[>*\-•–—]\s+/gm, '');
 
+  // Divide em linhas e processa
   const lines = out
     .split(/\r?\n/)
     .map(l => l.trim())
-    .filter(l => l.length > 0);
+    .filter(l => l.length > 2); // Mantém linhas com conteúdo mínimo
 
-  return lines.join(' ').replace(/\s{2,}/g, ' ').trim();
+  // Junta com conectores naturais para fluidez
+  let result = lines.join('. ').replace(/\s{2,}/g, ' ').trim();
+  
+  // Adiciona pausas estratégicas para cadência dinâmica
+  result = result
+    .replace(/([.!?])\s+/g, '$1 ') // Normaliza pontuação
+    .replace(/([,;:])\s*/g, '$1 ') // Adiciona espaço após vírgulas
+    .replace(/\b(mas|porém|contudo|entretanto|então|agora|vamos|imagine|olha)\b/gi, ', $1') // Conectores com pausa
+    .replace(/\s+/g, ' ') // Remove espaços duplos
+    .trim();
+
+  return result;
 }
 
-function limitToDuration(input: string, maxSeconds = 40, wordsPerSecond = 2.5): string {
-  const words = String(input || '').split(/\s+/).filter(Boolean);
-  const maxWords = Math.max(1, Math.floor(maxSeconds * wordsPerSecond));
-  return words.slice(0, maxWords).join(' ');
+// Corte inteligente por tempo com preservação de frases completas
+function limitToDurationSmart(input: string, maxSeconds = 38, wordsPerSecond = 3.5): string {
+  const text = String(input || '').trim();
+  if (!text) return '';
+
+  // Calcula limite baseado em caracteres (mais preciso que palavras)
+  const avgCharsPerSecond = wordsPerSecond * 5.5; // Média de caracteres por palavra em PT-BR
+  const maxChars = Math.floor(maxSeconds * avgCharsPerSecond);
+  
+  // Se já está dentro do limite, retorna direto
+  if (text.length <= maxChars) return text;
+
+  // Encontra ponto de corte ideal (fim de frase)
+  const sentences = text.split(/([.!?]+\s*)/);
+  let result = '';
+  let currentLength = 0;
+
+  for (let i = 0; i < sentences.length; i++) {
+    const sentence = sentences[i];
+    if (currentLength + sentence.length <= maxChars) {
+      result += sentence;
+      currentLength += sentence.length;
+    } else {
+      break;
+    }
+  }
+
+  // Se não conseguiu formar frases completas, corta por palavras mas mantém coerência
+  if (!result.trim()) {
+    const words = text.split(/\s+/);
+    const maxWords = Math.floor(maxSeconds * wordsPerSecond);
+    result = words.slice(0, maxWords).join(' ');
+    
+    // Garante que não corta no meio de uma palavra composta
+    if (result.endsWith('-')) {
+      const lastSpace = result.lastIndexOf(' ');
+      result = result.substring(0, lastSpace);
+    }
+  }
+
+  return result.trim();
 }
 
 // Ajuste de pronúncia específico para TTS pt-BR (não altera o texto original exibido)
@@ -68,7 +113,7 @@ serve(async (req) => {
   }
 
   try {
-    const { text, mentor, isDisneyMode, useAlpha } = await req.json();
+    const { text, mentor, useAlpha } = await req.json(); // Removido isDisneyMode
 
     if (!text) {
       throw new Error('Texto é obrigatório');
@@ -79,27 +124,37 @@ serve(async (req) => {
       throw new Error('XI_API_KEY não configurada');
     }
 
-    // Selecionar voz: Fluida específica ou Disney
-    const voiceId = isDisneyMode ? DISNEY_VOICE_ID : FLUIDA_VOICE_ID;
+    // Usar apenas a voz específica do Fluida
+    const voiceId = FLUIDA_VOICE_ID;
 
-    // Limpar, limitar e ajustar pronúncia para ~40s de locução publicitária
-    const MAX_SECONDS = 40;
-    const WORDS_PER_SECOND = 2.5;
-    const preppedText = limitToDuration(cleanOffText(String(text || '')), MAX_SECONDS, WORDS_PER_SECOND);
-    const adjustedText = applyPronunciationFixes(preppedText, mentor);
-    const pronFixApplied = preppedText !== adjustedText;
+    // Processamento inteligente do texto para narração energética (30-38s)
+    const MAX_SECONDS = 38;
+    const processedText = prepareForEnergeticNarration(String(text || ''));
+    const limitedText = limitToDurationSmart(processedText, MAX_SECONDS, 3.5);
+    const finalText = applyPronunciationFixes(limitedText, mentor);
+    
+    const pronFixApplied = limitedText !== finalText;
+    const textWasLimited = processedText.length > limitedText.length;
 
-    if (!adjustedText) {
-      throw new Error('Nenhum texto válido encontrado após a limpeza. Forneça apenas o roteiro.');
+    if (!finalText || finalText.length < 10) {
+      throw new Error('Texto muito curto ou inválido após processamento. Forneça um roteiro com mais conteúdo.');
     }
 
-    // Modelo preferido: Alpha (v3), com suporte a fallback para v2 quando sem acesso
+    // Cálculo de tempo estimado mais preciso
+    const estimatedSeconds = Math.round(finalText.length / (3.5 * 5.5)); // chars / (words/sec * chars/word)
+    
+    // Modelo preferido: Alpha (v3), com suporte a fallback para v2
     const preferAlpha = useAlpha !== false;
     const preferredModel = preferAlpha ? 'eleven_v3' : 'eleven_multilingual_v2';
     let modelUsed = preferredModel;
     let fallbackUsed = false;
 
-    console.log(`🎙️ [generate-audio] ElevenLabs request: voiceId=${voiceId} preferredModel=${preferredModel} mentor=${mentor} disney=${!!isDisneyMode} len=${adjustedText.length} pronFix=${pronFixApplied}`);
+    console.log(`🎙️ [generate-audio] Fluida Voice (Energética):`);
+    console.log(`   📝 Original: ${String(text || '').length} chars`);
+    console.log(`   ✂️ Processado: ${processedText.length} chars`);
+    console.log(`   ⏱️ Final: ${finalText.length} chars (~${estimatedSeconds}s)`);
+    console.log(`   🔧 Ajustes: pronúncia=${pronFixApplied}, limitado=${textWasLimited}`);
+    console.log(`   🎯 Modelo: ${preferredModel}, Mentor: ${mentor || 'N/A'}`);
 
     async function requestTTS(model_id: string) {
       return await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
@@ -110,13 +165,13 @@ serve(async (req) => {
           'Accept': 'audio/mpeg',
         },
         body: JSON.stringify({
-          text: adjustedText,
+          text: finalText,
           model_id,
           voice_settings: {
-            stability: 0.5, // Corrigido: valor válido (0.0, 0.5 ou 1.0)
-            similarity_boost: 0.92,
-            style: 0.95,
-            use_speaker_boost: true,
+            stability: 0.4,        // Mais expressivo para narração energética
+            similarity_boost: 0.75, // Natural mas controlado
+            style: 0.85,           // Expressivo mas não exagerado
+            use_speaker_boost: true, // Mantém clareza
           },
         }),
       });

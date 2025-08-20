@@ -105,8 +105,7 @@ const [activeResult, setActiveResult] = useState(0);
     const offText = isReels ? buildReelsOFF(results[activeResult].content) : results[activeResult].content;
     await generateAudio({ 
       text: offText,
-      mentor: 'Especialista',
-      isDisneyMode: false
+      mentor: 'Especialista'
     });
   };
 

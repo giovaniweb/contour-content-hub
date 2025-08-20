@@ -6,7 +6,6 @@ import { supabase } from '@/integrations/supabase/client';
 interface AudioGenerationOptions {
   text: string;
   mentor?: string;
-  isDisneyMode?: boolean;
 }
 
 // Limpa o texto para narração (remove timestamps, marcadores e rótulos padrão)
@@ -98,17 +97,17 @@ export const useAudioGeneration = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
 
-  const generateAudio = async ({ text, mentor, isDisneyMode }: AudioGenerationOptions) => {
+  const generateAudio = async ({ text, mentor }: AudioGenerationOptions) => {
     setIsGenerating(true);
     setAudioUrl(null);
 
     try {
       const cleaned = cleanOffText(text);
       const finalText = limitToDuration(cleaned, 40);
-      console.log('🎙️ Gerando áudio (limpo):', { preview: finalText.substring(0, 120) + '...', mentor, isDisneyMode, alpha: true });
+      console.log('🎙️ Gerando áudio (limpo):', { preview: finalText.substring(0, 120) + '...', mentor, alpha: true });
 
       const { data, error } = await supabase.functions.invoke('generate-audio', {
-        body: { text: finalText, mentor, isDisneyMode, useAlpha: true }
+        body: { text: finalText, mentor, useAlpha: true }
       });
 
       if (error) {
@@ -125,7 +124,7 @@ export const useAudioGeneration = () => {
 
         toast({
           title: "🎙️ Áudio gerado com sucesso!",
-          description: `${isDisneyMode ? 'Voz encantadora da Fluida' : 'Voz personalizada do Fluida'} (modelo: ${data?.modelUsed || 'desconhecido'}${data?.fallbackUsed ? ' • fallback aplicado' : ''}).`,
+          description: `Voz personalizada do Fluida (modelo: ${data?.modelUsed || 'desconhecido'}${data?.fallbackUsed ? ' • fallback aplicado' : ''}).`,
         });
 
         return url;
