@@ -277,6 +277,33 @@ export type Database = {
           },
         ]
       }
+      academy_invite_audit: {
+        Row: {
+          action_type: string
+          created_at: string | null
+          details: Json | null
+          id: string
+          invite_id: string
+          performed_by: string | null
+        }
+        Insert: {
+          action_type: string
+          created_at?: string | null
+          details?: Json | null
+          id?: string
+          invite_id: string
+          performed_by?: string | null
+        }
+        Update: {
+          action_type?: string
+          created_at?: string | null
+          details?: Json | null
+          id?: string
+          invite_id?: string
+          performed_by?: string | null
+        }
+        Relationships: []
+      }
       academy_invites: {
         Row: {
           accepted_at: string | null
@@ -2022,6 +2049,33 @@ export type Database = {
           thumbnail_url?: string | null
           title?: string
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      email_rate_limits: {
+        Row: {
+          created_at: string | null
+          email: string
+          id: string
+          sent_count: number | null
+          template_type: string
+          window_start: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          id?: string
+          sent_count?: number | null
+          template_type: string
+          window_start?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          id?: string
+          sent_count?: number | null
+          template_type?: string
+          window_start?: string | null
         }
         Relationships: []
       }
@@ -4277,6 +4331,10 @@ export type Database = {
           p_target_user_id?: string
         }
         Returns: undefined
+      }
+      log_invite_action: {
+        Args: { p_action_type: string; p_details?: Json; p_invite_id: string }
+        Returns: string
       }
       register_ai_feedback: {
         Args: {

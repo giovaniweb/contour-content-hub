@@ -2,34 +2,14 @@ import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Mail, RefreshCw, X, Clock } from 'lucide-react';
+import { Mail, RefreshCw, X, Clock, AlertCircle, CheckCircle, TrendingUp } from 'lucide-react';
 import { useAcademyInvites } from '@/hooks/useAcademyInvites';
+import { InviteStatusIndicator } from './InviteStatusIndicator';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 export const InvitesManagement: React.FC = () => {
   const { invites, isLoading, cancelInvite, resendInvite } = useAcademyInvites();
-
-  const getStatusBadge = (status: string, expiresAt: string) => {
-    const isExpired = new Date(expiresAt) < new Date();
-    
-    if (isExpired && status === 'pending') {
-      return <Badge className="bg-red-500/20 text-red-400 border-red-500/30">Expirado</Badge>;
-    }
-    
-    switch (status) {
-      case 'pending':
-        return <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30">Pendente</Badge>;
-      case 'accepted':
-        return <Badge className="bg-green-500/20 text-green-400 border-green-500/30">Aceito</Badge>;
-      case 'cancelled':
-        return <Badge className="bg-gray-500/20 text-gray-400 border-gray-500/30">Cancelado</Badge>;
-      case 'expired':
-        return <Badge className="bg-red-500/20 text-red-400 border-red-500/30">Expirado</Badge>;
-      default:
-        return <Badge variant="secondary">{status}</Badge>;
-    }
-  };
 
   const formatDate = (dateString: string) => {
     return format(new Date(dateString), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR });
@@ -37,6 +17,15 @@ export const InvitesManagement: React.FC = () => {
 
   const isPending = (status: string, expiresAt: string) => {
     return status === 'pending' && new Date(expiresAt) > new Date();
+  };
+
+  // Statistics
+  const stats = {
+    total: invites.length,
+    pending: invites.filter(i => isPending(i.status, i.expires_at)).length,
+    accepted: invites.filter(i => i.status === 'accepted').length,
+    expired: invites.filter(i => new Date(i.expires_at) < new Date() && i.status === 'pending').length + 
+             invites.filter(i => i.status === 'expired').length
   };
 
   if (isLoading) {
@@ -52,9 +41,25 @@ export const InvitesManagement: React.FC = () => {
   return (
     <Card className="bg-slate-800/50 border-slate-700">
       <CardHeader>
-        <CardTitle className="text-slate-50">Convites Enviados</CardTitle>
+        <CardTitle className="text-slate-50 flex items-center justify-between">
+          <span>Convites Enviados</span>
+          <div className="flex items-center gap-2 text-sm font-normal">
+            <div className="flex items-center gap-1 text-amber-400">
+              <Clock className="h-3 w-3" />
+              {stats.pending}
+            </div>
+            <div className="flex items-center gap-1 text-green-400">
+              <CheckCircle className="h-3 w-3" />
+              {stats.accepted}
+            </div>
+            <div className="flex items-center gap-1 text-red-400">
+              <AlertCircle className="h-3 w-3" />
+              {stats.expired}
+            </div>
+          </div>
+        </CardTitle>
         <CardDescription className="text-slate-400">
-          Gerencie os convites enviados para novos usuários
+          Gerencie os convites enviados para novos usuários ({stats.total} total)
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -73,7 +78,7 @@ export const InvitesManagement: React.FC = () => {
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-2">
                     <h3 className="font-semibold text-slate-50">{invite.first_name}</h3>
-                    {getStatusBadge(invite.status, invite.expires_at)}
+                    <InviteStatusIndicator status={invite.status} expiresAt={invite.expires_at} />
                   </div>
                   <p className="text-slate-400 text-sm mb-2">{invite.email}</p>
                   <div className="flex items-center gap-4 text-xs text-slate-500">
