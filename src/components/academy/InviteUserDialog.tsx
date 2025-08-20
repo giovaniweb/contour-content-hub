@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -32,53 +32,62 @@ export const InviteUserDialog: React.FC<InviteUserDialogProps> = ({ onInviteCrea
 
   const activeCourses = courses.filter(course => course.status === 'active');
 
-  // Real-time email validation
-  const validateEmail = (email: string) => {
+  // Pure validation functions (no side effects)
+  const isEmailValid = useCallback((email: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return email && emailRegex.test(email);
+  }, []);
+
+  const isNameValid = useCallback((name: string): boolean => {
+    return name && name.trim().length >= 2;
+  }, []);
+
+  // Functions to validate and update error states
+  const validateAndSetEmailError = useCallback((email: string) => {
     if (!email) {
       setEmailError('E-mail é obrigatório');
       return false;
     }
-    if (!emailRegex.test(email)) {
+    if (!isEmailValid(email)) {
       setEmailError('Formato de e-mail inválido');
       return false;
     }
     setEmailError('');
     return true;
-  };
+  }, [isEmailValid]);
 
-  // Real-time name validation
-  const validateName = (name: string) => {
-    if (!name || name.trim().length < 2) {
+  const validateAndSetNameError = useCallback((name: string) => {
+    if (!isNameValid(name)) {
       setNameError('Nome deve ter pelo menos 2 caracteres');
       return false;
     }
     setNameError('');
     return true;
-  };
+  }, [isNameValid]);
 
-  const handleEmailChange = (email: string) => {
-    setFormData(prev => ({ ...prev, email }));
-    if (email) validateEmail(email);
-  };
-
-  const handleNameChange = (name: string) => {
-    setFormData(prev => ({ ...prev, first_name: name }));
-    if (name) validateName(name);
-  };
-
-  const isFormValid = () => {
-    return validateEmail(formData.email) && 
-           validateName(formData.first_name) && 
+  // Memoized form validation (no side effects)
+  const isFormValid = useMemo(() => {
+    return isEmailValid(formData.email) && 
+           isNameValid(formData.first_name) && 
            formData.course_ids.length > 0;
-  };
+  }, [formData.email, formData.first_name, formData.course_ids.length, isEmailValid, isNameValid]);
+
+  const handleEmailChange = useCallback((email: string) => {
+    setFormData(prev => ({ ...prev, email }));
+    if (email) validateAndSetEmailError(email);
+  }, [validateAndSetEmailError]);
+
+  const handleNameChange = useCallback((name: string) => {
+    setFormData(prev => ({ ...prev, first_name: name }));
+    if (name) validateAndSetNameError(name);
+  }, [validateAndSetNameError]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!isFormValid()) {
-      validateEmail(formData.email);
-      validateName(formData.first_name);
+    if (!isFormValid) {
+      validateAndSetEmailError(formData.email);
+      validateAndSetNameError(formData.first_name);
       return;
     }
 
@@ -234,7 +243,7 @@ export const InviteUserDialog: React.FC<InviteUserDialogProps> = ({ onInviteCrea
             </Button>
             <Button 
               type="submit" 
-              disabled={isSubmitting || !isFormValid()}
+              disabled={isSubmitting || !isFormValid}
               className="bg-primary hover:bg-primary/90 disabled:opacity-50"
             >
               {isSubmitting ? (
