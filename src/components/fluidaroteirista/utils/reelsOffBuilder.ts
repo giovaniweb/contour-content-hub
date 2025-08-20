@@ -360,6 +360,32 @@ export const buildReelsGPSC = (roteiro: string): Record<SectionKey, string> => {
 
 // Build OFF from GPSC with final OFF cleanup
 export const buildReelsOFF = (roteiro: string): string => {
+  // Se o roteiro já está no formato GPSC direto, usar como está
+  if (roteiro.includes('🎯 Gancho') && roteiro.includes('⚠️ Problema') && 
+      roteiro.includes('💡 Solução') && roteiro.includes('🚀 CTA')) {
+    
+    console.log('✅ Formato GPSC detectado - usando diretamente');
+    
+    // Extrair cada seção do formato GPSC
+    const sections = roteiro.split('\n\n');
+    const ganchoSection = sections.find(s => s.startsWith('🎯 Gancho'))?.replace('🎯 Gancho\n', '') || '';
+    const problemaSection = sections.find(s => s.startsWith('⚠️ Problema'))?.replace('⚠️ Problema\n', '') || '';
+    const solucaoSection = sections.find(s => s.startsWith('💡 Solução'))?.replace('💡 Solução\n', '') || '';
+    const ctaSection = sections.find(s => s.startsWith('🚀 CTA'))?.replace('🚀 CTA\n', '') || '';
+    
+    // Limpar referências técnicas de cada seção
+    const cleanedSections = [
+      cleanForOFF(ganchoSection),
+      cleanForOFF(problemaSection), 
+      cleanForOFF(solucaoSection),
+      cleanForOFF(ctaSection)
+    ].filter(Boolean);
+    
+    return cleanedSections.join(' ').replace(/\s{2,}/g, ' ').trim();
+  }
+
+  // Fallback para formato não-GPSC (manter compatibilidade)
+  console.log('⚠️ Formato não-GPSC detectado - aplicando classificação automática');
   const gpsc = buildReelsGPSC(roteiro);
   const order: SectionKey[] = ['Gancho','Problema','Solução','CTA'];
   const parts = order.map(k => cleanForOFF(gpsc[k])).filter(Boolean);

@@ -489,24 +489,29 @@ const getOutputInstructions = (formato: string): string => {
     `,
     
     reels: `
-    🎥 REELS - OUTPUT CRIATIVO OBRIGATÓRIO:
-    Retorne JSON seguindo EXATAMENTE este formato:
+    🎥 REELS OUTPUT OBRIGATÓRIO - FORMATO GPSC DIRETO:
+    Retorne JSON:
     {
-      "roteiro": "[Gancho – 0s a 3s]\n🗣️ \"[Frase provocativa que para o scroll]\"\n\n[Desenvolvimento – 3s a 40s]\n🎥 [descrição visual específica]\n🗣️ \"[Narrativa envolvente com analogias criativas]\"\n\n🎥 [nova descrição visual]\n🗣️ \"[Continuação da história identificável]\"\n\n[Virada – 40s a 55s]\n🎥 [descrição do equipamento/solução]\n🗣️ \"[Apresentação da solução como descoberta]\"\n\n[Fechamento + CTA – 55s a 60s]\n🗣️ \"[Call to action magnético]\"\n\n🎥 [descrição visual final]\n🗣️ \"[Tagline memorável]\"",
+      "roteiro": "🎯 Gancho\n[texto gancho 12-18 palavras]\n\n⚠️ Problema\n[texto problema 18-25 palavras]\n\n💡 Solução\n[texto solução 30-35 palavras]\n\n🚀 CTA\n[texto CTA 12-18 palavras]",
       "formato": "reels",
-      "mentor_usado": "[Nome do mentor ativo]",
-      "tempo_total": "60s",
-      "tom_narrativo": "[descontraído/provocativo/educativo]",
-      "equipamentos_mencionados": ["[nomes reais dos equipamentos]"],
-      "sugestoes_producao": "Descrições visuais, cortes, transições e enquadramentos incluídos no roteiro"
+      "tempo_estimado": "[X]s",
+      "palavras_total": "[X]",
+      "equipamentos_mencionados": ["[lista de equipamentos mencionados]"],
+      "tom_aplicado": "[mentor específico aplicado]",
+      "sugestao_visual": "Descrição detalhada para gravação: cenário, posicionamento, equipamentos visíveis, iluminação, figurino, expressões, movimentos da câmera",
+      "sugestao_audio": "Música/som ambiente sugerido, momentos de pausa, entonação"
     }
     
-    🚨 VALIDAÇÃO CRÍTICA REELS:
-    - Verificar se gancho para o scroll nos primeiros 3s
-    - Confirmar linguagem natural e conversacional
-    - Validar se equipamentos aparecem com nomes REAIS
-    - Checar se tem analogias criativas
-    - Verificar CTA como convite, não ordem
+    📋 EXEMPLO FORMATO EXATO (COPIE ESTA ESTRUTURA):
+    "🎯 Gancho\nVocê sente que a pele está perdendo firmeza, mesmo cuidando da dieta e do treino? A flacidez não escolhe idade e não some só com força de vontade.\n\n⚠️ Problema\nA cada ano nosso corpo perde colágeno e massa muscular, deixando a pele mais solta e afetando até sua autoestima.\n\n💡 Solução\nO Supreme PRO trata músculo em profundidade e estimula colágeno de forma natural – com sessões rápidas, seguras e sem consumíveis.\n\n🚀 CTA\nAgende uma demonstração e ofereça o diferencial que seus pacientes procuram."
+    
+    🚨 VALIDAÇÃO REELS GPSC:
+    - OBRIGATÓRIO: Usar EXATAMENTE os emojis 🎯 ⚠️ 💡 🚀
+    - Confirmar limites: Gancho (12-18), Problema (18-25), Solução (30-35), CTA (12-18 palavras)
+    - Tempo total: 28-35 segundos (85-105 palavras)
+    - Se equipamentos selecionados: mencionar na seção Solução
+    - NUNCA quebrar a estrutura GPSC estabelecida
+    - SEMPRE seguir o formato com quebras de linha duplas entre seções
     `,
     
     short: `
