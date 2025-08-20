@@ -51,6 +51,7 @@ export const BAN_LIST = [
 export type { ModelTier } from '@/types/ai';
 
 export const modelRouter = (tier: import('@/types/ai').ModelTier): string[] => {
-  if (tier === 'gpt5') return [GPT5_CORE, GPT5_MINI, G4_1];
-  return [G4_1];
+  // PADRONIZAÇÃO: GPT-4.1 como modelo principal
+  if (tier === 'gpt5') return [G4_1, GPT5_CORE, GPT5_MINI]; // GPT-4.1 primeiro, GPT-5 como fallback
+  return [G4_1]; // Standard sempre usa GPT-4.1
 };

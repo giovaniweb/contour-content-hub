@@ -73,10 +73,42 @@ serve(async (req) => {
 
     // Definir constantes de modelos e roteador local (edge function não importa do frontend)
     type ModelTier = 'standard' | 'gpt5';
-    const GPT5_CORE = 'gpt-5';
-    const GPT5_MINI = 'gpt-5-mini';
-    const G4_1 = 'gpt-4.1';
-    const modelRouter = (tier: ModelTier): string[] => tier === 'gpt5' ? [GPT5_CORE, GPT5_MINI, G4_1] : [G4_1];
+    const GPT4_1 = 'gpt-4.1-2025-04-14';
+    const GPT5_CORE = 'gpt-5-2025-08-07';
+    const GPT5_MINI = 'gpt-5-mini-2025-08-07';
+    
+    // PADRONIZAÇÃO: GPT-4.1 como modelo principal, GPT-5 como fallback opcional
+    const modelRouter = (tier: ModelTier): string[] => {
+      return tier === 'gpt5' ? [GPT4_1, GPT5_CORE, GPT5_MINI] : [GPT4_1];
+    };
+
+    // Função para determinar parâmetros corretos baseado no modelo
+    const getModelParams = (model: string) => {
+      const isGPT5Family = model.includes('gpt-5');
+      const isGPT4Family = model.includes('gpt-4.1');
+      const isLegacyModel = model.includes('gpt-4o');
+      
+      // GPT-5 e GPT-4.1: usam max_completion_tokens, sem temperature
+      if (isGPT5Family || isGPT4Family) {
+        return {
+          max_completion_tokens: 1500,
+          // temperature não é suportado para GPT-5 e GPT-4.1+
+        };
+      }
+      
+      // Modelos legados: usam max_tokens com temperature
+      if (isLegacyModel) {
+        return {
+          max_tokens: 1500,
+          temperature: 0.6,
+        };
+      }
+      
+      // Default para novos modelos
+      return {
+        max_completion_tokens: 1500,
+      };
+    };
 
     const BAN_LIST: RegExp[] = [
       /ladeira\s*copywarrior/gi,
@@ -101,20 +133,24 @@ serve(async (req) => {
     for (const model of models) {
       const attemptStart = Date.now();
       try {
-        // 18s timeout por tentativa
+        // 30s timeout por tentativa (aumentado para maior estabilidade)
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 18000);
+        const timeoutId = setTimeout(() => controller.abort(), 30000);
 
+        // Obter parâmetros corretos para o modelo atual
+        const modelParams = getModelParams(model);
+        
         const body = {
           model,
           messages: [
             { role: 'system', content: systemPrompt },
             { role: 'user', content: userPrompt }
           ],
-          temperature: 0.6,
-          max_tokens: 1500,
+          ...modelParams, // Aplicar parâmetros específicos do modelo
           response_format: { type: 'json_object' }
         } as const;
+
+        console.log('🔧 Parâmetros do modelo:', { model, params: modelParams });
 
         const response = await fetch('https://api.openai.com/v1/chat/completions', {
           method: 'POST',
@@ -166,8 +202,8 @@ serve(async (req) => {
         break; // sucesso; não tentar próximos modelos
       } catch (err: any) {
         latencyMs = Date.now() - attemptStart;
-        lastError = err?.name === 'AbortError' ? 'Timeout (18s) na tentativa' : (err?.message || 'Erro desconhecido');
-        console.warn('⚠️ Erro na tentativa:', { model, lastError });
+        lastError = err?.name === 'AbortError' ? 'Timeout (30s) na tentativa' : (err?.message || 'Erro desconhecido');
+        console.error('⚠️ Erro na tentativa:', { model, lastError });
         continue;
       }
     }
