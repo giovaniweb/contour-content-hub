@@ -41,8 +41,14 @@ export const cleanForReading = (input: string): string => {
 export const cleanForOFF = (input: string): string => {
   let out = sanitizeText(input || '');
   
-  // Remove referências técnicas e científicas para o paciente final
-  out = out.replace(/\b(?:segundo\s+(?:estudos?|pesquisas?)|de\s+acordo\s+com|conforme\s+(?:estudos?|literatura)|baseado\s+em\s+(?:estudos?|pesquisas?)|evidência\s+científica|comprovado\s+cientificamente|literatura\s+médica|journal|pubmed|referência\s+\d+|et\s+al\.?|estudo\s+clínico|pesquisa\s+(?:científica|médica)|dados\s+científicos)\b[^.]*\.?/gi, '');
+  // Remove referências técnicas e científicas mais rigorosamente
+  out = out.replace(/\b(?:segundo\s+(?:estudos?|pesquisas?|a\s+literatura)|de\s+acordo\s+com\s+(?:estudos?|pesquisas?|a\s+literatura)|conforme\s+(?:estudos?|literatura|a\s+pesquisa)|baseado\s+em\s+(?:estudos?|pesquisas?|evidências)|evidência\s+científica|comprovado\s+cientificamente|literatura\s+médica|journal|pubmed|referência\s+\d+|et\s+al\.?|estudo\s+clínico|pesquisa\s+(?:científica|médica|clínica)|dados\s+científicos|análise\s+científica|comprovação\s+científica|base\s+científica|fundamento\s+científico)\b[^.!?]*[.!?]?/gi, '');
+  
+  // Remove frases inteiras que mencionam estudos ou pesquisas  
+  out = out.replace(/[^.!?]*\b(?:estudos?|pesquisas?|literatura|evidências?|comprovações?)\s+(?:mostram|demonstram|indicam|revelam|apontam|sugerem|confirmam)[^.!?]*[.!?]/gi, '');
+  
+  // Remove menções a contexto científico ou médico genérico
+  out = out.replace(/\b(?:do\s+ponto\s+de\s+vista\s+científico|cientificamente\s+falando|segundo\s+a\s+ciência|a\s+ciência\s+comprova|base\s+científica\s+sólida)\b[^.!?]*[.!?]?/gi, '');
   
   out = out.replace(/\[(?:\d+\s*[–\-]\s*\d+\s*)s?\]\s*:?/gim, "");
   out = out.replace(/\((?:\d+\s*[–\-]\s*\d+\s*)s?\)\s*:?/gim, "");

@@ -94,8 +94,24 @@ ${mentor.scientificIntegration}
 6. NUNCA invente tecnologias ou benefícios não comprovados
 7. Foque em transformação real do cliente final
 
-## FORMATO ESPECÍFICO:
-Crie um roteiro para ${format} seguindo exatamente sua metodologia de ${mentorReference}.
+## FORMATO GPSC OBRIGATÓRIO PARA REELS:
+${format === 'reels' ? `
+🚨 ESTRUTURA OBRIGATÓRIA - RETORNE EXATAMENTE ASSIM:
+
+🎯 Gancho
+[Seu texto do gancho aqui - 12-18 palavras]
+
+⚠️ Problema  
+[Seu texto do problema aqui - 18-25 palavras]
+
+💡 Solução
+[Seu texto da solução aqui - 30-35 palavras]
+
+🚀 CTA
+[Seu texto do CTA aqui - 12-18 palavras]
+
+CRITICAL: Use exatamente esta estrutura com emojis e títulos. Não adicione explicações extras, referências científicas ou contexto técnico.
+` : `Crie um roteiro para ${format} seguindo exatamente sua metodologia de ${mentorReference}.`}
 `;
 
     const userPrompt = `
@@ -108,6 +124,28 @@ ${scientificContext || 'Nenhum contexto científico específico fornecido.'}
 
 Agora, como ${mentorReference}, crie um roteiro ${format} AUTÊNTICO e CRIATIVO sobre "${topic}" usando o equipamento "${equipment}".
 
+${format === 'reels' ? `
+🚨 FORMATO GPSC OBRIGATÓRIO - RETORNE EXATAMENTE ESTA ESTRUTURA:
+
+🎯 Gancho
+[Aplique seu tom ${mentorReference} - 12-18 palavras provocativas]
+
+⚠️ Problema  
+[Identifique a dor específica - 18-25 palavras emocionais]
+
+💡 Solução
+[Apresente o benefício do equipamento - 30-35 palavras persuasivas]
+
+🚀 CTA
+[Use seu estilo único de CTA - 12-18 palavras de ação]
+
+RULES:
+- Use EXATAMENTE esta estrutura com emojis e títulos
+- Aplique sua personalidade ${mentorReference} DENTRO de cada seção
+- NÃO adicione contexto científico, referências ou explicações extras
+- NÃO mencione estudos, pesquisas ou literatura médica
+- Foque no PACIENTE FINAL, não no médico
+` : `
 EXIGÊNCIAS ESPECÍFICAS:
 1. Mantenha 100% sua personalidade de ${mentorReference}
 2. Use sua estrutura de roteiro característica
@@ -115,8 +153,9 @@ EXIGÊNCIAS ESPECÍFICAS:
 4. Crie conexão emocional genuína
 5. Termine com seu estilo único de CTA
 6. Duração ideal para ${format}: ${this.getIdealDuration(format)}
+`}
 
-ENTREGUE: Roteiro completo, criativo e autêntico no seu estilo único.
+ENTREGUE: Roteiro no formato exigido, criativo e autêntico no seu estilo único.
 `;
 
     return { systemPrompt, userPrompt };
