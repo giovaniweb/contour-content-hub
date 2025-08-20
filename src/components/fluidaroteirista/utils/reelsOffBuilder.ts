@@ -40,6 +40,10 @@ export const cleanForReading = (input: string): string => {
 // Extra cleanup for OFF narration (even more aggressive)
 export const cleanForOFF = (input: string): string => {
   let out = sanitizeText(input || '');
+  
+  // Remove referências técnicas e científicas para o paciente final
+  out = out.replace(/\b(?:segundo\s+(?:estudos?|pesquisas?)|de\s+acordo\s+com|conforme\s+(?:estudos?|literatura)|baseado\s+em\s+(?:estudos?|pesquisas?)|evidência\s+científica|comprovado\s+cientificamente|literatura\s+médica|journal|pubmed|referência\s+\d+|et\s+al\.?|estudo\s+clínico|pesquisa\s+(?:científica|médica)|dados\s+científicos)\b[^.]*\.?/gi, '');
+  
   out = out.replace(/\[(?:\d+\s*[–\-]\s*\d+\s*)s?\]\s*:?/gim, "");
   out = out.replace(/\((?:\d+\s*[–\-]\s*\d+\s*)s?\)\s*:?/gim, "");
   out = out.replace(/^\s*\d+\s*[–\-]\s*\d+\s*s?\s*:\s*/gim, "");
@@ -49,6 +53,12 @@ export const cleanForOFF = (input: string): string => {
   out = out.replace(/^[-=_]{3,}\s*$/gm, '');
   out = out.replace(/^(?:\s*[🎯⚠️💡🚀]+)\s*/gm, '');
   out = out.replace(/\s*\n\s*/g, ' ').replace(/\s{2,}/g, ' ').trim();
+  
+  // Validação final - se ficou muito curto ou vazio, return original sanitizado
+  if (!out || out.length < 10) {
+    out = sanitizeText(input || '').replace(/\s+/g, ' ').trim();
+  }
+  
   if (out && !/[.!?]$/.test(out)) out += '.';
   return out;
 };
@@ -125,13 +135,13 @@ export const rebalanceGPSC = (gpsc: Record<SectionKey, string>): Record<SectionK
   return gpsc;
 };
 
-// Word limits per GPSC section for balanced Reels (35-45 seconds)
+// Word limits per GPSC section for balanced Reels (18-22 seconds)
 const SECTION_WORD_LIMITS: Record<SectionKey, number> = {
-  'Gancho': 25,    // 8 seconds - mais espaço para impacto
-  'Problema': 30,  // 10 seconds - mais contexto emocional
-  'Solução': 45,   // 15 seconds - detalhes do benefício
-  'CTA': 25        // 8 seconds - ação clara e completa
-  // Total: ~125 words (41 seconds)
+  'Gancho': 18,    // 6 seconds - provocação concisa
+  'Problema': 25,  // 8 seconds - contexto emocional 
+  'Solução': 35,   // 12 seconds - benefício específico
+  'CTA': 18        // 6 seconds - ação clara
+  // Total: ~96 words (32 seconds)
 };
 
 // Limit section to specific word count with balanced approach (MENOS AGRESSIVO)

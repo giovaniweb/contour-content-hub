@@ -354,18 +354,18 @@ const getFormatInstructions = (formato: string, canal: string, tempoLimite?: num
     reels: `
     🎥 REELS INSTAGRAM - ROTEIRO CONCISO (40 segundos máximo):
     
-    🚨 LIMITES BALANCEADOS DE PALAVRA:
-    - TOTAL: 90-110 palavras (30-40 segundos)
-    - Gancho: 15-20 palavras (6 segundos)
-    - Problema: 20-25 palavras (8 segundos)  
-    - Solução: 35-40 palavras (14 segundos)
-    - CTA: 15-20 palavras (7 segundos)
+    🚨 LIMITES OTIMIZADOS DE PALAVRA:
+    - TOTAL: 85-105 palavras (28-35 segundos)
+    - Gancho: 12-18 palavras (provocação concisa)
+    - Problema: 18-25 palavras (dor específica)  
+    - Solução: 30-35 palavras (benefício tangível)
+    - CTA: 12-18 palavras (ação clara)
     
     📝 EXEMPLO DE ESTRUTURA IDEAL (TOM LEANDRO LADEIRA - PACIENTE FINAL):
-    🎯 Gancho: "A real é que ninguém te conta: flacidez não some só na academia!"
-    ⚠️ Problema: "Você malha, faz dieta, usa creme todos os dias... mas quando você se olha no espelho, a pele continua 'mole' e sem firmeza, né? É frustrante porque você tá fazendo sua parte, mas o resultado não vem."
-    💡 Solução: "O Supreme PRO trabalha diferente - ele estimula o músculo por baixo da pele, onde os cremes não chegam. É como se fosse um treino profundo que você sente na hora. O resultado é uma pele mais firme e tonificada que você pode ver e tocar."
-    🚀 CTA: "Pergunta pro seu médico sobre o Supreme PRO hoje mesmo. Não deixa pra depois, você merece se sentir bem na sua pele. Sem enrolação!"
+    🎯 Gancho: "Flacidez incomoda? Descubra a resposta que a ciência já aprovou!" (12 palavras)
+    ⚠️ Problema: "Você olha no espelho e sente que a pele firme parece só uma lembrança?" (15 palavras)
+    💡 Solução: "Resultados visíveis logo nas primeiras sessões, sem dor, sem cortes e com respaldo científico comprovado." (16 palavras)  
+    🚀 CTA: "Quer sentir sua pele mais firme, mais jovem e sua autoestima renovada?" (12 palavras)
     
     🔥 TOM LEANDRO LADEIRA OBRIGATÓRIO:
     - Linguagem DIRETA do paciente final (não técnica para médicos)
@@ -374,14 +374,15 @@ const getFormatInstructions = (formato: string, canal: string, tempoLimite?: num
     - Identificação real com problemas do dia a dia
     - CTA sempre para AÇÃO DO PACIENTE, nunca do médico
     - Linguagem simples, coloquial e impactante
-    - CADA SEÇÃO DEVE SER DISTINTA: Gancho provoca, Problema desenvolve a dor, Solução explica o benefício, CTA motiva ação
+    - CADA SEÇÃO DEVE SER CONCISA: Uma frase por seção (exceto Solução que pode ter 2)
     
-    ❌ PROIBIDO:
+    ❌ PROIBIDO ABSOLUTO:
+    - Referências científicas ou estudos no roteiro final
     - Explicações técnicas longas
-    - Múltiplas frases por seção
-    - Conectores desnecessários ("além disso", "por isso", etc.)
-    - Repetições ou redundâncias
-    - Qualquer texto que ultrapasse os limites de palavra
+    - Múltiplas frases desnecessárias por seção
+    - Textos que soam corporativos ou médicos
+    - Qualquer menção a "literatura", "pesquisas", "evidências científicas"
+    - Qualquer texto que ultrapasse os limites de palavra por seção
     `,
     
     short: `

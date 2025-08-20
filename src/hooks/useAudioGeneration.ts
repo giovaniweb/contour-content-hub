@@ -10,8 +10,11 @@ interface AudioGenerationOptions {
 
 // Limpa o texto para narração (remove timestamps, marcadores e rótulos padrão)
 const cleanOffText = (input: string): string => {
-  if (!input) return '';
-  let out = String(input);
+  if (!input || typeof input !== 'string') return '';
+  let out = String(input).trim();
+  
+  // Validação inicial - se input é muito curto, retornar como está
+  if (out.length < 10) return out;
 
   // 1) Remover preâmbulos típicos ("Claro! Segue o roteiro...", "Aqui está o roteiro...", etc.) no início
   out = out.replace(/^(?:\s*)?(?:claro!?|segue(?:\s+abaixo)?\s*o?\s*roteiro|aqui\s+(?:está|esta|vai)\s+o\s*roteiro)[^\n]*\n+/i, '');
@@ -39,7 +42,10 @@ const cleanOffText = (input: string): string => {
   // 7) Remover emojis/decorações
   out = out.replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}\u200d]+/gu, '');
 
-  // 8) Remover linhas que parecem cabeçalhos/seções
+  // 8) Remover referências técnicas e científicas
+  out = out.replace(/\b(?:segundo\s+(?:estudos?|pesquisas?)|de\s+acordo\s+com|conforme\s+(?:estudos?|literatura)|baseado\s+em\s+(?:estudos?|pesquisas?)|evidência\s+científica|comprovado\s+cientificamente|literatura\s+médica|journal|pubmed|referência\s+\d+|et\s+al\.?|estudo\s+clínico|pesquisa\s+(?:científica|médica)|dados\s+científicos)\b[^.]*\.?/gi, '');
+
+  // 9) Remover linhas que parecem cabeçalhos/seções
   const headingKeywords = /(headline|problema|agit[aã]?[cç][aã]o|solu[cç][aã]o|prova\s*social|autoridade|cta|introdu[cç][aã]o|conclus[aã]o|fechamento|chamada|transi[cç][aã]o)/i;
   out = out
     .split('\n')
@@ -55,13 +61,18 @@ const cleanOffText = (input: string): string => {
     })
     .join('\n');
 
-  // 9) Normalizações finais
+  // 10) Normalizações finais
   out = out.replace(/[ \t]+/g, ' ')
            .replace(/\s*\n\s*/g, '\n')
            .replace(/\n{3,}/g, '\n\n')
            .replace(/[–—]+/g, ' - ')
            .replace(/\s{2,}/g, ' ')
            .trim();
+
+  // Validação final - se ficou muito curto após limpeza, retornar input original limpo minimamente
+  if (!out || out.length < 5) {
+    out = String(input).replace(/\s+/g, ' ').trim();
+  }
 
   return out;
 };
@@ -104,7 +115,18 @@ export const useAudioGeneration = () => {
     try {
       const cleaned = cleanOffText(text);
       const finalText = limitToDuration(cleaned, 40);
-      console.log('🎙️ Gerando áudio (limpo):', { preview: finalText.substring(0, 120) + '...', mentor, alpha: true });
+      
+      // Validação crítica antes de enviar para API
+      if (!finalText || finalText.trim().length < 5) {
+        throw new Error('Texto insuficiente para gerar áudio. Por favor, verifique o conteúdo do roteiro.');
+      }
+      
+      console.log('🎙️ Gerando áudio (limpo):', { 
+        preview: finalText.substring(0, 120) + '...', 
+        length: finalText.length,
+        mentor, 
+        alpha: true 
+      });
 
       const { data, error } = await supabase.functions.invoke('generate-audio', {
         body: { text: finalText, mentor, useAlpha: true }
