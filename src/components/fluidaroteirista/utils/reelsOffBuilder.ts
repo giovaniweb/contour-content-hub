@@ -205,17 +205,35 @@ export const buildReelsGPSC = (roteiro: string): Record<SectionKey, string> => {
       CTA: ''
     };
     
-    // Extrair seções preservando texto original
-    const sections = roteiro.split(/\n\n/);
-    const ganchoMatch = sections.find(s => s.startsWith('🎯 Gancho'));
-    const problemaMatch = sections.find(s => s.startsWith('⚠️ Problema'));
-    const solucaoMatch = sections.find(s => s.startsWith('💡 Solução'));
-    const ctaMatch = sections.find(s => s.startsWith('🚀 CTA'));
+    // Dividir por emojis de seção para extrair conteúdo corretamente
+    const lines = roteiro.split(/\n/);
+    let currentSection: SectionKey | null = null;
     
-    if (ganchoMatch) gpsc.Gancho = ganchoMatch.replace(/^🎯 Gancho\s*\n?/, '').trim();
-    if (problemaMatch) gpsc.Problema = problemaMatch.replace(/^⚠️ Problema\s*\n?/, '').trim();
-    if (solucaoMatch) gpsc.Solução = solucaoMatch.replace(/^💡 Solução\s*\n?/, '').trim();
-    if (ctaMatch) gpsc.CTA = ctaMatch.replace(/^🚀 CTA\s*\n?/, '').trim();
+    for (const line of lines) {
+      const trimmedLine = line.trim();
+      
+      if (trimmedLine.startsWith('🎯 Gancho') || trimmedLine.startsWith('🎯')) {
+        currentSection = 'Gancho';
+        const content = trimmedLine.replace(/^🎯\s*(Gancho\s*)?/, '').trim();
+        if (content) gpsc.Gancho += content;
+      } else if (trimmedLine.startsWith('⚠️ Problema') || trimmedLine.startsWith('⚠️')) {
+        currentSection = 'Problema';
+        const content = trimmedLine.replace(/^⚠️\s*(Problema\s*)?/, '').trim();
+        if (content) gpsc.Problema += content;
+      } else if (trimmedLine.startsWith('💡 Solução') || trimmedLine.startsWith('💡')) {
+        currentSection = 'Solução';
+        const content = trimmedLine.replace(/^💡\s*(Solução\s*)?/, '').trim();
+        if (content) gpsc.Solução += content;
+      } else if (trimmedLine.startsWith('🚀 CTA') || trimmedLine.startsWith('🚀')) {
+        currentSection = 'CTA';
+        const content = trimmedLine.replace(/^🚀\s*(CTA\s*)?/, '').trim();
+        if (content) gpsc.CTA += content;
+      } else if (currentSection && trimmedLine) {
+        // Adicionar quebra de linha se já há conteúdo
+        if (gpsc[currentSection]) gpsc[currentSection] += '\n';
+        gpsc[currentSection] += trimmedLine;
+      }
+    }
     
     return gpsc;
   }
@@ -422,7 +440,8 @@ export const buildReelsOFF = (roteiro: string): string => {
       lightClean(ctaSection)
     ].filter(Boolean);
     
-    return cleanedSections.join(' ').replace(/\s{2,}/g, ' ').trim();
+    // Adicionar quebras para não ficar tudo em um bloco
+    return cleanedSections.join('\n\n').replace(/\s{2,}/g, ' ').trim();
   }
 
   // Fallback para formato não-GPSC (manter compatibilidade)
