@@ -20,7 +20,8 @@ export function useBuscarClinicas() {
     setErro(null);
     setClinicas([]);
     try {
-      let query = supabase.from("perfis").select("*").eq("perfil_tipo", "profissional");
+      // Only select non-sensitive public fields for professional search
+      let query = supabase.from("perfis").select("id, nome, clinica, cidade, especialidade, perfil_tipo").eq("perfil_tipo", "profissional");
       if (params.equipamentoOuEspecialidade) {
         query = query.ilike("especialidade", `%${params.equipamentoOuEspecialidade}%`);
       }

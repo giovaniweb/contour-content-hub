@@ -41,8 +41,8 @@ const ClientList = () => {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   
-  // Check if user has permission to manage clients
-  if (!hasPermission('manageClients' as UserRole)) {
+  // Check if user has permission to manage clients - only admins should access this
+  if (!hasPermission('manageClients' as UserRole) || !user || !['admin', 'superadmin'].includes(user.role)) {
     return <Navigate to="/dashboard" replace />;
   }
   
