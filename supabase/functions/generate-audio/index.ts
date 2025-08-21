@@ -120,7 +120,7 @@ serve(async (req) => {
     const voiceId = FLUIDA_VOICE_ID;
 
     // Processamento mínimo preservando estrutura narrativa do frontend
-    const MAX_SECONDS = 38;
+    const MAX_SECONDS = 45; // Aumentado para incluir CTA completo
     const originalText = String(text || '');
     const cleanedText = cleanTextForTTS(originalText);
     const limitedText = limitToDurationSmart(cleanedText, MAX_SECONDS);

@@ -413,19 +413,47 @@ export const buildReelsGPSC = (roteiro: string): Record<SectionKey, string> => {
 // Build OFF from GPSC with final OFF cleanup
 export const buildReelsOFF = (roteiro: string): string => {
   // Se o roteiro já está no formato GPSC direto, usar como está
-  if (roteiro.includes('🎯 Gancho') && roteiro.includes('⚠️ Problema') && 
-      roteiro.includes('💡 Solução') && roteiro.includes('🚀 CTA')) {
+  if (roteiro.includes('🎯') && roteiro.includes('⚠️') && 
+      roteiro.includes('💡') && roteiro.includes('🚀')) {
     
-    console.log('✅ Formato GPSC detectado - usando diretamente');
+    console.log('✅ Formato GPSC detectado - extraindo conteúdo completo');
     
-    // Extrair cada seção do formato GPSC preservando quebras
-    const sections = roteiro.split(/\n\n/);
-    const ganchoSection = sections.find(s => s.startsWith('🎯 Gancho'))?.replace(/^🎯 Gancho\s*\n?/, '') || '';
-    const problemaSection = sections.find(s => s.startsWith('⚠️ Problema'))?.replace(/^⚠️ Problema\s*\n?/, '') || '';
-    const solucaoSection = sections.find(s => s.startsWith('💡 Solução'))?.replace(/^💡 Solução\s*\n?/, '') || '';
-    const ctaSection = sections.find(s => s.startsWith('🚀 CTA'))?.replace(/^🚀 CTA\s*\n?/, '') || '';
+    // Extrair conteúdo completo de todas as seções usando método mais robusto
+    const lines = roteiro.split(/\n/);
+    const sections = {
+      gancho: [] as string[],
+      problema: [] as string[], 
+      solucao: [] as string[],
+      cta: [] as string[]
+    };
     
-    // Aplicar apenas limpeza científica LEVE, preservando texto
+    let currentSection: keyof typeof sections | null = null;
+    
+    for (const line of lines) {
+      const trimmedLine = line.trim();
+      
+      if (trimmedLine.startsWith('🎯')) {
+        currentSection = 'gancho';
+        const content = trimmedLine.replace(/^🎯\s*(Gancho\s*)?/, '').trim();
+        if (content) sections.gancho.push(content);
+      } else if (trimmedLine.startsWith('⚠️')) {
+        currentSection = 'problema';
+        const content = trimmedLine.replace(/^⚠️\s*(Problema\s*)?/, '').trim();
+        if (content) sections.problema.push(content);
+      } else if (trimmedLine.startsWith('💡')) {
+        currentSection = 'solucao';
+        const content = trimmedLine.replace(/^💡\s*(Solução\s*)?/, '').trim();
+        if (content) sections.solucao.push(content);
+      } else if (trimmedLine.startsWith('🚀')) {
+        currentSection = 'cta';
+        const content = trimmedLine.replace(/^🚀\s*(CTA\s*)?/, '').trim();
+        if (content) sections.cta.push(content);
+      } else if (currentSection && trimmedLine) {
+        sections[currentSection].push(trimmedLine);
+      }
+    }
+    
+    // Aplicar limpeza científica leve
     const lightClean = (text: string): string => {
       return text
         .replace(/\b(?:segundo\s+estudos?|evidência\s+científica|comprovado\s+cientificamente|literatura\s+médica)\b[^.!?]*[.!?]?/gi, '')
@@ -433,15 +461,17 @@ export const buildReelsOFF = (roteiro: string): string => {
         .trim();
     };
     
-    const cleanedSections = [
-      lightClean(ganchoSection),
-      lightClean(problemaSection), 
-      lightClean(solucaoSection),
-      lightClean(ctaSection)
-    ].filter(Boolean);
+    // Juntar todo o conteúdo em texto corrido preservando ordem
+    const allContent = [
+      ...sections.gancho,
+      ...sections.problema,
+      ...sections.solucao, 
+      ...sections.cta
+    ].filter(Boolean).map(lightClean);
     
-    // Adicionar quebras para não ficar tudo em um bloco
-    return cleanedSections.join('\n\n').replace(/\s{2,}/g, ' ').trim();
+    if (allContent.length > 0) {
+      return allContent.join(' ').replace(/\s{2,}/g, ' ').trim();
+    }
   }
 
   // Fallback para formato não-GPSC (manter compatibilidade)
