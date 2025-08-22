@@ -73,23 +73,14 @@ const PromptEditor: React.FC<PromptEditorProps> = ({
         
         templates = data || [];
       } else {
-        // Non-admin users can only see safe version without API keys
-        const { data, error } = await supabase
-          .from('gpt_config_safe')
-          .select('*')
-          .eq('tipo', scriptType)
-          .order('data_configuracao', { ascending: false });
-        
-        if (error) {
-          console.warn('Acesso restrito às configurações GPT. Contate um administrador.');
-          templates = [];
-        } else {
-          // Transform the safe data to match expected format
-          templates = data?.map(item => ({
-            ...item,
-            chave_api: undefined // Remove API key from non-admin access
-          })) || [];
-        }
+        // Non-admin users cannot access GPT configurations
+        console.warn('Acesso restrito às configurações GPT. Contate um administrador.');
+        toast({
+          title: 'Acesso restrito',
+          description: 'Apenas administradores podem acessar configurações GPT',
+          variant: 'destructive'
+        });
+        templates = [];
       }
       
       setTemplates(templates);
