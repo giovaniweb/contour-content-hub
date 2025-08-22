@@ -104,16 +104,29 @@ export const testDropboxConnection = async (token: string): Promise<{
   }
 };
 
-// Salvar configuração GPT
+// Salvar configuração GPT (Admin only)
 export const saveGptConfig = async (config: Omit<GptConfig, 'id' | 'data_configuracao'>): Promise<GptConfig> => {
   try {
+    // Check if user is admin
+    const { data: userProfile } = await supabase
+      .from('perfis')
+      .select('role')
+      .eq('id', (await supabase.auth.getUser()).data.user?.id)
+      .single();
+    
+    const isAdmin = userProfile?.role === 'admin' || userProfile?.role === 'superadmin';
+    
+    if (!isAdmin) {
+      throw new Error('Acesso negado. Apenas administradores podem salvar configurações GPT.');
+    }
+    
     const { data, error } = await supabase
       .from('gpt_config')
       .insert({
         nome: config.nome,
         chave_api: config.chave_api,
         modelo: config.modelo,
-        prompt: config.prompt || '', // Adicionando o campo prompt que estava faltando
+        prompt: config.prompt || '',
         tipo: config.tipo,
         ativo: config.ativo
       })
@@ -128,16 +141,29 @@ export const saveGptConfig = async (config: Omit<GptConfig, 'id' | 'data_configu
   }
 };
 
-// Atualizar configuração GPT
+// Atualizar configuração GPT (Admin only)
 export const updateGptConfig = async (id: string, config: Omit<GptConfig, 'id' | 'data_configuracao'>): Promise<void> => {
   try {
+    // Check if user is admin
+    const { data: userProfile } = await supabase
+      .from('perfis')
+      .select('role')
+      .eq('id', (await supabase.auth.getUser()).data.user?.id)
+      .single();
+    
+    const isAdmin = userProfile?.role === 'admin' || userProfile?.role === 'superadmin';
+    
+    if (!isAdmin) {
+      throw new Error('Acesso negado. Apenas administradores podem atualizar configurações GPT.');
+    }
+    
     const { error } = await supabase
       .from('gpt_config')
       .update({
         nome: config.nome,
         chave_api: config.chave_api,
         modelo: config.modelo,
-        prompt: config.prompt || '', // Adicionando o campo prompt que estava faltando
+        prompt: config.prompt || '',
         tipo: config.tipo,
         ativo: config.ativo
       })
@@ -150,9 +176,22 @@ export const updateGptConfig = async (id: string, config: Omit<GptConfig, 'id' |
   }
 };
 
-// Obter todas as configurações GPT
+// Obter todas as configurações GPT (Admin only)
 export const getGptConfigs = async (): Promise<GptConfig[]> => {
   try {
+    // Check if user is admin
+    const { data: userProfile } = await supabase
+      .from('perfis')
+      .select('role')
+      .eq('id', (await supabase.auth.getUser()).data.user?.id)
+      .single();
+    
+    const isAdmin = userProfile?.role === 'admin' || userProfile?.role === 'superadmin';
+    
+    if (!isAdmin) {
+      throw new Error('Acesso negado. Apenas administradores podem acessar configurações GPT.');
+    }
+    
     const { data, error } = await supabase
       .from('gpt_config')
       .select('*');

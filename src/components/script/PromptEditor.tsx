@@ -48,20 +48,54 @@ const PromptEditor: React.FC<PromptEditorProps> = ({
     try {
       setIsLoading(true);
       
-      const { data, error } = await supabase
-        .from('gpt_config')
-        .select('*')
-        .eq('tipo', scriptType)
-        .order('data_configuracao', { ascending: false });
+      // Check if user is admin first
+      const { data: userProfile } = await supabase
+        .from('perfis')
+        .select('role')
+        .eq('id', (await supabase.auth.getUser()).data.user?.id)
+        .single();
       
-      if (error) {
-        throw error;
+      const isAdmin = userProfile?.role === 'admin' || userProfile?.role === 'superadmin';
+      
+      let templates = [];
+      
+      if (isAdmin) {
+        // Admin users can access full gpt_config
+        const { data, error } = await supabase
+          .from('gpt_config')
+          .select('*')
+          .eq('tipo', scriptType)
+          .order('data_configuracao', { ascending: false });
+        
+        if (error) {
+          throw error;
+        }
+        
+        templates = data || [];
+      } else {
+        // Non-admin users can only see safe version without API keys
+        const { data, error } = await supabase
+          .from('gpt_config_safe')
+          .select('*')
+          .eq('tipo', scriptType)
+          .order('data_configuracao', { ascending: false });
+        
+        if (error) {
+          console.warn('Acesso restrito às configurações GPT. Contate um administrador.');
+          templates = [];
+        } else {
+          // Transform the safe data to match expected format
+          templates = data?.map(item => ({
+            ...item,
+            chave_api: undefined // Remove API key from non-admin access
+          })) || [];
+        }
       }
       
-      setTemplates(data || []);
+      setTemplates(templates);
       
       // Selecionar o template ativo por padrão
-      const activeTemplate = data?.find(template => template.ativo);
+      const activeTemplate = templates?.find(template => template.ativo);
       if (activeTemplate) {
         setSelectedTemplateId(activeTemplate.id);
         setName(activeTemplate.nome || '');
@@ -71,14 +105,14 @@ const PromptEditor: React.FC<PromptEditorProps> = ({
         if (onPromptSelect) {
           onPromptSelect(activeTemplate.prompt || '');
         }
-      } else if (data && data.length > 0) {
-        setSelectedTemplateId(data[0].id);
-        setName(data[0].nome || '');
-        setPromptContent(data[0].prompt || '');
-        setModelName(data[0].modelo || 'gpt-4o-mini');
+      } else if (templates && templates.length > 0) {
+        setSelectedTemplateId(templates[0].id);
+        setName(templates[0].nome || '');
+        setPromptContent(templates[0].prompt || '');
+        setModelName(templates[0].modelo || 'gpt-4o-mini');
         
         if (onPromptSelect) {
-          onPromptSelect(data[0].prompt || '');
+          onPromptSelect(templates[0].prompt || '');
         }
       }
       
@@ -122,6 +156,24 @@ const PromptEditor: React.FC<PromptEditorProps> = ({
       }
 
       setIsSaving(true);
+      
+      // Check if user is admin
+      const { data: userProfile } = await supabase
+        .from('perfis')
+        .select('role')
+        .eq('id', (await supabase.auth.getUser()).data.user?.id)
+        .single();
+      
+      const isAdmin = userProfile?.role === 'admin' || userProfile?.role === 'superadmin';
+      
+      if (!isAdmin) {
+        toast({
+          title: 'Acesso negado',
+          description: 'Apenas administradores podem salvar configurações GPT',
+          variant: 'destructive'
+        });
+        return;
+      }
       
       let operation;
       if (selectedTemplateId) {
@@ -213,6 +265,24 @@ Formato esperado:
   const handleSetActive = async (id: string) => {
     try {
       setIsLoading(true);
+      
+      // Check if user is admin
+      const { data: userProfile } = await supabase
+        .from('perfis')
+        .select('role')
+        .eq('id', (await supabase.auth.getUser()).data.user?.id)
+        .single();
+      
+      const isAdmin = userProfile?.role === 'admin' || userProfile?.role === 'superadmin';
+      
+      if (!isAdmin) {
+        toast({
+          title: 'Acesso negado',
+          description: 'Apenas administradores podem modificar configurações GPT',
+          variant: 'destructive'
+        });
+        return;
+      }
       
       // Primeiro, desativa todos
       await supabase
