@@ -4038,6 +4038,13 @@ export type Database = {
             referencedRelation: "videomakers"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "videomaker_avaliacoes_videomaker_id_fkey"
+            columns: ["videomaker_id"]
+            isOneToOne: false
+            referencedRelation: "videomakers_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       videomakers: {
@@ -4228,7 +4235,57 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      videomakers_public: {
+        Row: {
+          camera_celular: string | null
+          cidade: string | null
+          created_at: string | null
+          emite_nota_fiscal: boolean | null
+          foto_url: string | null
+          id: string | null
+          media_avaliacao: number | null
+          nome_completo: string | null
+          possui_iluminacao: boolean | null
+          tipo_profissional:
+            | Database["public"]["Enums"]["professional_type"]
+            | null
+          total_avaliacoes: number | null
+          valor_diaria: Database["public"]["Enums"]["investment_range"] | null
+        }
+        Insert: {
+          camera_celular?: string | null
+          cidade?: string | null
+          created_at?: string | null
+          emite_nota_fiscal?: boolean | null
+          foto_url?: string | null
+          id?: string | null
+          media_avaliacao?: number | null
+          nome_completo?: string | null
+          possui_iluminacao?: boolean | null
+          tipo_profissional?:
+            | Database["public"]["Enums"]["professional_type"]
+            | null
+          total_avaliacoes?: number | null
+          valor_diaria?: Database["public"]["Enums"]["investment_range"] | null
+        }
+        Update: {
+          camera_celular?: string | null
+          cidade?: string | null
+          created_at?: string | null
+          emite_nota_fiscal?: boolean | null
+          foto_url?: string | null
+          id?: string | null
+          media_avaliacao?: number | null
+          nome_completo?: string | null
+          possui_iluminacao?: boolean | null
+          tipo_profissional?:
+            | Database["public"]["Enums"]["professional_type"]
+            | null
+          total_avaliacoes?: number | null
+          valor_diaria?: Database["public"]["Enums"]["investment_range"] | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       calculate_final_purchase_score: {
