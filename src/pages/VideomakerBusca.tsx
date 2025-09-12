@@ -6,17 +6,33 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Videomaker, ProfessionalType, InvestmentRange } from '@/types/videomaker';
+import { ProfessionalType, InvestmentRange } from '@/types/videomaker';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Search, MapPin, Phone, Instagram, Video, Camera, DollarSign, Check, X, MessageCircle, User, Sparkles, Users } from 'lucide-react';
+import { Search, MapPin, Phone, Video, Camera, DollarSign, Check, X, MessageCircle, User, Sparkles, Users } from 'lucide-react';
 import AuroraPageLayout from '@/components/layout/AuroraPageLayout';
 import StandardPageHeader from '@/components/layout/StandardPageHeader';
 import { StarRating, VideomakerRating, AvaliacoesList } from '@/components/videomaker/StarRating';
 
+// Type for public videomaker data that excludes sensitive information
+interface PublicVideomaker {
+  id: string;
+  nome_completo: string;
+  cidade: string;
+  tipo_profissional: ProfessionalType;
+  foto_url?: string;
+  valor_diaria: InvestmentRange;
+  media_avaliacao: number;
+  total_avaliacoes: number;
+  created_at: string;
+  camera_celular: string;
+  possui_iluminacao: boolean;
+  emite_nota_fiscal: boolean;
+}
+
 const VideomakerBusca: React.FC = () => {
-  const [videomakers, setVideomakers] = useState<Videomaker[]>([]);
-  const [filteredVideomakers, setFilteredVideomakers] = useState<Videomaker[]>([]);
+  const [videomakers, setVideomakers] = useState<PublicVideomaker[]>([]);
+  const [filteredVideomakers, setFilteredVideomakers] = useState<PublicVideomaker[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchCity, setSearchCity] = useState('');
   const [filterType, setFilterType] = useState<ProfessionalType | 'all'>('all');
@@ -32,10 +48,10 @@ const VideomakerBusca: React.FC = () => {
 
   const fetchVideomakers = async () => {
     try {
+      // Use the secure view that excludes sensitive information like phone numbers and Instagram
       const { data, error } = await supabase
-        .from('videomakers')
+        .from('videomakers_public')
         .select('*')
-        .eq('ativo', true)
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -252,31 +268,17 @@ const VideomakerBusca: React.FC = () => {
               
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-sm">
-                    <Phone className="h-4 w-4 text-muted-foreground" />
-                    <span>{formatPhone(videomaker.telefone)}</span>
+                  {/* Phone and Instagram info removed for security */}
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Phone className="h-4 w-4" />
+                    <span>Entre em contato através da plataforma</span>
                   </div>
                   
-                  {videomaker.instagram && (
-                    <div className="flex items-center gap-2 text-sm">
-                      <Instagram className="h-4 w-4 text-muted-foreground" />
-                      <span>{videomaker.instagram}</span>
-                    </div>
-                  )}
-                  
-                  {videomaker.video_referencia_url && (
-                    <div className="flex items-center gap-2 text-sm">
-                      <Video className="h-4 w-4 text-muted-foreground" />
-                      <a 
-                        href={videomaker.video_referencia_url} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="text-primary hover:underline"
-                      >
-                        Ver vídeo de referência
-                      </a>
-                    </div>
-                  )}
+                  {/* Video reference removed for security */}
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Video className="h-4 w-4" />
+                    <span>Portfólio disponível após contato</span>
+                  </div>
                 </div>
 
                 <Separator />
@@ -288,9 +290,8 @@ const VideomakerBusca: React.FC = () => {
                   </h4>
                   <div className="space-y-1 text-sm">
                     <div><strong>Câmera:</strong> {videomaker.camera_celular}</div>
-                    {videomaker.modelo_microfone && (
-                      <div><strong>Microfone:</strong> {videomaker.modelo_microfone}</div>
-                    )}
+                    {/* Microfone information removed for security */}
+                    <div className="text-muted-foreground">Detalhes do microfone disponíveis após contato</div>
                     <div className="flex gap-2 mt-2">
                       <Badge variant={videomaker.possui_iluminacao ? 'default' : 'secondary'} className="text-xs">
                         {videomaker.possui_iluminacao ? (
@@ -335,15 +336,9 @@ const VideomakerBusca: React.FC = () => {
                 </div>
 
                 <div className="flex gap-2">
-                  <Button className="flex-1" asChild>
-                    <a 
-                      href={generateWhatsAppLink(videomaker.telefone, videomaker.nome_completo)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      <MessageCircle className="h-4 w-4 mr-2" />
-                      WhatsApp
-                    </a>
+                  <Button className="flex-1" disabled>
+                    <MessageCircle className="h-4 w-4 mr-2" />
+                    Solicitar Contato
                   </Button>
                   
                   <VideomakerRating
