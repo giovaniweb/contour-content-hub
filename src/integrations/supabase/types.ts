@@ -4038,13 +4038,6 @@ export type Database = {
             referencedRelation: "videomakers"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "videomaker_avaliacoes_videomaker_id_fkey"
-            columns: ["videomaker_id"]
-            isOneToOne: false
-            referencedRelation: "videomakers_public"
-            referencedColumns: ["id"]
-          },
         ]
       }
       videomakers: {
@@ -4235,57 +4228,7 @@ export type Database = {
       }
     }
     Views: {
-      videomakers_public: {
-        Row: {
-          camera_celular: string | null
-          cidade: string | null
-          created_at: string | null
-          emite_nota_fiscal: boolean | null
-          foto_url: string | null
-          id: string | null
-          media_avaliacao: number | null
-          nome_completo: string | null
-          possui_iluminacao: boolean | null
-          tipo_profissional:
-            | Database["public"]["Enums"]["professional_type"]
-            | null
-          total_avaliacoes: number | null
-          valor_diaria: Database["public"]["Enums"]["investment_range"] | null
-        }
-        Insert: {
-          camera_celular?: string | null
-          cidade?: string | null
-          created_at?: string | null
-          emite_nota_fiscal?: boolean | null
-          foto_url?: string | null
-          id?: string | null
-          media_avaliacao?: number | null
-          nome_completo?: string | null
-          possui_iluminacao?: boolean | null
-          tipo_profissional?:
-            | Database["public"]["Enums"]["professional_type"]
-            | null
-          total_avaliacoes?: number | null
-          valor_diaria?: Database["public"]["Enums"]["investment_range"] | null
-        }
-        Update: {
-          camera_celular?: string | null
-          cidade?: string | null
-          created_at?: string | null
-          emite_nota_fiscal?: boolean | null
-          foto_url?: string | null
-          id?: string | null
-          media_avaliacao?: number | null
-          nome_completo?: string | null
-          possui_iluminacao?: boolean | null
-          tipo_profissional?:
-            | Database["public"]["Enums"]["professional_type"]
-            | null
-          total_avaliacoes?: number | null
-          valor_diaria?: Database["public"]["Enums"]["investment_range"] | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       calculate_final_purchase_score: {
@@ -4359,6 +4302,23 @@ export type Database = {
       delete_video_cascade: {
         Args: { video_id_param: string }
         Returns: Json
+      }
+      get_public_videomakers: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          camera_celular: string
+          cidade: string
+          created_at: string
+          emite_nota_fiscal: boolean
+          foto_url: string
+          id: string
+          media_avaliacao: number
+          nome_completo: string
+          possui_iluminacao: boolean
+          tipo_profissional: Database["public"]["Enums"]["professional_type"]
+          total_avaliacoes: number
+          valor_diaria: Database["public"]["Enums"]["investment_range"]
+        }[]
       }
       get_user_email_safe: {
         Args: Record<PropertyKey, never>
