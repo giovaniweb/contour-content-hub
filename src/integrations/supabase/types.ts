@@ -4303,6 +4303,10 @@ export type Database = {
         Args: { video_id_param: string }
         Returns: Json
       }
+      get_current_user_role: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       get_public_videomakers: {
         Args: Record<PropertyKey, never>
         Returns: {
@@ -4340,6 +4344,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: boolean
       }
+      is_current_user_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
       log_admin_action: {
         Args: {
           p_action_type: string
@@ -4347,6 +4355,10 @@ export type Database = {
           p_old_values?: Json
           p_target_user_id?: string
         }
+        Returns: undefined
+      }
+      log_data_access: {
+        Args: { p_access_type?: string; p_table_name: string }
         Returns: undefined
       }
       log_invite_action: {
