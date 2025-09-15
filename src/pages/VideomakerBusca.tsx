@@ -48,10 +48,11 @@ const VideomakerBusca: React.FC = () => {
 
   const fetchVideomakers = async () => {
     try {
-      // Use the secure view that excludes sensitive information like phone numbers and Instagram
+      // Use the videomakers table with RLS policies that handle public access security
       const { data, error } = await supabase
-        .from('videomakers_public')
-        .select('*')
+        .from('videomakers')
+        .select('id, nome_completo, cidade, tipo_profissional, foto_url, valor_diaria, media_avaliacao, total_avaliacoes, created_at, camera_celular, possui_iluminacao, emite_nota_fiscal')
+        .eq('ativo', true)
         .order('created_at', { ascending: false });
 
       if (error) {
