@@ -81,14 +81,19 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
     enabled: !!user?.id && isOpen
   });
 
+  // Reset form when user changes
   useEffect(() => {
     if (user) {
       setEditedUser({ ...user });
     }
-    if (permissions) {
-      setUserPermissions(permissions);
+  }, [user?.id]);
+
+  // Update permissions when data changes
+  useEffect(() => {
+    if (permissions && permissions.length >= 0) {
+      setUserPermissions([...permissions]);
     }
-  }, [user, permissions]);
+  }, [permissions?.length, user?.id]);
 
   const handleSaveBasicInfo = () => {
     if (!editedUser) return;
