@@ -53,7 +53,7 @@ const Index: React.FC = () => {
         <div className="container flex items-center justify-between">
           <h1 className="text-2xl font-bold text-reelline-primary">Fluida</h1>
           <div className="flex gap-2">
-            <Button variant="outline" onClick={() => navigate("/register")}>
+            <Button variant="outline" onClick={() => navigate("/signup")}>
               Criar conta
             </Button>
             <Button onClick={() => navigate("/login")}>
@@ -128,7 +128,7 @@ const Index: React.FC = () => {
                 </Button>
                 <p className="text-center text-sm text-muted-foreground">
                   Não tem uma conta?{" "}
-                  <Link to="/register" className="text-reelline-primary hover:underline">
+                  <Link to="/signup" className="text-reelline-primary hover:underline">
                     Criar conta
                   </Link>
                 </p>
