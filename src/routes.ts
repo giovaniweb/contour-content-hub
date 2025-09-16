@@ -60,6 +60,7 @@ export const ROUTES = {
 
   ADMIN: {
     ROOT: '/admin',
+    USERS: '/admin/users',
     EQUIPMENTS: {
       ROOT: '/admin/equipments',
       CREATE: '/admin/equipments/create',

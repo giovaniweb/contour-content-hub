@@ -1,0 +1,338 @@
+import React, { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import { Users, Search, UserPlus, Edit, Trash2, Mail, Calendar, Settings } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+
+interface User {
+  id: string;
+  nome: string;
+  email: string;
+  role: string;
+  cidade?: string;
+  clinica?: string;
+  telefone?: string;
+  data_criacao: string;
+  equipamentos?: string[];
+}
+
+const AdminUsers: React.FC = () => {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [roleFilter, setRoleFilter] = useState('all');
+  const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [newUser, setNewUser] = useState({ 
+    nome: '', 
+    email: '', 
+    role: 'user', 
+    cidade: '', 
+    clinica: '', 
+    telefone: '' 
+  });
+
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  // Fetch users
+  const { data: users = [], isLoading, refetch } = useQuery({
+    queryKey: ['admin-users'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('perfis')
+        .select('*')
+        .order('data_criacao', { ascending: false });
+      
+      if (error) throw error;
+      return data as User[];
+    },
+  });
+
+  // Update user mutation
+  const updateUserMutation = useMutation({
+    mutationFn: async ({ id, updates }: { id: string; updates: Partial<User> }) => {
+      const { error } = await supabase
+        .from('perfis')
+        .update(updates)
+        .eq('id', id);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+      setEditingUser(null);
+      toast({
+        title: "Usuário atualizado",
+        description: "Informações do usuário foram atualizadas com sucesso!",
+      });
+    },
+    onError: (error) => {
+      toast({
+        variant: "destructive",
+        title: "Erro ao atualizar",
+        description: "Não foi possível atualizar o usuário.",
+      });
+    }
+  });
+
+  // Delete user mutation
+  const deleteUserMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from('perfis')
+        .delete()
+        .eq('id', id);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+      toast({
+        title: "Usuário removido",
+        description: "Usuário foi removido do sistema.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        variant: "destructive",
+        title: "Erro ao remover",
+        description: "Não foi possível remover o usuário.",
+      });
+    }
+  });
+
+  // Filter users
+  const filteredUsers = users.filter(user => {
+    const matchesSearch = user.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         user.email.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesRole = roleFilter === 'all' || user.role === roleFilter;
+    return matchesSearch && matchesRole;
+  });
+
+  const getRoleBadgeColor = (role: string) => {
+    switch (role) {
+      case 'admin': return 'bg-red-100 text-red-800 border-red-300';
+      case 'superadmin': return 'bg-purple-100 text-purple-800 border-purple-300';
+      case 'consultor': return 'bg-blue-100 text-blue-800 border-blue-300';
+      default: return 'bg-gray-100 text-gray-800 border-gray-300';
+    }
+  };
+
+  const handleUpdateUser = () => {
+    if (!editingUser) return;
+    
+    updateUserMutation.mutate({
+      id: editingUser.id,
+      updates: {
+        nome: editingUser.nome,
+        role: editingUser.role,
+        cidade: editingUser.cidade,
+        clinica: editingUser.clinica,
+        telefone: editingUser.telefone,
+      }
+    });
+  };
+
+  if (isLoading) {
+    return (
+      <div className="container mx-auto py-6 space-y-6">
+        <div className="animate-pulse space-y-4">
+          <div className="h-8 bg-muted rounded w-1/3"></div>
+          <div className="h-64 bg-muted rounded"></div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="container mx-auto py-6 space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <Users className="h-8 w-8 text-primary" />
+          <div>
+            <h1 className="text-2xl font-bold text-slate-50">Gerenciamento de Usuários</h1>
+            <p className="text-slate-400">Administre contas de usuário e permissões</p>
+          </div>
+        </div>
+        <Button>
+          <UserPlus className="h-4 w-4 mr-2" />
+          Novo Usuário
+        </Button>
+      </div>
+
+      {/* Filters */}
+      <Card>
+        <CardContent className="p-6">
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex-1">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Buscar por nome ou email..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+            </div>
+            <div className="w-full md:w-48">
+              <Select value={roleFilter} onValueChange={setRoleFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Filtrar por role" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos os roles</SelectItem>
+                  <SelectItem value="user">Usuário</SelectItem>
+                  <SelectItem value="consultor">Consultor</SelectItem>
+                  <SelectItem value="admin">Admin</SelectItem>
+                  <SelectItem value="superadmin">Super Admin</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Users Table */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between">
+            <span>Usuários ({filteredUsers.length})</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {filteredUsers.map((user) => (
+              <div key={user.id} className="flex items-center justify-between p-4 border rounded-lg">
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
+                    <span className="text-sm font-medium text-primary">
+                      {user.nome.charAt(0).toUpperCase()}
+                    </span>
+                  </div>
+                  <div>
+                    <h3 className="font-medium">{user.nome}</h3>
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Mail className="h-3 w-3" />
+                      {user.email}
+                      {user.clinica && (
+                        <>
+                          <span>•</span>
+                          <span>{user.clinica}</span>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  <Badge className={getRoleBadgeColor(user.role)}>
+                    {user.role}
+                  </Badge>
+                  
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => setEditingUser(user)}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-md">
+                      <DialogHeader>
+                        <DialogTitle>Editar Usuário</DialogTitle>
+                      </DialogHeader>
+                      <div className="space-y-4">
+                        <div>
+                          <Label htmlFor="name">Nome</Label>
+                          <Input
+                            id="name"
+                            value={editingUser?.nome || ''}
+                            onChange={(e) => setEditingUser(prev => 
+                              prev ? { ...prev, nome: e.target.value } : null
+                            )}
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="role">Role</Label>
+                          <Select 
+                            value={editingUser?.role || 'user'}
+                            onValueChange={(value) => setEditingUser(prev =>
+                              prev ? { ...prev, role: value } : null
+                            )}
+                          >
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="user">Usuário</SelectItem>
+                              <SelectItem value="consultor">Consultor</SelectItem>
+                              <SelectItem value="admin">Admin</SelectItem>
+                              <SelectItem value="superadmin">Super Admin</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div>
+                          <Label htmlFor="cidade">Cidade</Label>
+                          <Input
+                            id="cidade"
+                            value={editingUser?.cidade || ''}
+                            onChange={(e) => setEditingUser(prev => 
+                              prev ? { ...prev, cidade: e.target.value } : null
+                            )}
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="clinica">Clínica</Label>
+                          <Input
+                            id="clinica"
+                            value={editingUser?.clinica || ''}
+                            onChange={(e) => setEditingUser(prev => 
+                              prev ? { ...prev, clinica: e.target.value } : null
+                            )}
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="telefone">Telefone</Label>
+                          <Input
+                            id="telefone"
+                            value={editingUser?.telefone || ''}
+                            onChange={(e) => setEditingUser(prev => 
+                              prev ? { ...prev, telefone: e.target.value } : null
+                            )}
+                          />
+                        </div>
+                        <div className="flex justify-between">
+                          <Button 
+                            variant="destructive" 
+                            onClick={() => deleteUserMutation.mutate(user.id)}
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Remover
+                          </Button>
+                          <Button onClick={handleUpdateUser}>
+                            Salvar Alterações
+                          </Button>
+                        </div>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
+
+export default AdminUsers;

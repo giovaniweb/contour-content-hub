@@ -3,9 +3,10 @@ import React from "react";
 import { 
   FileText, 
   Film, 
-  Users, 
-  Calendar 
+  Download, 
+  Camera 
 } from "lucide-react";
+import { useRealUserDashboardStats } from "@/hooks/useRealUserDashboardStats";
 
 interface StatItem {
   title: string;
@@ -15,31 +16,32 @@ interface StatItem {
 }
 
 const DashboardStats: React.FC = () => {
-  // Estatísticas de exemplo - em uma implementação real, estes viriam de uma API
+  const { data: userStats, isLoading } = useRealUserDashboardStats();
+
   const stats: StatItem[] = [
     {
       title: "Roteiros criados",
-      value: 24,
-      change: 12,
+      value: isLoading ? "..." : userStats?.totalScripts || 0,
+      change: 0, // Could calculate based on previous period if needed
       icon: <FileText className="h-4 w-4" />
     },
     {
-      title: "Vídeos produzidos",
-      value: 18,
-      change: 8,
+      title: "Vídeos assistidos",
+      value: isLoading ? "..." : userStats?.totalVideosWatched || 0,
+      change: 0,
       icon: <Film className="h-4 w-4" />
     },
     {
-      title: "Alcance",
-      value: "2.4k",
-      change: 22,
-      icon: <Users className="h-4 w-4" />
+      title: "Downloads realizados",
+      value: isLoading ? "..." : userStats?.totalDownloads || 0,
+      change: 0,
+      icon: <Download className="h-4 w-4" />
     },
     {
-      title: "Eventos agendados",
-      value: 9,
-      change: -3,
-      icon: <Calendar className="h-4 w-4" />
+      title: "Fotos enviadas",
+      value: isLoading ? "..." : userStats?.totalPhotosUploaded || 0,
+      change: 0,
+      icon: <Camera className="h-4 w-4" />
     }
   ];
   

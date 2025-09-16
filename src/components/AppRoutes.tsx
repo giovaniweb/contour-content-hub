@@ -36,12 +36,14 @@ const ContentScripts = React.lazy(() => import('@/pages/ContentScripts'));
 const Photos = React.lazy(() => import('@/pages/Photos'));
 const Arts = React.lazy(() => import('@/pages/Arts'));
 const AdminPanel = React.lazy(() => import('@/pages/admin/AdminPanel'));
+const AdminUsers = React.lazy(() => import('@/pages/admin/AdminUsers'));
 const AdminEquipments = React.lazy(() => import('@/pages/admin/AdminEquipments'));
 const AdminVideos = React.lazy(() => import('@/pages/admin/AdminVideos'));
 const AdminPhotos = React.lazy(() => import('@/pages/admin/AdminPhotos'));
 const EditEquipment = React.lazy(() => import('@/pages/admin/EditEquipment'));
 const VideoCreatePage = React.lazy(() => import('@/pages/videos/VideoCreatePage'));
 const VideoCreatePageAdmin = React.lazy(() => import('@/pages/admin/VideoCreatePageAdmin'));
+const DownloadsPage = React.lazy(() => import('@/pages/DownloadsPage'));
 const BatchDownloadManager = React.lazy(() => import('@/pages/downloads/BatchDownloadManager'));
 const DownloadsManager = React.lazy(() => import('@/pages/downloads/DownloadsManager'));
 const AdminAIPanel = React.lazy(() => import('@/pages/admin/AdminAIPanel'));
@@ -355,6 +357,17 @@ const AppRoutes: React.FC = () => {
         />
 
         <Route 
+          path="/downloads" 
+          element={
+            <AppLayout>
+              <Suspense fallback={<AuroraLoadingSkeleton />}>
+                <DownloadsPage />
+              </Suspense>
+            </AppLayout>
+          } 
+        />
+
+        <Route 
           path="/downloads/batch" 
           element={
             <AppLayout>
@@ -581,6 +594,17 @@ const AppRoutes: React.FC = () => {
               <AppLayout requireAdmin={true}>
                 <Suspense fallback={<AuroraLoadingSkeleton />}>
                   <AdminEquipments />
+                </Suspense>
+              </AppLayout>
+            } 
+          />
+
+          <Route 
+            path="/admin/users"
+            element={
+              <AppLayout requireAdmin={true}>
+                <Suspense fallback={<AuroraLoadingSkeleton />}>
+                  <AdminUsers />
                 </Suspense>
               </AppLayout>
             } 

@@ -3,7 +3,7 @@ import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { User, FileText, Book, LayoutDashboard, Image, Video, Award, Instagram } from "lucide-react";
 import UserSummarySection from "@/components/profile-dashboard/UserSummarySection";
-import LibrarySummarySection from "@/components/profile-dashboard/LibrarySummarySection";
+import LibrarySummarySection from "@/components/profile-dashboard/RealLibrarySummarySection";
 import IntegrationsSummarySection from "@/components/profile-dashboard/IntegrationsSummarySection";
 import ProgressSummarySection from "@/components/profile-dashboard/ProgressSummarySection";
 import ProfileQuickActions from "@/components/profile-dashboard/ProfileQuickActions";
