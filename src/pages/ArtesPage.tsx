@@ -1,52 +1,52 @@
 import React from 'react';
-import { Camera, Image, Users } from 'lucide-react';
+import { Palette, Image, Download } from 'lucide-react';
 import AuroraPageLayout from '@/components/layout/AuroraPageLayout';
 import StandardPageHeader from '@/components/layout/StandardPageHeader';
 
-const BeforeAfterPage: React.FC = () => {
+const ArtesPage: React.FC = () => {
   const statusBadges = [
     {
       icon: Image,
-      label: 'Comparação Visual',
+      label: 'Arte Digital',
       variant: 'secondary' as const,
-      color: 'bg-blue-500/20 text-blue-500 border-blue-500/30'
+      color: 'bg-purple-500/20 text-purple-500 border-purple-500/30'
     },
     {
-      icon: Users,
-      label: 'Resultados Reais',
+      icon: Download,
+      label: 'Download Gratuito',
       variant: 'secondary' as const,
-      color: 'bg-green-500/20 text-green-500 border-green-500/30'
+      color: 'bg-cyan-500/20 text-cyan-500 border-cyan-500/30'
     }
   ];
 
   return (
     <AuroraPageLayout containerSize="lg" padding="sm" fullHeight>
       <StandardPageHeader
-        icon={Camera}
-        title="Fotos Antes e Depois"
-        subtitle="Documentação visual dos resultados dos tratamentos"
+        icon={Palette}
+        title="Artes e Design"
+        subtitle="Biblioteca de artes e materiais gráficos para sua clínica"
         statusBadges={statusBadges}
       />
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <div className="bg-card border border-border rounded-lg p-6">
-          <h3 className="text-lg font-semibold mb-3">Galeria de Resultados</h3>
+          <h3 className="text-lg font-semibold mb-3">Biblioteca de Artes</h3>
           <p className="text-muted-foreground">
-            Visualize o antes e depois dos tratamentos realizados com nossos equipamentos.
+            Acesse nossa coleção de artes profissionais para suas campanhas de marketing.
           </p>
         </div>
         
         <div className="bg-card border border-border rounded-lg p-6">
-          <h3 className="text-lg font-semibold mb-3">Upload de Fotos</h3>
+          <h3 className="text-lg font-semibold mb-3">Templates</h3>
           <p className="text-muted-foreground">
-            Faça upload das suas fotos de antes e depois para documentar os resultados.
+            Templates editáveis para posts, stories e materiais gráficos.
           </p>
         </div>
         
         <div className="bg-card border border-border rounded-lg p-6">
-          <h3 className="text-lg font-semibold mb-3">Relatórios</h3>
+          <h3 className="text-lg font-semibold mb-3">Customização</h3>
           <p className="text-muted-foreground">
-            Gere relatórios com as comparações visuais dos tratamentos.
+            Personalize as artes com suas cores e logo da clínica.
           </p>
         </div>
       </div>
@@ -54,4 +54,4 @@ const BeforeAfterPage: React.FC = () => {
   );
 };
 
-export default BeforeAfterPage;
+export default ArtesPage;

@@ -1,0 +1,100 @@
+import React, { ReactNode } from 'react';
+import { Lock, Sparkles } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import { Badge } from '@/components/ui/badge';
+import { useFeatureAccess, AppFeature } from '@/hooks/useFeatureAccess';
+
+interface FeatureAccessControlProps {
+  feature: AppFeature;
+  children: ReactNode;
+  className?: string;
+  showTooltip?: boolean;
+  onRestrictedClick?: () => void;
+}
+
+export const FeatureAccessControl: React.FC<FeatureAccessControlProps> = ({
+  feature,
+  children,
+  className,
+  showTooltip = true,
+  onRestrictedClick
+}) => {
+  const { hasAccess, isNewFeature, isLoading } = useFeatureAccess();
+
+  const hasFeatureAccess = hasAccess(feature);
+  const isNew = isNewFeature(feature);
+
+  const handleClick = (e: React.MouseEvent) => {
+    if (!hasFeatureAccess) {
+      e.preventDefault();
+      e.stopPropagation();
+      if (onRestrictedClick) {
+        onRestrictedClick();
+      }
+    }
+  };
+
+  const content = (
+    <div 
+      className={cn(
+        "relative inline-block",
+        !hasFeatureAccess && "cursor-not-allowed",
+        className
+      )}
+      onClick={handleClick}
+    >
+      {/* Main content */}
+      <div className={cn(
+        "transition-all duration-200",
+        !hasFeatureAccess && "opacity-60 grayscale"
+      )}>
+        {children}
+      </div>
+
+      {/* Lock overlay for restricted features */}
+      {!hasFeatureAccess && !isLoading && (
+        <div className="absolute -top-1 -right-1 bg-background border border-border rounded-full p-1">
+          <Lock size={12} className="text-muted-foreground" />
+        </div>
+      )}
+
+      {/* New feature badge */}
+      {hasFeatureAccess && isNew && (
+        <Badge 
+          variant="secondary" 
+          className="absolute -top-2 -right-2 px-1.5 py-0.5 text-xs bg-emerald-500 hover:bg-emerald-500 text-white border-emerald-600 animate-pulse"
+        >
+          <Sparkles size={10} className="mr-1" />
+          Novo
+        </Badge>
+      )}
+    </div>
+  );
+
+  if (!showTooltip || hasFeatureAccess) {
+    return content;
+  }
+
+  return (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          {content}
+        </TooltipTrigger>
+        <TooltipContent>
+          <p className="text-sm">
+            Acesso restrito - Entre em contato para liberar
+          </p>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
+};
+
+export default FeatureAccessControl;

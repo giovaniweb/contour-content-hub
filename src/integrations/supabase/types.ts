@@ -2333,6 +2333,42 @@ export type Database = {
           },
         ]
       }
+      feature_notifications: {
+        Row: {
+          created_at: string | null
+          expires_at: string | null
+          feature: Database["public"]["Enums"]["app_feature"]
+          id: string
+          is_read: boolean | null
+          message: string | null
+          notification_type: string | null
+          title: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          expires_at?: string | null
+          feature: Database["public"]["Enums"]["app_feature"]
+          id?: string
+          is_read?: boolean | null
+          message?: string | null
+          notification_type?: string | null
+          title: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          expires_at?: string | null
+          feature?: Database["public"]["Enums"]["app_feature"]
+          id?: string
+          is_read?: boolean | null
+          message?: string | null
+          notification_type?: string | null
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       fotos: {
         Row: {
           categoria: string | null
@@ -3641,6 +3677,42 @@ export type Database = {
         }
         Relationships: []
       }
+      user_feature_permissions: {
+        Row: {
+          created_at: string | null
+          enabled: boolean | null
+          expires_at: string | null
+          feature: Database["public"]["Enums"]["app_feature"]
+          granted_at: string | null
+          granted_by: string | null
+          id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          enabled?: boolean | null
+          expires_at?: string | null
+          feature: Database["public"]["Enums"]["app_feature"]
+          granted_at?: string | null
+          granted_by?: string | null
+          id?: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          enabled?: boolean | null
+          expires_at?: string | null
+          feature?: Database["public"]["Enums"]["app_feature"]
+          granted_at?: string | null
+          granted_by?: string | null
+          id?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_gamification: {
         Row: {
           badges: string[] | null
@@ -4422,6 +4494,20 @@ export type Database = {
       }
     }
     Enums: {
+      app_feature:
+        | "mestre_beleza"
+        | "consultor_mkt"
+        | "fluida_roteirista"
+        | "videos"
+        | "fotos"
+        | "artes"
+        | "artigos_cientificos"
+        | "academia"
+        | "equipamentos"
+        | "fotos_antes_depois"
+        | "reports"
+        | "planner"
+        | "ideas"
       investment_range:
         | "300-500"
         | "500-800"
@@ -4556,6 +4642,21 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      app_feature: [
+        "mestre_beleza",
+        "consultor_mkt",
+        "fluida_roteirista",
+        "videos",
+        "fotos",
+        "artes",
+        "artigos_cientificos",
+        "academia",
+        "equipamentos",
+        "fotos_antes_depois",
+        "reports",
+        "planner",
+        "ideas",
+      ],
       investment_range: [
         "300-500",
         "500-800",

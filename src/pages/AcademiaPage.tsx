@@ -1,52 +1,52 @@
 import React from 'react';
-import { Camera, Image, Users } from 'lucide-react';
+import { GraduationCap, BookOpen, Award } from 'lucide-react';
 import AuroraPageLayout from '@/components/layout/AuroraPageLayout';
 import StandardPageHeader from '@/components/layout/StandardPageHeader';
 
-const BeforeAfterPage: React.FC = () => {
+const AcademiaPage: React.FC = () => {
   const statusBadges = [
     {
-      icon: Image,
-      label: 'Comparação Visual',
+      icon: BookOpen,
+      label: 'Cursos Online',
       variant: 'secondary' as const,
-      color: 'bg-blue-500/20 text-blue-500 border-blue-500/30'
+      color: 'bg-emerald-500/20 text-emerald-500 border-emerald-500/30'
     },
     {
-      icon: Users,
-      label: 'Resultados Reais',
+      icon: Award,
+      label: 'Certificação',
       variant: 'secondary' as const,
-      color: 'bg-green-500/20 text-green-500 border-green-500/30'
+      color: 'bg-yellow-500/20 text-yellow-500 border-yellow-500/30'
     }
   ];
 
   return (
     <AuroraPageLayout containerSize="lg" padding="sm" fullHeight>
       <StandardPageHeader
-        icon={Camera}
-        title="Fotos Antes e Depois"
-        subtitle="Documentação visual dos resultados dos tratamentos"
+        icon={GraduationCap}
+        title="Academia Fluida"
+        subtitle="Plataforma de educação e certificação em estética"
         statusBadges={statusBadges}
       />
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <div className="bg-card border border-border rounded-lg p-6">
-          <h3 className="text-lg font-semibold mb-3">Galeria de Resultados</h3>
+          <h3 className="text-lg font-semibold mb-3">Cursos Disponíveis</h3>
           <p className="text-muted-foreground">
-            Visualize o antes e depois dos tratamentos realizados com nossos equipamentos.
+            Acesse nossa biblioteca de cursos especializados em equipamentos e técnicas de estética.
           </p>
         </div>
         
         <div className="bg-card border border-border rounded-lg p-6">
-          <h3 className="text-lg font-semibold mb-3">Upload de Fotos</h3>
+          <h3 className="text-lg font-semibold mb-3">Certificação</h3>
           <p className="text-muted-foreground">
-            Faça upload das suas fotos de antes e depois para documentar os resultados.
+            Obtenha certificados reconhecidos após a conclusão dos cursos.
           </p>
         </div>
         
         <div className="bg-card border border-border rounded-lg p-6">
-          <h3 className="text-lg font-semibold mb-3">Relatórios</h3>
+          <h3 className="text-lg font-semibold mb-3">Progresso</h3>
           <p className="text-muted-foreground">
-            Gere relatórios com as comparações visuais dos tratamentos.
+            Acompanhe seu progresso e histórico de aprendizado.
           </p>
         </div>
       </div>
@@ -54,4 +54,4 @@ const BeforeAfterPage: React.FC = () => {
   );
 };
 
-export default BeforeAfterPage;
+export default AcademiaPage;

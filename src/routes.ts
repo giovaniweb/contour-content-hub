@@ -35,6 +35,9 @@ export const ROUTES = {
 
   MEDIA: '/media',
   SCIENTIFIC_ARTICLES: '/scientific-articles',
+  ACADEMIA: '/academia',
+  MESTRE_BELEZA: '/mestre-beleza',
+  BEFORE_AFTER: '/before-after',
   
   MARKETING: {
     CONSULTANT: '/marketing-consultant',
