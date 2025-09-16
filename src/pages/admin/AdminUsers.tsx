@@ -10,6 +10,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { Users, Search, UserPlus, Edit, Trash2, Mail, Calendar, Settings } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
+import { useNavigate } from 'react-router-dom';
+import NewUserModal from '@/components/admin/NewUserModal';
+import EditUserModal from '@/components/admin/EditUserModal';
 
 interface User {
   id: string;
@@ -27,17 +30,11 @@ const AdminUsers: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
   const [editingUser, setEditingUser] = useState<User | null>(null);
-  const [newUser, setNewUser] = useState({ 
-    nome: '', 
-    email: '', 
-    role: 'user', 
-    cidade: '', 
-    clinica: '', 
-    telefone: '' 
-  });
+  const [showNewUserModal, setShowNewUserModal] = useState(false);
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   // Fetch users
   const { data: users = [], isLoading, refetch } = useQuery({
@@ -160,7 +157,7 @@ const AdminUsers: React.FC = () => {
             <p className="text-slate-400">Administre contas de usuário e permissões</p>
           </div>
         </div>
-        <Button>
+        <Button onClick={() => setShowNewUserModal(true)}>
           <UserPlus className="h-4 w-4 mr-2" />
           Novo Usuário
         </Button>
@@ -236,101 +233,46 @@ const AdminUsers: React.FC = () => {
                     {user.role}
                   </Badge>
                   
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => setEditingUser(user)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="max-w-md">
-                      <DialogHeader>
-                        <DialogTitle>Editar Usuário</DialogTitle>
-                      </DialogHeader>
-                      <div className="space-y-4">
-                        <div>
-                          <Label htmlFor="name">Nome</Label>
-                          <Input
-                            id="name"
-                            value={editingUser?.nome || ''}
-                            onChange={(e) => setEditingUser(prev => 
-                              prev ? { ...prev, nome: e.target.value } : null
-                            )}
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="role">Role</Label>
-                          <Select 
-                            value={editingUser?.role || 'user'}
-                            onValueChange={(value) => setEditingUser(prev =>
-                              prev ? { ...prev, role: value } : null
-                            )}
-                          >
-                            <SelectTrigger>
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="user">Usuário</SelectItem>
-                              <SelectItem value="consultor">Consultor</SelectItem>
-                              <SelectItem value="admin">Admin</SelectItem>
-                              <SelectItem value="superadmin">Super Admin</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div>
-                          <Label htmlFor="cidade">Cidade</Label>
-                          <Input
-                            id="cidade"
-                            value={editingUser?.cidade || ''}
-                            onChange={(e) => setEditingUser(prev => 
-                              prev ? { ...prev, cidade: e.target.value } : null
-                            )}
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="clinica">Clínica</Label>
-                          <Input
-                            id="clinica"
-                            value={editingUser?.clinica || ''}
-                            onChange={(e) => setEditingUser(prev => 
-                              prev ? { ...prev, clinica: e.target.value } : null
-                            )}
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="telefone">Telefone</Label>
-                          <Input
-                            id="telefone"
-                            value={editingUser?.telefone || ''}
-                            onChange={(e) => setEditingUser(prev => 
-                              prev ? { ...prev, telefone: e.target.value } : null
-                            )}
-                          />
-                        </div>
-                        <div className="flex justify-between">
-                          <Button 
-                            variant="destructive" 
-                            onClick={() => deleteUserMutation.mutate(user.id)}
-                          >
-                            <Trash2 className="h-4 w-4 mr-2" />
-                            Remover
-                          </Button>
-                          <Button onClick={handleUpdateUser}>
-                            Salvar Alterações
-                          </Button>
-                        </div>
-                      </div>
-                    </DialogContent>
-                  </Dialog>
+                  <div className="flex gap-2">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => setEditingUser(user)}
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => navigate(`/admin/users/${user.id}/edit`)}
+                    >
+                      <Settings className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
               </div>
             ))}
           </div>
         </CardContent>
       </Card>
+
+      {/* Modals */}
+      <NewUserModal 
+        isOpen={showNewUserModal}
+        onClose={() => setShowNewUserModal(false)}
+        onSuccess={() => {
+          queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+          setShowNewUserModal(false);
+        }}
+      />
+      
+      <EditUserModal 
+        user={editingUser}
+        isOpen={!!editingUser}
+        onClose={() => setEditingUser(null)}
+        onUpdate={updateUserMutation.mutate}
+        onDelete={deleteUserMutation.mutate}
+      />
     </div>
   );
 };
