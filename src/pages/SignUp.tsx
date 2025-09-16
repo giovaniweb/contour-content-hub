@@ -171,26 +171,32 @@ const SignUp: React.FC = () => {
 
     setIsLoading(true);
     try {
-      await register({
+      const result = await register({
         email: formData.email,
         password: formData.password,
-        nome: formData.nome,
-        role: formData.role as any,
-        clinica: formData.clinica,
-        cidade: formData.cidade,
-        telefone: formData.telefone,
-        equipamentos: formData.equipamentos,
-        idioma: formData.idioma
+        nome: formData.nome
       });
+
+      if (result?.error) {
+        throw new Error(result.error.message);
+      }
 
       // Clear saved progress
       localStorage.removeItem('signupProgress');
       
-      toast.success('Conta criada com sucesso! Verifique seu email para confirmar.');
-      navigate('/dashboard');
+      toast.success('Conta criada com sucesso!', {
+        description: 'Verifique seu email para confirmar sua conta. Você será redirecionado para o login.'
+      });
+
+      setTimeout(() => {
+        navigate('/login');
+      }, 2000);
+
     } catch (error: any) {
       console.error('Erro ao criar conta:', error);
-      toast.error('Erro ao criar conta: ' + (error.message || 'Tente novamente'));
+      toast.error('Erro ao criar conta', {
+        description: error.message || 'Não foi possível criar sua conta. Tente novamente.'
+      });
     } finally {
       setIsLoading(false);
     }
@@ -235,7 +241,7 @@ const SignUp: React.FC = () => {
             <span className="text-sm text-slate-300">
               Já tem uma conta?
             </span>
-            <Link to="/">
+            <Link to="/login">
               <Button variant="outline" size="sm">
                 Fazer login
               </Button>
