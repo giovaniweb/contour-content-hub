@@ -28,7 +28,6 @@ interface UserPermission {
   enabled: boolean;
   expires_at?: string;
   granted_at?: string;
-  notes?: string;
 }
 
 interface UserPermissionsManagerProps {
@@ -44,7 +43,7 @@ const AVAILABLE_FEATURES: { feature: AppFeature; label: string; description: str
   { feature: 'fotos', label: 'Galeria Antes/Depois', description: 'Visualização de casos de sucesso', category: 'Conteúdo' },
   { feature: 'equipamentos', label: 'Catálogo de Equipamentos', description: 'Informações sobre equipamentos estéticos', category: 'Conteúdo' },
   { feature: 'planner', label: 'Planejador de Conteúdo', description: 'Ferramenta de planejamento estratégico', category: 'Produtividade' },
-  { feature: 'materiais', label: 'Academia', description: 'Cursos e certificações', category: 'Educação' },
+  { feature: 'academia', label: 'Academia', description: 'Cursos e certificações', category: 'Educação' },
   { feature: 'artes', label: 'Materiais Educativos', description: 'Downloads e materiais complementares', category: 'Educação' }
 ];
 
@@ -52,8 +51,7 @@ const UserPermissionsManager: React.FC<UserPermissionsManagerProps> = ({ userId 
   const [searchTerm, setSearchTerm] = useState('');
   const [newPermission, setNewPermission] = useState({
     feature: '' as AppFeature | '',
-    expires_at: '',
-    notes: ''
+    expires_at: ''
   });
   const [showAddDialog, setShowAddDialog] = useState(false);
   
@@ -84,9 +82,8 @@ const UserPermissionsManager: React.FC<UserPermissionsManagerProps> = ({ userId 
           feature: permission.feature,
           enabled: true,
           expires_at: permission.expires_at || null,
-          granted_at: new Date().toISOString(),
-          notes: permission.notes || null
-        }, { 
+          granted_at: new Date().toISOString()
+        }, {
           onConflict: 'user_id,feature'
         });
 
@@ -95,7 +92,7 @@ const UserPermissionsManager: React.FC<UserPermissionsManagerProps> = ({ userId 
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['user-permissions', userId] });
       setShowAddDialog(false);
-      setNewPermission({ feature: '', expires_at: '', notes: '' });
+      setNewPermission({ feature: '', expires_at: '' });
       toast({
         title: "Permissão concedida",
         description: "A permissão foi concedida com sucesso.",
@@ -183,8 +180,7 @@ const UserPermissionsManager: React.FC<UserPermissionsManagerProps> = ({ userId 
     grantPermissionMutation.mutate({
       feature: newPermission.feature,
       enabled: true,
-      expires_at: newPermission.expires_at || undefined,
-      notes: newPermission.notes || undefined
+      expires_at: newPermission.expires_at || undefined
     });
   };
 
@@ -262,17 +258,6 @@ const UserPermissionsManager: React.FC<UserPermissionsManagerProps> = ({ userId 
                     />
                   </div>
 
-                  <div>
-                    <Label>Observações (opcional)</Label>
-                    <Textarea
-                      placeholder="Adicione observações sobre esta permissão..."
-                      value={newPermission.notes}
-                      onChange={(e) => setNewPermission(prev => ({ 
-                        ...prev, 
-                        notes: e.target.value 
-                      }))}
-                    />
-                  </div>
 
                   <div className="flex justify-end gap-2">
                     <Button variant="outline" onClick={() => setShowAddDialog(false)}>
@@ -347,11 +332,6 @@ const UserPermissionsManager: React.FC<UserPermissionsManagerProps> = ({ userId 
                         </div>
                       )}
                       
-                      {permissionData?.notes && (
-                        <p className="text-xs text-muted-foreground mt-1 italic">
-                          "{permissionData.notes}"
-                        </p>
-                      )}
                     </div>
                     
                     <div className="flex items-center gap-2">

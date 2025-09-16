@@ -50,7 +50,7 @@ const AVAILABLE_FEATURES: { feature: AppFeature; label: string; description: str
   { feature: 'fotos', label: 'Antes/Depois', description: 'Galeria de fotos antes e depois' },
   { feature: 'equipamentos', label: 'Equipamentos', description: 'Catálogo de equipamentos' },
   { feature: 'planner', label: 'Planejador', description: 'Planejamento de conteúdo' },
-  { feature: 'materiais', label: 'Academia', description: 'Cursos e treinamentos' }
+  { feature: 'academia', label: 'Academia', description: 'Cursos e treinamentos' }
 ];
 
 const EditUserModal: React.FC<EditUserModalProps> = ({ 
