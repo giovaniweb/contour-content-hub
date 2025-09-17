@@ -13,7 +13,8 @@ import {
   Brain,
   TestTube,
   LinkIcon,
-  LayoutDashboard 
+  LayoutDashboard,
+  Shield
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -61,6 +62,7 @@ const AdminTopbar: React.FC = () => {
     { label: "Equipamentos", icon: Settings, path: "/admin/equipments" },
     { label: "Conteúdo", icon: Database, path: "/admin/content" },
     { label: "Artigos Científicos", icon: BookOpen, path: "/admin/scientific-articles" },
+    { label: "Termos de Privacidade", icon: Shield, path: "/admin/privacy-terms" },
     { label: "IA do Sistema", icon: Brain, path: "/admin/ai" },
     { label: "Integrações", icon: LinkIcon, path: "/admin/system-intelligence" },
     { label: "Diagnósticos", icon: TestTube, path: "/admin/system-diagnostics" }

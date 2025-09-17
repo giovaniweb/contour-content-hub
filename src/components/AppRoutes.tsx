@@ -10,6 +10,7 @@ const Dashboard = React.lazy(() => import('@/pages/Dashboard'));
 const Login = React.lazy(() => import('@/pages/Login'));
 const Register = React.lazy(() => import('@/pages/Register'));
 const SignUp = React.lazy(() => import('@/pages/SignUp'));
+const PrivacyPolicy = React.lazy(() => import('@/pages/PrivacyPolicy'));
 const ForgotPassword = React.lazy(() => import('@/pages/ForgotPassword'));
 const ResetPassword = React.lazy(() => import('@/pages/ResetPassword'));
 const ScientificArticles = React.lazy(() => import('@/pages/ScientificArticles'));
@@ -75,6 +76,7 @@ const AdminAcademyCourseNew = React.lazy(() => import('@/pages/admin/academy/Adm
 const AdminAcademyCourseEdit = React.lazy(() => import('@/pages/admin/academy/AdminAcademyCourseEdit'));
 const AdminAcademyCourseView = React.lazy(() => import('@/pages/admin/academy/AdminAcademyCourseView'));
 const AdminAcademyCourseLessons = React.lazy(() => import('@/pages/admin/academy/AdminAcademyCourseLessons'));
+const AdminPrivacyTerms = React.lazy(() => import('@/pages/admin/AdminPrivacyTerms'));
 
 const AppRoutes: React.FC = () => {
   return (
@@ -137,6 +139,15 @@ const AppRoutes: React.FC = () => {
         element={
           <Suspense fallback={<AuroraLoadingSkeleton />}>
             <ResetPassword />
+          </Suspense>
+        } 
+      />
+
+      <Route 
+        path="/privacy" 
+        element={
+          <Suspense fallback={<AuroraLoadingSkeleton />}>
+            <PrivacyPolicy />
           </Suspense>
         } 
       />
@@ -744,6 +755,17 @@ const AppRoutes: React.FC = () => {
               <AppLayout requireAdmin={true}>
                 <Suspense fallback={<AuroraLoadingSkeleton />}>
                   <AdminAIPanel />
+                </Suspense>
+              </AppLayout>
+            } 
+          />
+
+          <Route 
+            path="/admin/privacy-terms"
+            element={
+              <AppLayout requireAdmin={true}>
+                <Suspense fallback={<AuroraLoadingSkeleton />}>
+                  <AdminPrivacyTerms />
                 </Suspense>
               </AppLayout>
             } 
