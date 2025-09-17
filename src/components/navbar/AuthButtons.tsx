@@ -118,7 +118,7 @@ export const AuthButtons: React.FC<AuthButtonsProps> = ({
         <Link to="/login">Entrar</Link>
       </Button>
       <Button asChild variant="default">
-        <Link to="/register">Criar conta</Link>
+        <Link to="/signup">Criar conta</Link>
       </Button>
     </div>
   );

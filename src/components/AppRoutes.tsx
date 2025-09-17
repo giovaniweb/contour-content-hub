@@ -111,11 +111,7 @@ const AppRoutes: React.FC = () => {
       
       <Route 
         path="/register" 
-        element={
-          <Suspense fallback={<AuroraLoadingSkeleton />}>
-            <Register />
-          </Suspense>
-        } 
+        element={<Navigate to="/signup" replace />}
       />
 
       <Route 

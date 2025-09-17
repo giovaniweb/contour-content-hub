@@ -103,7 +103,7 @@ const Login: React.FC = () => {
               </div>
               <div>
                 Não tem uma conta?{" "}
-                <Link to="/register" className="text-blue-600 hover:underline">
+                <Link to="/signup" className="text-blue-600 hover:underline">
                   Registrar
                 </Link>
               </div>
