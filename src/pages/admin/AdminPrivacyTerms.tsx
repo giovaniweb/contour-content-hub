@@ -190,28 +190,7 @@ const AdminPrivacyTerms: React.FC = () => {
                 <div className="border rounded-lg p-4 bg-background min-h-[400px]">
                   <h1 className="text-2xl font-bold mb-4">{title || 'Título'}</h1>
                   <div className="prose prose-sm max-w-none dark:prose-invert">
-                    <ReactMarkdown
-                      components={{
-                        h1: ({ children }) => (
-                          <h2 className="text-xl font-bold mt-6 mb-3 first:mt-0">
-                            {children}
-                          </h2>
-                        ),
-                        h2: ({ children }) => (
-                          <h3 className="text-lg font-semibold mt-4 mb-2">
-                            {children}
-                          </h3>
-                        ),
-                        p: ({ children }) => (
-                          <p className="mb-3 leading-relaxed">{children}</p>
-                        ),
-                        ul: ({ children }) => (
-                          <ul className="list-disc pl-6 mb-3 space-y-1">
-                            {children}
-                          </ul>
-                        ),
-                      }}
-                    >
+                    <ReactMarkdown>
                       {content || '*Digite o conteúdo para ver o preview...*'}
                     </ReactMarkdown>
                   </div>

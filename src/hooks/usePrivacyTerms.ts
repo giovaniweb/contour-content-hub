@@ -1,16 +1,8 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { Database } from '@/integrations/supabase/types';
 
-interface PrivacyTerms {
-  id: string;
-  title: string;
-  content: string;
-  version: number;
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
-  updated_by: string | null;
-}
+type PrivacyTerms = Database['public']['Tables']['privacy_terms']['Row'];
 
 export const usePrivacyTerms = () => {
   const [terms, setTerms] = useState<PrivacyTerms | null>(null);
