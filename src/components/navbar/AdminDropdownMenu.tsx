@@ -17,7 +17,8 @@ import {
   FileText,
   Palette,
   Plus,
-  GraduationCap
+  GraduationCap,
+  Shield
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -67,6 +68,7 @@ const AdminDropdownMenu: React.FC = () => {
     { label: "Fotos", icon: Image, path: "/admin/photos" },
     { label: "Vídeos", icon: Video, path: "/admin/videos" },
     { label: "Conteúdo", icon: Database, path: "/admin/content" },
+    { label: "Termos de Privacidade", icon: Shield, path: "/admin/privacy-terms" },
     { label: "IA do Sistema", icon: Brain, path: "/admin/ai" },
     { label: "Integrações", icon: LinkIcon, path: "/admin/system-intelligence" },
     { label: "Config. Vimeo", icon: Video, path: "/admin/vimeo/settings" },
