@@ -79,3 +79,6 @@ verify_jwt = true
 
 [functions.send-signup-confirmation]
 verify_jwt = true
+
+[functions.send-test-email]
+verify_jwt = true

@@ -75,7 +75,8 @@ function renderTemplate(template: string, variables: Record<string, any>): strin
 // Configurar cliente SMTP com suporte aprimorado para GoDaddy
 async function createSMTPClient(): Promise<SmtpClient> {
   const smtpHost = Deno.env.get("NATIVE_SMTP_HOST");
-  const smtpPort = parseInt(Deno.env.get("NATIVE_SMTP_PORT") || "587");
+  const smtpPortRaw = Deno.env.get("NATIVE_SMTP_PORT");
+  const smtpPort = smtpPortRaw && smtpPortRaw.trim() ? parseInt(smtpPortRaw) : 587;
   const smtpUser = Deno.env.get("NATIVE_SMTP_USER");
   const smtpPass = Deno.env.get("NATIVE_SMTP_PASS");
   const smtpSecure = Deno.env.get("NATIVE_SMTP_SECURE");
@@ -89,6 +90,9 @@ async function createSMTPClient(): Promise<SmtpClient> {
   }
   if (!smtpPass?.trim()) {
     throw new Error("NATIVE_SMTP_PASS is required and cannot be empty");
+  }
+  if (isNaN(smtpPort) || smtpPort <= 0) {
+    throw new Error(`Invalid SMTP port: ${smtpPortRaw}. Must be a valid number.`);
   }
 
   console.log(`Connecting to SMTP server: ${smtpHost}:${smtpPort}`);
@@ -211,7 +215,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log(`[${requestId}] Email request details:`, { 
       template_type, 
-      to_email: to_email.substring(0, 3) + "***", 
+      to_email: to_email ? to_email.substring(0, 3) + "***" : "undefined", 
       has_custom_content: !!(subject && html_content),
       priority,
       from_name,

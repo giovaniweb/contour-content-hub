@@ -108,9 +108,8 @@ const EmailTesting: React.FC = () => {
     setEmailTestResult(null);
 
     try {
-      const functionName = emailTest.provider === 'smtp' ? 'send-native-email' : 'send-test-email';
-      
-      const { data, error } = await supabase.functions.invoke(functionName, {
+      // Always use the dedicated test function for better error handling
+      const { data, error } = await supabase.functions.invoke('send-test-email', {
         body: {
           to_email: emailTest.to,
           subject: emailTest.subject,
@@ -119,11 +118,18 @@ const EmailTesting: React.FC = () => {
         }
       });
 
-      if (error) throw error;
+      console.log('Test email response:', { data, error });
+
+      if (error) {
+        console.error('Function error:', error);
+        throw error;
+      }
 
       const result: TestResult = {
-        success: data.success || true,
-        message: data.message || 'Email de teste enviado com sucesso!',
+        success: data?.success || false,
+        message: data?.success 
+          ? `Email enviado via ${data.details?.method || 'sistema de email'}${data.details?.warning ? ` (${data.details.warning})` : ''}`
+          : data?.error || 'Falha no envio do email',
         details: data,
         timestamp: new Date().toISOString()
       };
@@ -351,6 +357,37 @@ const EmailTesting: React.FC = () => {
                     </span>
                   </div>
                   <p className="text-sm">{emailTestResult.message}</p>
+                  {emailTestResult.details && (
+                    <details className="mt-2">
+                      <summary className="text-xs text-slate-400 cursor-pointer">Detalhes Técnicos</summary>
+                      <div className="mt-2 space-y-2 text-xs">
+                        {emailTestResult.details.details && (
+                          <div className="bg-slate-900 p-2 rounded">
+                            <strong>Método:</strong> {emailTestResult.details.details.method || 'N/A'}<br/>
+                            <strong>Email ID:</strong> {emailTestResult.details.details.email_id || 'N/A'}<br/>
+                            {emailTestResult.details.details.attempts && (
+                              <>
+                                <strong>Tentativas:</strong> {emailTestResult.details.details.attempts}<br/>
+                              </>
+                            )}
+                            {emailTestResult.details.details.warning && (
+                              <>
+                                <strong>Aviso:</strong> {emailTestResult.details.details.warning}<br/>
+                              </>
+                            )}
+                          </div>
+                        )}
+                        {emailTestResult.details.error && (
+                          <div className="bg-red-900/20 p-2 rounded">
+                            <strong>Erro:</strong> {emailTestResult.details.error}
+                          </div>
+                        )}
+                        <pre className="text-xs bg-slate-900 p-2 rounded overflow-x-auto">
+                          {JSON.stringify(emailTestResult.details, null, 2)}
+                        </pre>
+                      </div>
+                    </details>
+                  )}
                 </div>
               )}
             </CardContent>
