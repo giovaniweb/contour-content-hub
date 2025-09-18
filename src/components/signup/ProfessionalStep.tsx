@@ -143,25 +143,27 @@ export const ProfessionalStep: React.FC<ProfessionalStepProps> = ({
                   htmlFor={type.id}
                   className={`
                     flex items-start space-x-3 p-4 rounded-lg border-2 cursor-pointer transition-all
-                    hover:border-aurora-electric-purple/50 hover:bg-aurora-space-black/30
-                    peer-checked:border-aurora-bright-cyan peer-checked:bg-aurora-bright-cyan/10
+                    hover:border-aurora-cyan/70 hover:bg-aurora-cyan/20 hover:shadow-lg hover:shadow-aurora-cyan/20
+                    peer-checked:border-aurora-cyan peer-checked:bg-aurora-cyan/20 peer-checked:shadow-lg peer-checked:shadow-aurora-cyan/30
                     ${selectedType === type.id 
-                      ? 'border-aurora-bright-cyan bg-aurora-bright-cyan/10' 
-                      : 'border-aurora-electric-purple/30 bg-aurora-space-black/20'
+                      ? 'border-aurora-cyan bg-aurora-cyan/20 shadow-lg shadow-aurora-cyan/30' 
+                      : 'border-aurora-electric-purple/40 bg-aurora-space-black/40'
                     }
                   `}
                 >
                   <Icon className={`
-                    w-6 h-6 mt-1 flex-shrink-0
-                    ${selectedType === type.id ? 'text-aurora-bright-cyan' : 'text-slate-400'}
+                    w-6 h-6 mt-1 flex-shrink-0 transition-colors
+                    ${selectedType === type.id ? 'text-aurora-cyan' : 'text-slate-300'}
                   `} />
                   <div className="space-y-1">
-                    <div className={`font-medium ${
-                      selectedType === type.id ? 'text-aurora-bright-cyan' : 'text-white'
+                    <div className={`font-medium transition-colors ${
+                      selectedType === type.id ? 'text-aurora-cyan' : 'text-white'
                     }`}>
                       {type.label}
                     </div>
-                    <div className="text-sm text-slate-400">
+                    <div className={`text-sm transition-colors ${
+                      selectedType === type.id ? 'text-aurora-cyan/80' : 'text-slate-300'
+                    }`}>
                       {type.description}
                     </div>
                   </div>
