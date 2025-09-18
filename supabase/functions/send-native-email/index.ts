@@ -1,16 +1,15 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
-import { SmtpClient } from "https://deno.land/x/smtp@v0.7.0/mod.ts";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
 
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL") ?? "",
   Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
 );
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
 
 interface NativeEmailRequest {
   template_type?: 'welcome' | 'content_released' | 'invite' | 'certificate' | 'newsletter' | 'password_reset';
@@ -165,30 +164,36 @@ function checkRateLimit(email: string, maxEmails = 10, windowMinutes = 60): bool
   return true;
 }
 
-// Fallback para Resend se SMTP falhar
-async function fallbackToResend(emailData: any, requestId: string): Promise<any> {
-  console.log(`[${requestId}] Attempting fallback to Resend...`);
+// Robust SMTP retry function with intelligent fallback
+async function retrySmtpWithBackoff(
+  sendFunction: () => Promise<any>,
+  maxRetries: number = 3,
+  baseDelay: number = 1000
+): Promise<{ success: boolean; result?: any; error?: string }> {
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      console.log(`🔄 SMTP attempt ${attempt}/${maxRetries}...`);
+      const result = await sendFunction();
+      console.log(`✅ SMTP success on attempt ${attempt}`);
+      return { success: true, result };
+    } catch (error) {
+      console.error(`❌ SMTP attempt ${attempt} failed:`, error);
+      
+      if (attempt === maxRetries) {
+        return { 
+          success: false, 
+          error: `SMTP failed after ${maxRetries} attempts: ${error.message}` 
+        };
+      }
+      
+      // Exponential backoff
+      const delay = baseDelay * Math.pow(2, attempt - 1);
+      console.log(`⏱️ Waiting ${delay}ms before retry...`);
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
+  }
   
-  const resendKey = Deno.env.get("RESEND_API_KEY");
-  if (!resendKey) {
-    throw new Error("Both SMTP and Resend fallback failed - no Resend API key");
-  }
-
-  const response = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${resendKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(emailData),
-  });
-
-  if (!response.ok) {
-    const error = await response.text();
-    throw new Error(`Resend fallback failed: ${error}`);
-  }
-
-  return await response.json();
+  return { success: false, error: 'Max retries exceeded' };
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -380,57 +385,62 @@ const handler = async (req: Request): Promise<Response> => {
     }
     
     try {
-      emailResponse = await attemptSMTPSend();
-
-    } catch (smtpError: any) {
-      console.warn(`[${requestId}] All SMTP attempts failed:`, smtpError.message);
+      console.log('🚀 Attempting to send email via native SMTP...');
       
-      // Tentar fallback para Resend
-      try {
-        const resendData = {
-          from: `${from_name} <${from_email}>`,
-          to: [to_email],
-          subject: renderedSubject,
-          html: renderedHtmlContent,
-          text: renderedTextContent,
-        };
+      const result = await retrySmtpWithBackoff(
+        () => attemptSMTPSend(2), // max retries
+        1, // wrapper retry
+        1000 // base delay in ms
+      );
 
-        console.log(`[${requestId}] Attempting Resend fallback after SMTP failure...`);
-        const fallbackResponse = await fallbackToResend(resendData, requestId);
-        
-        console.log(`[${requestId}] Fallback to Resend successful:`, fallbackResponse);
-        
-        emailResponse = {
-          success: true,
-          method: 'resend_fallback',
-          id: fallbackResponse.id || requestId,
-          warning: `SMTP failed (${smtpError.message}), used Resend fallback`
-        };
-
-      } catch (fallbackError: any) {
-        console.error(`[${requestId}] Both SMTP and Resend fallback failed:`, {
-          smtp_error: smtpError.message,
-          fallback_error: fallbackError.message
-        });
-        
+      if (result.success) {
+        console.log('✅ Email sent successfully via SMTP');
         return new Response(
-          JSON.stringify({ 
-            error: "Email sending failed completely",
-            details: {
-              smtp_error: smtpError.message,
-              fallback_error: fallbackError.message,
-              suggestions: [
-                "Verify GoDaddy SMTP credentials (NATIVE_SMTP_USER, NATIVE_SMTP_PASS)",
-                "Check SMTP host and port configuration for GoDaddy",
-                "Ensure from_email matches authenticated domain",
-                "Verify Resend API key as backup"
-              ]
-            },
-            request_id: requestId
+          JSON.stringify({
+            success: true,
+            provider: 'native_smtp',
+            messageId: result.result?.id,
+            message: 'Email sent successfully via native SMTP',
+            attempts: result.result?.attempts
           }),
-          { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
+          {
+            status: 200,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          }
+        );
+      } else {
+        console.error('❌ SMTP failed after all retries:', result.error);
+        return new Response(
+          JSON.stringify({
+            success: false,
+            error: `SMTP failed: ${result.error}`,
+            details: 'All SMTP retry attempts failed. Please check SMTP configuration.',
+            suggestions: [
+              "Verify GoDaddy SMTP credentials (NATIVE_SMTP_USER, NATIVE_SMTP_PASS)",
+              "Check SMTP host and port configuration for GoDaddy",
+              "Ensure from_email matches authenticated domain",
+              "Test SMTP connection using the test function"
+            ]
+          }),
+          {
+            status: 500,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          }
         );
       }
+    } catch (error) {
+      console.error('❌ Unexpected error in email sending process:', error);
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: 'Unexpected error occurred while sending email',
+          details: error.message
+        }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
     }
 
     console.log(`[${requestId}] Email request completed successfully`);

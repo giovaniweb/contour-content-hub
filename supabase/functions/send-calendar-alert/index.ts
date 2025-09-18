@@ -17,14 +17,9 @@ serve(async (req) => {
     // Get environment variables
     const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-    const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
     
     if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
       throw new Error("Configurações do Supabase não encontradas");
-    }
-    
-    if (!RESEND_API_KEY) {
-      throw new Error("Chave de API do Resend não encontrada");
     }
 
     // Create Supabase admin client
@@ -87,26 +82,31 @@ serve(async (req) => {
       emailContent = generateGenericEmail(user.nome);
     }
     
-    // Send email using Resend
-    const emailResponse = await fetch("https://api.resend.com/emails", {
+    // Send email using native SMTP via send-native-email function
+    const emailResponse = await fetch(`${SUPABASE_URL}/functions/v1/send-native-email`, {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${RESEND_API_KEY}`,
+        "Authorization": `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        from: "Fluida <onboarding@resend.dev>",
-        to: user.email,
+        from_name: "Fluida",
+        from_email: "noreply@fluida.online",
+        to_email: user.email,
         subject: emailSubject,
-        html: emailContent
+        html_content: emailContent,
+        priority: 'normal'
       })
     });
     
     if (!emailResponse.ok) {
       const errorText = await emailResponse.text();
-      console.error("Erro ao enviar e-mail:", errorText);
-      throw new Error(`Falha ao enviar e-mail: ${errorText}`);
+      console.error("Erro ao enviar e-mail via SMTP:", errorText);
+      throw new Error(`Falha ao enviar e-mail via SMTP: ${errorText}`);
     }
+    
+    const emailResult = await emailResponse.json();
+    console.log("E-mail enviado com sucesso via SMTP:", emailResult);
     
     // Update the last execution time for this alert
     await supabase
@@ -188,7 +188,7 @@ function generateDailySuggestionsEmail(userName: string, suggestions: any[]): st
         ${suggestionsList}
         
         <div style="text-align: center; margin-top: 30px;">
-          <a href="https://app.fluida.com.br/calendar" style="background-color: #5e72e4; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold;">
+          <a href="https://fluida.online/calendario" style="background-color: #5e72e4; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold;">
             Ver Minha Agenda Completa
           </a>
         </div>
@@ -261,7 +261,7 @@ function generateWeeklySuggestionsEmail(userName: string, weekData: any[]): stri
         ${weekContent}
         
         <div style="text-align: center; margin-top: 30px;">
-          <a href="https://app.fluida.com.br/calendar" style="background-color: #5e72e4; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold;">
+          <a href="https://fluida.online/calendario" style="background-color: #5e72e4; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold;">
             Visualizar em Meu Calendário
           </a>
         </div>
@@ -293,11 +293,11 @@ function generateGenericEmail(userName: string): string {
         
         <p style="font-size: 16px; line-height: 1.5;">Não deixe para depois! Conteúdo constante é a chave para o sucesso nas redes sociais.</p>
         
-        <div style="text-align: center; margin: 30px 0;">
-          <a href="https://app.fluida.com.br/calendar" style="background-color: #5e72e4; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold;">
-            Ver Minha Agenda Agora
-          </a>
-        </div>
+         <div style="text-align: center; margin: 30px 0;">
+           <a href="https://fluida.online/calendario" style="background-color: #5e72e4; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold;">
+             Ver Minha Agenda Agora
+           </a>
+         </div>
         
         <div style="background-color: #f9f9f9; border-left: 4px solid #5e72e4; padding: 15px; margin: 20px 0;">
           <p style="font-size: 16px; font-style: italic; margin: 0;">
