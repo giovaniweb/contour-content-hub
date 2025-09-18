@@ -109,13 +109,13 @@ async function createSMTPClient(): Promise<SmtpClient> {
       password: smtpPass,
     };
 
-    // Para GoDaddy: usar SSL se porta 465, TLS para 587/25
+    // Para GoDaddy: usar connectTLS para SSL (465), connect para STARTTLS (587)
     if (smtpPort === 465 || smtpSecure === "true") {
       console.log(`Using SSL connection on port ${smtpPort}`);
-      await client.connect(connectionConfig);
-    } else {
-      console.log(`Using TLS connection on port ${smtpPort}`);
       await client.connectTLS(connectionConfig);
+    } else {
+      console.log(`Using STARTTLS connection on port ${smtpPort}`);
+      await client.connect(connectionConfig);
     }
 
     console.log("SMTP connection established successfully");
@@ -205,8 +205,8 @@ const handler = async (req: Request): Promise<Response> => {
       template_type, 
       to_email, 
       variables = {}, 
-      from_name = "Academia Fluida", 
-      from_email = "noreply@academifluida.com",
+      from_name = "Fluida Online", 
+      from_email = "no-reply@fluida.online",
       subject,
       html_content,
       text_content,
@@ -250,7 +250,7 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    let renderedSubject = subject || "Notificação Academia Fluida";
+    let renderedSubject = subject || "Notificação Fluida Online";
     let renderedHtmlContent = html_content || "";
     let renderedTextContent = text_content;
 
@@ -288,7 +288,7 @@ const handler = async (req: Request): Promise<Response> => {
         <html>
           <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
             <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-              <h2 style="color: #2563eb;">Academia Fluida</h2>
+              <h2 style="color: #2563eb;">Fluida Online</h2>
               <p>Você recebeu uma nova notificação.</p>
               <p>Se você não solicitou este email, pode ignorá-lo com segurança.</p>
               <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">

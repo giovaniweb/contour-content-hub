@@ -59,19 +59,19 @@ const handler = async (req: Request): Promise<Response> => {
     // Prepare test email data
     const testEmailData = {
       to_email,
-      subject: subject || "Teste de Email - Academia Fluida",
+      subject: subject || "Teste de Email - Fluida Online",
       html_content: html_content || `
         <html>
           <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
             <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 10px;">
               <h1 style="margin: 0; font-size: 28px;">✅ Teste de Email</h1>
-              <p style="margin: 10px 0 0 0; opacity: 0.9;">Academia Fluida - Sistema de Emails</p>
+              <p style="margin: 10px 0 0 0; opacity: 0.9;">Fluida Online - Sistema de Emails</p>
             </div>
             
             <div style="padding: 30px 20px; background: #f8f9fa; margin: 20px 0; border-radius: 10px;">
               <h2 style="color: #333; margin-top: 0;">Email enviado com sucesso!</h2>
               <p style="color: #666; line-height: 1.6;">
-                Este é um email de teste do sistema de emails da Academia Fluida. 
+                Este é um email de teste do sistema de emails da Fluida Online. 
                 Se você recebeu esta mensagem, significa que a configuração está funcionando corretamente.
               </p>
               
@@ -87,14 +87,14 @@ const handler = async (req: Request): Promise<Response> => {
             </div>
             
             <div style="text-align: center; padding: 20px; color: #666; font-size: 12px;">
-              <p>Academia Fluida - Sistema de Gestão de Emails</p>
+              <p>Fluida Online - Sistema de Gestão de Emails</p>
               <p>Este é um email automático, não responda esta mensagem.</p>
             </div>
           </body>
         </html>
       `,
-      from_name: "Academia Fluida",
-      from_email: "noreply@academifluida.com",
+      from_name: "Fluida Online",
+      from_email: "no-reply@fluida.online",
       priority: "normal" as const
     };
 
