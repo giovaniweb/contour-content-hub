@@ -72,28 +72,70 @@ function renderTemplate(template: string, variables: Record<string, any>): strin
   return rendered;
 }
 
-// Configurar cliente SMTP
+// Configurar cliente SMTP com suporte aprimorado para GoDaddy
 async function createSMTPClient(): Promise<SmtpClient> {
   const smtpHost = Deno.env.get("NATIVE_SMTP_HOST");
   const smtpPort = parseInt(Deno.env.get("NATIVE_SMTP_PORT") || "587");
   const smtpUser = Deno.env.get("NATIVE_SMTP_USER");
   const smtpPass = Deno.env.get("NATIVE_SMTP_PASS");
-  const smtpSecure = Deno.env.get("NATIVE_SMTP_SECURE") === "true";
+  const smtpSecure = Deno.env.get("NATIVE_SMTP_SECURE");
 
-  if (!smtpHost || !smtpUser || !smtpPass) {
-    throw new Error("SMTP configuration incomplete. Check NATIVE_SMTP_* secrets.");
+  // Validação mais robusta dos secrets
+  if (!smtpHost?.trim()) {
+    throw new Error("NATIVE_SMTP_HOST is required and cannot be empty");
   }
+  if (!smtpUser?.trim()) {
+    throw new Error("NATIVE_SMTP_USER is required and cannot be empty");
+  }
+  if (!smtpPass?.trim()) {
+    throw new Error("NATIVE_SMTP_PASS is required and cannot be empty");
+  }
+
+  console.log(`Connecting to SMTP server: ${smtpHost}:${smtpPort}`);
 
   const client = new SmtpClient();
   
-  await client.connectTLS({
-    hostname: smtpHost,
-    port: smtpPort,
-    username: smtpUser,
-    password: smtpPass,
-  });
+  try {
+    // Configuração específica para diferentes tipos de conexão
+    // SSL (porta 465) vs TLS (porta 587/25)
+    const connectionConfig = {
+      hostname: smtpHost,
+      port: smtpPort,
+      username: smtpUser,
+      password: smtpPass,
+    };
 
-  return client;
+    // Para GoDaddy: usar SSL se porta 465, TLS para 587/25
+    if (smtpPort === 465 || smtpSecure === "true") {
+      console.log(`Using SSL connection on port ${smtpPort}`);
+      await client.connect(connectionConfig);
+    } else {
+      console.log(`Using TLS connection on port ${smtpPort}`);
+      await client.connectTLS(connectionConfig);
+    }
+
+    console.log("SMTP connection established successfully");
+    return client;
+
+  } catch (error: any) {
+    console.error("SMTP connection failed:", {
+      host: smtpHost,
+      port: smtpPort,
+      user: smtpUser.substring(0, 3) + "***",
+      error: error.message,
+      type: error.name
+    });
+    
+    // Re-throw com contexto específico para GoDaddy
+    if (error.message.includes("connection refused") || error.message.includes("timeout")) {
+      throw new Error(`SMTP connection failed to ${smtpHost}:${smtpPort}. Verify GoDaddy SMTP settings and network connectivity.`);
+    }
+    if (error.message.includes("authentication") || error.message.includes("login")) {
+      throw new Error(`SMTP authentication failed. Verify GoDaddy email credentials.`);
+    }
+    
+    throw new Error(`SMTP configuration error: ${error.message}`);
+  }
 }
 
 // Rate limiting simples (em produção, usar Redis ou banco)
@@ -260,44 +302,85 @@ const handler = async (req: Request): Promise<Response> => {
     let emailResponse;
     let smtpClient: SmtpClient | null = null;
     
-    try {
-      // Tentar enviar via SMTP nativo
-      smtpClient = await createSMTPClient();
+    // Função auxiliar para tentar SMTP com retry
+    async function attemptSMTPSend(maxRetries = 2): Promise<any> {
+      let lastError: Error | null = null;
       
-      console.log(`[${requestId}] SMTP connection established, sending email...`);
-      
-      await smtpClient.send({
-        from: `${from_name} <${from_email}>`,
-        to: to_email,
-        subject: renderedSubject,
-        content: renderedHtmlContent,
-        html: renderedHtmlContent,
-      });
-
-      await smtpClient.close();
-      smtpClient = null;
-
-      console.log(`[${requestId}] Email sent successfully via SMTP to:`, to_email.substring(0, 3) + "***");
-
-      emailResponse = {
-        success: true,
-        method: 'smtp',
-        id: requestId,
-        to: to_email.substring(0, 3) + "***"
-      };
-
-    } catch (smtpError: any) {
-      console.warn(`[${requestId}] SMTP sending failed:`, smtpError.message);
-      
-      // Fechar conexão SMTP se ainda estiver aberta
-      if (smtpClient) {
+      for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        console.log(`[${requestId}] SMTP attempt ${attempt}/${maxRetries}`);
+        
         try {
+          smtpClient = await createSMTPClient();
+          console.log(`[${requestId}] SMTP connection established, sending email...`);
+          
+          // Para GoDaddy, importante usar o formato correto do From
+          const fromAddress = from_email.includes('@') 
+            ? `${from_name} <${from_email}>`
+            : `${from_name} <${from_email}@${Deno.env.get("NATIVE_SMTP_HOST") || 'yourdomain.com'}>`;
+          
+          await smtpClient.send({
+            from: fromAddress,
+            to: to_email,
+            subject: renderedSubject,
+            content: renderedHtmlContent,
+            html: renderedHtmlContent,
+          });
+
           await smtpClient.close();
-        } catch (closeError) {
-          console.warn(`[${requestId}] Error closing SMTP connection:`, closeError);
+          smtpClient = null;
+
+          console.log(`[${requestId}] Email sent successfully via SMTP to:`, to_email.substring(0, 3) + "***");
+          
+          return {
+            success: true,
+            method: 'smtp',
+            id: requestId,
+            to: to_email.substring(0, 3) + "***",
+            attempts: attempt
+          };
+
+        } catch (error: any) {
+          lastError = error;
+          console.warn(`[${requestId}] SMTP attempt ${attempt} failed:`, error.message);
+          
+          // Fechar conexão SMTP se ainda estiver aberta
+          if (smtpClient) {
+            try {
+              await smtpClient.close();
+            } catch (closeError) {
+              console.warn(`[${requestId}] Error closing SMTP connection:`, closeError);
+            }
+            smtpClient = null;
+          }
+          
+          // Para certos tipos de erro, não vale a pena fazer retry
+          if (error.message.includes("authentication") || 
+              error.message.includes("credentials") ||
+              error.message.includes("invalid") ||
+              error.message.includes("553") || // Mailbox name not allowed
+              error.message.includes("550")) { // Requested action not taken
+            console.log(`[${requestId}] Non-retryable SMTP error, skipping remaining attempts`);
+            break;
+          }
+          
+          // Aguardar antes do próximo retry (backoff exponencial)
+          if (attempt < maxRetries) {
+            const delay = Math.min(1000 * Math.pow(2, attempt - 1), 5000);
+            console.log(`[${requestId}] Waiting ${delay}ms before retry...`);
+            await new Promise(resolve => setTimeout(resolve, delay));
+          }
         }
       }
+      
+      throw lastError || new Error("SMTP sending failed after all attempts");
+    }
+    
+    try {
+      emailResponse = await attemptSMTPSend();
 
+    } catch (smtpError: any) {
+      console.warn(`[${requestId}] All SMTP attempts failed:`, smtpError.message);
+      
       // Tentar fallback para Resend
       try {
         const resendData = {
@@ -308,6 +391,7 @@ const handler = async (req: Request): Promise<Response> => {
           text: renderedTextContent,
         };
 
+        console.log(`[${requestId}] Attempting Resend fallback after SMTP failure...`);
         const fallbackResponse = await fallbackToResend(resendData, requestId);
         
         console.log(`[${requestId}] Fallback to Resend successful:`, fallbackResponse);
@@ -316,7 +400,7 @@ const handler = async (req: Request): Promise<Response> => {
           success: true,
           method: 'resend_fallback',
           id: fallbackResponse.id || requestId,
-          warning: 'SMTP failed, used Resend fallback'
+          warning: `SMTP failed (${smtpError.message}), used Resend fallback`
         };
 
       } catch (fallbackError: any) {
@@ -330,8 +414,15 @@ const handler = async (req: Request): Promise<Response> => {
             error: "Email sending failed completely",
             details: {
               smtp_error: smtpError.message,
-              fallback_error: fallbackError.message
-            }
+              fallback_error: fallbackError.message,
+              suggestions: [
+                "Verify GoDaddy SMTP credentials (NATIVE_SMTP_USER, NATIVE_SMTP_PASS)",
+                "Check SMTP host and port configuration for GoDaddy",
+                "Ensure from_email matches authenticated domain",
+                "Verify Resend API key as backup"
+              ]
+            },
+            request_id: requestId
           }),
           { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
         );
@@ -346,6 +437,7 @@ const handler = async (req: Request): Promise<Response> => {
         method: emailResponse.method,
         email_id: emailResponse.id,
         warning: emailResponse.warning,
+        attempts: emailResponse.attempts,
         request_id: requestId
       }),
       {
