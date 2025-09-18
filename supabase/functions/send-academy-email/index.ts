@@ -14,6 +14,32 @@ const supabase = createClient(
   Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
 );
 
+// Helper function to call the native SMTP email function
+async function sendViaNativeSMTP(emailData: any, requestId: string): Promise<any> {
+  const supabaseUrl = Deno.env.get("SUPABASE_URL");
+  const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  
+  if (!supabaseUrl || !serviceRoleKey) {
+    throw new Error("Supabase configuration missing for native SMTP call");
+  }
+
+  const response = await fetch(`${supabaseUrl}/functions/v1/send-native-email`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${serviceRoleKey}`,
+    },
+    body: JSON.stringify(emailData),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Native SMTP call failed: ${response.status} - ${errorText}`);
+  }
+
+  return await response.json();
+}
+
 interface EmailRequest {
   template_type: 'welcome' | 'content_released' | 'invite' | 'certificate';
   to_email: string;
@@ -150,43 +176,75 @@ const handler = async (req: Request): Promise<Response> => {
         has_text: !!renderedTextContent
       });
 
-      // Retry logic for email sending
+      // Try native SMTP first, fallback to Resend
       let emailResponse;
       let lastError;
-      const maxRetries = 3;
+      const maxRetries = 2; // Reduced retries since we have two methods
       
-      for (let attempt = 1; attempt <= maxRetries; attempt++) {
-        console.log(`[${requestId}] Email sending attempt ${attempt}/${maxRetries}`);
+      console.log(`[${requestId}] Trying native SMTP first...`);
+      
+      try {
+        // First attempt: Native SMTP
+        const nativeSMTPData = {
+          template_type,
+          to_email,
+          variables,
+          from_name,
+          from_email,
+          subject: renderedSubject,
+          html_content: renderedHtmlContent,
+          text_content: renderedTextContent
+        };
+
+        emailResponse = await sendViaNativeSMTP(nativeSMTPData, requestId);
         
-        try {
-          emailResponse = await resend.emails.send({
-            from: `${from_name} <${from_email}>`,
-            to: [to_email],
-            subject: renderedSubject,
-            html: renderedHtmlContent,
-            text: renderedTextContent,
-          });
+        console.log(`[${requestId}] Email sent successfully via native SMTP:`, {
+          method: emailResponse.method,
+          id: emailResponse.email_id,
+          to: to_email.substring(0, 3) + "***"
+        });
 
-          if (!emailResponse.error) {
-            console.log(`[${requestId}] Email sent successfully on attempt ${attempt}:`, {
-              id: emailResponse.data?.id,
-              to: to_email.substring(0, 3) + "***"
+      } catch (smtpError: any) {
+        console.warn(`[${requestId}] Native SMTP failed, trying Resend fallback:`, smtpError.message);
+        
+        // Fallback: Use Resend with retry logic
+        for (let attempt = 1; attempt <= maxRetries; attempt++) {
+          console.log(`[${requestId}] Resend fallback attempt ${attempt}/${maxRetries}`);
+          
+          try {
+            emailResponse = await resend.emails.send({
+              from: `${from_name} <${from_email}>`,
+              to: [to_email],
+              subject: renderedSubject,
+              html: renderedHtmlContent,
+              text: renderedTextContent,
             });
-            break;
-          } else {
-            lastError = emailResponse.error;
-            console.warn(`[${requestId}] Email sending failed on attempt ${attempt}:`, emailResponse.error);
-          }
-        } catch (sendError: any) {
-          lastError = sendError;
-          console.warn(`[${requestId}] Email sending exception on attempt ${attempt}:`, sendError.message);
-        }
 
-        // Wait before retry (exponential backoff)
-        if (attempt < maxRetries) {
-          const delay = Math.pow(2, attempt) * 1000; // 2s, 4s, 8s
-          console.log(`[${requestId}] Waiting ${delay}ms before retry...`);
-          await new Promise(resolve => setTimeout(resolve, delay));
+            if (!emailResponse.error) {
+              console.log(`[${requestId}] Email sent successfully via Resend fallback on attempt ${attempt}:`, {
+                id: emailResponse.data?.id,
+                to: to_email.substring(0, 3) + "***"
+              });
+              
+              // Mark as fallback method
+              emailResponse.method = 'resend_fallback';
+              emailResponse.warning = 'Native SMTP failed, used Resend';
+              break;
+            } else {
+              lastError = emailResponse.error;
+              console.warn(`[${requestId}] Resend fallback failed on attempt ${attempt}:`, emailResponse.error);
+            }
+          } catch (sendError: any) {
+            lastError = sendError;
+            console.warn(`[${requestId}] Resend fallback exception on attempt ${attempt}:`, sendError.message);
+          }
+
+          // Wait before retry (exponential backoff)
+          if (attempt < maxRetries) {
+            const delay = Math.pow(2, attempt) * 1000; // 2s, 4s
+            console.log(`[${requestId}] Waiting ${delay}ms before retry...`);
+            await new Promise(resolve => setTimeout(resolve, delay));
+          }
         }
       }
 

@@ -67,3 +67,15 @@ pop3_port = 54326
 
 [functions.get-secrets]
 verify_jwt = true
+
+[functions.send-native-email]
+verify_jwt = true
+
+[functions.send-academy-email]
+verify_jwt = true
+
+[functions.send-newsletter]
+verify_jwt = true
+
+[functions.send-signup-confirmation]
+verify_jwt = true
