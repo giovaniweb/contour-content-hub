@@ -13,6 +13,7 @@ import {
   BookOpen,
   GraduationCap,
   Bot,
+  Shield,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -28,6 +29,7 @@ const sidebarItems = [
   { icon: BookOpen, label: "Artigos\nCientíficos", path: "/scientific-articles" },
   { icon: GraduationCap, label: "Academia", path: "/academia" },
   { icon: Wrench, label: "Equipamentos", path: "/equipments" },
+  { icon: Shield, label: "Termos de\nPrivacidade", path: "/admin/privacy-terms" },
 ];
 
 const SIDEBAR_WIDTH = 104; // px (w-26 ~ 104px, enough for two lines)
