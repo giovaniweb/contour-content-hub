@@ -68,6 +68,7 @@ const AdminDropdownMenu: React.FC = () => {
     { label: "Fotos", icon: Image, path: "/admin/photos" },
     { label: "Vídeos", icon: Video, path: "/admin/videos" },
     { label: "Conteúdo", icon: Database, path: "/admin/content" },
+    { label: "Sistema de Email", icon: Plus, path: "/admin/email-system" },
     { label: "Termos de Privacidade", icon: Shield, path: "/admin/privacy-terms" },
     { label: "IA do Sistema", icon: Brain, path: "/admin/ai" },
     { label: "Integrações", icon: LinkIcon, path: "/admin/system-intelligence" },

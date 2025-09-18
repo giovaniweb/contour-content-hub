@@ -78,6 +78,14 @@ const AdminAcademyCourseView = React.lazy(() => import('@/pages/admin/academy/Ad
 const AdminAcademyCourseLessons = React.lazy(() => import('@/pages/admin/academy/AdminAcademyCourseLessons'));
 const AdminPrivacyTerms = React.lazy(() => import('@/pages/admin/AdminPrivacyTerms'));
 
+// Email System Admin Pages
+const EmailSystemDashboard = React.lazy(() => import('@/pages/admin/EmailSystem/index'));
+const SMTPSettings = React.lazy(() => import('@/pages/admin/EmailSystem/SMTPSettings'));
+const EmailTemplates = React.lazy(() => import('@/pages/admin/EmailSystem/Templates'));
+const Newsletter = React.lazy(() => import('@/pages/admin/EmailSystem/Newsletter'));
+const EmailMonitoring = React.lazy(() => import('@/pages/admin/EmailSystem/Monitoring'));
+const EmailTesting = React.lazy(() => import('@/pages/admin/EmailSystem/Testing'));
+
 const AppRoutes: React.FC = () => {
   return (
     <Routes>
