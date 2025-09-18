@@ -248,7 +248,6 @@ const handler = async (req: Request): Promise<Response> => {
           }
         );
       }
-      }
 
       if (!emailResponse || emailResponse.error) {
         console.error(`[${requestId}] Email sending failed:`, emailResponse?.error);
