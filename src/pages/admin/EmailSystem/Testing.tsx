@@ -112,9 +112,9 @@ const EmailTesting: React.FC = () => {
       
       const { data, error } = await supabase.functions.invoke(functionName, {
         body: {
-          to: emailTest.to,
+          to_email: emailTest.to,
           subject: emailTest.subject,
-          html: emailTest.content,
+          html_content: emailTest.content,
           test_mode: true
         }
       });
