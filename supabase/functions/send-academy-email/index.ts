@@ -103,7 +103,7 @@ const handler = async (req: Request): Promise<Response> => {
   console.log(`[${requestId}] Processing email request started`);
 
   try {
-    const { template_type, to_email, variables, from_name = "Academia Fluida", from_email = "noreply@academifluida.com" }: EmailRequest = await req.json();
+    const { template_type, to_email, variables, from_name = "Academia Fluida", from_email = "noreply@fluida.online" }: EmailRequest = await req.json();
 
     console.log(`[${requestId}] Email request details:`, { 
       template_type, 
@@ -173,15 +173,12 @@ const handler = async (req: Request): Promise<Response> => {
         has_text: !!renderedTextContent
       });
 
-      // Try native SMTP first, fallback to Resend
+      // Try native SMTP
       let emailResponse;
-      let lastError;
-      const maxRetries = 2; // Reduced retries since we have two methods
-      
-      console.log(`[${requestId}] Trying native SMTP first...`);
+      console.log(`[${requestId}] Trying native SMTP...`);
       
       try {
-        // First attempt: Native SMTP
+        // Native SMTP attempt
         const nativeSMTPData = {
           template_type,
           to_email,
@@ -193,47 +190,45 @@ const handler = async (req: Request): Promise<Response> => {
           text_content: renderedTextContent
         };
 
-      const nativeResult = await sendViaNativeSMTP(nativeSMTPData, requestId);
-      
-      if (nativeResult.success) {
-        console.log(`[${requestId}] Email sent successfully via native SMTP:`, {
-          method: nativeResult.method,
-          id: nativeResult.email_id,
-          to: to_email.substring(0, 3) + "***"
-        });
+        const nativeResult = await sendViaNativeSMTP(nativeSMTPData, requestId);
         
-        emailResponse = nativeResult;
-      } else {
-        console.error('❌ Native SMTP failed:', nativeResult.error);
-        
-        return new Response(
-          JSON.stringify({ 
-            success: false, 
-            error: `SMTP failed: ${nativeResult.error}`,
-            details: 'Please check SMTP configuration and connection',
-            suggestions: [
-              "Verify GoDaddy SMTP credentials",
-              "Check SMTP host and port configuration", 
-              "Ensure from_email matches authenticated domain",
-              "Test SMTP connection using the test function"
-            ]
-          }),
-          {
-            status: 500,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          }
-        );
-      }
-        
-      // If native SMTP fails, return detailed error
-      if (!nativeResult.ok) {
-        const errorText = await nativeResult.text();
-        console.error('❌ Native SMTP failed:', errorText);
+        if (nativeResult.success) {
+          console.log(`[${requestId}] Email sent successfully via native SMTP:`, {
+            method: nativeResult.method,
+            id: nativeResult.email_id,
+            to: to_email.substring(0, 3) + "***"
+          });
+          
+          emailResponse = nativeResult;
+        } else {
+          console.error('❌ Native SMTP failed:', nativeResult.error);
+          
+          return new Response(
+            JSON.stringify({ 
+              success: false, 
+              error: `SMTP failed: ${nativeResult.error}`,
+              details: 'Please check SMTP configuration and connection',
+              suggestions: [
+                "Verify GoDaddy SMTP credentials",
+                "Check SMTP host and port configuration", 
+                "Ensure from_email matches authenticated domain",
+                "Test SMTP connection using the test function"
+              ]
+            }),
+            {
+              status: 500,
+              headers: { ...corsHeaders, "Content-Type": "application/json" },
+            }
+          );
+        }
+
+      } catch (smtpError: any) {
+        console.error(`[${requestId}] SMTP Error:`, smtpError.message);
         
         return new Response(
           JSON.stringify({ 
             success: false, 
-            error: `SMTP failed: ${errorText}`,
+            error: `SMTP failed: ${smtpError.message}`,
             details: 'Please check SMTP configuration and connection',
             suggestions: [
               "Verify GoDaddy SMTP credentials",
@@ -260,6 +255,7 @@ const handler = async (req: Request): Promise<Response> => {
           { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
         );
       }
+      
     } catch (renderError: any) {
       console.error(`[${requestId}] Template rendering failed:`, renderError);
       return new Response(
