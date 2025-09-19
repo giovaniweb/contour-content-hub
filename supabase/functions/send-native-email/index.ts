@@ -1,7 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 import { SmtpClient } from "https://deno.land/x/smtp@v0.7.0/mod.ts";
-
+import { Resend } from "npm:resend@2.0.0";
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL") ?? "",
   Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
@@ -137,21 +137,23 @@ async function sendEmailViaSMTP(
     // Create client
     const client = new SmtpClient();
 
-    // Connect using appropriate method
     if (smtpSecureRaw === "true" || parsedPort === 465) {
       console.log("Using SSL/TLS connection");
       await client.connectTLS({
         hostname: smtpHost,
         port: parsedPort,
+        username: smtpUser,
+        password: smtpPass,
       });
     } else {
-      console.log("Using plain connection (will attempt STARTTLS)");
+      console.log("Using plain connection");
       await client.connect({
         hostname: smtpHost,
         port: parsedPort,
+        username: smtpUser,
+        password: smtpPass,
       });
     }
-
     // Authenticate
     await client.ehlo(smtpHost);
     
