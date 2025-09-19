@@ -30,7 +30,7 @@ interface EmailTest {
   to: string;
   subject: string;
   content: string;
-  provider: 'smtp' | 'resend';
+  provider: 'smtp';
 }
 
 const EmailTesting: React.FC = () => {
@@ -259,35 +259,14 @@ const EmailTesting: React.FC = () => {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {/* Provider Selection */}
+              {/* Provider Info */}
               <div className="space-y-2">
                 <Label>Provedor</Label>
-                <div className="flex gap-3">
-                  <div
-                    className={`p-3 rounded border cursor-pointer transition-all flex-1 ${
-                      emailTest.provider === 'smtp'
-                        ? 'border-aurora-electric-purple bg-aurora-electric-purple/10'
-                        : 'border-slate-600 hover:border-aurora-electric-purple/50'
-                    }`}
-                    onClick={() => setEmailTest({ ...emailTest, provider: 'smtp' })}
-                  >
-                    <div className="text-center">
-                      <Server className="h-6 w-6 mx-auto mb-2" />
-                      <span className="text-sm font-medium">SMTP Nativo</span>
-                    </div>
-                  </div>
-                  <div
-                    className={`p-3 rounded border cursor-pointer transition-all flex-1 ${
-                      emailTest.provider === 'resend'
-                        ? 'border-aurora-electric-purple bg-aurora-electric-purple/10'
-                        : 'border-slate-600 hover:border-aurora-electric-purple/50'
-                    }`}
-                    onClick={() => setEmailTest({ ...emailTest, provider: 'resend' })}
-                  >
-                    <div className="text-center">
-                      <Mail className="h-6 w-6 mx-auto mb-2" />
-                      <span className="text-sm font-medium">Resend</span>
-                    </div>
+                <div className="p-3 rounded border border-aurora-electric-purple bg-aurora-electric-purple/10">
+                  <div className="text-center">
+                    <Server className="h-6 w-6 mx-auto mb-2 text-aurora-electric-purple" />
+                    <span className="text-sm font-medium">SMTP Nativo</span>
+                    <p className="text-xs text-slate-400 mt-1">Sistema de email nativo configurado</p>
                   </div>
                 </div>
               </div>
@@ -436,13 +415,6 @@ const EmailTesting: React.FC = () => {
                 <Badge className="bg-aurora-emerald">
                   <CheckCircle className="h-3 w-3 mr-1" />
                   OK
-                </Badge>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm">Resend Fallback:</span>
-                <Badge className="bg-aurora-emerald">
-                  <CheckCircle className="h-3 w-3 mr-1" />
-                  Available
                 </Badge>
               </div>
               <div className="flex justify-between items-center">
