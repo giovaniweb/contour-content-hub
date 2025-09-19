@@ -75,8 +75,8 @@ const EmailMonitoring: React.FC = () => {
         {
           id: '3',
           timestamp: '2024-01-15 14:20:45',
-          level: 'warning',
-          message: 'Rate limit atingido, usando fallback Resend',
+          level: 'info',
+          message: 'Email enviado via SMTP nativo com sucesso',
           function_name: 'send-native-email'
         },
         {
@@ -222,7 +222,7 @@ const EmailMonitoring: React.FC = () => {
           <CardContent>
             <div className="text-2xl font-bold text-aurora-emerald">Ativo</div>
             <div className="text-xs text-slate-400">
-              SMTP + Resend
+              SMTP Nativo
             </div>
           </CardContent>
         </Card>
@@ -336,13 +336,6 @@ const EmailMonitoring: React.FC = () => {
                     <span>GoDaddy SMTP</span>
                   </div>
                   <Badge className="bg-aurora-emerald">Online</Badge>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-3 h-3 bg-aurora-emerald rounded-full"></div>
-                    <span>Resend Fallback</span>
-                  </div>
-                  <Badge className="bg-aurora-emerald">Disponível</Badge>
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
