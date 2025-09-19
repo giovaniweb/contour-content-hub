@@ -103,7 +103,8 @@ const handler = async (req: Request): Promise<Response> => {
   console.log(`[${requestId}] Processing email request started`);
 
   try {
-    const { template_type, to_email, variables, from_name = "Academia Fluida", from_email = "noreply@fluida.online" }: EmailRequest = await req.json();
+    const envFrom = Deno.env.get("NATIVE_SMTP_USER") || "noreply@fluida.online";
+    const { template_type, to_email, variables, from_name = "Academia Fluida", from_email = envFrom }: EmailRequest = await req.json();
 
     console.log(`[${requestId}] Email request details:`, { 
       template_type, 

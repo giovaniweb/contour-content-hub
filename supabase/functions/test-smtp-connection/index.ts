@@ -68,7 +68,8 @@ const handler = async (req: Request): Promise<Response> => {
       }
     }
 
-    const smtpSecure = smtpSecureStr === "true" || smtpPort === 465;
+    const secureParsed = smtpSecureStr ? ["true","1","yes","ssl","tls"].includes(smtpSecureStr.toLowerCase().trim()) : false;
+    const smtpSecure = secureParsed || smtpPort === 465;
 
     console.log(`[${requestId}] Testing SMTP connection to ${smtpHost}:${smtpPort} (secure: ${smtpSecure}, corrected: ${corrected})`);
 

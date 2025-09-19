@@ -217,27 +217,27 @@ const handler = async (req: Request): Promise<Response> => {
       });
     }
 
-    // Get SMTP configuration from environment
+    // Get SMTP configuration from environment (robusta com fallback)
     const smtpHost = Deno.env.get("NATIVE_SMTP_HOST");
-    const smtpPort = Deno.env.get("NATIVE_SMTP_PORT");
+    const smtpPortRaw = Deno.env.get("NATIVE_SMTP_PORT") || "";
     const smtpUser = Deno.env.get("NATIVE_SMTP_USER");
     const smtpPass = Deno.env.get("NATIVE_SMTP_PASS");
-    const smtpSecureRaw = Deno.env.get("NATIVE_SMTP_SECURE");
+    const smtpSecureRaw = Deno.env.get("NATIVE_SMTP_SECURE") || "";
 
     console.log("Environment check:", {
       host: smtpHost ? "✓" : "✗",
-      port: smtpPort ? "✓" : "✗", 
+      port: smtpPortRaw ? "✓" : "(fallback 587)", 
       user: smtpUser ? "✓" : "✗",
       pass: smtpPass ? "✓" : "✗",
       secure: smtpSecureRaw || "false"
     });
 
-    if (!smtpHost || !smtpPort || !smtpUser || !smtpPass) {
+    if (!smtpHost || !smtpUser || !smtpPass) {
       console.error("Missing SMTP configuration");
       return new Response(JSON.stringify({
         success: false,
         error: "SMTP configuration incomplete",
-        details: "Missing required environment variables: NATIVE_SMTP_HOST, NATIVE_SMTP_PORT, NATIVE_SMTP_USER, NATIVE_SMTP_PASS",
+        details: "Missing required environment variables: NATIVE_SMTP_HOST, NATIVE_SMTP_USER, NATIVE_SMTP_PASS",
         request_id: requestId
       }), {
         status: 500,
@@ -245,17 +245,29 @@ const handler = async (req: Request): Promise<Response> => {
       });
     }
 
-    const parsedPort = parseInt(smtpPort);
-    if (isNaN(parsedPort)) {
-      console.error("Invalid SMTP port:", smtpPort);
-      return new Response(JSON.stringify({
-        success: false,
-        error: "Invalid SMTP port configuration",
-        request_id: requestId
-      }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" }
-      });
+    // Porta resiliente: extrai números e aplica fallback 587 quando necessário
+    let parsedPort = parseInt(smtpPortRaw, 10);
+    let correctedPort = false;
+    if (!Number.isFinite(parsedPort) || parsedPort <= 0 || parsedPort > 65535) {
+      const match = smtpPortRaw.match(/\d{2,5}/);
+      if (match) {
+        parsedPort = parseInt(match[0], 10);
+        correctedPort = true;
+        console.warn(`Corrected SMTP port from '${smtpPortRaw}' to '${parsedPort}'`);
+      } else {
+        parsedPort = 587; // Fallback seguro
+        correctedPort = true;
+        console.warn(`Using fallback SMTP port 587 because provided value '${smtpPortRaw}' is invalid or missing`);
+      }
+    }
+
+    // Interpretação flexível do "secure"
+    const secureVal = smtpSecureRaw.toLowerCase().trim();
+    const secureParsed = ["true", "1", "yes", "ssl", "tls"].includes(secureVal);
+
+    // Ajuste do remetente padrão: usa o usuário SMTP quando não informado
+    if (!emailData.from_email) {
+      emailData.from_email = smtpUser;
     }
 
     // Use the modern SMTP implementation
@@ -264,7 +276,7 @@ const handler = async (req: Request): Promise<Response> => {
       port: parsedPort,
       username: smtpUser,
       password: smtpPass,
-      tls: smtpSecureRaw === "true" || parsedPort === 465
+      tls: secureParsed || parsedPort === 465
     };
 
     const result = await sendEmailViaSMTP(smtpConfig, emailData);
