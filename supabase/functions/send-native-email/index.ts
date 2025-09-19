@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
-import { SendMailOptions, SmtpClient } from "https://deno.land/x/denomailer@1.6.0/mod.ts";
+import { SmtpClient } from "https://deno.land/x/smtp@v0.7.0/mod.ts";
 
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL") ?? "",
@@ -95,7 +95,7 @@ function checkRateLimit(email: string, maxEmails = 10, windowMinutes = 60): bool
   return true;
 }
 
-// Configure SMTP client using denomailer
+// Configure SMTP client using the v0.7.0 smtp library
 async function sendEmailViaSMTP(
   toEmail: string,
   subject: string,
@@ -110,11 +110,21 @@ async function sendEmailViaSMTP(
     const smtpPass = (Deno.env.get("NATIVE_SMTP_PASS") || "").trim();
     const smtpSecureRaw = (Deno.env.get("NATIVE_SMTP_SECURE") || "false").trim().toLowerCase();
 
-    // Parse port with fallback
-    let parsedPort = parseInt(smtpPortRaw, 10);
-    if (!Number.isFinite(parsedPort)) {
-      console.warn(`[SMTP] Invalid NATIVE_SMTP_PORT ('${smtpPortRaw}'). Using fallback 587.`);
-      parsedPort = 587;
+    // Parse port with fallback - handle host:port format
+    let parsedPort = 587; // Default fallback
+    if (smtpPortRaw) {
+      // Try to extract port from host:port format or use as-is
+      let portValue = smtpPortRaw;
+      if (smtpPortRaw.includes(':')) {
+        portValue = smtpPortRaw.split(':')[1];
+      }
+      
+      const parsed = parseInt(portValue, 10);
+      if (Number.isFinite(parsed) && parsed > 0 && parsed <= 65535) {
+        parsedPort = parsed;
+      } else {
+        console.warn(`[SMTP] Invalid NATIVE_SMTP_PORT ('${smtpPortRaw}'). Using fallback ${parsedPort}.`);
+      }
     }
 
     // Validate required fields
@@ -122,41 +132,55 @@ async function sendEmailViaSMTP(
     if (!smtpUser) throw new Error("NATIVE_SMTP_USER is required");
     if (!smtpPass) throw new Error("NATIVE_SMTP_PASS is required");
 
-    console.log(`Connecting to SMTP server: ${smtpHost}:${parsedPort}`);
-
-    // Configure connection
-    const config = {
-      hostname: smtpHost,
-      port: parsedPort,
-      username: smtpUser,
-      password: smtpPass,
-    };
+    console.log(`Connecting to SMTP server: ${smtpHost}:${parsedPort} (secure: ${smtpSecureRaw === "true" || parsedPort === 465})`);
 
     // Create client
     const client = new SmtpClient();
 
     // Connect using appropriate method
     if (smtpSecureRaw === "true" || parsedPort === 465) {
-      console.log("Using SSL connection");
-      await client.connectTLS(config);
+      console.log("Using SSL/TLS connection");
+      await client.connectTLS({
+        hostname: smtpHost,
+        port: parsedPort,
+      });
     } else {
-      console.log("Using STARTTLS connection");
-      await client.connect(config);
+      console.log("Using plain connection (will attempt STARTTLS)");
+      await client.connect({
+        hostname: smtpHost,
+        port: parsedPort,
+      });
     }
 
-    // Prepare email
+    // Authenticate
+    await client.ehlo(smtpHost);
+    
+    // Use STARTTLS if not already secure
+    if (smtpSecureRaw !== "true" && parsedPort !== 465 && parsedPort !== 25) {
+      try {
+        await client.startTLS();
+        console.log("STARTTLS established successfully");
+      } catch (tlsError) {
+        console.warn("STARTTLS failed, continuing without:", tlsError);
+      }
+    }
+
+    await client.authPlain(smtpUser, smtpPass);
+
+    // Force the from address to be the authenticated SMTP user
     const fromAddress = `${fromName} <${smtpUser}>`;
-    const mailOptions: SendMailOptions = {
+    
+    console.log(`Sending email from: ${fromAddress} to: ${toEmail}`);
+
+    // Send email
+    await client.send({
       from: fromAddress,
       to: toEmail,
       subject: subject,
+      content: htmlContent, // This will be the plain text fallback
       html: htmlContent,
-      content: subject, // Plain text fallback
-    };
+    });
 
-    console.log("Sending email...");
-    await client.send(mailOptions);
-    
     console.log("Closing SMTP connection...");
     await client.close();
 

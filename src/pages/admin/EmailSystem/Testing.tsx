@@ -454,7 +454,7 @@ const EmailTesting: React.FC = () => {
               </div>
               <div className="flex items-start gap-2">
                 <CheckCircle className="h-4 w-4 text-aurora-emerald mt-0.5 flex-shrink-0" />
-                <span>Teste ambos provedores (SMTP e Resend)</span>
+                <span>Monitorize logs para diagnósticos</span>
               </div>
             </CardContent>
           </Card>
