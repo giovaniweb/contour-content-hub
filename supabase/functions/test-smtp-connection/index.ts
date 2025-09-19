@@ -52,32 +52,25 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // Parse and validate port
-    const smtpPort = parseInt(smtpPortStr);
-    if (isNaN(smtpPort) || smtpPort <= 0 || smtpPort > 65535) {
-      console.error(`[${requestId}] Invalid SMTP port: ${smtpPortStr}`);
-      return new Response(
-        JSON.stringify({
-          success: false,
-          message: "Porta SMTP inválida",
-          details: {
-            received_port: smtpPortStr,
-            error: "Porta deve ser um número entre 1 and 65535",
-            common_ports: {
-              "465": "SSL/TLS",
-              "587": "STARTTLS", 
-              "25": "Não criptografado (não recomendado)"
-            }
-          },
-          request_id: requestId
-        }),
-        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
-      );
+    // Parse and validate port (robusto, com correção automática)
+    let corrected = false;
+    let smtpPort = parseInt(smtpPortStr, 10);
+    if (!Number.isFinite(smtpPort) || smtpPort <= 0 || smtpPort > 65535) {
+      const m = smtpPortStr.match(/\d{2,5}/);
+      if (m) {
+        smtpPort = parseInt(m[0], 10);
+        corrected = true;
+        console.warn(`[${requestId}] NATIVE_SMTP_PORT não numérico ('${smtpPortStr}'). Extraído '${smtpPort}'.`);
+      } else {
+        smtpPort = 587; // fallback seguro (STARTTLS)
+        corrected = true;
+        console.warn(`[${requestId}] NATIVE_SMTP_PORT inválido ('${smtpPortStr}'). Usando fallback 587.`);
+      }
     }
 
-    const smtpSecure = smtpSecureStr === "true";
+    const smtpSecure = smtpSecureStr === "true" || smtpPort === 465;
 
-    console.log(`[${requestId}] Testing SMTP connection to ${smtpHost}:${smtpPort} (secure: ${smtpSecure})`);
+    console.log(`[${requestId}] Testing SMTP connection to ${smtpHost}:${smtpPort} (secure: ${smtpSecure}, corrected: ${corrected})`);
 
     try {
       let conn;

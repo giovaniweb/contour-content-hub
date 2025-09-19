@@ -94,7 +94,7 @@ const handler = async (req: Request): Promise<Response> => {
         </html>
       `,
       from_name: "Fluida Online",
-      from_email: "no-reply@fluida.online",
+      from_email: Deno.env.get("NATIVE_SMTP_USER") || "no-reply@fluida.online",
       priority: "normal" as const
     };
 

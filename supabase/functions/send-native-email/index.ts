@@ -72,72 +72,76 @@ function renderTemplate(template: string, variables: Record<string, any>): strin
   return rendered;
 }
 
-// Configurar cliente SMTP com suporte aprimorado para GoDaddy
+// Configurar cliente SMTP com suporte aprimorado para GoDaddy e parsing robusto de secrets
 async function createSMTPClient(): Promise<SmtpClient> {
-  const smtpHost = Deno.env.get("NATIVE_SMTP_HOST");
-  const smtpPortRaw = Deno.env.get("NATIVE_SMTP_PORT");
-  const smtpPort = smtpPortRaw && smtpPortRaw.trim() ? parseInt(smtpPortRaw) : 587;
-  const smtpUser = Deno.env.get("NATIVE_SMTP_USER");
-  const smtpPass = Deno.env.get("NATIVE_SMTP_PASS");
-  const smtpSecure = Deno.env.get("NATIVE_SMTP_SECURE");
+  let smtpHost = (Deno.env.get("NATIVE_SMTP_HOST") || "").trim();
+  let smtpPortRaw = (Deno.env.get("NATIVE_SMTP_PORT") || "").trim();
+  const smtpUser = (Deno.env.get("NATIVE_SMTP_USER") || "").trim();
+  const smtpPass = (Deno.env.get("NATIVE_SMTP_PASS") || "").trim();
+  const smtpSecureRaw = (Deno.env.get("NATIVE_SMTP_SECURE") || "").trim().toLowerCase();
 
-  // Validação mais robusta dos secrets
-  if (!smtpHost?.trim()) {
-    throw new Error("NATIVE_SMTP_HOST is required and cannot be empty");
-  }
-  if (!smtpUser?.trim()) {
-    throw new Error("NATIVE_SMTP_USER is required and cannot be empty");
-  }
-  if (!smtpPass?.trim()) {
-    throw new Error("NATIVE_SMTP_PASS is required and cannot be empty");
-  }
-  if (isNaN(smtpPort) || smtpPort <= 0) {
-    throw new Error(`Invalid SMTP port: ${smtpPortRaw}. Must be a valid number.`);
+  // Corrigir possíveis trocas acidentais entre HOST e PORT
+  // Se a "porta" vier com um hostname, forçamos fallback para 587
+  // e registramos um aviso para facilitar o diagnóstico.
+  let parsedPort = parseInt(smtpPortRaw, 10);
+  if (!Number.isFinite(parsedPort)) {
+    // tentar extrair dígitos, ex.: "587 (STARTTLS)"
+    const m = smtpPortRaw.match(/\d{2,5}/);
+    if (m) {
+      parsedPort = parseInt(m[0], 10);
+      console.warn(`[SMTP] NATIVE_SMTP_PORT não numérico ('${smtpPortRaw}'). Extraído número '${parsedPort}'.`);
+    } else {
+      console.warn(`[SMTP] NATIVE_SMTP_PORT inválido ('${smtpPortRaw}'). Aplicando fallback 587.`);
+      parsedPort = 587;
+    }
   }
 
-  console.log(`Connecting to SMTP server: ${smtpHost}:${smtpPort}`);
+  // Validações essenciais
+  if (!smtpHost) throw new Error("NATIVE_SMTP_HOST is required and cannot be empty");
+  if (!smtpUser) throw new Error("NATIVE_SMTP_USER is required and cannot be empty");
+  if (!smtpPass) throw new Error("NATIVE_SMTP_PASS is required and cannot be empty");
+
+  // secure: true para SSL (465). Para 587 usamos STARTTLS (não é connectTLS direto)
+  const isSecure = smtpSecureRaw === "true" || parsedPort === 465;
+
+  console.log(`Connecting to SMTP server: ${smtpHost}:${parsedPort} (secure: ${isSecure})`);
 
   const client = new SmtpClient();
-  
+
   try {
-    // Configuração específica para diferentes tipos de conexão
-    // SSL (porta 465) vs TLS (porta 587/25)
     const connectionConfig = {
       hostname: smtpHost,
-      port: smtpPort,
+      port: parsedPort,
       username: smtpUser,
       password: smtpPass,
-    };
+    } as const;
 
-    // Para GoDaddy: usar connectTLS para SSL (465), connect para STARTTLS (587)
-    if (smtpPort === 465 || smtpSecure === "true") {
-      console.log(`Using SSL connection on port ${smtpPort}`);
+    if (isSecure) {
+      console.log(`Using SSL connection on port ${parsedPort}`);
       await client.connectTLS(connectionConfig);
     } else {
-      console.log(`Using STARTTLS connection on port ${smtpPort}`);
+      console.log(`Using STARTTLS/plain connection on port ${parsedPort}`);
       await client.connect(connectionConfig);
     }
 
     console.log("SMTP connection established successfully");
     return client;
-
   } catch (error: any) {
     console.error("SMTP connection failed:", {
       host: smtpHost,
-      port: smtpPort,
+      port: parsedPort,
       user: smtpUser.substring(0, 3) + "***",
       error: error.message,
-      type: error.name
+      type: error.name,
     });
-    
-    // Re-throw com contexto específico para GoDaddy
+
     if (error.message.includes("connection refused") || error.message.includes("timeout")) {
-      throw new Error(`SMTP connection failed to ${smtpHost}:${smtpPort}. Verify GoDaddy SMTP settings and network connectivity.`);
+      throw new Error(`SMTP connection failed to ${smtpHost}:${parsedPort}. Verify SMTP settings and connectivity.`);
     }
     if (error.message.includes("authentication") || error.message.includes("login")) {
-      throw new Error(`SMTP authentication failed. Verify GoDaddy email credentials.`);
+      throw new Error(`SMTP authentication failed. Verify email credentials.`);
     }
-    
+
     throw new Error(`SMTP configuration error: ${error.message}`);
   }
 }
@@ -323,10 +327,14 @@ const handler = async (req: Request): Promise<Response> => {
           smtpClient = await createSMTPClient();
           console.log(`[${requestId}] SMTP connection established, sending email...`);
           
-          // Para GoDaddy, importante usar o formato correto do From
-          const fromAddress = from_email.includes('@') 
-            ? `${from_name} <${from_email}>`
-            : `${from_name} <${from_email}@${Deno.env.get("NATIVE_SMTP_HOST") || 'yourdomain.com'}>`;
+          const smtpUserEnv = (Deno.env.get("NATIVE_SMTP_USER") || "").trim();
+          let effectiveFromEmail = smtpUserEnv || from_email;
+          if (from_email && smtpUserEnv && from_email !== smtpUserEnv) {
+            console.warn(`[${requestId}] Overriding from_email '${from_email}' with authenticated user '${smtpUserEnv}'`);
+            effectiveFromEmail = smtpUserEnv;
+          }
+
+          const fromAddress = `${from_name} <${effectiveFromEmail}>`;
           
           await smtpClient.send({
             from: fromAddress,
