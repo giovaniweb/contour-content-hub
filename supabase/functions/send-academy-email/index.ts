@@ -114,6 +114,9 @@ const handler = async (req: Request): Promise<Response> => {
       from_email 
     });
 
+    // Declare emailResponse in outer scope so we can use it after sending
+    let emailResponse: any = null;
+
     // Validate input
     if (!template_type || !to_email || !variables) {
       console.error(`[${requestId}] Missing required parameters`);
@@ -175,7 +178,7 @@ const handler = async (req: Request): Promise<Response> => {
       });
 
       // Try native SMTP
-      let emailResponse;
+      // emailResponse declared above
       console.log(`[${requestId}] Trying native SMTP...`);
       
       try {
@@ -273,8 +276,8 @@ const handler = async (req: Request): Promise<Response> => {
       JSON.stringify({ 
         success: true, 
         message: "Email sent successfully",
-        email_id: emailResponse.email_id,
-        method: emailResponse.method,
+        email_id: emailResponse?.email_id || emailResponse?.messageId || emailResponse?.id || "unknown",
+        method: emailResponse?.method || "smtp",
         request_id: requestId
       }),
       {
