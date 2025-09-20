@@ -19,7 +19,7 @@ import { usePermissions } from "@/hooks/use-permissions";
 // Component to handle admin menu with superuser allowlist
 const AdminMenuWithFallback = () => {
   const { isAuthenticated, user } = useAuth();
-  const { isAdmin, isSuperUserByEmail } = usePermissions();
+  const { isAdmin, isSuperUserByEmailSync } = usePermissions();
   const [showMenu, setShowMenu] = React.useState(false);
 
   React.useEffect(() => {
@@ -29,15 +29,15 @@ const AdminMenuWithFallback = () => {
         return;
       }
       
-      // Check superuser allowlist first
-      if (isSuperUserByEmail(user.email)) {
+      // Check superuser allowlist first (synchronous)
+      if (isSuperUserByEmailSync(user.email)) {
         setShowMenu(true);
         return;
       }
       
       // For other users, do a silent admin check
       try {
-        const adminStatus = await isAdmin(true, true);
+        const adminStatus = await isAdmin(true);
         setShowMenu(adminStatus);
       } catch (error) {
         setShowMenu(false);
@@ -45,7 +45,7 @@ const AdminMenuWithFallback = () => {
     };
 
     checkAdminStatus();
-  }, [isAuthenticated, user, isAdmin, isSuperUserByEmail]);
+  }, [isAuthenticated, user, isAdmin, isSuperUserByEmailSync]);
 
   if (!isAuthenticated) return null;
   

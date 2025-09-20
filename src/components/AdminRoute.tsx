@@ -13,14 +13,14 @@ interface AdminRouteProps {
 
 const AdminRoute: React.FC<AdminRouteProps> = ({ children }) => {
   const { user, isLoading, isAuthenticated } = useAuth();
-  const { hasPermission, isSuperUserByEmail } = usePermissions();
+  const { hasPermission, isSuperUserByEmailSync } = usePermissions();
   const navigate = useNavigate();
   
   useEffect(() => {
     // If auth has loaded and user doesn't have admin permissions, show toast and redirect
     if (!isLoading && isAuthenticated && user) {
-      // Check superuser allowlist first
-      if (isSuperUserByEmail(user.email)) {
+      // Check superuser allowlist first (synchronous for immediate UI)
+      if (isSuperUserByEmailSync(user.email)) {
         return; // Allow access
       }
       
@@ -30,7 +30,7 @@ const AdminRoute: React.FC<AdminRouteProps> = ({ children }) => {
         navigate('/dashboard');
       }
     }
-  }, [isLoading, user, isAuthenticated, navigate, hasPermission, isSuperUserByEmail]);
+  }, [isLoading, user, isAuthenticated, navigate, hasPermission, isSuperUserByEmailSync]);
 
   // If auth is still loading, show loading indicator
   if (isLoading) {
@@ -42,8 +42,8 @@ const AdminRoute: React.FC<AdminRouteProps> = ({ children }) => {
     return <Navigate to="/login" replace />;
   }
   
-  // Check superuser allowlist
-  if (isSuperUserByEmail(user.email)) {
+  // Check superuser allowlist (synchronous)
+  if (isSuperUserByEmailSync(user.email)) {
     return children ? <>{children}</> : <Outlet />;
   }
   

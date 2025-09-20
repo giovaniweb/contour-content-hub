@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Shield, RefreshCw } from 'lucide-react';
-import { usePermissions } from '@/hooks/use-permissions';
+import { useAuth } from '@/context/AuthContext';
+import { toast } from 'sonner';
 
 interface PermissionRefreshButtonProps {
   variant?: 'default' | 'outline' | 'ghost';
@@ -16,13 +17,17 @@ export const PermissionRefreshButton: React.FC<PermissionRefreshButtonProps> = (
   showText = false,
   className = ''
 }) => {
-  const { forcePermissionRefresh } = usePermissions();
+  const { refreshAuth } = useAuth();
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
     try {
-      await forcePermissionRefresh();
+      toast.loading('Atualizando permissões...', { duration: 1000 });
+      await refreshAuth();
+      toast.success('Permissões atualizadas!');
+    } catch (error) {
+      toast.error('Erro ao atualizar permissões');
     } finally {
       setIsRefreshing(false);
     }

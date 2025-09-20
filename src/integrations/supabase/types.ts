@@ -3482,6 +3482,30 @@ export type Database = {
         }
         Relationships: []
       }
+      superusers: {
+        Row: {
+          active: boolean | null
+          created_at: string | null
+          created_by: string | null
+          email: string
+          id: string
+        }
+        Insert: {
+          active?: boolean | null
+          created_at?: string | null
+          created_by?: string | null
+          email: string
+          id?: string
+        }
+        Update: {
+          active?: boolean | null
+          created_at?: string | null
+          created_by?: string | null
+          email?: string
+          id?: string
+        }
+        Relationships: []
+      }
       system_services_status: {
         Row: {
           endpoint: string | null
@@ -4361,6 +4385,10 @@ export type Database = {
         }
         Returns: Json
       }
+      check_user_is_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
       cleanup_completed_uploads: {
         Args: Record<PropertyKey, never>
         Returns: undefined
@@ -4463,6 +4491,10 @@ export type Database = {
       }
       is_current_user_admin: {
         Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      is_superuser_by_email: {
+        Args: { user_email: string }
         Returns: boolean
       }
       log_admin_action: {

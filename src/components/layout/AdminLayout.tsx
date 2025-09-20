@@ -10,7 +10,7 @@ interface AdminLayoutProps {
 
 const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
   const { user, isAuthenticated, isLoading } = useAuth();
-  const { hasPermission, isSuperUserByEmail } = usePermissions();
+  const { hasPermission, isSuperUserByEmailSync } = usePermissions();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -22,8 +22,8 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
       return;
     }
     
-    // Check superuser allowlist first
-    if (isSuperUserByEmail(user.email)) {
+    // Check superuser allowlist first (synchronous)
+    if (isSuperUserByEmailSync(user.email)) {
       return; // Allow access
     }
     
@@ -32,7 +32,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
       navigate('/dashboard', { replace: true });
       return;
     }
-  }, [isAuthenticated, user, isLoading, navigate, location.pathname, hasPermission, isSuperUserByEmail]);
+  }, [isAuthenticated, user, isLoading, navigate, location.pathname, hasPermission, isSuperUserByEmailSync]);
 
   if (isLoading) {
     return (
