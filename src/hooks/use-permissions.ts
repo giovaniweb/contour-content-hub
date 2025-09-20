@@ -2,13 +2,18 @@
 import { useAuth } from '@/context/AuthContext';
 import { UserRole } from '@/types/auth';
 import { supabase } from '@/integrations/supabase/client';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { toast } from 'sonner';
 
 export const usePermissions = () => {
   const { user, refreshAuth, validateAuthState } = useAuth();
   const [hasCheckedConsistency, setHasCheckedConsistency] = useState(false);
   const [isAdminCache, setIsAdminCache] = useState<{ result: boolean; timestamp: number } | null>(null);
+  
+  // Prevent infinite loops
+  const isCheckingRef = useRef(false);
+  const lastRefreshTimeRef = useRef<number>(0);
+  const refreshCountRef = useRef(0);
 
   // Auto-check for role inconsistencies on mount
   useEffect(() => {
@@ -19,6 +24,29 @@ export const usePermissions = () => {
 
   const checkRoleConsistency = async () => {
     if (!user?.id) return;
+    
+    // Prevent excessive checking
+    if (isCheckingRef.current) {
+      console.log('🔄 Already checking role consistency, skipping...');
+      return;
+    }
+    
+    // Throttle checks - max once per 10 seconds
+    const now = Date.now();
+    if (lastRefreshTimeRef.current && (now - lastRefreshTimeRef.current) < 10000) {
+      console.log('🔄 Role check throttled, too soon...');
+      return;
+    }
+    
+    // Limit total refresh attempts in session
+    if (refreshCountRef.current >= 3) {
+      console.log('🔄 Max refresh attempts reached, stopping auto-checks');
+      setHasCheckedConsistency(true);
+      return;
+    }
+    
+    isCheckingRef.current = true;
+    lastRefreshTimeRef.current = now;
     
     try {
       const { data: dbProfile } = await supabase
@@ -33,22 +61,20 @@ export const usePermissions = () => {
           databaseRole: dbProfile.role
         });
         
-        toast.warning('Detectada inconsistência de permissões. Corrigindo automaticamente...', {
-          duration: 3000
-        });
-        
-        // Force auth refresh to sync data
-        await refreshAuth();
-        
-        setTimeout(() => {
-          toast.success('Permissões atualizadas com sucesso!');
-        }, 1500);
+        // Only show toast for admin elevation
+        if ((dbProfile.role === 'admin' || dbProfile.role === 'superadmin') && user.role === 'user') {
+          toast.success('Permissões de administrador restauradas!', { duration: 2000 });
+          refreshCountRef.current++;
+          await refreshAuth();
+        }
       }
       
       setHasCheckedConsistency(true);
     } catch (error) {
       console.error('❌ Erro ao verificar consistência de role:', error);
       setHasCheckedConsistency(true);
+    } finally {
+      isCheckingRef.current = false;
     }
   };
 
@@ -145,11 +171,11 @@ export const usePermissions = () => {
       console.log('🔐 Role verificado via Service:', { role, isAdmin: serviceResult });
 
       // If service shows admin but frontend cache shows user, trigger refresh
-      if (serviceResult && user?.role === 'user') {
+      if (serviceResult && user?.role === 'user' && refreshCountRef.current < 2) {
         console.log('🚨 INCONSISTÊNCIA DETECTADA VIA SERVICE! Auto-corrigindo...');
-        toast.success('Permissões atualizadas automaticamente!', { duration: 3000 });
+        toast.success('Permissões de administrador restauradas!', { duration: 2000 });
         
-        // Force auth refresh to sync the role
+        refreshCountRef.current++;
         await refreshAuth();
         setIsAdminCache({ result: true, timestamp: now });
         
