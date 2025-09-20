@@ -1,7 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 
-export type DeleteableEntity = 'video' | 'document' | 'before_after' | 'material' | 'download_storage';
+export type DeleteableEntity = 'video' | 'document' | 'before_after' | 'material' | 'download_storage' | 'user_profile';
 
 interface DeleteResult {
   success: boolean;
@@ -65,7 +65,8 @@ export class UniversalDeleteService {
       document: 'delete_document_cascade',
       before_after: 'delete_before_after_cascade',
       material: 'delete_material_cascade',
-      download_storage: 'delete_download_storage_cascade'
+      download_storage: 'delete_download_storage_cascade',
+      user_profile: 'delete_user_profile_cascade'
     };
     
     return functionMap[entityType];
@@ -80,7 +81,8 @@ export class UniversalDeleteService {
       document: 'document_id_param',
       before_after: 'photo_id_param',
       material: 'material_id_param',
-      download_storage: 'download_id_param'
+      download_storage: 'download_id_param',
+      user_profile: 'profile_id_param'
     };
     
     return paramMap[entityType];
@@ -107,6 +109,10 @@ export class UniversalDeleteService {
 
   static deleteDownloadStorage(downloadId: string) {
     return this.deleteEntity('download_storage', downloadId);
+  }
+
+  static deleteUserProfile(profileId: string) {
+    return this.deleteEntity('user_profile', profileId);
   }
 }
 

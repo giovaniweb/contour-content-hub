@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
+import { UniversalDeleteService } from '@/services/universalDeleteService';
 import { supabase } from '@/integrations/supabase/client';
 import { Users, Search, UserPlus, Edit, Trash2, Mail, Calendar, Settings } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -13,6 +14,7 @@ import { Label } from '@/components/ui/label';
 import { useNavigate } from 'react-router-dom';
 import NewUserModal from '@/components/admin/NewUserModal';
 import EditUserModal from '@/components/admin/EditUserModal';
+import { DeleteUserDialog } from '@/components/admin/DeleteUserDialog';
 
 interface User {
   id: string;
@@ -31,6 +33,8 @@ const AdminUsers: React.FC = () => {
   const [roleFilter, setRoleFilter] = useState('all');
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [showNewUserModal, setShowNewUserModal] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<User | null>(null);
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -79,28 +83,31 @@ const AdminUsers: React.FC = () => {
 
   // Delete user mutation
   const deleteUserMutation = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from('perfis')
-        .delete()
-        .eq('id', id);
+    mutationFn: async (userId: string) => {
+      const result = await UniversalDeleteService.deleteUserProfile(userId);
       
-      if (error) throw error;
+      if (!result.success) {
+        throw new Error(result.error || 'Falha na exclusão do usuário');
+      }
+      
+      return result;
     },
-    onSuccess: () => {
+    onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+      setShowDeleteDialog(false);
+      setUserToDelete(null);
       toast({
-        title: "Usuário removido",
-        description: "Usuário foi removido do sistema.",
+        title: 'Usuário excluído com sucesso',
+        description: result.message || 'O usuário e todos os dados relacionados foram removidos.',
       });
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast({
-        variant: "destructive",
-        title: "Erro ao remover",
-        description: "Não foi possível remover o usuário.",
+        variant: 'destructive',
+        title: 'Erro ao excluir usuário',
+        description: error.message || 'Não foi possível excluir o usuário. Verifique suas permissões.',
       });
-    }
+    },
   });
 
   // Filter users
@@ -133,6 +140,17 @@ const AdminUsers: React.FC = () => {
         telefone: editingUser.telefone,
       }
     });
+  };
+
+  const handleDeleteUser = (user: User) => {
+    setUserToDelete(user);
+    setShowDeleteDialog(true);
+  };
+
+  const confirmDelete = () => {
+    if (userToDelete) {
+      deleteUserMutation.mutate(userToDelete.id);
+    }
   };
 
   if (isLoading) {
@@ -248,6 +266,14 @@ const AdminUsers: React.FC = () => {
                     >
                       <Settings className="h-4 w-4" />
                     </Button>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => handleDeleteUser(user)}
+                      disabled={deleteUserMutation.isPending}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   </div>
                 </div>
               </div>
@@ -272,6 +298,14 @@ const AdminUsers: React.FC = () => {
         onClose={() => setEditingUser(null)}
         onUpdate={updateUserMutation.mutate}
         onDelete={deleteUserMutation.mutate}
+      />
+
+      <DeleteUserDialog
+        user={userToDelete}
+        open={showDeleteDialog}
+        onOpenChange={setShowDeleteDialog}
+        onConfirm={confirmDelete}
+        isDeleting={deleteUserMutation.isPending}
       />
     </div>
   );

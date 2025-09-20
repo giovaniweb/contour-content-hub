@@ -4412,6 +4412,10 @@ export type Database = {
         Args: { material_id_param: string }
         Returns: Json
       }
+      delete_user_profile_cascade: {
+        Args: { profile_id_param: string }
+        Returns: Json
+      }
       delete_video_cascade: {
         Args: { video_id_param: string }
         Returns: Json
