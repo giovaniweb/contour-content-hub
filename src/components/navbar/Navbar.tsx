@@ -5,7 +5,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { Film, Menu, Settings, RefreshCw } from "lucide-react";
+import { Film, Menu, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import NotificationsMenu from "../notifications/NotificationsMenu";
 import { ProfileMenu } from "../ProfileMenu";
@@ -14,67 +14,47 @@ import FluidaLogo from "./FluidaLogo";
 import { NavLink } from "react-router-dom";
 import AdminDropdownMenu from "./AdminDropdownMenu";
 import { usePermissions } from "@/hooks/use-permissions";
-import { PermissionRefreshButton } from "@/components/auth/PermissionRefreshButton";
 
 // Component to handle admin menu with intelligent fallback
 const AdminMenuWithFallback = () => {
-  const { user, isAuthenticated } = useAuth();
+  const { isAuthenticated } = useAuth();
   const { isAdmin } = usePermissions();
-  const [isCheckingAdmin, setIsCheckingAdmin] = useState(false);
-  const [showAdminMenu, setShowAdminMenu] = useState(false);
+  const [showMenu, setShowMenu] = React.useState(false);
+  const [isCheckingDb, setIsCheckingDb] = React.useState(false);
 
-  useEffect(() => {
+  React.useEffect(() => {
     const checkAdminStatus = async () => {
-      if (!isAuthenticated || !user) {
-        setShowAdminMenu(false);
+      if (!isAuthenticated) {
+        setShowMenu(false);
         return;
       }
       
-      setIsCheckingAdmin(true);
+      setIsCheckingDb(true);
       try {
-        console.log('🔍 AdminMenuWithFallback: Checking admin status...');
-        
-        // First try regular check
-        let adminStatus = await isAdmin();
-        
-        // If not admin, try DB check
-        if (!adminStatus) {
-          console.log('🔄 AdminMenuWithFallback: Trying DB check...');
-          adminStatus = await isAdmin(true);
-        }
-        
-        // If still not admin, try service fallback (especially for RLS issues)
-        if (!adminStatus && user.role === 'user') {
-          console.log('🔄 AdminMenuWithFallback: Trying service fallback...');
-          adminStatus = await isAdmin(false, true);
-        }
-        
-        console.log('🔐 AdminMenuWithFallback: Final result:', { adminStatus });
-        setShowAdminMenu(adminStatus);
+        // Force database check if menu should be visible
+        const adminStatus = await isAdmin(true);
+        setShowMenu(adminStatus);
       } catch (error) {
-        console.error('❌ AdminMenuWithFallback: Error checking admin status:', error);
-        setShowAdminMenu(false);
+        console.error('Error checking admin status:', error);
+        setShowMenu(false);
       } finally {
-        setIsCheckingAdmin(false);
+        setIsCheckingDb(false);
       }
     };
 
     checkAdminStatus();
-  }, [isAuthenticated, user, isAdmin]);
+  }, [isAuthenticated, isAdmin]);
 
-  if (!isAuthenticated || !user) return null;
-  
-  if (isCheckingAdmin) {
+  if (!isAuthenticated) return null;
+  if (isCheckingDb) {
     return (
-      <div className="relative">
-        <Button variant="ghost" size="icon" disabled>
-          <RefreshCw className="h-4 w-4 animate-spin" />
-        </Button>
-      </div>
+      <Button variant="ghost" size="icon" className="text-white opacity-50" disabled>
+        <Settings className="h-5 w-5 animate-pulse" />
+      </Button>
     );
   }
   
-  return showAdminMenu ? <AdminDropdownMenu /> : null;
+  return showMenu ? <AdminDropdownMenu /> : null;
 };
 
 // Mock institucional links
@@ -187,7 +167,6 @@ export const Navbar = () => {
         <div className="flex items-center gap-2">
           {isAuthenticated && <NotificationsMenu />}
           <AdminMenuWithFallback />
-          <PermissionRefreshButton variant="ghost" size="sm" showText={false} />
           {isAuthenticated && <ProfileMenu />}
         </div>
       </nav>
