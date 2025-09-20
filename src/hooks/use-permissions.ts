@@ -5,6 +5,11 @@ import { supabase } from '@/integrations/supabase/client';
 import { useEffect, useState, useRef } from 'react';
 import { toast } from 'sonner';
 
+// Superuser allowlist - these emails always have admin access
+const SUPERUSER_EMAILS = [
+  'giovani.g@live.com'
+];
+
 export const usePermissions = () => {
   const { user, refreshAuth, validateAuthState } = useAuth();
   const [hasCheckedConsistency, setHasCheckedConsistency] = useState(false);
@@ -14,6 +19,12 @@ export const usePermissions = () => {
   const isCheckingRef = useRef(false);
   const lastRefreshTimeRef = useRef<number>(0);
   const refreshCountRef = useRef(0);
+
+  // Helper function to check if user is a superuser by email
+  const isSuperUserByEmail = (email?: string) => {
+    if (!email) return false;
+    return SUPERUSER_EMAILS.includes(email.toLowerCase());
+  };
 
   // Auto-check for role inconsistencies on mount
   useEffect(() => {
@@ -25,22 +36,21 @@ export const usePermissions = () => {
   const checkRoleConsistency = async () => {
     if (!user?.id) return;
     
-    // Prevent excessive checking
-    if (isCheckingRef.current) {
-      console.log('🔄 Already checking role consistency, skipping...');
+    // Skip for superusers - they always have admin access
+    if (isSuperUserByEmail(user.email)) {
+      setHasCheckedConsistency(true);
       return;
     }
     
-    // Throttle checks - max once per 10 seconds
+    // Prevent excessive checking
+    if (isCheckingRef.current) return;
+    
+    // Throttle checks - max once per 30 seconds
     const now = Date.now();
-    if (lastRefreshTimeRef.current && (now - lastRefreshTimeRef.current) < 10000) {
-      console.log('🔄 Role check throttled, too soon...');
-      return;
-    }
+    if (lastRefreshTimeRef.current && (now - lastRefreshTimeRef.current) < 30000) return;
     
     // Limit total refresh attempts in session
-    if (refreshCountRef.current >= 3) {
-      console.log('🔄 Max refresh attempts reached, stopping auto-checks');
+    if (refreshCountRef.current >= 2) {
       setHasCheckedConsistency(true);
       return;
     }
@@ -56,14 +66,9 @@ export const usePermissions = () => {
         .single();
       
       if (dbProfile && dbProfile.role !== user.role) {
-        console.log('🚨 INCONSISTÊNCIA DE ROLE DETECTADA!', {
-          frontendRole: user.role,
-          databaseRole: dbProfile.role
-        });
-        
-        // Only show toast for admin elevation
-        if ((dbProfile.role === 'admin' || dbProfile.role === 'superadmin') && user.role === 'user') {
-          toast.success('Permissões de administrador restauradas!', { duration: 2000 });
+        // Only show toast for admin elevation, and only once
+        if ((dbProfile.role === 'admin' || dbProfile.role === 'superadmin') && user.role === 'user' && refreshCountRef.current === 0) {
+          toast.success('Permissões atualizadas automaticamente', { duration: 2000 });
           refreshCountRef.current++;
           await refreshAuth();
         }
@@ -71,7 +76,6 @@ export const usePermissions = () => {
       
       setHasCheckedConsistency(true);
     } catch (error) {
-      console.error('❌ Erro ao verificar consistência de role:', error);
       setHasCheckedConsistency(true);
     } finally {
       isCheckingRef.current = false;
@@ -81,22 +85,25 @@ export const usePermissions = () => {
   const isAdmin = async (forceDbCheck = false, useServiceFallback = false) => {
     if (!user) return false;
     
-    // Check memory cache first (30 seconds TTL)
+    // Check superuser allowlist first - these emails always have admin access
+    if (isSuperUserByEmail(user.email)) {
+      setIsAdminCache({ result: true, timestamp: Date.now() });
+      return true;
+    }
+    
+    // Check memory cache (30 seconds TTL)
     const now = Date.now();
     if (!forceDbCheck && isAdminCache && (now - isAdminCache.timestamp < 30000)) {
-      console.log('🔐 isAdmin memory cache hit:', { result: isAdminCache.result });
       return isAdminCache.result;
     }
     
     // Quick check from user object
     const cacheResult = user?.role === 'admin' || user?.role === 'superadmin';
-    console.log('🔐 isAdmin cache check:', { userRole: user?.role, isAdmin: cacheResult });
     
     // If forcing database check or cache shows 'user' but we want to double-check
     if (forceDbCheck || (user?.role === 'user' && user?.email)) {
       try {
-        console.log('🔍 Verificando role no banco de dados...');
-        const { data: dbProfile, error: dbError } = await supabase
+        const { data: dbProfile } = await supabase
           .from('perfis')
           .select('role')
           .eq('id', user.id)
@@ -104,38 +111,28 @@ export const usePermissions = () => {
         
         if (dbProfile) {
           const dbResult = dbProfile.role === 'admin' || dbProfile.role === 'superadmin';
-          console.log('🔐 isAdmin DB check:', { dbRole: dbProfile.role, isAdmin: dbResult });
           
-          // If database shows admin but frontend shows user, force refresh
-          if (dbResult && !cacheResult) {
-            console.log('🚨 INCONSISTÊNCIA CRÍTICA! Forçando refresh...');
-            toast.info('Atualizando permissões...', { duration: 2000 });
-            
+          // If database shows admin but frontend shows user, silently refresh
+          if (dbResult && !cacheResult && refreshCountRef.current === 0) {
+            refreshCountRef.current++;
             await refreshAuth();
             setIsAdminCache({ result: true, timestamp: now });
             return true;
           }
           
-          // Cache the result
           setIsAdminCache({ result: dbResult, timestamp: now });
           return dbResult;
-        } else if (dbError && useServiceFallback) {
-          // Fallback to service role edge function if direct query fails
-          console.log('🔄 Tentando fallback via Edge Function...');
+        } else if (useServiceFallback) {
           return await checkRoleViaService();
         }
       } catch (error) {
-        console.error('❌ Erro ao verificar role no banco:', error);
-        
-        // If useServiceFallback is true, try the service role fallback
         if (useServiceFallback) {
-          console.log('🔄 Tentando fallback via Edge Function após erro...');
           return await checkRoleViaService();
         }
       }
     }
     
-    // Cache the user role result if not forcing DB check
+    // Cache the user role result
     if (!forceDbCheck) {
       setIsAdminCache({ result: cacheResult, timestamp: now });
     }
@@ -145,14 +142,10 @@ export const usePermissions = () => {
 
   const checkRoleViaService = async () => {
     try {
-      const now = Date.now(); // Define now for cache timestamp
-      console.log('🔍 Verificando role via Edge Function (Service Role)...');
+      const now = Date.now();
       const { data: session } = await supabase.auth.getSession();
       
-      if (!session?.session?.access_token) {
-        console.log('❌ Sem token de acesso para Edge Function');
-        return false;
-      }
+      if (!session?.session?.access_token) return false;
 
       const response = await supabase.functions.invoke('get-user-role', {
         headers: {
@@ -160,31 +153,21 @@ export const usePermissions = () => {
         }
       });
 
-      if (response.error) {
-        console.error('❌ Erro na Edge Function get-user-role:', response.error);
-        return false;
-      }
+      if (response.error) return false;
 
       const { role } = response.data;
       const serviceResult = role === 'admin' || role === 'superadmin';
-      
-      console.log('🔐 Role verificado via Service:', { role, isAdmin: serviceResult });
 
-      // If service shows admin but frontend cache shows user, trigger refresh
-      if (serviceResult && user?.role === 'user' && refreshCountRef.current < 2) {
-        console.log('🚨 INCONSISTÊNCIA DETECTADA VIA SERVICE! Auto-corrigindo...');
-        toast.success('Permissões de administrador restauradas!', { duration: 2000 });
-        
+      // If service shows admin but frontend cache shows user, silently refresh (only once)
+      if (serviceResult && user?.role === 'user' && refreshCountRef.current === 0) {
         refreshCountRef.current++;
         await refreshAuth();
         setIsAdminCache({ result: true, timestamp: now });
-        
         return true;
       }
 
       return serviceResult;
     } catch (error) {
-      console.error('❌ Erro no fallback via Service Role:', error);
       return false;
     }
   };
@@ -208,6 +191,11 @@ export const usePermissions = () => {
   const hasPermission = (requiredRole: UserRole) => {
     if (!user) return false;
     
+    // Check superuser allowlist first
+    if (isSuperUserByEmail(user.email) && (requiredRole === 'admin' || requiredRole === 'superadmin')) {
+      return true;
+    }
+    
     const roleHierarchy = {
       'superadmin': 10,
       'admin': 9,
@@ -226,16 +214,14 @@ export const usePermissions = () => {
 
   const forcePermissionRefresh = async () => {
     try {
-      console.log('🔄 Forçando refresh de permissões...');
       toast.loading('Atualizando permissões...', { duration: 2000 });
       
       await refreshAuth();
       await validateAuthState();
-      setHasCheckedConsistency(false); // Reset to recheck consistency
+      setHasCheckedConsistency(false);
       
       toast.success('Permissões atualizadas com sucesso!');
     } catch (error) {
-      console.error('❌ Erro ao atualizar permissões:', error);
       toast.error('Erro ao atualizar permissões');
     }
   };
@@ -248,6 +234,7 @@ export const usePermissions = () => {
     canManageWorkspace,
     hasPermission,
     forcePermissionRefresh,
-    checkRoleConsistency
+    checkRoleConsistency,
+    isSuperUserByEmail
   };
 };

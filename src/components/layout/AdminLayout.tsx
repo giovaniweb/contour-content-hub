@@ -2,6 +2,7 @@
 import React, { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
+import { usePermissions } from '@/hooks/use-permissions';
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -9,6 +10,7 @@ interface AdminLayoutProps {
 
 const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
   const { user, isAuthenticated, isLoading } = useAuth();
+  const { hasPermission, isSuperUserByEmail } = usePermissions();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -19,11 +21,18 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
       navigate('/login', { replace: true, state: { from: location.pathname } });
       return;
     }
-    if (user.role !== 'admin') {
+    
+    // Check superuser allowlist first
+    if (isSuperUserByEmail(user.email)) {
+      return; // Allow access
+    }
+    
+    // Otherwise check normal permissions
+    if (!hasPermission('admin')) {
       navigate('/dashboard', { replace: true });
       return;
     }
-  }, [isAuthenticated, user, isLoading, navigate, location.pathname]);
+  }, [isAuthenticated, user, isLoading, navigate, location.pathname, hasPermission, isSuperUserByEmail]);
 
   if (isLoading) {
     return (

@@ -14,46 +14,40 @@ import FluidaLogo from "./FluidaLogo";
 import { NavLink } from "react-router-dom";
 import AdminDropdownMenu from "./AdminDropdownMenu";
 import { usePermissions } from "@/hooks/use-permissions";
-import { PermissionRefreshButton } from "@/components/auth/PermissionRefreshButton";
 
-// Component to handle admin menu with intelligent fallback
+
+// Component to handle admin menu with superuser allowlist
 const AdminMenuWithFallback = () => {
-  const { isAuthenticated } = useAuth();
-  const { isAdmin } = usePermissions();
+  const { isAuthenticated, user } = useAuth();
+  const { isAdmin, isSuperUserByEmail } = usePermissions();
   const [showMenu, setShowMenu] = React.useState(false);
-  const [isCheckingDb, setIsCheckingDb] = React.useState(false);
 
   React.useEffect(() => {
     const checkAdminStatus = async () => {
-      if (!isAuthenticated) {
+      if (!isAuthenticated || !user) {
         setShowMenu(false);
         return;
       }
       
-      setIsCheckingDb(true);
+      // Check superuser allowlist first
+      if (isSuperUserByEmail(user.email)) {
+        setShowMenu(true);
+        return;
+      }
+      
+      // For other users, do a silent admin check
       try {
-        // Force database check with service fallback if needed
         const adminStatus = await isAdmin(true, true);
         setShowMenu(adminStatus);
       } catch (error) {
-        console.error('Error checking admin status:', error);
         setShowMenu(false);
-      } finally {
-        setIsCheckingDb(false);
       }
     };
 
     checkAdminStatus();
-  }, [isAuthenticated, isAdmin]);
+  }, [isAuthenticated, user, isAdmin, isSuperUserByEmail]);
 
   if (!isAuthenticated) return null;
-  if (isCheckingDb) {
-    return (
-      <Button variant="ghost" size="icon" className="text-white opacity-50" disabled>
-        <Settings className="h-5 w-5 animate-pulse" />
-      </Button>
-    );
-  }
   
   return showMenu ? <AdminDropdownMenu /> : null;
 };
@@ -167,7 +161,6 @@ export const Navbar = () => {
         {/* Profile & Notifications */}
         <div className="flex items-center gap-2">
           {isAuthenticated && <NotificationsMenu />}
-          {isAuthenticated && <PermissionRefreshButton variant="ghost" size="sm" showText={false} />}
           <AdminMenuWithFallback />
           {isAuthenticated && <ProfileMenu />}
         </div>

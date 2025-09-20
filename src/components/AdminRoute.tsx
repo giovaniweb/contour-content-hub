@@ -13,16 +13,24 @@ interface AdminRouteProps {
 
 const AdminRoute: React.FC<AdminRouteProps> = ({ children }) => {
   const { user, isLoading, isAuthenticated } = useAuth();
-  const { hasPermission } = usePermissions();
+  const { hasPermission, isSuperUserByEmail } = usePermissions();
   const navigate = useNavigate();
   
   useEffect(() => {
     // If auth has loaded and user doesn't have admin permissions, show toast and redirect
-    if (!isLoading && isAuthenticated && user && !hasPermission('admin')) {
-      toast.error("Acesso restrito: apenas administradores podem acessar esta área");
-      navigate('/dashboard');
+    if (!isLoading && isAuthenticated && user) {
+      // Check superuser allowlist first
+      if (isSuperUserByEmail(user.email)) {
+        return; // Allow access
+      }
+      
+      // Otherwise check normal permissions
+      if (!hasPermission('admin')) {
+        toast.error("Acesso restrito: apenas administradores podem acessar esta área");
+        navigate('/dashboard');
+      }
     }
-  }, [isLoading, user, isAuthenticated, navigate, hasPermission]);
+  }, [isLoading, user, isAuthenticated, navigate, hasPermission, isSuperUserByEmail]);
 
   // If auth is still loading, show loading indicator
   if (isLoading) {
@@ -32,6 +40,11 @@ const AdminRoute: React.FC<AdminRouteProps> = ({ children }) => {
   // If no user, redirect
   if (!isAuthenticated || !user) {
     return <Navigate to="/login" replace />;
+  }
+  
+  // Check superuser allowlist
+  if (isSuperUserByEmail(user.email)) {
+    return children ? <>{children}</> : <Outlet />;
   }
   
   // If not admin, already handled by useEffect
