@@ -15,6 +15,48 @@ import { NavLink } from "react-router-dom";
 import AdminDropdownMenu from "./AdminDropdownMenu";
 import { usePermissions } from "@/hooks/use-permissions";
 
+// Component to handle admin menu with intelligent fallback
+const AdminMenuWithFallback = () => {
+  const { isAuthenticated } = useAuth();
+  const { isAdmin } = usePermissions();
+  const [showMenu, setShowMenu] = React.useState(false);
+  const [isCheckingDb, setIsCheckingDb] = React.useState(false);
+
+  React.useEffect(() => {
+    const checkAdminStatus = async () => {
+      if (!isAuthenticated) {
+        setShowMenu(false);
+        return;
+      }
+      
+      setIsCheckingDb(true);
+      try {
+        // Force database check if menu should be visible
+        const adminStatus = await isAdmin(true);
+        setShowMenu(adminStatus);
+      } catch (error) {
+        console.error('Error checking admin status:', error);
+        setShowMenu(false);
+      } finally {
+        setIsCheckingDb(false);
+      }
+    };
+
+    checkAdminStatus();
+  }, [isAuthenticated, isAdmin]);
+
+  if (!isAuthenticated) return null;
+  if (isCheckingDb) {
+    return (
+      <Button variant="ghost" size="icon" className="text-white opacity-50" disabled>
+        <Settings className="h-5 w-5 animate-pulse" />
+      </Button>
+    );
+  }
+  
+  return showMenu ? <AdminDropdownMenu /> : null;
+};
+
 // Mock institucional links
 const INSTITUCIONAL_LINKS = [
   { label: "O que é?", to: "/institucional/o-que-e" },
@@ -124,7 +166,7 @@ export const Navbar = () => {
         {/* Profile & Notifications */}
         <div className="flex items-center gap-2">
           {isAuthenticated && <NotificationsMenu />}
-          {isAuthenticated && isAdmin() && <AdminDropdownMenu />}
+          <AdminMenuWithFallback />
           {isAuthenticated && <ProfileMenu />}
         </div>
       </nav>

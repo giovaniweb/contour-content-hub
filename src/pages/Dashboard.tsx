@@ -30,10 +30,13 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import PermissionRefreshButton from '@/components/auth/PermissionRefreshButton';
+import { usePermissions } from '@/hooks/use-permissions';
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { isAdmin } = usePermissions();
   
   // Estados para dados reais
   const [gamificationData, setGamificationData] = useState({
@@ -306,12 +309,23 @@ const Dashboard: React.FC = () => {
         transition={{ duration: 0.6 }}
         className="text-center py-8"
       >
-        <h1 className="text-3xl md:text-5xl font-light text-white mb-4">
-          Bem-vindo de volta,{' '}
-          <span className="bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent font-medium">
-            {user?.nome || 'Usuário'}
-          </span>
-        </h1>
+        <div className="flex items-center justify-between mb-4">
+          <h1 className="text-3xl md:text-5xl font-light text-white">
+            Bem-vindo de volta,{' '}
+            <span className="bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent font-medium">
+              {user?.nome || 'Usuário'}
+            </span>
+          </h1>
+          
+          {/* Permission Refresh Button - Discrete */}
+          <div className="flex items-center gap-2">
+            <PermissionRefreshButton 
+              variant="ghost" 
+              size="sm" 
+              className="text-white/40 hover:text-white/80 transition-colors"
+            />
+          </div>
+        </div>
         
         <p className="text-white/80 text-lg max-w-2xl mx-auto mb-6">
           Seu hub completo para criar conteúdo profissional na área da estética
