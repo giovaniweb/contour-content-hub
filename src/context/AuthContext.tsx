@@ -13,6 +13,9 @@ interface AuthContextType {
   logout: () => Promise<void>;
   register: (userData: any) => Promise<{ error?: any }>;
   refreshUser: () => Promise<void>;
+  refreshAuth: () => Promise<void>;
+  validateAuthState: () => Promise<boolean>;
+  debugAuth: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -300,6 +303,131 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const refreshAuth = async () => {
+    console.log('🔄 Forçando refresh completo da autenticação...');
+    setIsLoading(true);
+    
+    try {
+      // First, get the current session from Supabase
+      const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError) {
+        console.error('❌ Erro ao obter sessão atual:', sessionError);
+        setSession(null);
+        setUser(null);
+        return;
+      }
+
+      console.log('📋 Sessão atual obtida:', { hasSession: !!currentSession });
+      setSession(currentSession);
+
+      if (currentSession?.user) {
+        console.log('👤 Usuário encontrado, buscando perfil atualizado...');
+        
+        // Force fetch the user profile from database
+        const { data: profile, error: profileError } = await supabase
+          .from('perfis')
+          .select('*')
+          .eq('id', currentSession.user.id)
+          .single();
+
+        if (profileError) {
+          console.error('❌ Erro ao buscar perfil atualizado:', profileError);
+          // Create fallback user
+          const fallbackUser: UserProfile = {
+            id: currentSession.user.id,
+            email: currentSession.user.email || '',
+            nome: currentSession.user.email?.split('@')[0] || 'Usuário',
+            role: 'user' as UserRole,
+            workspace_id: 'default',
+            idioma: 'PT' as 'PT' | 'EN' | 'ES'
+          };
+          setUser(fallbackUser);
+        } else {
+          console.log('✅ Perfil atualizado obtido:', { role: profile.role, nome: profile.nome });
+          const userProfile: UserProfile = {
+            id: profile.id,
+            email: profile.email,
+            nome: profile.nome,
+            role: (profile.role || 'user') as UserRole,
+            workspace_id: 'default',
+            clinica: profile.clinica,
+            cidade: profile.cidade,
+            telefone: profile.telefone,
+            equipamentos: profile.equipamentos || [],
+            idioma: (profile.idioma || 'PT') as 'PT' | 'EN' | 'ES'
+          };
+          setUser(userProfile);
+        }
+      } else {
+        console.log('🚫 Nenhum usuário na sessão atualizada');
+        setUser(null);
+      }
+    } catch (error) {
+      console.error('❌ Erro crítico no refresh da autenticação:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const validateAuthState = async (): Promise<boolean> => {
+    console.log('🔍 Validando estado de autenticação...');
+    
+    if (!session || !user) {
+      console.log('⚠️ Validação falhou: faltam sessão ou usuário');
+      return false;
+    }
+
+    try {
+      // Check if session is still valid
+      const { data: { user: currentAuthUser }, error } = await supabase.auth.getUser();
+      
+      if (error || !currentAuthUser) {
+        console.log('⚠️ Validação falhou: sessão inválida ou usuário não encontrado');
+        return false;
+      }
+
+      // Check if profile exists and matches
+      const { data: profile, error: profileError } = await supabase
+        .from('perfis')
+        .select('id, email, role, nome')
+        .eq('id', currentAuthUser.id)
+        .single();
+
+      if (profileError) {
+        console.log('⚠️ Validação falhou: erro ao buscar perfil', profileError);
+        return false;
+      }
+
+      const isValid = profile.role === user.role && profile.email === user.email;
+      console.log('✅ Estado de autenticação validado:', { 
+        isValid,
+        profileRole: profile.role,
+        userRole: user.role,
+        profileEmail: profile.email,
+        userEmail: user.email
+      });
+
+      return isValid;
+    } catch (error) {
+      console.error('❌ Erro na validação do estado de auth:', error);
+      return false;
+    }
+  };
+
+  const debugAuth = () => {
+    console.group('🔍 DEBUG: Estado da Autenticação');
+    console.log('Usuário:', user);
+    console.log('Sessão:', session);
+    console.log('Autenticado:', !!session && !!user);
+    console.log('Carregando:', isLoading);
+    console.log('ID do usuário:', user?.id);
+    console.log('Role do usuário:', user?.role);
+    console.log('Email do usuário:', user?.email);
+    console.log('Session valid:', session?.expires_at ? new Date(session.expires_at * 1000) > new Date() : false);
+    console.groupEnd();
+  };
+
   const value: AuthContextType = {
     user,
     session,
@@ -308,7 +436,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     login,
     logout,
     register,
-    refreshUser
+    refreshUser,
+    refreshAuth,
+    validateAuthState,
+    debugAuth
   };
 
   console.log('🔍 AuthProvider estado atual:', {

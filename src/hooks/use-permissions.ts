@@ -3,10 +3,12 @@ import { useAuth } from '@/context/AuthContext';
 import { UserRole } from '@/types/auth';
 
 export const usePermissions = () => {
-  const { user } = useAuth();
+  const { user, debugAuth } = useAuth();
 
   const isAdmin = () => {
-    return user?.role === 'admin' || user?.role === 'superadmin';
+    const result = user?.role === 'admin' || user?.role === 'superadmin';
+    console.log('🔐 isAdmin check:', { userRole: user?.role, isAdmin: result });
+    return result;
   };
 
   const canViewConsultantPanel = () => {

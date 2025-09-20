@@ -4,6 +4,8 @@ import AppLayout from '@/components/layout/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { User } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
+import { AuthRefreshButton } from '@/components/auth/AuthRefreshButton';
+import { AuthDebugPanel } from '@/components/auth/AuthDebugPanel';
 
 const Profile: React.FC = () => {
   const { user } = useAuth();
@@ -11,14 +13,17 @@ const Profile: React.FC = () => {
   return (
     <AppLayout>
       <div className="space-y-6">
-        <div className="flex items-center gap-3">
-          <User className="h-8 w-8 text-primary" />
-          <div>
-            <h1 className="text-3xl font-bold">Meu Perfil</h1>
-            <p className="text-muted-foreground">
-              Gerencie suas informações pessoais
-            </p>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <User className="h-8 w-8 text-primary" />
+            <div>
+              <h1 className="text-3xl font-bold">Meu Perfil</h1>
+              <p className="text-muted-foreground">
+                Gerencie suas informações pessoais
+              </p>
+            </div>
           </div>
+          <AuthRefreshButton />
         </div>
         
         <Card>
@@ -56,6 +61,8 @@ const Profile: React.FC = () => {
             )}
           </CardContent>
         </Card>
+
+        <AuthDebugPanel />
       </div>
     </AppLayout>
   );
