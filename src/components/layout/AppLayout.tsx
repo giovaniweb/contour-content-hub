@@ -2,6 +2,7 @@
 import React, { useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
+import { usePermissions } from "@/hooks/use-permissions";
 import { useIsMobile } from "@/hooks/use-mobile";
 import Sidebar from "./Sidebar";
 import Navbar from "../navbar/Navbar";
@@ -28,6 +29,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({
   interactive = true,
 }) => {
   const { user, isAuthenticated, isLoading } = useAuth();
+  const { isSuperUserByEmailSync, isAdmin } = usePermissions();
   const isMobile = useIsMobile();
   const navigate = useNavigate();
   const location = useLocation();
@@ -36,11 +38,19 @@ const AppLayout: React.FC<AppLayoutProps> = ({
   useEffect(() => {
     if (isLoading) return;
     
-    if (requireAdmin && user?.role !== "admin") {
-      navigate("/dashboard", { replace: true });
-      return;
+    if (requireAdmin && user) {
+      // Check superuser allowlist first (synchronous)
+      if (isSuperUserByEmailSync(user.email)) {
+        return; // Allow access
+      }
+      
+      // Otherwise check admin permissions
+      if (!isAdmin) {
+        navigate("/dashboard", { replace: true });
+        return;
+      }
     }
-  }, [isAuthenticated, user, isLoading, navigate, location.pathname, requireAdmin]);
+  }, [isAuthenticated, user, isLoading, navigate, location.pathname, requireAdmin, isSuperUserByEmailSync, isAdmin]);
 
   if (isLoading) {
     return (

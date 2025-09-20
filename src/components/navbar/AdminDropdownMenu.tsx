@@ -70,7 +70,7 @@ const AdminDropdownMenu: React.FC = () => {
     { label: "Conteúdo", icon: Database, path: "/admin/content" },
     { label: "Sistema de Email", icon: Plus, path: "/admin/email-system" },
     { label: "Termos de Privacidade", icon: Shield, path: "/admin/privacy-terms" },
-    { label: "IA do Sistema", icon: Brain, path: "/admin/ai" },
+    { label: "IA do Sistema", icon: Brain, path: "/admin/ai-panel" },
     { label: "Integrações", icon: LinkIcon, path: "/admin/system-intelligence" },
     { label: "Config. Vimeo", icon: Video, path: "/admin/vimeo/settings" },
     { label: "Diagnósticos", icon: TestTube, path: "/admin/system-diagnostics" }
