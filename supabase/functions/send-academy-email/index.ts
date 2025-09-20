@@ -164,12 +164,18 @@ const handler = async (req: Request): Promise<Response> => {
       has_text: !!template.text_content 
     });
 
-    // Renderizar template com variáveis
-    console.log(`[${requestId}] Rendering template with variables`);
-    try {
-      const renderedSubject = renderTemplate(template.subject, variables);
-      const renderedHtmlContent = renderTemplate(template.html_content, variables);
-      const renderedTextContent = template.text_content ? renderTemplate(template.text_content, variables) : undefined;
+      // Renderizar template com variáveis
+      console.log(`[${requestId}] Rendering template with variables`);
+      try {
+        const renderedSubject = renderTemplate(template.subject, variables);
+        let renderedHtmlContent = renderTemplate(template.html_content, variables);
+        let renderedTextContent = template.text_content ? renderTemplate(template.text_content, variables) : undefined;
+
+        // Fix SMTP line ending issues - normalize to CRLF
+        renderedHtmlContent = renderedHtmlContent.replace(/\r?\n/g, '\r\n');
+        if (renderedTextContent) {
+          renderedTextContent = renderedTextContent.replace(/\r?\n/g, '\r\n');
+        }
 
       console.log(`[${requestId}] Template rendered successfully:`, {
         subject_length: renderedSubject.length,
@@ -207,17 +213,33 @@ const handler = async (req: Request): Promise<Response> => {
         } else {
           console.error('❌ Native SMTP failed:', nativeResult.error);
           
+          // Check for specific SMTP errors and provide better feedback
+          let errorMessage = nativeResult.error || 'Erro SMTP desconhecido';
+          let suggestions = [];
+          
+          if (errorMessage.includes('bare LF')) {
+            errorMessage = 'Erro de formatação de e-mail (line endings)';
+            suggestions = ['O conteúdo do e-mail foi corrigido automaticamente'];
+          } else if (errorMessage.includes('authentication')) {
+            errorMessage = 'Erro de autenticação SMTP';
+            suggestions = ['Verificar credenciais SMTP', 'Confirmar usuário e senha'];
+          } else if (errorMessage.includes('connection')) {
+            errorMessage = 'Erro de conexão SMTP';
+            suggestions = ['Verificar host e porta SMTP', 'Testar conectividade'];
+          } else {
+            suggestions = [
+              "Verificar credenciais GoDaddy SMTP",
+              "Confirmar configuração de host e porta", 
+              "Certificar que from_email corresponde ao domínio autenticado"
+            ];
+          }
+          
           return new Response(
             JSON.stringify({ 
               success: false, 
-              error: `SMTP failed: ${nativeResult.error}`,
-              details: 'Please check SMTP configuration and connection',
-              suggestions: [
-                "Verify GoDaddy SMTP credentials",
-                "Check SMTP host and port configuration", 
-                "Ensure from_email matches authenticated domain",
-                "Test SMTP connection using the test function"
-              ]
+              error: errorMessage,
+              details: nativeResult.details || 'Verifique a configuração SMTP',
+              suggestions
             }),
             {
               status: 500,
@@ -229,17 +251,34 @@ const handler = async (req: Request): Promise<Response> => {
       } catch (smtpError: any) {
         console.error(`[${requestId}] SMTP Error:`, smtpError.message);
         
+        // Parse SMTP error for better user feedback
+        let errorMessage = smtpError.message || 'Erro SMTP desconhecido';
+        let suggestions = [];
+        
+        if (errorMessage.includes('bare LF') || errorMessage.includes('822.bis')) {
+          errorMessage = 'Erro de formatação do e-mail (line endings)';
+          suggestions = ['Conteúdo do e-mail foi normalizado, tente novamente'];
+        } else if (errorMessage.includes('authentication') || errorMessage.includes('AUTH')) {
+          errorMessage = 'Falha na autenticação SMTP';
+          suggestions = ['Verificar usuário e senha SMTP', 'Confirmar configuração da conta'];
+        } else if (errorMessage.includes('connection') || errorMessage.includes('timeout')) {
+          errorMessage = 'Erro de conexão com servidor SMTP';
+          suggestions = ['Verificar host e porta', 'Confirmar conectividade de rede'];
+        } else {
+          suggestions = [
+            "Verificar credenciais SMTP",
+            "Confirmar configuração de host e porta",
+            "Certificar que from_email está autorizado"
+          ];
+        }
+        
         return new Response(
           JSON.stringify({ 
             success: false, 
-            error: `SMTP failed: ${smtpError.message}`,
-            details: 'Please check SMTP configuration and connection',
-            suggestions: [
-              "Verify GoDaddy SMTP credentials",
-              "Check SMTP host and port configuration",
-              "Ensure from_email matches authenticated domain",
-              "Test SMTP connection using the test function"
-            ]
+            error: errorMessage,
+            details: 'Erro na comunicação SMTP',
+            suggestions,
+            original_error: smtpError.message
           }),
           {
             status: 500,

@@ -79,8 +79,18 @@ export const useAcademyInvites = () => {
       } catch (emailError: any) {
         console.error('Email sending failed, but invite was created:', emailError);
         
-        // Convite foi criado, mas email falhou - ainda é válido
-        toast.error('Convite criado, mas falha no envio do e-mail. Use "Reenviar" para tentar novamente.');
+        // Provide more specific error feedback
+        let errorMsg = 'Convite criado, mas falha no envio do e-mail.';
+        
+        if (emailError.message?.includes('formatação') || emailError.message?.includes('line endings')) {
+          errorMsg = 'Convite criado. Problema de formatação detectado e corrigido. Use "Reenviar".';
+        } else if (emailError.message?.includes('autenticação')) {
+          errorMsg = 'Convite criado, mas erro de autenticação SMTP. Contate o administrador.';
+        } else if (emailError.message?.includes('Template')) {
+          errorMsg = 'Convite criado, mas template de e-mail não encontrado. Contate o administrador.';
+        }
+        
+        toast.error(errorMsg);
         // Não fazer throw aqui - convite foi criado
       }
 
@@ -152,7 +162,15 @@ export const useAcademyInvites = () => {
       
       if (error) {
         console.error('Email function returned error:', error);
-        throw new Error(`Falha no envio: ${error.message || 'Erro desconhecido'}`);
+        
+        // Parse error response for better feedback
+        let errorMessage = error.message || 'Erro desconhecido';
+        
+        if (typeof error === 'object' && error.error) {
+          errorMessage = error.error;
+        }
+        
+        throw new Error(`Falha no envio: ${errorMessage}`);
       }
 
       console.log(`Email sent successfully in ${elapsed}ms:`, data);
