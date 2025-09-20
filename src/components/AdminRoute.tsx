@@ -2,6 +2,7 @@
 import React, { useEffect } from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
+import { usePermissions } from '@/hooks/use-permissions';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import LoadingFallback from './LoadingFallback';
@@ -12,15 +13,16 @@ interface AdminRouteProps {
 
 const AdminRoute: React.FC<AdminRouteProps> = ({ children }) => {
   const { user, isLoading, isAuthenticated } = useAuth();
+  const { hasPermission } = usePermissions();
   const navigate = useNavigate();
   
   useEffect(() => {
-    // If auth has loaded and user isn't admin, show toast and redirect
-    if (!isLoading && isAuthenticated && user && user.role !== 'admin') {
+    // If auth has loaded and user doesn't have admin permissions, show toast and redirect
+    if (!isLoading && isAuthenticated && user && !hasPermission('admin')) {
       toast.error("Acesso restrito: apenas administradores podem acessar esta área");
       navigate('/dashboard');
     }
-  }, [isLoading, user, isAuthenticated, navigate]);
+  }, [isLoading, user, isAuthenticated, navigate, hasPermission]);
 
   // If auth is still loading, show loading indicator
   if (isLoading) {
@@ -33,7 +35,7 @@ const AdminRoute: React.FC<AdminRouteProps> = ({ children }) => {
   }
   
   // If not admin, already handled by useEffect
-  if (user.role !== 'admin') {
+  if (!hasPermission('admin')) {
     return null;
   }
   

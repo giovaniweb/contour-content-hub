@@ -14,6 +14,7 @@ import FluidaLogo from "./FluidaLogo";
 import { NavLink } from "react-router-dom";
 import AdminDropdownMenu from "./AdminDropdownMenu";
 import { usePermissions } from "@/hooks/use-permissions";
+import { PermissionRefreshButton } from "@/components/auth/PermissionRefreshButton";
 
 // Component to handle admin menu with intelligent fallback
 const AdminMenuWithFallback = () => {
@@ -31,8 +32,8 @@ const AdminMenuWithFallback = () => {
       
       setIsCheckingDb(true);
       try {
-        // Force database check if menu should be visible
-        const adminStatus = await isAdmin(true);
+        // Force database check with service fallback if needed
+        const adminStatus = await isAdmin(true, true);
         setShowMenu(adminStatus);
       } catch (error) {
         console.error('Error checking admin status:', error);
@@ -166,6 +167,7 @@ export const Navbar = () => {
         {/* Profile & Notifications */}
         <div className="flex items-center gap-2">
           {isAuthenticated && <NotificationsMenu />}
+          {isAuthenticated && <PermissionRefreshButton variant="ghost" size="sm" showText={false} />}
           <AdminMenuWithFallback />
           {isAuthenticated && <ProfileMenu />}
         </div>

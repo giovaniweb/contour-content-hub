@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 export const usePermissions = () => {
   const { user, refreshAuth, validateAuthState } = useAuth();
   const [hasCheckedConsistency, setHasCheckedConsistency] = useState(false);
+  const [isAdminCache, setIsAdminCache] = useState<{ result: boolean; timestamp: number } | null>(null);
 
   // Auto-check for role inconsistencies on mount
   useEffect(() => {
@@ -54,7 +55,14 @@ export const usePermissions = () => {
   const isAdmin = async (forceDbCheck = false, useServiceFallback = false) => {
     if (!user) return false;
     
-    // Quick check from cache
+    // Check memory cache first (30 seconds TTL)
+    const now = Date.now();
+    if (!forceDbCheck && isAdminCache && (now - isAdminCache.timestamp < 30000)) {
+      console.log('🔐 isAdmin memory cache hit:', { result: isAdminCache.result });
+      return isAdminCache.result;
+    }
+    
+    // Quick check from user object
     const cacheResult = user?.role === 'admin' || user?.role === 'superadmin';
     console.log('🔐 isAdmin cache check:', { userRole: user?.role, isAdmin: cacheResult });
     
@@ -78,9 +86,12 @@ export const usePermissions = () => {
             toast.info('Atualizando permissões...', { duration: 2000 });
             
             await refreshAuth();
+            setIsAdminCache({ result: true, timestamp: now });
             return true;
           }
           
+          // Cache the result
+          setIsAdminCache({ result: dbResult, timestamp: now });
           return dbResult;
         } else if (dbError && useServiceFallback) {
           // Fallback to service role edge function if direct query fails
@@ -98,11 +109,17 @@ export const usePermissions = () => {
       }
     }
     
+    // Cache the user role result if not forcing DB check
+    if (!forceDbCheck) {
+      setIsAdminCache({ result: cacheResult, timestamp: now });
+    }
+    
     return cacheResult;
   };
 
   const checkRoleViaService = async () => {
     try {
+      const now = Date.now(); // Define now for cache timestamp
       console.log('🔍 Verificando role via Edge Function (Service Role)...');
       const { data: session } = await supabase.auth.getSession();
       
@@ -134,6 +151,7 @@ export const usePermissions = () => {
         
         // Force auth refresh to sync the role
         await refreshAuth();
+        setIsAdminCache({ result: true, timestamp: now });
         
         return true;
       }
