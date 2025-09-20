@@ -63,16 +63,39 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               await fetchUserProfile(session.user.id);
             } catch (error) {
               console.error('❌ Erro ao buscar perfil do usuário:', error);
-              // Create fallback user profile
-              const fallbackUser: UserProfile = {
-                id: session.user.id,
-                email: session.user.email || '',
-                nome: session.user.email?.split('@')[0] || 'Usuário',
-                role: 'user' as UserRole,
-                workspace_id: 'default',
-                idioma: 'PT' as 'PT' | 'EN' | 'ES'
-              };
-              setUser(fallbackUser);
+              // Try to get actual role from database even in error case
+              console.log('🔄 Erro ao buscar perfil, tentando fallback inteligente...');
+              try {
+                const { data: dbProfile } = await supabase
+                  .from('perfis')
+                  .select('role, nome, clinica, cidade')
+                  .eq('id', session.user.id)
+                  .single();
+                
+                const fallbackUser: UserProfile = {
+                  id: session.user.id,
+                  email: session.user.email || '',
+                  nome: dbProfile?.nome || session.user.email?.split('@')[0] || 'Usuário',
+                  role: (dbProfile?.role || 'user') as UserRole,
+                  workspace_id: 'default',
+                  clinica: dbProfile?.clinica,
+                  cidade: dbProfile?.cidade,
+                  idioma: 'PT' as 'PT' | 'EN' | 'ES'
+                };
+                console.log('✅ Fallback inteligente criado com role:', dbProfile?.role || 'user');
+                setUser(fallbackUser);
+              } catch (fallbackError) {
+                console.log('⚠️ Fallback inteligente falhou, usando dados básicos');
+                const basicFallback: UserProfile = {
+                  id: session.user.id,
+                  email: session.user.email || '',
+                  nome: session.user.email?.split('@')[0] || 'Usuário',
+                  role: 'user' as UserRole,
+                  workspace_id: 'default',
+                  idioma: 'PT' as 'PT' | 'EN' | 'ES'
+                };
+                setUser(basicFallback);
+              }
             } finally {
               setIsLoading(false);
               clearTimeout(safetyTimeout);
@@ -110,16 +133,39 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             await fetchUserProfile(session.user.id);
           } catch (error) {
             console.error('❌ Erro ao buscar perfil inicial:', error);
-            // Create fallback user profile
-            const fallbackUser: UserProfile = {
-              id: session.user.id,
-              email: session.user.email || '',
-              nome: session.user.email?.split('@')[0] || 'Usuário',
-              role: 'user' as UserRole,
-              workspace_id: 'default',
-              idioma: 'PT' as 'PT' | 'EN' | 'ES'
-            };
-            setUser(fallbackUser);
+            // Try intelligent fallback for initial session check too
+            console.log('🔄 Erro no perfil inicial, tentando fallback inteligente...');
+            try {
+              const { data: dbProfile } = await supabase
+                .from('perfis')
+                .select('role, nome, clinica, cidade')
+                .eq('id', session.user.id)
+                .single();
+              
+              const fallbackUser: UserProfile = {
+                id: session.user.id,
+                email: session.user.email || '',
+                nome: dbProfile?.nome || session.user.email?.split('@')[0] || 'Usuário',
+                role: (dbProfile?.role || 'user') as UserRole,
+                workspace_id: 'default',
+                clinica: dbProfile?.clinica,
+                cidade: dbProfile?.cidade,
+                idioma: 'PT' as 'PT' | 'EN' | 'ES'
+              };
+              console.log('✅ Fallback inicial inteligente criado com role:', dbProfile?.role || 'user');
+              setUser(fallbackUser);
+            } catch (fallbackError) {
+              console.log('⚠️ Fallback inicial falhou, usando dados básicos');
+              const basicFallback: UserProfile = {
+                id: session.user.id,
+                email: session.user.email || '',
+                nome: session.user.email?.split('@')[0] || 'Usuário',
+                role: 'user' as UserRole,
+                workspace_id: 'default',
+                idioma: 'PT' as 'PT' | 'EN' | 'ES'
+              };
+              setUser(basicFallback);
+            }
           }
         } else {
           console.log('🚫 Nenhuma sessão encontrada');
@@ -143,6 +189,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       clearTimeout(safetyTimeout);
     };
   }, []);
+
+  // Separate effect for periodic validation
+  useEffect(() => {
+    let validationInterval: NodeJS.Timeout;
+    
+    if (!isLoading && session && user) {
+      console.log('🕐 Iniciando validação periódica...');
+      validationInterval = setInterval(async () => {
+        console.log('🕐 Executando validação periódica...');
+        await validateAuthState();
+      }, 30000); // 30 seconds
+    }
+
+    return () => {
+      if (validationInterval) {
+        console.log('🧹 Parando validação periódica');
+        clearInterval(validationInterval);
+      }
+    };
+  }, [isLoading, session, user]);
 
   const fetchUserProfile = async (userId: string) => {
     try {
@@ -400,13 +466,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       const isValid = profile.role === user.role && profile.email === user.email;
-      console.log('✅ Estado de autenticação validado:', { 
+      console.log('🔍 Comparação de dados:', { 
         isValid,
         profileRole: profile.role,
         userRole: user.role,
         profileEmail: profile.email,
         userEmail: user.email
       });
+
+      // AUTO-CORRECTION: If data doesn't match, update frontend with database data
+      if (!isValid) {
+        console.log('🔄 INCONSISTÊNCIA DETECTADA! Corrigindo dados do frontend...');
+        
+        const correctedUser: UserProfile = {
+          ...user,
+          role: (profile.role || 'user') as UserRole,
+          email: profile.email,
+          nome: profile.nome
+        };
+        
+        setUser(correctedUser);
+        console.log('✅ Dados corrigidos automaticamente:', { 
+          oldRole: user.role, 
+          newRole: profile.role,
+          oldEmail: user.email,
+          newEmail: profile.email 
+        });
+        
+        return true; // Return true because we fixed it
+      }
 
       return isValid;
     } catch (error) {

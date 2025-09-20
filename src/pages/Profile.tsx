@@ -6,6 +6,7 @@ import { User } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { AuthRefreshButton } from '@/components/auth/AuthRefreshButton';
 import { AuthDebugPanel } from '@/components/auth/AuthDebugPanel';
+import { AuthSyncButton } from '@/components/auth/AuthSyncButton';
 
 const Profile: React.FC = () => {
   const { user } = useAuth();
@@ -23,7 +24,10 @@ const Profile: React.FC = () => {
               </p>
             </div>
           </div>
-          <AuthRefreshButton />
+          <div className="flex gap-2">
+            <AuthRefreshButton />
+            <AuthSyncButton variant="default" size="default" />
+          </div>
         </div>
         
         <Card>
