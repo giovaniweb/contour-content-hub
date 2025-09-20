@@ -51,7 +51,7 @@ export const usePermissions = () => {
     }
   };
 
-  const isAdmin = async (forceDbCheck = false) => {
+  const isAdmin = async (forceDbCheck = false, useServiceFallback = false) => {
     if (!user) return false;
     
     // Quick check from cache
@@ -62,7 +62,7 @@ export const usePermissions = () => {
     if (forceDbCheck || (user?.role === 'user' && user?.email)) {
       try {
         console.log('🔍 Verificando role no banco de dados...');
-        const { data: dbProfile } = await supabase
+        const { data: dbProfile, error: dbError } = await supabase
           .from('perfis')
           .select('role')
           .eq('id', user.id)
@@ -82,13 +82,67 @@ export const usePermissions = () => {
           }
           
           return dbResult;
+        } else if (dbError && useServiceFallback) {
+          // Fallback to service role edge function if direct query fails
+          console.log('🔄 Tentando fallback via Edge Function...');
+          return await checkRoleViaService();
         }
       } catch (error) {
         console.error('❌ Erro ao verificar role no banco:', error);
+        
+        // If useServiceFallback is true, try the service role fallback
+        if (useServiceFallback) {
+          console.log('🔄 Tentando fallback via Edge Function após erro...');
+          return await checkRoleViaService();
+        }
       }
     }
     
     return cacheResult;
+  };
+
+  const checkRoleViaService = async () => {
+    try {
+      console.log('🔍 Verificando role via Edge Function (Service Role)...');
+      const { data: session } = await supabase.auth.getSession();
+      
+      if (!session?.session?.access_token) {
+        console.log('❌ Sem token de acesso para Edge Function');
+        return false;
+      }
+
+      const response = await supabase.functions.invoke('get-user-role', {
+        headers: {
+          Authorization: `Bearer ${session.session.access_token}`,
+        }
+      });
+
+      if (response.error) {
+        console.error('❌ Erro na Edge Function get-user-role:', response.error);
+        return false;
+      }
+
+      const { role } = response.data;
+      const serviceResult = role === 'admin' || role === 'superadmin';
+      
+      console.log('🔐 Role verificado via Service:', { role, isAdmin: serviceResult });
+
+      // If service shows admin but frontend cache shows user, trigger refresh
+      if (serviceResult && user?.role === 'user') {
+        console.log('🚨 INCONSISTÊNCIA DETECTADA VIA SERVICE! Auto-corrigindo...');
+        toast.success('Permissões atualizadas automaticamente!', { duration: 3000 });
+        
+        // Force auth refresh to sync the role
+        await refreshAuth();
+        
+        return true;
+      }
+
+      return serviceResult;
+    } catch (error) {
+      console.error('❌ Erro no fallback via Service Role:', error);
+      return false;
+    }
   };
 
   const canViewConsultantPanel = () => {
