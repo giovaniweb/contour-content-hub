@@ -3,7 +3,7 @@ import { Check, ChevronsUpDown, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '@/components/ui/command';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
 import { useEquipments } from '@/hooks/useEquipments';
@@ -99,40 +99,42 @@ const EquipmentSelector: React.FC<EquipmentSelectorProps> = ({
         <PopoverContent className="w-full p-0 bg-popover z-50" align="start">
           <Command>
             <CommandInput placeholder="Buscar equipamento..." />
-            <CommandEmpty>Nenhum equipamento encontrado.</CommandEmpty>
-            <CommandGroup className="max-h-64 overflow-auto">
-              {safeEquipments.map((equipment) => {
-                const isSelected = safeValue.includes(equipment.nome);
-                const isDisabled = !isSelected && safeValue.length >= maxSelections;
-                
-                return (
-                  <CommandItem
-                    key={equipment.id}
-                    value={equipment.nome}
-                    onSelect={() => handleEquipmentToggle(equipment.nome)}
-                    disabled={isDisabled}
-                    className={cn(
-                      "flex items-center space-x-2 cursor-pointer",
-                      isDisabled && "opacity-50 cursor-not-allowed"
-                    )}
-                  >
-                    <Checkbox
-                      checked={isSelected}
-                      className="pointer-events-none"
-                    />
-                    <div className="flex-1">
-                      <div className="font-medium">{equipment.nome}</div>
-                      <div className="text-xs text-muted-foreground">
-                        {equipment.categoria}
+            <CommandList>
+              <CommandEmpty>Nenhum equipamento encontrado.</CommandEmpty>
+              <CommandGroup className="max-h-64 overflow-auto">
+                {safeEquipments.map((equipment) => {
+                  const isSelected = safeValue.includes(equipment.nome);
+                  const isDisabled = !isSelected && safeValue.length >= maxSelections;
+                  
+                  return (
+                    <CommandItem
+                      key={equipment.id}
+                      value={equipment.nome}
+                      onSelect={() => handleEquipmentToggle(equipment.nome)}
+                      disabled={isDisabled}
+                      className={cn(
+                        "flex items-center space-x-2 cursor-pointer",
+                        isDisabled && "opacity-50 cursor-not-allowed"
+                      )}
+                    >
+                      <Checkbox
+                        checked={isSelected}
+                        className="pointer-events-none"
+                      />
+                      <div className="flex-1">
+                        <div className="font-medium">{equipment.nome}</div>
+                        <div className="text-xs text-muted-foreground">
+                          {equipment.categoria}
+                        </div>
                       </div>
-                    </div>
-                    {isSelected && (
-                      <Check className="ml-auto h-4 w-4" />
-                    )}
-                  </CommandItem>
-                );
-              })}
-            </CommandGroup>
+                      {isSelected && (
+                        <Check className="ml-auto h-4 w-4" />
+                      )}
+                    </CommandItem>
+                  );
+                })}
+              </CommandGroup>
+            </CommandList>
           </Command>
         </PopoverContent>
       </Popover>
