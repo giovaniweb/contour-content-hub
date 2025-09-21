@@ -202,6 +202,60 @@ const Arts: React.FC = () => {
                         </div>
                       </div>
 
+                      {/* Action Buttons - Bottom Right Over Image */}
+                      <div className="absolute bottom-3 right-3 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                        <div className="flex items-center gap-2">
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => handleLike(material.id)}
+                            className={`backdrop-blur-sm transition-all duration-200 ${
+                              likedMaterials.has(material.id)
+                                ? 'bg-aurora-electric-purple/30 border-aurora-electric-purple/60 text-aurora-electric-purple hover:bg-aurora-electric-purple/40'
+                                : 'bg-black/60 border-white/30 text-white hover:bg-aurora-electric-purple/30 hover:text-aurora-electric-purple hover:border-aurora-electric-purple/50'
+                            }`}
+                          >
+                            <Heart className={`h-4 w-4 ${likedMaterials.has(material.id) ? 'fill-current' : ''}`} />
+                          </Button>
+
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <Button size="sm" variant="outline" className="bg-black/60 border-white/30 text-white hover:bg-white/30 backdrop-blur-sm">
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent className="max-w-6xl bg-slate-900 border-aurora-electric-purple/30">
+                              <DialogHeader>
+                                <DialogTitle className="text-white flex items-center gap-2">
+                                  <Eye className="h-5 w-5 text-aurora-electric-purple" />
+                                  {material.title}
+                                </DialogTitle>
+                              </DialogHeader>
+                              
+                              {material.is_carousel ? (
+                                <CarouselViewer 
+                                  images={material.carousel_images || []} 
+                                  title={material.title}
+                                  material={material}
+                                  equipments={equipments}
+                                />
+                              ) : (
+                                <CarouselViewer 
+                                  images={[material.file_url]} 
+                                  title={material.title}
+                                  material={material}
+                                  equipments={equipments}
+                                />
+                              )}
+                            </DialogContent>
+                          </Dialog>
+
+                          <Button size="sm" onClick={() => handleDownload(material)} className="bg-aurora-electric-purple/80 border-aurora-electric-purple text-white hover:bg-aurora-electric-purple backdrop-blur-sm">
+                            <Download className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+
                       {material.is_carousel ? (
                         <CarouselViewer 
                           images={material.carousel_images || []} 
@@ -262,60 +316,8 @@ const Arts: React.FC = () => {
                         </div>
                       )}
 
-                      {/* Action Buttons Row */}
-                      <div className="flex items-center justify-between pt-2">
-                        <div className="flex items-center gap-2">
-                          <Button 
-                            size="sm" 
-                            variant="outline"
-                            onClick={() => handleLike(material.id)}
-                            className={`transition-all duration-200 ${
-                              likedMaterials.has(material.id)
-                                ? 'bg-aurora-electric-purple/20 border-aurora-electric-purple/40 text-aurora-electric-purple hover:bg-aurora-electric-purple/30'
-                                : 'bg-white/10 border-white/20 text-white hover:bg-aurora-electric-purple/20 hover:text-aurora-electric-purple hover:border-aurora-electric-purple/30'
-                            }`}
-                          >
-                            <Heart className={`h-4 w-4 ${likedMaterials.has(material.id) ? 'fill-current' : ''}`} />
-                          </Button>
-
-                          <Dialog>
-                            <DialogTrigger asChild>
-                              <Button size="sm" variant="outline" className="bg-white/10 border-white/20 text-white hover:bg-white/20">
-                                <Eye className="h-4 w-4" />
-                              </Button>
-                            </DialogTrigger>
-                            <DialogContent className="max-w-6xl bg-slate-900 border-aurora-electric-purple/30">
-                              <DialogHeader>
-                                <DialogTitle className="text-white flex items-center gap-2">
-                                  <Eye className="h-5 w-5 text-aurora-electric-purple" />
-                                  {material.title}
-                                </DialogTitle>
-                              </DialogHeader>
-                              
-                              {material.is_carousel ? (
-                                <CarouselViewer 
-                                  images={material.carousel_images || []} 
-                                  title={material.title}
-                                  material={material}
-                                  equipments={equipments}
-                                />
-                              ) : (
-                                <CarouselViewer 
-                                  images={[material.file_url]} 
-                                  title={material.title}
-                                  material={material}
-                                  equipments={equipments}
-                                />
-                              )}
-                            </DialogContent>
-                          </Dialog>
-
-                          <Button size="sm" onClick={() => handleDownload(material)} className="aurora-button hover:aurora-glow">
-                            <Download className="h-4 w-4" />
-                          </Button>
-                        </div>
-
-                        {/* Date - Bottom Right */}
+                      {/* Date - Bottom Right */}
+                      <div className="flex justify-end pt-2">
                         <span className="text-xs text-slate-400">
                           {new Date(material.created_at).toLocaleDateString('pt-BR', {
                             day: '2-digit',
