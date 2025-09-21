@@ -401,14 +401,23 @@ const Videos: React.FC = () => {
                 <div className="p-4">
                   <h3 className="font-medium text-white mb-2 line-clamp-2">{video.titulo}</h3>
                   
+                  {/* Equipment Name - Destacado como na referência */}
+                  {video.categoria && (
+                    <div className="mb-3">
+                      <p className="text-cyan-400 text-sm font-semibold">{getEquipmentName(video.categoria)}</p>
+                    </div>
+                  )}
+                  
+                  {!video.categoria && (
+                    <div className="mb-3">
+                      <p className="text-slate-400 text-sm italic">Equipamento não especificado</p>
+                    </div>
+                  )}
+                  
                   {video.descricao_curta && (
                     <p className="text-xs text-slate-400 mb-3 line-clamp-2">
                       {video.descricao_curta}
                     </p>
-                  )}
-
-                  {video.categoria && (
-                    <p className="text-cyan-400 text-xs mb-3 font-medium">{getEquipmentName(video.categoria)}</p>
                   )}
 
                   {/* Tags */}
@@ -504,15 +513,27 @@ const Videos: React.FC = () => {
                     {/* Content */}
                     <div className="flex-1 min-w-0">
                       <h3 className="font-medium text-white mb-1 truncate">{video.titulo}</h3>
+                      
+                      {/* Equipment Name - Destacado */}
+                      {video.categoria && (
+                        <div className="mb-2">
+                          <span className="text-cyan-400 text-sm font-semibold">{getEquipmentName(video.categoria)}</span>
+                        </div>
+                      )}
+                      
+                      {!video.categoria && (
+                        <div className="mb-2">
+                          <span className="text-slate-400 text-sm italic">Equipamento não especificado</span>
+                        </div>
+                      )}
+                      
                       {video.descricao_curta && (
                         <p className="text-sm text-slate-400 mb-2 line-clamp-2">
                           {video.descricao_curta}
                         </p>
                       )}
+                      
                       <div className="flex items-center gap-4 text-xs text-slate-400">
-                        {video.categoria && (
-                          <span className="text-cyan-400 font-medium">{getEquipmentName(video.categoria)}</span>
-                        )}
                         {video.duracao && <span>{video.duracao}</span>}
                       </div>
                     </div>

@@ -12,6 +12,8 @@ interface Video {
   downloads_count?: number;
   url_video?: string;
   thumbnail_url?: string;
+  categoria?: string;
+  equipamento_id?: string;
 }
 
 interface VideoCardProps {
@@ -70,6 +72,16 @@ const VideoCard: React.FC<VideoCardProps> = ({
             {/* Content */}
             <div className="flex-1 min-w-0">
               <h3 className="font-medium text-sm mb-1 truncate">{video.titulo}</h3>
+              
+              {/* Equipment Name */}
+              {(video.categoria || video.equipamento_id) && (
+                <div className="mb-1">
+                  <span className="text-cyan-400 text-xs font-medium">
+                    {video.categoria || video.equipamento_id}
+                  </span>
+                </div>
+              )}
+              
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 <Calendar className="h-3 w-3" />
                 <span>{formatDate(video.data_upload)}</span>
@@ -122,6 +134,15 @@ const VideoCard: React.FC<VideoCardProps> = ({
       <CardContent className="p-3">
         {/* Título */}
         <h3 className="font-medium text-sm mb-2 line-clamp-2">{video.titulo}</h3>
+        
+        {/* Equipment Name */}
+        {(video.categoria || video.equipamento_id) && (
+          <div className="mb-2">
+            <span className="text-cyan-400 text-sm font-semibold">
+              {video.categoria || video.equipamento_id}
+            </span>
+          </div>
+        )}
 
         {/* Data e Ações */}
         <div className="flex items-center justify-between">

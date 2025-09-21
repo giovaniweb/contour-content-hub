@@ -19,12 +19,16 @@ const VideoCardContent: React.FC<VideoCardBaseProps> = ({
       
       <div className="text-xs text-muted-foreground mb-2">
         {timeSinceUpload} 
-        {video.metadata?.equipment_id && (
-          <span className="ml-1">
-            • {video.metadata.equipment_id}
-          </span>
-        )}
       </div>
+      
+      {/* Equipment Name - Destacado */}
+      {video.metadata?.equipment_id && (
+        <div className="mb-2">
+          <span className="text-cyan-400 text-sm font-semibold">
+            {video.metadata.equipment_id}
+          </span>
+        </div>
+      )}
       
       {video.description && (
         <p className="text-sm text-muted-foreground line-clamp-2" title={video.description}>
