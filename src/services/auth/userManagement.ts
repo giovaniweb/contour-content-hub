@@ -11,76 +11,63 @@ export interface CreateUserData {
   telefone?: string;
 }
 
-export interface OrphanUser {
-  id: string;
-  email: string;
-  created_at: string;
-}
-
 /**
- * Verifica se existe um usuário no auth.users sem perfil correspondente
+ * Verifica se existe um usuário com perfil na tabela perfis
  */
-export async function checkOrphanUser(email: string): Promise<OrphanUser | null> {
+export async function checkExistingProfile(email: string): Promise<boolean> {
   try {
-    // Verificar se existe usuário no auth (fazemos isso via RPC pois não temos acesso direto ao auth.users)
-    const { data: authCheck, error: authError } = await supabase.rpc('check_user_exists_by_email', {
-      user_email: email
-    });
-
-    if (authError) {
-      console.warn('Não foi possível verificar usuário existente:', authError);
-      return null;
-    }
-
-    if (!authCheck) {
-      return null; // Usuário não existe
-    }
-
-    // Verificar se tem perfil
-    const { data: profileData, error: profileError } = await supabase
+    const { data, error } = await supabase
       .from('perfis')
       .select('id')
       .eq('email', email)
       .maybeSingle();
 
-    if (profileError) {
-      throw profileError;
+    if (error) {
+      console.error('Erro ao verificar perfil existente:', error);
+      return false;
     }
 
-    // Se não tem perfil, é um usuário órfão
-    if (!profileData) {
-      return {
-        id: authCheck.id,
-        email: email,
-        created_at: authCheck.created_at
-      };
-    }
-
-    return null; // Usuário existe e tem perfil
+    return !!data;
   } catch (error) {
-    console.error('Erro ao verificar usuário órfão:', error);
-    return null;
+    console.error('Erro ao verificar perfil existente:', error);
+    return false;
   }
 }
 
 /**
- * Cria um perfil para usuário órfão existente
+ * Tenta criar um perfil para usuário que pode já existir no auth
  */
-export async function adoptOrphanUser(orphanUser: OrphanUser, userData: CreateUserData): Promise<void> {
-  const { error } = await supabase
-    .from('perfis')
-    .insert({
-      id: orphanUser.id,
-      nome: userData.nome,
-      email: userData.email,
-      role: userData.role,
-      cidade: userData.cidade,
-      clinica: userData.clinica,
-      telefone: userData.telefone
-    });
+export async function createProfileForExistingUser(userData: CreateUserData): Promise<boolean> {
+  try {
+    // Tentar buscar o usuário atual autenticado (se existir)
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    
+    if (userError || !user) {
+      return false;
+    }
 
-  if (error) {
-    throw error;
+    // Verificar se é o mesmo email
+    if (user.email !== userData.email) {
+      return false;
+    }
+
+    // Criar perfil para usuário existente
+    const { error: insertError } = await supabase
+      .from('perfis')
+      .insert({
+        id: user.id,
+        nome: userData.nome,
+        email: userData.email,
+        role: userData.role,
+        cidade: userData.cidade,
+        clinica: userData.clinica,
+        telefone: userData.telefone
+      });
+
+    return !insertError;
+  } catch (error) {
+    console.error('Erro ao criar perfil para usuário existente:', error);
+    return false;
   }
 }
 
@@ -88,90 +75,61 @@ export async function adoptOrphanUser(orphanUser: OrphanUser, userData: CreateUs
  * Cria um novo usuário completo (auth + perfil)
  */
 export async function createCompleteUser(userData: CreateUserData): Promise<void> {
-  // Verificar se é usuário órfão primeiro
-  const orphanUser = await checkOrphanUser(userData.email);
-  
-  if (orphanUser) {
-    // Se é órfão, apenas criar o perfil
-    await adoptOrphanUser(orphanUser, userData);
-    return;
-  }
-
-  // Criar novo usuário no auth
-  const { data: authData, error: authError } = await supabase.auth.signUp({
-    email: userData.email,
-    password: userData.password,
-    options: {
-      emailRedirectTo: `${window.location.origin}/`,
-      data: {
-        nome: userData.nome,
-        role: userData.role
-      }
-    }
-  });
-
-  if (authError) {
-    // Verificar se é erro de usuário já existente
-    if (authError.message.includes('User already registered')) {
-      // Tentar novamente como usuário órfão
-      const retryOrphan = await checkOrphanUser(userData.email);
-      if (retryOrphan) {
-        await adoptOrphanUser(retryOrphan, userData);
-        return;
-      }
-    }
-    throw authError;
-  }
-
-  if (!authData.user) {
-    throw new Error('Erro ao criar usuário: dados de autenticação não retornados');
-  }
-
-  // Atualizar perfil com informações adicionais
-  const { error: profileError } = await supabase
-    .from('perfis')
-    .update({
-      nome: userData.nome,
-      role: userData.role,
-      cidade: userData.cidade,
-      clinica: userData.clinica,
-      telefone: userData.telefone
-    })
-    .eq('id', authData.user.id);
-
-  if (profileError) {
-    throw profileError;
-  }
-}
-
-/**
- * Lista todos os usuários órfãos (existem no auth mas não têm perfil)
- */
-export async function listOrphanUsers(): Promise<OrphanUser[]> {
   try {
-    const { data, error } = await supabase.rpc('get_orphan_users');
-    
-    if (error) {
-      console.error('Erro ao buscar usuários órfãos:', error);
-      return [];
+    // Verificar se já existe perfil
+    const hasProfile = await checkExistingProfile(userData.email);
+    if (hasProfile) {
+      throw new Error('Usuário já existe e possui perfil completo');
     }
 
-    return data || [];
+    // Tentar criar novo usuário no auth
+    const { data: authData, error: authError } = await supabase.auth.signUp({
+      email: userData.email,
+      password: userData.password,
+      options: {
+        emailRedirectTo: `${window.location.origin}/`,
+        data: {
+          nome: userData.nome,
+          role: userData.role
+        }
+      }
+    });
+
+    if (authError) {
+      // Se erro de usuário já registrado, o trigger deve ter criado o perfil
+      if (authError.message.includes('User already registered')) {
+        throw new Error(
+          'Este email já está registrado. Se você esqueceu a senha, use a opção de recuperação de senha na tela de login.'
+        );
+      }
+      throw authError;
+    }
+
+    if (!authData.user) {
+      throw new Error('Erro ao criar usuário: dados de autenticação não retornados');
+    }
+
+    // Aguardar um pouco para o trigger criar o perfil
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    // Atualizar perfil com informações adicionais
+    const { error: profileError } = await supabase
+      .from('perfis')
+      .update({
+        nome: userData.nome,
+        role: userData.role,
+        cidade: userData.cidade,
+        clinica: userData.clinica,
+        telefone: userData.telefone
+      })
+      .eq('id', authData.user.id);
+
+    if (profileError) {
+      console.error('Erro ao atualizar perfil:', profileError);
+      // Não falhar aqui, o perfil básico foi criado
+    }
   } catch (error) {
-    console.error('Erro ao listar usuários órfãos:', error);
-    return [];
-  }
-}
-
-/**
- * Remove um usuário órfão do sistema de autenticação
- */
-export async function removeOrphanUser(userId: string): Promise<void> {
-  const { error } = await supabase.rpc('delete_auth_user', {
-    user_id: userId
-  });
-
-  if (error) {
+    console.error('Erro em createCompleteUser:', error);
     throw error;
   }
 }

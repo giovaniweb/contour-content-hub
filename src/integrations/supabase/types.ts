@@ -4385,6 +4385,10 @@ export type Database = {
         }
         Returns: Json
       }
+      check_user_exists_by_email: {
+        Args: { user_email: string }
+        Returns: Json
+      }
       check_user_is_admin: {
         Args: Record<PropertyKey, never>
         Returns: boolean
@@ -4424,6 +4428,10 @@ export type Database = {
         Args: { video_id: string }
         Returns: undefined
       }
+      delete_auth_user: {
+        Args: { user_id: string }
+        Returns: boolean
+      }
       delete_before_after_cascade: {
         Args: { photo_id_param: string }
         Returns: Json
@@ -4451,6 +4459,10 @@ export type Database = {
       get_current_user_role: {
         Args: Record<PropertyKey, never>
         Returns: string
+      }
+      get_orphan_users: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
       }
       get_public_videomakers: {
         Args: Record<PropertyKey, never>

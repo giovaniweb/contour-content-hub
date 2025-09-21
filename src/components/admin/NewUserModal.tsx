@@ -5,10 +5,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { UserPlus, Mail, User, MapPin, Building, Phone, AlertTriangle, UserCheck } from 'lucide-react';
+import { UserPlus, Mail, User, MapPin, Building, Phone, AlertTriangle } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { createCompleteUser, checkOrphanUser, type CreateUserData, type OrphanUser } from '@/services/auth/userManagement';
+import { createCompleteUser, checkExistingProfile, type CreateUserData } from '@/services/auth/userManagement';
 
 interface NewUserModalProps {
   isOpen: boolean;
@@ -27,31 +27,31 @@ const NewUserModal: React.FC<NewUserModalProps> = ({ isOpen, onClose, onSuccess 
     telefone: ''
   });
   const [isLoading, setIsLoading] = useState(false);
-  const [orphanUser, setOrphanUser] = useState<OrphanUser | null>(null);
-  const [showOrphanDialog, setShowOrphanDialog] = useState(false);
+  const [userExistsWarning, setUserExistsWarning] = useState(false);
   const { toast } = useToast();
 
-  const checkForOrphanUser = async (email: string) => {
-    if (!email) return;
+  const checkForExistingUser = async (email: string) => {
+    if (!email || !email.includes('@')) return;
     
-    const orphan = await checkOrphanUser(email);
-    if (orphan) {
-      setOrphanUser(orphan);
-      setShowOrphanDialog(true);
-    } else {
-      setOrphanUser(null);
-      setShowOrphanDialog(false);
-    }
+    const exists = await checkExistingProfile(email);
+    setUserExistsWarning(exists);
   };
 
-  const handleCreateUser = async (adoptOrphan = false) => {
-    if (!newUser.nome || !newUser.email || (!newUser.password && !adoptOrphan)) {
+  const handleCreateUser = async () => {
+    if (!newUser.nome || !newUser.email || !newUser.password) {
       toast({
         variant: "destructive",
         title: "Campos obrigatórios",
-        description: adoptOrphan 
-          ? "Nome e email são obrigatórios." 
-          : "Nome, email e senha são obrigatórios.",
+        description: "Nome, email e senha são obrigatórios.",
+      });
+      return;
+    }
+
+    if (userExistsWarning) {
+      toast({
+        variant: "destructive",
+        title: "Usuário já existe",
+        description: "Este email já possui um perfil cadastrado no sistema.",
       });
       return;
     }
@@ -71,10 +71,8 @@ const NewUserModal: React.FC<NewUserModalProps> = ({ isOpen, onClose, onSuccess 
       await createCompleteUser(userData);
 
       toast({
-        title: adoptOrphan ? "Usuário recuperado" : "Usuário criado",
-        description: adoptOrphan 
-          ? "Perfil criado para usuário existente com sucesso!" 
-          : "Usuário foi criado com sucesso!",
+        title: "Usuário criado",
+        description: "Usuário foi criado com sucesso!",
       });
 
       resetForm();
@@ -83,25 +81,29 @@ const NewUserModal: React.FC<NewUserModalProps> = ({ isOpen, onClose, onSuccess 
       console.error('Erro detalhado:', error);
       
       let errorMessage = "Não foi possível criar o usuário.";
+      let errorTitle = "Erro ao criar usuário";
       
-      if (error.message?.includes('User already registered')) {
-        errorMessage = "Este email já está registrado. Verifique se o usuário já existe ou se precisa de um perfil.";
+      if (error.message?.includes('User already registered') || error.message?.includes('já está registrado')) {
+        errorTitle = "Email já registrado";
+        errorMessage = error.message;
       } else if (error.message?.includes('Invalid email')) {
         errorMessage = "Email inválido. Verifique o formato do endereço de email.";
       } else if (error.message?.includes('Password')) {
         errorMessage = "Senha deve ter pelo menos 6 caracteres.";
+      } else if (error.message?.includes('já existe e possui perfil')) {
+        errorTitle = "Usuário já existe";
+        errorMessage = "Este usuário já está cadastrado no sistema.";
       } else if (error.message) {
         errorMessage = error.message;
       }
 
       toast({
         variant: "destructive",
-        title: "Erro ao criar usuário",
+        title: errorTitle,
         description: errorMessage,
       });
     } finally {
       setIsLoading(false);
-      setShowOrphanDialog(false);
     }
   };
 
@@ -115,8 +117,7 @@ const NewUserModal: React.FC<NewUserModalProps> = ({ isOpen, onClose, onSuccess 
       clinica: '',
       telefone: ''
     });
-    setOrphanUser(null);
-    setShowOrphanDialog(false);
+    setUserExistsWarning(false);
   };
 
   const handleClose = () => {
@@ -166,15 +167,17 @@ const NewUserModal: React.FC<NewUserModalProps> = ({ isOpen, onClose, onSuccess 
                         onChange={(e) => {
                           const email = e.target.value;
                           setNewUser(prev => ({ ...prev, email }));
-                          // Verificar usuário órfão quando sair do campo
-                          if (email && email.includes('@')) {
-                            checkForOrphanUser(email);
-                          }
+                          setUserExistsWarning(false); // Limpar aviso quando digitando
                         }}
-                        onBlur={() => checkForOrphanUser(newUser.email)}
-                        className="pl-10"
+                        onBlur={() => checkForExistingUser(newUser.email)}
+                        className={`pl-10 ${userExistsWarning ? 'border-orange-500 bg-orange-50' : ''}`}
                       />
                     </div>
+                    {userExistsWarning && (
+                      <p className="text-sm text-orange-600 mt-1">
+                        ⚠️ Este email já possui cadastro no sistema
+                      </p>
+                    )}
                   </div>
 
                 <div>
@@ -261,47 +264,13 @@ const NewUserModal: React.FC<NewUserModalProps> = ({ isOpen, onClose, onSuccess 
             </CardContent>
           </Card>
 
-          {/* Alerta para usuário órfão */}
-          {orphanUser && showOrphanDialog && (
-            <Alert className="border-orange-200 bg-orange-50">
-              <AlertTriangle className="h-4 w-4 text-orange-600" />
-              <AlertDescription className="text-orange-800">
-                <div className="space-y-2">
-                  <p className="font-medium">Usuário existente encontrado</p>
-                  <p className="text-sm">
-                    Este email já está registrado no sistema desde {new Date(orphanUser.created_at).toLocaleDateString('pt-BR')}, 
-                    mas não possui um perfil completo.
-                  </p>
-                  <div className="flex gap-2 mt-3">
-                    <Button 
-                      size="sm" 
-                      onClick={() => handleCreateUser(true)}
-                      disabled={isLoading}
-                      className="bg-orange-600 hover:bg-orange-700"
-                    >
-                      <UserCheck className="h-4 w-4 mr-1" />
-                      {isLoading ? 'Recuperando...' : 'Recuperar Usuário'}
-                    </Button>
-                    <Button 
-                      size="sm" 
-                      variant="outline" 
-                      onClick={() => setShowOrphanDialog(false)}
-                    >
-                      Cancelar
-                    </Button>
-                  </div>
-                </div>
-              </AlertDescription>
-            </Alert>
-          )}
-
           <div className="flex justify-between">
             <Button variant="outline" onClick={handleClose}>
               Cancelar
             </Button>
             <Button 
-              onClick={() => handleCreateUser(false)} 
-              disabled={isLoading || showOrphanDialog}
+              onClick={() => handleCreateUser()} 
+              disabled={isLoading || userExistsWarning}
             >
               {isLoading ? 'Criando...' : 'Criar Usuário'}
             </Button>
