@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { useToast } from '@/hooks/use-toast';
 import { photoService, Photo } from '@/services/photoService';
 import { usePhotoLikes } from '@/hooks/usePhotoLikes';
+import BulkPhotoEditor from '@/components/admin/BulkPhotoEditor';
 
 const AdminPhotoManager: React.FC = () => {
   const navigate = useNavigate();
@@ -23,7 +24,7 @@ const AdminPhotoManager: React.FC = () => {
   const [selectedPhoto, setSelectedPhoto] = useState<Photo | null>(null);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [selectedPhotos, setSelectedPhotos] = useState<Set<string>>(new Set());
-  const [bulkCategory, setBulkCategory] = useState('');
+  const [showBulkEditor, setShowBulkEditor] = useState(false);
   // Remover uso do hook antigo - não é necessário aqui
 
   useEffect(() => {
@@ -142,28 +143,6 @@ const AdminPhotoManager: React.FC = () => {
     }
   };
 
-  const handleBulkCategoryChange = async () => {
-    if (!bulkCategory) return;
-    try {
-      await Promise.all(Array.from(selectedPhotos).map(photoId => 
-        photoService.updatePhoto(photoId, { categoria: bulkCategory })
-      ));
-      toast({
-        title: "Categoria atualizada",
-        description: `${selectedPhotos.size} fotos foram atualizadas.`
-      });
-      setSelectedPhotos(new Set());
-      setBulkCategory('');
-      loadPhotos();
-    } catch (error) {
-      toast({
-        title: "Erro",
-        description: "Ocorreu um erro ao atualizar as categorias.",
-        variant: "destructive"
-      });
-    }
-  };
-
   const uniqueCategories = Array.from(new Set(photos.map(photo => photo.categoria).filter(Boolean)));
 
   if (loading) {
@@ -254,35 +233,23 @@ const AdminPhotoManager: React.FC = () => {
       </div>
 
       {/* Ações em lote */}
-      {selectedPhotos.size > 0 && (
+      {selectedPhotos.size > 0 && !showBulkEditor && (
         <Card className="bg-slate-800/50 border-cyan-500/20 p-4">
           <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
             <div className="text-sm text-slate-300">
               {selectedPhotos.size} foto(s) selecionada(s)
             </div>
             <div className="flex flex-col sm:flex-row gap-2">
-              <div className="flex gap-2">
-                <Select value={bulkCategory} onValueChange={setBulkCategory}>
-                  <SelectTrigger className="w-48">
-                    <SelectValue placeholder="Nova categoria" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {uniqueCategories.map((category) => (
-                      <SelectItem key={category} value={category!}>
-                        {category}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Button
-                  onClick={handleBulkCategoryChange}
-                  disabled={!bulkCategory}
-                  variant="outline"
-                  size="sm"
-                >
-                  Alterar Categoria
-                </Button>
-              </div>
+              <Button
+                onClick={() => setShowBulkEditor(true)}
+                variant="outline"
+                size="sm"
+                className="flex items-center gap-2"
+              >
+                <Edit className="h-4 w-4" />
+                Editar Selecionadas
+              </Button>
+              
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button variant="destructive" size="sm">
@@ -305,6 +272,7 @@ const AdminPhotoManager: React.FC = () => {
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
+              
               <Button
                 onClick={() => setSelectedPhotos(new Set())}
                 variant="ghost"
@@ -316,6 +284,19 @@ const AdminPhotoManager: React.FC = () => {
             </div>
           </div>
         </Card>
+      )}
+      
+      {/* Editor em massa */}
+      {showBulkEditor && selectedPhotos.size > 0 && (
+        <BulkPhotoEditor
+          selectedPhotos={selectedPhotos}
+          onComplete={() => {
+            setShowBulkEditor(false);
+            setSelectedPhotos(new Set());
+            loadPhotos();
+          }}
+          onCancel={() => setShowBulkEditor(false)}
+        />
       )}
 
       {/* Grid de fotos */}

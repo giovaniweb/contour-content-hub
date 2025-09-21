@@ -43,6 +43,7 @@ const AdminUserEdit = React.lazy(() => import('@/pages/admin/AdminUserEdit'));
 const AdminEquipments = React.lazy(() => import('@/pages/admin/AdminEquipments'));
 const AdminVideos = React.lazy(() => import('@/pages/admin/AdminVideos'));
 const AdminPhotos = React.lazy(() => import('@/pages/admin/AdminPhotos'));
+const AdminPhotoEdit = React.lazy(() => import('@/pages/admin/AdminPhotoEdit'));
 const EditEquipment = React.lazy(() => import('@/pages/admin/EditEquipment'));
 const VideoCreatePage = React.lazy(() => import('@/pages/videos/VideoCreatePage'));
 const VideoCreatePageAdmin = React.lazy(() => import('@/pages/admin/VideoCreatePageAdmin'));
@@ -699,6 +700,15 @@ const AppRoutes: React.FC = () => {
                   <AdminPhotosUpload />
                 </Suspense>
               </AppLayout>
+            } 
+          />
+
+          <Route 
+            path="/admin/photos/edit/:id"
+            element={
+              <Suspense fallback={<AuroraLoadingSkeleton />}>
+                <AdminPhotoEdit />
+              </Suspense>
             } 
           />
 
