@@ -6,6 +6,8 @@ import { Heart, Download, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { usePhotoLikes } from '@/hooks/usePhotoLikes';
 import { useEquipmentFilter } from '@/hooks/useEquipmentFilter';
+import { forceDownload } from '@/lib/forceDownload';
+import { toast } from '@/hooks/use-toast';
 
 interface PhotoGridProps {
   photos: Photo[];
@@ -29,14 +31,25 @@ export const PhotoGrid: React.FC<PhotoGridProps> = ({ photos, onPhotoClick }) =>
     console.log('Like functionality needs implementation');
   };
 
-  const handleDownload = (photo: Photo, event?: React.MouseEvent) => {
+  const handleDownload = async (photo: Photo, event?: React.MouseEvent) => {
     if (event) {
       event.stopPropagation();
     }
-    const link = document.createElement('a');
-    link.href = photo.url_imagem;
-    link.download = `${photo.titulo}.jpg`;
-    link.click();
+    
+    try {
+      await forceDownload(photo.url_imagem, `${photo.titulo}.jpg`);
+      
+      toast({
+        title: "Download iniciado",
+        description: "O download da foto foi iniciado.",
+      });
+    } catch (error) {
+      toast({
+        title: "Erro no download",
+        description: "Não foi possível baixar a foto.",
+        variant: "destructive",
+      });
+    }
   };
 
   if (photos.length === 0) {

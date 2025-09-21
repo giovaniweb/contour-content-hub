@@ -12,6 +12,7 @@ import { Heart, Download, Share2, X } from 'lucide-react';
 import { usePhotoLikes } from '@/hooks/usePhotoLikes';
 import { useEquipmentFilter } from '@/hooks/useEquipmentFilter';
 import { toast } from '@/hooks/use-toast';
+import { forceDownload } from '@/lib/forceDownload';
 
 interface PhotoPreviewDialogProps {
   photo: Photo | null;
@@ -65,16 +66,21 @@ export const PhotoPreviewDialog: React.FC<PhotoPreviewDialogProps> = ({
     }
   };
 
-  const handleDownload = () => {
-    const link = document.createElement('a');
-    link.href = photo.url_imagem;
-    link.download = `${photo.titulo}.jpg`;
-    link.click();
-    
-    toast({
-      title: "Download iniciado",
-      description: "O download da foto foi iniciado.",
-    });
+  const handleDownload = async () => {
+    try {
+      await forceDownload(photo.url_imagem, `${photo.titulo}.jpg`);
+      
+      toast({
+        title: "Download iniciado",
+        description: "O download da foto foi iniciado.",
+      });
+    } catch (error) {
+      toast({
+        title: "Erro no download",
+        description: "Não foi possível baixar a foto.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleFavorite = () => {
