@@ -26,8 +26,8 @@ export const useEquipmentFilter = () => {
   }, []);
 
   const getEquipmentName = (equipmentId: string): string => {
-    const equipment = equipments.find(eq => eq.id === equipmentId);
-    return equipment?.nome || 'Equipamento não encontrado';
+    const equipment = equipments.find(eq => eq.id === equipmentId || eq.nome === equipmentId);
+    return equipment?.nome || equipmentId || 'Equipamento não encontrado';
   };
 
   const getEquipmentById = (equipmentId: string): Equipment | undefined => {

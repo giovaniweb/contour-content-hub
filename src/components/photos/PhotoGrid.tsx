@@ -57,32 +57,27 @@ export const PhotoGrid: React.FC<PhotoGridProps> = ({ photos, onPhotoClick }) =>
                 loading="lazy"
               />
               
-              {/* Overlay com ações */}
-              <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleLike(photo.id)}
-                  className="text-pink-400 border-pink-400/20 hover:bg-pink-400/20"
-                >
-                  <Heart className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => onPhotoClick?.(photo)}
-                  className="text-white border-white/20 hover:bg-white/20"
-                >
-                  <Eye className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleDownload(photo)}
-                  className="text-green-400 border-green-400/20 hover:bg-green-400/20"
-                >
-                  <Download className="h-4 w-4" />
-                </Button>
+              {/* Overlay com gradiente */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300">
+                {/* Botões de ação no canto inferior direito */}
+                <div className="absolute bottom-3 right-3 flex gap-2 transform translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onPhotoClick?.(photo)}
+                    className="text-white border-white/30 hover:bg-white/20 bg-black/30 backdrop-blur-sm"
+                  >
+                    <Eye className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleDownload(photo)}
+                    className="text-white border-white/30 hover:bg-white/20 bg-black/30 backdrop-blur-sm"
+                  >
+                    <Download className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
             </div>
             
@@ -121,13 +116,12 @@ export const PhotoGrid: React.FC<PhotoGridProps> = ({ photos, onPhotoClick }) =>
               <div className="flex justify-between items-center text-xs text-slate-400">
                 <div className="flex items-center gap-3">
                   <span className="flex items-center gap-1">
-                    <Heart className="h-3 w-3" />
-                    {photo.favoritos_count || 0}
-                  </span>
-                  <span className="flex items-center gap-1">
                     <Download className="h-3 w-3" />
-                    {photo.downloads_count || 0}
+                    {photo.downloads_count || 0} downloads
                   </span>
+                </div>
+                <div className="text-xs text-slate-500">
+                  {photo.categoria || 'Sem categoria'}
                 </div>
               </div>
             </div>

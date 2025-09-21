@@ -58,7 +58,7 @@ const Photos: React.FC = () => {
                            photo.descricao_curta?.toLowerCase().includes(searchTerm.toLowerCase());
       
       const matchesEquipment = !selectedEquipment || selectedEquipment === 'all' || 
-                              (selectedEquipment !== '' && photo.categoria === getEquipmentName(selectedEquipment));
+                              photo.categoria === selectedEquipment;
       
       return matchesSearch && matchesEquipment;
     });
@@ -284,7 +284,10 @@ const Photos: React.FC = () => {
                 variant={viewMode === 'grid' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => setViewMode('grid')}
-                className="aurora-button rounded-xl"
+                className={`rounded-xl ${viewMode === 'grid' 
+                  ? 'bg-cyan-500 hover:bg-cyan-600 text-white' 
+                  : 'border-cyan-400/30 text-white hover:bg-slate-700'
+                }`}
               >
                 <Grid className="h-4 w-4" />
               </Button>
@@ -292,7 +295,10 @@ const Photos: React.FC = () => {
                 variant={viewMode === 'list' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => setViewMode('list')}
-                className="aurora-button rounded-xl"
+                className={`rounded-xl ${viewMode === 'list' 
+                  ? 'bg-cyan-500 hover:bg-cyan-600 text-white' 
+                  : 'border-cyan-400/30 text-white hover:bg-slate-700'
+                }`}
               >
                 <List className="h-4 w-4" />
               </Button>
@@ -349,44 +355,35 @@ const Photos: React.FC = () => {
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                   />
                   
-                  {/* Overlay com botões no hover */}
-                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleLike(photo.id, e);
-                      }}
-                      className="text-pink-400 border-pink-400/20 hover:bg-pink-400/20"
-                    >
-                      <Heart className={`h-4 w-4 ${likedPhotos.has(photo.id) ? 'fill-current' : ''}`} />
-                    </Button>
-                    
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setSelectedPhoto(photo);
-                      }}
-                      className="text-white border-white/20 hover:bg-white/20"
-                    >
-                      <Image className="h-4 w-4" />
-                    </Button>
-                    
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleSingleDownload(photo.url_imagem, photo.titulo, e);
-                      }}
-                      disabled={isDownloading}
-                      className="text-green-400 border-green-400/20 hover:bg-green-400/20"
-                    >
-                      <Download className="h-4 w-4" />
-                    </Button>
+                  {/* Overlay com gradiente igual aos vídeos */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300">
+                    {/* Botões de ação no canto inferior direito */}
+                    <div className="absolute bottom-3 right-3 flex gap-2 transform translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedPhoto(photo);
+                        }}
+                        className="text-white border-white/30 hover:bg-white/20 bg-black/30 backdrop-blur-sm"
+                      >
+                        <Image className="h-4 w-4" />
+                      </Button>
+                      
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleSingleDownload(photo.url_imagem, photo.titulo, e);
+                        }}
+                        disabled={isDownloading}
+                        className="text-white border-white/30 hover:bg-white/20 bg-black/30 backdrop-blur-sm"
+                      >
+                        <Download className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
                 </div>
 
@@ -403,7 +400,7 @@ const Photos: React.FC = () => {
                   <div className="flex items-center justify-between text-xs text-slate-400 mb-3">
                     <div className="flex flex-col">
                       {photo.categoria && (
-                        <span className="text-cyan-400 font-medium">{getEquipmentName(photo.categoria)}</span>
+                        <span className="text-cyan-400 font-medium">{photo.categoria}</span>
                       )}
                     </div>
                     <span>{photo.downloads_count || 0} downloads</span>
