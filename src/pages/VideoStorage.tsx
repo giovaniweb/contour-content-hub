@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Video, Upload, Grid, Search, Filter, Play, Download, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import AuroraPageLayout from '@/components/layout/AuroraPageLayout';
@@ -130,53 +131,77 @@ const VideoStorage: React.FC = () => {
           <div className="p-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {filteredVideos.map((video) => (
-                <div key={video.id} className="group aurora-glass p-4 rounded-lg backdrop-blur-md bg-slate-800/30 border border-white/10">
-                  <div className="relative aspect-video rounded-lg overflow-hidden aurora-glass mb-3">
-                    <video
-                      className="w-full h-full object-cover"
-                      poster={video.thumbnail_url}
-                    >
-                      <source src={video.url_video} type="video/mp4" />
-                    </video>
-                    
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                    
-                    <div className="absolute bottom-4 left-4 right-4 transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300 opacity-0 group-hover:opacity-100">
-                      <div className="flex gap-2">
-                        <Button size="sm" className="aurora-button">
-                          <Play className="h-4 w-4" />
-                        </Button>
-                        <Button size="sm" variant="outline" className="bg-white/10 border-white/20 text-white hover:bg-white/20">
-                          <Download className="h-4 w-4" />
-                        </Button>
-                        <Button size="sm" variant="outline" className="bg-white/10 border-white/20 text-white hover:bg-white/20">
-                          <Eye className="h-4 w-4" />
-                        </Button>
+                <div key={video.id} className="bg-slate-800/50 border-2 border-slate-700/50 hover:border-cyan-400/50 overflow-hidden transition-all duration-300 group hover:shadow-lg hover:shadow-cyan-400/10 rounded-2xl">
+                  <div className="p-0">
+                    <div className="relative aspect-video bg-slate-700/50 overflow-hidden rounded-t-2xl">
+                      {video.thumbnail_url ? (
+                        <img
+                          src={video.thumbnail_url}
+                          alt={video.titulo}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-700 to-slate-800">
+                          <Play className="h-12 w-12 text-cyan-400" />
+                        </div>
+                      )}
+                      
+                      {/* Hover overlay */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300">
+                        <div className="absolute bottom-3 right-3 transform translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="text-white border-white/30 hover:bg-white/20 bg-black/50 backdrop-blur-sm rounded-lg"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </div>
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <h3 className="font-medium text-slate-200 group-hover:text-aurora-electric-purple transition-colors duration-200 line-clamp-2">
-                      {video.titulo}
-                    </h3>
-                    
-                    <div className="flex flex-wrap gap-1 mb-2">
-                      {video.equipamentos && video.equipamentos.slice(0, 2).map((equipmentId: string) => (
-                        <span key={equipmentId} className="inline-block px-2 py-1 text-xs bg-aurora-cyan/20 text-aurora-cyan rounded-full">
-                          {getEquipmentName(equipmentId)}
-                        </span>
-                      ))}
-                      {video.equipamentos && video.equipamentos.length > 2 && (
-                        <span className="inline-block px-2 py-1 text-xs bg-slate-600/20 text-slate-400 rounded-full">
-                          +{video.equipamentos.length - 2}
-                        </span>
+
+                      {/* Duration badge */}
+                      {video.duracao && (
+                        <div className="absolute top-2 left-2">
+                          <Badge className="bg-blue-600/90 text-white text-xs border-none">
+                            {video.duracao}
+                          </Badge>
+                        </div>
                       )}
                     </div>
                     
-                    <div className="flex items-center justify-between text-xs text-slate-500">
-                      <span>{video.duracao || '00:00'}</span>
-                      <span>{video.downloads_count || 0} downloads</span>
+                    <div className="p-4">
+                      <h3 className="font-semibold text-white text-sm mb-1 truncate">{video.titulo}</h3>
+                      
+                      {video.equipamentos && (
+                        <p className="text-cyan-400 text-xs mb-3 font-medium">{getEquipmentName(video.equipamentos[0])}</p>
+                      )}
+                      
+                      <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-700/30">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="flex-1 bg-slate-700/50 border-slate-700/30 text-slate-200 hover:bg-slate-600/50 hover:border-cyan-400/50 hover:text-white rounded-lg"
+                        >
+                          <Eye className="h-4 w-4 mr-1" />
+                          Ver
+                        </Button>
+                        
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="bg-slate-700/50 border-slate-700/30 text-slate-200 hover:bg-pink-500/20 hover:border-pink-400/50 hover:text-pink-300 rounded-lg px-3"
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="bg-slate-700/50 border-slate-700/30 text-slate-200 hover:bg-green-500/20 hover:border-green-400/50 hover:text-green-300 rounded-lg px-3"
+                        >
+                          <Download className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 </div>

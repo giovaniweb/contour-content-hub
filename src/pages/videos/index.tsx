@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import AppLayout from '@/components/layout/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Video, Upload, Loader2, Search, Filter, Grid, List, Play } from 'lucide-react';
+import { Video, Upload, Loader2, Search, Filter, Grid, List, Play, Eye, Download, Heart } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
@@ -57,9 +57,6 @@ const VideosPage: React.FC = () => {
   // Obter categorias únicas
   const categories = [...new Set(videos.map(v => v.categoria).filter(Boolean))];
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('pt-BR');
-  };
 
   return (
     <AppLayout>
@@ -111,9 +108,9 @@ const VideosPage: React.FC = () => {
             <div className="aurora-glass rounded-2xl p-6 aurora-floating" style={{ animationDelay: '0.4s' }}>
               <div className="text-center">
                 <div className="text-3xl font-bold text-purple-400 mb-2">
-                  {isLoading ? '--' : videos.reduce((total, video) => total + (video.downloads_count || 0), 0)}
+                  {isLoading ? '--' : videos.length > 0 ? 'HD' : '--'}
                 </div>
-                <div className="text-slate-300">Total Downloads</div>
+                <div className="text-slate-300">Qualidade</div>
               </div>
             </div>
           </div>
@@ -207,87 +204,81 @@ const VideosPage: React.FC = () => {
           ) : viewMode === 'grid' ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {filteredVideos.map((video) => (
-                <div key={video.id} className="aurora-card rounded-2xl group hover:scale-105 transition-all duration-300">
-                  {/* Thumbnail */}
-                  <div 
-                    className="relative aspect-video bg-slate-800/50 overflow-hidden rounded-t-2xl cursor-pointer"
-                    onClick={() => handleVideoPlay(video)}
-                  >
-                    {video.thumbnail_url ? (
-                      <img
-                        src={video.thumbnail_url}
-                        alt={video.titulo}
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-800 to-slate-900">
-                        <Play className="h-12 w-12 text-cyan-400" />
+                <div key={video.id} className="bg-slate-800/50 border-2 border-slate-700/50 hover:border-cyan-400/50 overflow-hidden transition-all duration-300 group hover:shadow-lg hover:shadow-cyan-400/10 rounded-2xl">
+                  <div className="p-0">
+                    <div className="relative aspect-video bg-slate-700/50 overflow-hidden rounded-t-2xl">
+                      {video.thumbnail_url ? (
+                        <img
+                          src={video.thumbnail_url}
+                          alt={video.titulo}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-700 to-slate-800">
+                          <Play className="h-12 w-12 text-cyan-400" />
+                        </div>
+                      )}
+                      
+                      {/* Hover overlay */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300">
+                        <div className="absolute bottom-3 right-3 transform translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleVideoPlay(video)}
+                            className="text-white border-white/30 hover:bg-white/20 bg-black/50 backdrop-blur-sm rounded-lg"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </div>
-                    )}
-                    
-                    {/* Aurora overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                      <div className="aurora-glass rounded-full p-4">
-                        <Play className="h-8 w-8 text-cyan-400" />
-                      </div>
-                    </div>
 
-                    {/* Duration */}
-                    {video.duracao && (
-                      <div className="absolute bottom-3 right-3 aurora-glass px-2 py-1 rounded-lg text-xs text-cyan-400">
-                        {video.duracao}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Content */}
-                  <div className="p-4">
-                    <h3 className="font-medium text-white mb-2 line-clamp-2">{video.titulo}</h3>
-                    
-                    {video.descricao_curta && (
-                      <p className="text-xs text-slate-400 mb-3 line-clamp-2">
-                        {video.descricao_curta}
-                      </p>
-                    )}
-
-                    <div className="flex items-center justify-between text-xs text-slate-400 mb-3">
-                      <span>{formatDate(video.data_upload)}</span>
-                      <span>{video.downloads_count || 0} downloads</span>
-                    </div>
-
-                    {/* Tags */}
-                    {video.tags && video.tags.length > 0 && (
-                      <div className="flex flex-wrap gap-1 mb-4">
-                        {video.tags.slice(0, 2).map((tag, index) => (
-                          <Badge key={index} variant="secondary" className="text-xs bg-cyan-400/20 text-cyan-400 border-cyan-400/30">
-                            {tag}
+                      {/* Duration badge */}
+                      {video.duracao && (
+                        <div className="absolute top-2 left-2">
+                          <Badge className="bg-blue-600/90 text-white text-xs border-none">
+                            {video.duracao}
                           </Badge>
-                        ))}
-                        {video.tags.length > 2 && (
-                          <Badge variant="outline" className="text-xs border-cyan-400/30 text-cyan-400">
-                            +{video.tags.length - 2}
-                          </Badge>
+                        </div>
+                      )}
+                    </div>
+                    
+                    <div className="p-4">
+                      <h3 className="font-semibold text-white text-sm mb-1 truncate">{video.titulo}</h3>
+                      
+                      {video.categoria && (
+                        <p className="text-cyan-400 text-xs mb-3 font-medium">{video.categoria}</p>
+                      )}
+                      
+                      <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-700/30">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleVideoPlay(video)}
+                          className="flex-1 bg-slate-700/50 border-slate-700/30 text-slate-200 hover:bg-slate-600/50 hover:border-cyan-400/50 hover:text-white rounded-lg"
+                        >
+                          <Eye className="h-4 w-4 mr-1" />
+                          Ver
+                        </Button>
+                        
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="bg-slate-700/50 border-slate-700/30 text-slate-200 hover:bg-pink-500/20 hover:border-pink-400/50 hover:text-pink-300 rounded-lg px-3"
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        
+                        {video.url_video && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="bg-slate-700/50 border-slate-700/30 text-slate-200 hover:bg-green-500/20 hover:border-green-400/50 hover:text-green-300 rounded-lg px-3"
+                          >
+                            <Download className="h-4 w-4" />
+                          </Button>
                         )}
                       </div>
-                    )}
-
-                    {/* Actions */}
-                    <div className="flex items-center justify-between">
-                      <Button 
-                        size="sm" 
-                        onClick={() => handleVideoPlay(video)}
-                        className="aurora-button rounded-xl flex-1 mr-2"
-                      >
-                        <Play className="h-4 w-4 mr-1" />
-                        Assistir
-                      </Button>
-                      
-                      {video.url_video && (
-                        <VideoDownloadMenu
-                          downloads={[{ quality: 'Original', link: video.url_video }]}
-                          videoId={video.id}
-                        />
-                      )}
                     </div>
                   </div>
                 </div>
@@ -326,9 +317,8 @@ const VideosPage: React.FC = () => {
                           </p>
                         )}
                         <div className="flex items-center gap-4 text-xs text-slate-400">
-                          <span>{formatDate(video.data_upload)}</span>
-                          <span>{video.downloads_count || 0} downloads</span>
                           {video.duracao && <span>{video.duracao}</span>}
+                          {video.categoria && <span className="text-cyan-400">{video.categoria}</span>}
                         </div>
                       </div>
 
@@ -340,7 +330,7 @@ const VideosPage: React.FC = () => {
                           className="aurora-button rounded-xl"
                         >
                           <Play className="h-4 w-4 mr-1" />
-                          Assistir
+                          Ver
                         </Button>
                         
                         {video.url_video && (
