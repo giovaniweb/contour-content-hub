@@ -192,8 +192,16 @@ const Arts: React.FC = () => {
             <div className="p-6">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {filteredMaterials.map((material) => (
-                  <div key={material.id} className="group aurora-glass p-4 rounded-lg backdrop-blur-md bg-slate-800/30 border border-white/10">
-                    <div className="relative aspect-[16/9] rounded-lg overflow-hidden aurora-glass">
+                  <div key={material.id} className="group aurora-glass backdrop-blur-md bg-slate-800/30 border border-white/10 rounded-lg overflow-hidden hover:border-aurora-electric-purple/50 transition-all duration-300">
+                    {/* Image Container */}
+                    <div className="relative aspect-[16/9] overflow-hidden">
+                      {/* Photo Count Badge - Top Left */}
+                      <div className="absolute top-3 left-3 z-10">
+                        <div className="bg-black/70 text-white px-2 py-1 rounded-md text-xs font-medium backdrop-blur-sm">
+                          {material.is_carousel ? `${(material.carousel_images || []).length} fotos` : '1 foto'}
+                        </div>
+                      </div>
+
                       {material.is_carousel ? (
                         <CarouselViewer 
                           images={material.carousel_images || []} 
@@ -202,127 +210,119 @@ const Arts: React.FC = () => {
                           equipments={equipments}
                         />
                       ) : (
-                        <>
-                          <img
-                            src={material.thumbnail_url?.includes('http') 
-                              ? material.thumbnail_url 
-                              : material.thumbnail_url 
-                                ? `https://mksvzhgqnsjfolvskibq.supabase.co/storage/v1/object/public/downloads/${material.thumbnail_url}`
-                                : material.file_url?.includes('http')
-                                  ? material.file_url
-                                  : `https://mksvzhgqnsjfolvskibq.supabase.co/storage/v1/object/public/downloads/${material.file_url}`
+                        <img
+                          src={material.thumbnail_url?.includes('http') 
+                            ? material.thumbnail_url 
+                            : material.thumbnail_url 
+                              ? `https://mksvzhgqnsjfolvskibq.supabase.co/storage/v1/object/public/downloads/${material.thumbnail_url}`
+                              : material.file_url?.includes('http')
+                                ? material.file_url
+                                : `https://mksvzhgqnsjfolvskibq.supabase.co/storage/v1/object/public/downloads/${material.file_url}`
+                          }
+                          alt={material.title}
+                          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            if (target.src.includes(material.thumbnail_url || '')) {
+                              const fallbackUrl = material.file_url?.includes('http') 
+                                ? material.file_url
+                                : `https://mksvzhgqnsjfolvskibq.supabase.co/storage/v1/object/public/downloads/${material.file_url}`;
+                              target.src = fallbackUrl;
+                            } else {
+                              target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIwIiBoZWlnaHQ9IjE4MCIgdmlld0JveD0iMCAwIDMyMCAxODAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzMjAiIGhlaWdodD0iMTgwIiBmaWxsPSIjMzMzIi8+CjxwYXRoIGQ9Ik0xNDQgNzJMMTc2IDEwOEgxMTJMMTQ0IDcyWiIgZmlsbD0iIzU1NSIvPgo8Y2lyY2xlIGN4PSIxMzYiIGN5PSI2NCIgcj0iMTIiIGZpbGw9IiM1NTUiLz4KPHN2Zz4K';
                             }
-                            alt={material.title}
-                            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                            onError={(e) => {
-                              const target = e.target as HTMLImageElement;
-                              // Se thumbnail falhar, tenta file_url
-                              if (target.src.includes(material.thumbnail_url || '')) {
-                                const fallbackUrl = material.file_url?.includes('http') 
-                                  ? material.file_url
-                                  : `https://mksvzhgqnsjfolvskibq.supabase.co/storage/v1/object/public/downloads/${material.file_url}`;
-                                target.src = fallbackUrl;
-                              } else {
-                                // Se tudo falhar, usar imagem placeholder
-                                target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIwIiBoZWlnaHQ9IjE4MCIgdmlld0JveD0iMCAwIDMyMCAxODAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzMjAiIGhlaWdodD0iMTgwIiBmaWxsPSIjMzMzIi8+CjxwYXRoIGQ9Ik0xNDQgNzJMMTc2IDEwOEgxMTJMMTQ0IDcyWiIgZmlsbD0iIzU1NSIvPgo8Y2lyY2xlIGN4PSIxMzYiIGN5PSI2NCIgcj0iMTIiIGZpbGw9IiM1NTUiLz4KPHN2Zz4K';
-                              }
-                            }}
-                          />
-                          
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                          
-                          <div className="absolute bottom-4 left-4 right-4 transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300 opacity-0 group-hover:opacity-100">
-                            <div className="flex gap-2">
-                              <Button size="sm" onClick={() => handleDownload(material)} className="aurora-button">
-                                <Download className="h-4 w-4" />
-                              </Button>
-                              <Button size="sm" variant="outline" className="bg-white/10 border-white/20 text-white hover:bg-white/20">
-                                <Eye className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </div>
-                        </>
+                          }}
+                        />
                       )}
                     </div>
                     
-                    <div className="mt-3 space-y-3">
-                      <h3 className="font-medium text-slate-200 group-hover:text-aurora-electric-purple transition-colors duration-200 line-clamp-1">
+                    {/* Card Content */}
+                    <div className="p-4 space-y-3">
+                      {/* Title */}
+                      <h3 className="font-semibold text-white group-hover:text-aurora-electric-purple transition-colors duration-200 line-clamp-2">
                         {material.title}
                       </h3>
                       
-                      {/* Equipamentos relacionados */}
+                      {/* Equipment Tags */}
                       {material.equipment_ids && material.equipment_ids.length > 0 && (
                         <div className="flex flex-wrap gap-1">
                           {getEquipmentNames(material.equipment_ids).slice(0, 2).map((equipName, index) => (
                             <span
                               key={index}
-                              className="px-2 py-1 text-xs bg-aurora-neon-blue/20 text-aurora-neon-blue rounded-full"
+                              className="px-2 py-1 text-xs bg-aurora-neon-blue/20 text-aurora-neon-blue rounded-full border border-aurora-neon-blue/30"
                             >
                               {equipName}
                             </span>
                           ))}
                           {material.equipment_ids.length > 2 && (
-                            <span className="px-2 py-1 text-xs bg-slate-700/50 text-slate-400 rounded-full">
+                            <span className="px-2 py-1 text-xs bg-slate-700/50 text-slate-400 rounded-full border border-slate-600/30">
                               +{material.equipment_ids.length - 2}
                             </span>
                           )}
                         </div>
                       )}
 
-                       {/* Ações principais */}
-                       <div className="flex items-center justify-between">
-                         <div className="flex gap-2">
-                           <Button size="sm" onClick={() => handleDownload(material)} className="aurora-button">
-                             <Download className="h-4 w-4" />
-                           </Button>
-                            <Dialog>
-                              <DialogTrigger asChild>
-                                <Button size="sm" variant="outline" className="bg-white/10 border-white/20 text-white hover:bg-white/20">
-                                  <Eye className="h-4 w-4" />
-                                </Button>
-                              </DialogTrigger>
-                              <DialogContent className="max-w-6xl bg-slate-900 border-aurora-electric-purple/30">
-                                <DialogHeader>
-                                  <DialogTitle className="text-white flex items-center gap-2">
-                                    <Eye className="h-5 w-5 text-aurora-electric-purple" />
-                                    {material.title}
-                                  </DialogTitle>
-                                </DialogHeader>
-                                
-                                {material.is_carousel ? (
-                                  <CarouselViewer 
-                                    images={material.carousel_images || []} 
-                                    title={material.title}
-                                    material={material}
-                                    equipments={equipments}
-                                  />
-                                ) : (
-                                  <CarouselViewer 
-                                    images={[material.file_url]} 
-                                    title={material.title}
-                                    material={material}
-                                    equipments={equipments}
-                                  />
-                                )}
-                              </DialogContent>
-                            </Dialog>
-                           <Button 
-                             size="sm" 
-                             variant="outline"
-                             onClick={() => handleLike(material.id)}
-                             className={`transition-all duration-200 ${
-                               likedMaterials.has(material.id)
-                                 ? 'bg-aurora-electric-purple/30 border-aurora-electric-purple/50 text-aurora-electric-purple hover:bg-aurora-electric-purple/40'
-                                 : 'bg-white/10 border-white/20 text-white hover:bg-aurora-electric-purple/20 hover:text-aurora-electric-purple'
-                             }`}
-                           >
-                             <Heart className={`h-4 w-4 ${likedMaterials.has(material.id) ? 'fill-current' : ''}`} />
-                           </Button>
-                         </div>
-                         <span className="text-xs text-slate-500">
-                           {new Date(material.created_at).toLocaleDateString()}
-                         </span>
-                       </div>
+                      {/* Action Buttons Row */}
+                      <div className="flex items-center justify-between pt-2">
+                        <div className="flex items-center gap-2">
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => handleLike(material.id)}
+                            className={`transition-all duration-200 ${
+                              likedMaterials.has(material.id)
+                                ? 'bg-aurora-electric-purple/20 border-aurora-electric-purple/40 text-aurora-electric-purple hover:bg-aurora-electric-purple/30'
+                                : 'bg-white/10 border-white/20 text-white hover:bg-aurora-electric-purple/20 hover:text-aurora-electric-purple hover:border-aurora-electric-purple/30'
+                            }`}
+                          >
+                            <Heart className={`h-4 w-4 ${likedMaterials.has(material.id) ? 'fill-current' : ''}`} />
+                          </Button>
+
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <Button size="sm" variant="outline" className="bg-white/10 border-white/20 text-white hover:bg-white/20">
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent className="max-w-6xl bg-slate-900 border-aurora-electric-purple/30">
+                              <DialogHeader>
+                                <DialogTitle className="text-white flex items-center gap-2">
+                                  <Eye className="h-5 w-5 text-aurora-electric-purple" />
+                                  {material.title}
+                                </DialogTitle>
+                              </DialogHeader>
+                              
+                              {material.is_carousel ? (
+                                <CarouselViewer 
+                                  images={material.carousel_images || []} 
+                                  title={material.title}
+                                  material={material}
+                                  equipments={equipments}
+                                />
+                              ) : (
+                                <CarouselViewer 
+                                  images={[material.file_url]} 
+                                  title={material.title}
+                                  material={material}
+                                  equipments={equipments}
+                                />
+                              )}
+                            </DialogContent>
+                          </Dialog>
+
+                          <Button size="sm" onClick={() => handleDownload(material)} className="aurora-button hover:aurora-glow">
+                            <Download className="h-4 w-4" />
+                          </Button>
+                        </div>
+
+                        {/* Date - Bottom Right */}
+                        <span className="text-xs text-slate-400">
+                          {new Date(material.created_at).toLocaleDateString('pt-BR', {
+                            day: '2-digit',
+                            month: '2-digit'
+                          })}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 ))}

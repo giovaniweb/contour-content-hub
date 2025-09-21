@@ -165,46 +165,48 @@ const CarouselViewer: React.FC<CarouselViewerProps> = ({
                 </DialogHeader>
                 
                 <div className="grid lg:grid-cols-2 gap-6 h-[80vh]">
-                  {/* Lado esquerdo - Imagens */}
-                  <div className="space-y-4">
+                  {/* Lado esquerdo - Carrossel e Controles */}
+                  <div className="flex flex-col space-y-4">
                     {/* Carrossel principal */}
-                    <Carousel className="w-full">
-                      <CarouselContent>
-                        {images.map((imageUrl, index) => (
-                          <CarouselItem key={index}>
-                            <div className="relative">
-                              <div className="aspect-[16/9] rounded-lg overflow-hidden bg-black/20">
-                                <img
-                                  src={`https://mksvzhgqnsjfolvskibq.supabase.co/storage/v1/object/public/downloads/${imageUrl}`}
-                                  alt={`${title} - ${index + 1}`}
-                                  className="w-full h-full object-contain"
-                                />
-                              </div>
-                              
-                              {/* Contador */}
-                              <div className="absolute bottom-2 left-2">
-                                <Badge className="bg-black/70 text-white">
-                                  {index + 1} de {images.length}
-                                </Badge>
-                              </div>
+                    <div className="flex-1">
+                      <Carousel className="w-full h-full">
+                        <CarouselContent className="h-full">
+                          {images.map((imageUrl, index) => (
+                            <CarouselItem key={index} className="h-full">
+                              <div className="relative h-full">
+                                <div className="h-full rounded-lg overflow-hidden bg-black/20">
+                                  <img
+                                    src={`https://mksvzhgqnsjfolvskibq.supabase.co/storage/v1/object/public/downloads/${imageUrl}`}
+                                    alt={`${title} - ${index + 1}`}
+                                    className="w-full h-full object-contain"
+                                  />
+                                </div>
+                                
+                                {/* Contador */}
+                                <div className="absolute bottom-3 left-3">
+                                  <Badge className="bg-black/70 text-white border-0">
+                                    {index + 1} de {images.length}
+                                  </Badge>
+                                </div>
 
-                              {/* Botão de download individual */}
-                              <div className="absolute bottom-2 right-2">
-                                <Button
-                                  size="sm"
-                                  onClick={() => handleDownload(imageUrl, index)}
-                                  className="aurora-button aurora-glow hover:aurora-glow-intense"
-                                >
-                                  <Download className="h-4 w-4" />
-                                </Button>
+                                {/* Botão de download individual */}
+                                <div className="absolute bottom-3 right-3">
+                                  <Button
+                                    size="sm"
+                                    onClick={() => handleDownload(imageUrl, index)}
+                                    className="aurora-button aurora-glow hover:aurora-glow-intense"
+                                  >
+                                    <Download className="h-4 w-4" />
+                                  </Button>
+                                </div>
                               </div>
-                            </div>
-                          </CarouselItem>
-                        ))}
-                      </CarouselContent>
-                      <CarouselPrevious className="left-2" />
-                      <CarouselNext className="right-2" />
-                    </Carousel>
+                            </CarouselItem>
+                          ))}
+                        </CarouselContent>
+                        <CarouselPrevious className="left-2" />
+                        <CarouselNext className="right-2" />
+                      </Carousel>
+                    </div>
 
                     {/* Thumbnails */}
                     <div className="grid grid-cols-6 md:grid-cols-8 gap-2">
@@ -226,11 +228,11 @@ const CarouselViewer: React.FC<CarouselViewerProps> = ({
                       ))}
                     </div>
 
-                    {/* Ações */}
-                    <div className="flex justify-center gap-2 pt-4">
+                    {/* Botão Download All - Posicionado à esquerda */}
+                    <div className="flex justify-start pt-2">
                       <Button
                         onClick={downloadAll}
-                        className="aurora-button aurora-glow hover:aurora-glow-intense"
+                        className="aurora-button aurora-glow hover:aurora-glow-intense px-6"
                       >
                         <Download className="h-4 w-4 mr-2" />
                         Baixar Todas ({images.length})
@@ -240,7 +242,7 @@ const CarouselViewer: React.FC<CarouselViewerProps> = ({
 
                   {/* Lado direito - Informações e Legenda */}
                   <div className="flex flex-col h-full overflow-hidden">
-                    <div className="flex-1 overflow-y-auto aurora-scroll space-y-4 pr-2">
+                    <div className="flex-1 overflow-y-auto aurora-scroll space-y-6 pr-2">
                     {/* Informações do material */}
                     {material && (
                       <div className="aurora-glass p-6 space-y-4 backdrop-blur-md bg-slate-800/30 border border-white/10 rounded-lg">
