@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Image, Search, Grid, List, Tag, Zap, Heart, Download, Archive, Check } from 'lucide-react';
+import { Image, Search, Grid, List, Tag, Zap, Heart, Download, Archive, Check, Eye } from 'lucide-react';
 import { EquipmentFilter } from '@/components/filters/EquipmentFilter';
 import AuroraPageLayout from '@/components/layout/AuroraPageLayout';
 import StandardPageHeader from '@/components/layout/StandardPageHeader';
@@ -28,27 +28,44 @@ const Photos: React.FC = () => {
   const [likesCount, setLikesCount] = useState<Record<string, number>>({});
   const [isDownloading, setIsDownloading] = useState(false);
 
-  // Carregar contagem de curtidas
+  // Carregar contagem de curtidas e status de curtida do usuário
   useEffect(() => {
-    const loadLikesCount = async () => {
+    const loadLikesData = async () => {
       if (photos.length === 0) return;
       
-      const { data, error } = await supabase
+      // Carregar contagem total de curtidas
+      const { data: allLikes, error: likesError } = await supabase
         .from('favoritos')
         .select('foto_id')
         .in('foto_id', photos.map(p => p.id))
         .eq('tipo', 'foto');
       
-      if (!error && data) {
+      if (!likesError && allLikes) {
         const counts: Record<string, number> = {};
-        data.forEach(like => {
+        allLikes.forEach(like => {
           counts[like.foto_id] = (counts[like.foto_id] || 0) + 1;
         });
         setLikesCount(counts);
       }
+
+      // Carregar curtidas do usuário atual
+      const { data: user } = await supabase.auth.getUser();
+      if (user?.user) {
+        const { data: userLikes, error: userLikesError } = await supabase
+          .from('favoritos')
+          .select('foto_id')
+          .in('foto_id', photos.map(p => p.id))
+          .eq('tipo', 'foto')
+          .eq('usuario_id', user.user.id);
+        
+        if (!userLikesError && userLikes) {
+          const likedPhotoIds = new Set(userLikes.map(like => like.foto_id));
+          setLikedPhotos(likedPhotoIds);
+        }
+      }
     };
     
-    loadLikesCount();
+    loadLikesData();
   }, [photos]);
 
   // Filtrar fotos
@@ -74,27 +91,74 @@ const Photos: React.FC = () => {
   const handleLike = async (photoId: string, event: React.MouseEvent) => {
     event.stopPropagation();
     
-    if (likedPhotos.has(photoId)) {
-      toast({
-        title: "Foto já curtida",
-        description: "Você já curtiu esta foto anteriormente.",
-      });
-      return;
-    }
-
-    // Implementar com hook correto
     try {
-      setLikedPhotos(prev => new Set(prev).add(photoId));
-      setLikesCount(prev => ({
-        ...prev,
-        [photoId]: (prev[photoId] || 0) + 1
-      }));
-      toast({
-        title: "Foto curtida!",
-        description: "Obrigado por curtir esta foto.",
-      });
+      const { data: user } = await supabase.auth.getUser();
+      if (!user?.user) {
+        toast({
+          title: "Erro",
+          description: "Você precisa estar logado para curtir fotos.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      const isCurrentlyLiked = likedPhotos.has(photoId);
+      
+      if (isCurrentlyLiked) {
+        // Remover curtida
+        const { error } = await supabase
+          .from('favoritos')
+          .delete()
+          .eq('foto_id', photoId)
+          .eq('usuario_id', user.user.id)
+          .eq('tipo', 'foto');
+        
+        if (error) throw error;
+        
+        setLikedPhotos(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(photoId);
+          return newSet;
+        });
+        setLikesCount(prev => ({
+          ...prev,
+          [photoId]: Math.max(0, (prev[photoId] || 1) - 1)
+        }));
+        
+        toast({
+          title: "Curtida removida",
+          description: "Foto removida dos favoritos."
+        });
+      } else {
+        // Adicionar curtida
+        const { error } = await supabase
+          .from('favoritos')
+          .insert({
+            foto_id: photoId,
+            usuario_id: user.user.id,
+            tipo: 'foto'
+          });
+        
+        if (error) throw error;
+        
+        setLikedPhotos(prev => new Set(prev).add(photoId));
+        setLikesCount(prev => ({
+          ...prev,
+          [photoId]: (prev[photoId] || 0) + 1
+        }));
+        
+        toast({
+          title: "Foto curtida!",
+          description: "Foto adicionada aos favoritos."
+        });
+      }
     } catch (error) {
       console.error('Error liking photo:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível processar a curtida.",
+        variant: "destructive"
+      });
     }
   };
 
@@ -266,7 +330,7 @@ const Photos: React.FC = () => {
                     variant="outline"
                     size="sm"
                     onClick={clearSelection}
-                    className="rounded-xl border-red-400/30 text-red-400 hover:bg-red-400/20"
+                    className="bg-slate-900/70 border-white/15 text-slate-100 hover:bg-slate-800 rounded-xl"
                   >
                     Limpar
                   </Button>
@@ -276,7 +340,7 @@ const Photos: React.FC = () => {
                 variant="outline"
                 size="sm"
                 onClick={selectedPhotos.size > 0 ? clearSelection : selectAllPhotos}
-                className="aurora-button rounded-xl mr-2"
+                className="bg-slate-900/70 border-white/15 text-slate-100 hover:bg-slate-800 rounded-xl mr-2"
               >
                 {selectedPhotos.size > 0 ? 'Desmarcar Todos' : 'Selecionar Todos'}
               </Button>
@@ -285,8 +349,8 @@ const Photos: React.FC = () => {
                 size="sm"
                 onClick={() => setViewMode('grid')}
                 className={`rounded-xl ${viewMode === 'grid' 
-                  ? 'bg-cyan-500 hover:bg-cyan-600 text-white' 
-                  : 'border-cyan-400/30 text-white hover:bg-slate-700'
+                  ? 'bg-aurora-cyan text-slate-900 font-medium shadow-sm' 
+                  : 'bg-slate-900/70 border-white/10 text-slate-100 hover:bg-slate-800'
                 }`}
               >
                 <Grid className="h-4 w-4" />
@@ -296,8 +360,8 @@ const Photos: React.FC = () => {
                 size="sm"
                 onClick={() => setViewMode('list')}
                 className={`rounded-xl ${viewMode === 'list' 
-                  ? 'bg-cyan-500 hover:bg-cyan-600 text-white' 
-                  : 'border-cyan-400/30 text-white hover:bg-slate-700'
+                  ? 'bg-aurora-cyan text-slate-900 font-medium shadow-sm' 
+                  : 'bg-slate-900/70 border-white/10 text-slate-100 hover:bg-slate-800'
                 }`}
               >
                 <List className="h-4 w-4" />
@@ -355,10 +419,10 @@ const Photos: React.FC = () => {
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                   />
                   
-                  {/* Overlay com gradiente igual aos vídeos */}
+                  {/* Overlay com gradiente - apenas botão visualizar */}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300">
-                    {/* Botões de ação no canto inferior direito */}
-                    <div className="absolute bottom-3 right-3 flex gap-2 transform translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
+                    {/* Botão de visualizar no canto inferior direito */}
+                    <div className="absolute bottom-3 right-3 transform translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
                       <Button
                         size="sm"
                         variant="outline"
@@ -368,20 +432,7 @@ const Photos: React.FC = () => {
                         }}
                         className="text-white border-white/30 hover:bg-white/20 bg-black/30 backdrop-blur-sm"
                       >
-                        <Image className="h-4 w-4" />
-                      </Button>
-                      
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleSingleDownload(photo.url_imagem, photo.titulo, e);
-                        }}
-                        disabled={isDownloading}
-                        className="text-white border-white/30 hover:bg-white/20 bg-black/30 backdrop-blur-sm"
-                      >
-                        <Download className="h-4 w-4" />
+                        <Eye className="h-4 w-4" />
                       </Button>
                     </div>
                   </div>
@@ -399,8 +450,8 @@ const Photos: React.FC = () => {
 
                   <div className="flex items-center justify-between text-xs text-slate-400 mb-3">
                     <div className="flex flex-col">
-                      {photo.categoria && (
-                        <span className="text-cyan-400 font-medium">{photo.categoria}</span>
+                      {photo.categoria && getEquipmentName(photo.categoria) !== photo.categoria && (
+                        <span className="text-cyan-400 font-medium">{getEquipmentName(photo.categoria)}</span>
                       )}
                     </div>
                     <span>{photo.downloads_count || 0} downloads</span>
@@ -422,18 +473,41 @@ const Photos: React.FC = () => {
                     </div>
                   )}
 
-                  {/* Stats */}
-                  <div className="flex items-center justify-between text-xs text-slate-400">
-                    <div className="flex items-center gap-3">
-                      <span className="flex items-center gap-1">
-                        <Heart className="h-3 w-3" />
-                        {likesCount[photo.id] || 0}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Download className="h-3 w-3" />
-                        {photo.downloads_count || 0}
-                      </span>
-                    </div>
+                  {/* Ações iguais aos vídeos */}
+                  <div className="flex items-center justify-between gap-2">
+                    <Button
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedPhoto(photo);
+                      }}
+                      className="flex-1 bg-aurora-cyan text-slate-900 hover:bg-aurora-cyan/80 font-medium rounded-lg"
+                    >
+                      <Eye className="h-4 w-4 mr-1" />
+                      Ver
+                    </Button>
+                    
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={(e) => handleLike(photo.id, e)}
+                      className={`bg-slate-800/50 border-slate-600/50 text-slate-300 hover:bg-slate-700/50 rounded-lg min-w-[60px] ${
+                        likedPhotos.has(photo.id) ? 'text-red-400 border-red-400/30' : ''
+                      }`}
+                    >
+                      <Heart className={`h-4 w-4 mr-1 ${likedPhotos.has(photo.id) ? 'fill-current' : ''}`} />
+                      {likesCount[photo.id] || 0}
+                    </Button>
+                    
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={(e) => handleSingleDownload(photo.url_imagem, photo.titulo, e)}
+                      disabled={isDownloading}
+                      className="bg-slate-800/50 border-slate-600/50 text-slate-300 hover:bg-slate-700/50 rounded-lg"
+                    >
+                      <Download className="h-4 w-4" />
+                    </Button>
                   </div>
                 </div>
               </div>
@@ -474,7 +548,7 @@ const Photos: React.FC = () => {
                       )}
                       <div className="flex items-center gap-4 text-xs text-slate-400">
                         <span>{formatDate(photo.data_upload)}</span>
-                        {photo.categoria && (
+                        {photo.categoria && getEquipmentName(photo.categoria) !== photo.categoria && (
                           <span className="text-cyan-400 font-medium">{getEquipmentName(photo.categoria)}</span>
                         )}
                         <span>{photo.downloads_count || 0} downloads</span>
@@ -486,9 +560,9 @@ const Photos: React.FC = () => {
                       <Button 
                         size="sm" 
                         onClick={() => setSelectedPhoto(photo)}
-                        className="aurora-button rounded-xl"
+                        className="bg-aurora-cyan text-slate-900 hover:bg-aurora-cyan/80 font-medium rounded-lg"
                       >
-                        <Image className="h-4 w-4 mr-1" />
+                        <Eye className="h-4 w-4 mr-1" />
                         Ver
                       </Button>
                       
@@ -496,10 +570,8 @@ const Photos: React.FC = () => {
                         size="sm"
                         variant="outline"
                         onClick={(e) => handleLike(photo.id, e)}
-                        className={`rounded-xl border-cyan-400/30 ${
-                          likedPhotos.has(photo.id) 
-                            ? 'bg-cyan-400/20 text-cyan-400 border-cyan-400' 
-                            : 'text-cyan-400 hover:bg-cyan-400/20'
+                        className={`bg-slate-800/50 border-slate-600/50 text-slate-300 hover:bg-slate-700/50 rounded-lg min-w-[60px] ${
+                          likedPhotos.has(photo.id) ? 'text-red-400 border-red-400/30' : ''
                         }`}
                       >
                         <Heart className={`h-4 w-4 mr-1 ${likedPhotos.has(photo.id) ? 'fill-current' : ''}`} />
@@ -511,7 +583,7 @@ const Photos: React.FC = () => {
                         variant="outline"
                         onClick={(e) => handleSingleDownload(photo.url_imagem, photo.titulo, e)}
                         disabled={isDownloading}
-                        className="rounded-xl border-cyan-400/30 text-cyan-400 hover:bg-cyan-400/20"
+                        className="bg-slate-800/50 border-slate-600/50 text-slate-300 hover:bg-slate-700/50 rounded-lg"
                       >
                         <Download className="h-4 w-4" />
                       </Button>
