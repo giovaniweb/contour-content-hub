@@ -120,13 +120,6 @@ export const PhotoGrid: React.FC<PhotoGridProps> = ({ photos, onPhotoClick }) =>
                   <Download className="h-4 w-4" />
                 </Button>
               </div>
-
-              {/* Data no canto inferior direito */}
-              {photo.created_at && (
-                <div className="text-xs text-slate-500 mt-2 text-right">
-                  {new Date(photo.created_at).toLocaleDateString('pt-BR')}
-                </div>
-              )}
             </div>
           </CardContent>
         </Card>
