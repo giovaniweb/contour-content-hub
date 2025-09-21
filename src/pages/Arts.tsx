@@ -188,12 +188,6 @@ const Arts: React.FC = () => {
                         <div key={material.id} className="group aurora-glass backdrop-blur-md bg-slate-800/30 border border-white/10 rounded-lg overflow-hidden hover:border-aurora-electric-purple/50 transition-all duration-300" data-material-id={material.id}>
                     {/* Image Container */}
                     <div className="relative aspect-[16/9] overflow-hidden">
-                      {/* Photo Count Badge - Top Left */}
-                      <div className="absolute top-3 left-3 z-10">
-                        <div className="bg-black/70 text-white px-2 py-1 rounded-md text-xs font-medium backdrop-blur-sm">
-                          {material.is_carousel ? `${(material.carousel_images || []).length} fotos` : '1 foto'}
-                        </div>
-                      </div>
 
                       {material.is_carousel ? (
                         <CarouselViewer 
