@@ -106,10 +106,18 @@ export const PhotoGrid: React.FC<PhotoGridProps> = ({ photos, onPhotoClick }) =>
             
             {/* Content */}
             <div className="p-4">
-              <h3 className="font-semibold text-white text-sm mb-1 truncate">{photo.titulo}</h3>
+              <h3 className="font-semibold text-white text-sm mb-2 truncate">{photo.titulo}</h3>
               
               {photo.categoria && (
-                <p className="text-cyan-400 text-xs mb-3 font-medium">{getEquipmentName(photo.categoria)}</p>
+                <div className="mb-3">
+                  <p className="text-cyan-400 text-xs font-medium">{getEquipmentName(photo.categoria)}</p>
+                </div>
+              )}
+              
+              {!photo.categoria && (
+                <div className="mb-3">
+                  <p className="text-slate-400 text-xs italic">Equipamento não especificado</p>
+                </div>
               )}
               
               {/* Action Buttons - Alinhados horizontalmente */}

@@ -103,13 +103,25 @@ export const PhotoPreviewDialog: React.FC<PhotoPreviewDialogProps> = ({
                   {photo.titulo}
                 </DialogTitle>
                 
-                {/* Equipment and Tags */}
-                <div className="flex flex-wrap items-center gap-2 mb-4">
-                  {photo.categoria && (
-                    <Badge className="bg-cyan-500/20 text-cyan-400 border-cyan-500/30">
+                {/* Equipment Info */}
+                {photo.categoria && (
+                  <div className="mb-3">
+                    <Badge className="bg-cyan-500/20 text-cyan-400 border-cyan-500/30 text-sm px-3 py-1">
                       {getEquipmentName(photo.categoria)}
                     </Badge>
-                  )}
+                  </div>
+                )}
+                
+                {!photo.categoria && (
+                  <div className="mb-3">
+                    <Badge variant="secondary" className="bg-slate-700/50 text-slate-400 text-sm px-3 py-1">
+                      Equipamento não especificado
+                    </Badge>
+                  </div>
+                )}
+                
+                {/* Tags */}
+                <div className="flex flex-wrap items-center gap-2 mb-4">
                   
                   {photo.tags && photo.tags.length > 0 && (
                     photo.tags.slice(0, 3).map((tag, index) => (
