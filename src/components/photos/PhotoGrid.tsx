@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Heart, Download, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { usePhotoLikes } from '@/hooks/usePhotoLikes';
+import { useEquipmentFilter } from '@/hooks/useEquipmentFilter';
 
 interface PhotoGridProps {
   photos: Photo[];
@@ -14,7 +15,7 @@ interface PhotoGridProps {
 export const PhotoGrid: React.FC<PhotoGridProps> = ({ photos, onPhotoClick }) => {
   const [loadedImages, setLoadedImages] = useState<Set<string>>(new Set());
   const [failedImages, setFailedImages] = useState<Set<string>>(new Set());
-  // Remover uso do hook antigo
+  const { getEquipmentName } = useEquipmentFilter();
 
   const handleImageLoad = (photoId: string) => {
     setLoadedImages(prev => new Set([...prev, photoId]));
@@ -46,10 +47,10 @@ export const PhotoGrid: React.FC<PhotoGridProps> = ({ photos, onPhotoClick }) =>
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
       {photos.map((photo) => (
-        <Card key={photo.id} className="bg-slate-800/50 border-2 border-slate-600/30 hover:border-cyan-400/50 overflow-hidden transition-all duration-300 group hover:shadow-lg hover:shadow-cyan-400/10 rounded-xl">
+        <Card key={photo.id} className="bg-slate-800/50 border-2 border-slate-700/50 hover:border-cyan-400/50 overflow-hidden transition-all duration-300 group hover:shadow-lg hover:shadow-cyan-400/10 rounded-2xl">
           <CardContent className="p-0">
             {/* Image Container */}
-            <div className="relative aspect-video bg-slate-700/50 overflow-hidden">
+            <div className="relative aspect-video bg-slate-700/50 overflow-hidden rounded-t-2xl">
               <img
                 src={photo.thumbnail_url || photo.url_imagem}
                 alt={photo.titulo}
@@ -86,7 +87,7 @@ export const PhotoGrid: React.FC<PhotoGridProps> = ({ photos, onPhotoClick }) =>
               <h3 className="font-semibold text-white text-sm mb-1 truncate">{photo.titulo}</h3>
               
               {photo.categoria && (
-                <p className="text-cyan-400 text-xs mb-3 font-medium">{photo.categoria}</p>
+                <p className="text-cyan-400 text-xs mb-3 font-medium">{getEquipmentName(photo.categoria)}</p>
               )}
               
               {/* Action Buttons - Alinhados horizontalmente */}

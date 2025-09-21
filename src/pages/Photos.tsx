@@ -14,6 +14,7 @@ import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import JSZip from 'jszip';
 import { Photo } from '@/services/photoService';
+import { PhotoGrid } from '@/components/photos/PhotoGrid';
 
 const Photos: React.FC = () => {
   const { photos, isLoading, error } = useUserPhotos();
@@ -396,123 +397,10 @@ const Photos: React.FC = () => {
             ))}
           </div>
         ) : viewMode === 'grid' ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filteredPhotos.map((photo) => (
-              <div key={photo.id} className="aurora-card rounded-2xl group hover:scale-105 transition-all duration-300">
-                {/* Selection Checkbox */}
-                <div className="absolute top-3 left-3 z-10">
-                  <Checkbox
-                    checked={selectedPhotos.has(photo.id)}
-                    onCheckedChange={() => togglePhotoSelection(photo.id)}
-                    className="bg-black/50 border-cyan-400/50"
-                  />
-                </div>
-                
-                {/* Photo */}
-                <div 
-                  className="relative aspect-video bg-slate-800/50 overflow-hidden rounded-t-2xl cursor-pointer group"
-                  onClick={() => setSelectedPhoto(photo)}
-                >
-                  <img
-                    src={photo.thumbnail_url || photo.url_imagem}
-                    alt={photo.titulo}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                  />
-                  
-                  {/* Overlay com gradiente - apenas botão visualizar */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300">
-                    {/* Botão de visualizar no canto inferior direito */}
-                    <div className="absolute bottom-3 right-3 transform translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSelectedPhoto(photo);
-                        }}
-                        className="text-white border-white/30 hover:bg-white/20 bg-black/30 backdrop-blur-sm"
-                      >
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Content */}
-                <div className="p-4">
-                  <h3 className="font-medium text-white mb-2 line-clamp-2">{photo.titulo}</h3>
-                  
-                  {photo.descricao_curta && (
-                    <p className="text-xs text-slate-400 mb-3 line-clamp-2">
-                      {photo.descricao_curta}
-                    </p>
-                  )}
-
-                  <div className="flex items-center justify-between text-xs text-slate-400 mb-3">
-                    <div className="flex flex-col">
-                      {photo.categoria && getEquipmentName(photo.categoria) !== photo.categoria && (
-                        <span className="text-cyan-400 font-medium">{getEquipmentName(photo.categoria)}</span>
-                      )}
-                    </div>
-                    <span>{photo.downloads_count || 0} downloads</span>
-                  </div>
-
-                  {/* Tags */}
-                  {photo.tags && photo.tags.length > 0 && (
-                    <div className="flex flex-wrap gap-1 mb-4">
-                      {photo.tags.slice(0, 2).map((tag, index) => (
-                        <Badge key={index} variant="secondary" className="text-xs bg-cyan-400/20 text-cyan-400 border-cyan-400/30">
-                          {tag}
-                        </Badge>
-                      ))}
-                      {photo.tags.length > 2 && (
-                        <Badge variant="outline" className="text-xs border-cyan-400/30 text-cyan-400">
-                          +{photo.tags.length - 2}
-                        </Badge>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Ações iguais aos vídeos */}
-                  <div className="flex items-center justify-between gap-2">
-                    <Button
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setSelectedPhoto(photo);
-                      }}
-                      className="flex-1 bg-aurora-cyan text-slate-900 hover:bg-aurora-cyan/80 font-medium rounded-lg"
-                    >
-                      <Eye className="h-4 w-4 mr-1" />
-                      Ver
-                    </Button>
-                    
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={(e) => handleLike(photo.id, e)}
-                      className={`bg-slate-800/50 border-slate-600/50 text-slate-300 hover:bg-slate-700/50 rounded-lg min-w-[60px] ${
-                        likedPhotos.has(photo.id) ? 'text-red-400 border-red-400/30' : ''
-                      }`}
-                    >
-                      <Heart className={`h-4 w-4 mr-1 ${likedPhotos.has(photo.id) ? 'fill-current' : ''}`} />
-                      {likesCount[photo.id] || 0}
-                    </Button>
-                    
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={(e) => handleSingleDownload(photo.url_imagem, photo.titulo, e)}
-                      disabled={isDownloading}
-                      className="bg-slate-800/50 border-slate-600/50 text-slate-300 hover:bg-slate-700/50 rounded-lg"
-                    >
-                      <Download className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
+          <PhotoGrid
+            photos={filteredPhotos}
+            onPhotoClick={setSelectedPhoto}
+          />
         ) : (
           <div className="space-y-4">
             {filteredPhotos.map((photo) => (
@@ -547,7 +435,7 @@ const Photos: React.FC = () => {
                         </p>
                       )}
                       <div className="flex items-center gap-4 text-xs text-slate-400">
-                        <span>{formatDate(photo.data_upload)}</span>
+                        <span>{formatDate(photo.created_at)}</span>
                         {photo.categoria && getEquipmentName(photo.categoria) !== photo.categoria && (
                           <span className="text-cyan-400 font-medium">{getEquipmentName(photo.categoria)}</span>
                         )}
