@@ -353,7 +353,7 @@ const Videos: React.FC = () => {
         ) : viewMode === 'grid' ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {filteredVideos.map((video) => (
-              <div key={video.id} className="aurora-card rounded-2xl group hover:scale-105 transition-all duration-300">
+              <div key={video.id} className="bg-slate-800/50 border-2 border-slate-700/50 hover:border-cyan-400/50 overflow-hidden transition-all duration-300 group hover:shadow-lg hover:shadow-cyan-400/10 rounded-2xl">
                 {/* Selection Checkbox */}
                 {video.url_video && (
                   <div className="absolute top-3 left-3 z-10">
@@ -407,15 +407,9 @@ const Videos: React.FC = () => {
                     </p>
                   )}
 
-                  <div className="flex items-center justify-between text-xs text-slate-400 mb-3">
-                    <div className="flex flex-col">
-                      <span>{formatDate(video.data_upload)}</span>
-                      {video.categoria && (
-                        <span className="text-cyan-400 font-medium">{getEquipmentName(video.categoria)}</span>
-                      )}
-                    </div>
-                    <span>{video.downloads_count || 0} downloads</span>
-                  </div>
+                  {video.categoria && (
+                    <p className="text-cyan-400 text-xs mb-3 font-medium">{getEquipmentName(video.categoria)}</p>
+                  )}
 
                   {/* Tags */}
                   {video.tags && video.tags.length > 0 && (
@@ -434,14 +428,14 @@ const Videos: React.FC = () => {
                   )}
 
                   {/* Actions */}
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-700/30">
                     <Button 
                       size="sm" 
                       onClick={() => handleVideoPlay(video)}
                       className="aurora-button rounded-xl flex-1"
                     >
                       <Play className="h-4 w-4 mr-1" />
-                      Assistir
+                      Ver
                     </Button>
                     
                     <Button
@@ -477,7 +471,7 @@ const Videos: React.FC = () => {
         ) : (
           <div className="space-y-4">
             {filteredVideos.map((video) => (
-              <div key={video.id} className="aurora-card rounded-2xl hover:scale-[1.02] transition-all duration-300">
+              <div key={video.id} className="bg-slate-800/50 border-2 border-slate-700/50 hover:border-cyan-400/50 rounded-2xl transition-all duration-300 hover:shadow-lg hover:shadow-cyan-400/10">
                 <div className="p-4">
                   <div className="flex items-center gap-4">
                     {/* Selection Checkbox */}
@@ -516,11 +510,9 @@ const Videos: React.FC = () => {
                         </p>
                       )}
                       <div className="flex items-center gap-4 text-xs text-slate-400">
-                        <span>{formatDate(video.data_upload)}</span>
                         {video.categoria && (
                           <span className="text-cyan-400 font-medium">{getEquipmentName(video.categoria)}</span>
                         )}
-                        <span>{video.downloads_count || 0} downloads</span>
                         {video.duracao && <span>{video.duracao}</span>}
                       </div>
                     </div>
@@ -533,7 +525,7 @@ const Videos: React.FC = () => {
                         className="aurora-button rounded-xl"
                       >
                         <Play className="h-4 w-4 mr-1" />
-                        Assistir
+                        Ver
                       </Button>
                       
                       <Button
