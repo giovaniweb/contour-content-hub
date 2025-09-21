@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Palette, Upload, Grid, Search, Filter, Brush, Download, Eye, FileText, Wand2, Heart, FileImage } from 'lucide-react';
+import { Palette, Grid, Search, List, Brush, Download, Eye, Heart, FileImage } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useQuery } from '@tanstack/react-query';
@@ -9,11 +9,17 @@ import CarouselViewer from '@/components/downloads/CarouselViewer';
 import ViewButton from '@/components/downloads/ViewButton';
 import AuroraPageLayout from '@/components/layout/AuroraPageLayout';
 import StandardPageHeader from '@/components/layout/StandardPageHeader';
+import { EquipmentFilter } from '@/components/filters/EquipmentFilter';
+import { useEquipmentFilter } from '@/hooks/useEquipmentFilter';
 
 const Arts: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [equipments, setEquipments] = useState<any[]>([]);
   const [likedMaterials, setLikedMaterials] = useState<Set<string>>(new Set());
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [selectedEquipment, setSelectedEquipment] = useState('');
+  
+  const { equipmentOptions, isLoading: equipmentLoading } = useEquipmentFilter();
 
   const statusBadges = [
     {
@@ -131,28 +137,52 @@ const Arts: React.FC = () => {
 
       <div className="space-y-8">
 
-        {/* Controls */}
-        <div className="aurora-card p-6 space-y-4">
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
+        {/* Filtros e Controles */}
+        <div className="aurora-glass rounded-2xl p-6">
+          <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full lg:w-auto">
+              <div className="relative flex-1 lg:w-80">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-cyan-400" />
                 <Input
                   placeholder="Buscar artes..."
-                  className="pl-10"
+                  className="pl-10 bg-black/20 border-cyan-400/30 text-white placeholder-slate-400 rounded-xl"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
+              
+              <div className="w-48">
+                <EquipmentFilter
+                  value={selectedEquipment}
+                  onValueChange={setSelectedEquipment}
+                />
+              </div>
             </div>
-            
-            <div className="flex gap-2">
-              <Button variant="outline">
-                <Filter className="h-4 w-4 mr-2" />
-                Filtros
-              </Button>
 
-              <Button className="aurora-button">
+            <div className="flex items-center gap-2">
+              <Button
+                variant={viewMode === 'grid' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setViewMode('grid')}
+                className={`rounded-xl ${viewMode === 'grid' 
+                  ? 'bg-aurora-cyan text-slate-900 font-medium shadow-sm' 
+                  : 'bg-slate-800/50 border-white/15 text-white hover:bg-slate-700 hover:text-white'
+                }`}
+              >
+                <Grid className="h-4 w-4" />
+              </Button>
+              <Button
+                variant={viewMode === 'list' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setViewMode('list')}
+                className={`rounded-xl ${viewMode === 'list' 
+                  ? 'bg-aurora-cyan text-slate-900 font-medium shadow-sm' 
+                  : 'bg-slate-800/50 border-white/15 text-white hover:bg-slate-700 hover:text-white'
+                }`}
+              >
+                <List className="h-4 w-4" />
+              </Button>
+              <Button className="aurora-button rounded-xl">
                 <Brush className="h-4 w-4 mr-2" />
                 Criar Arte
               </Button>
