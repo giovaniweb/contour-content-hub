@@ -5,9 +5,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
-import { UserPlus, Mail, User, MapPin, Building, Phone } from 'lucide-react';
+import { UserPlus, Mail, User, MapPin, Building, Phone, AlertTriangle, UserCheck } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { createCompleteUser, checkOrphanUser, type CreateUserData, type OrphanUser } from '@/services/auth/userManagement';
 
 interface NewUserModalProps {
   isOpen: boolean;
@@ -26,79 +27,105 @@ const NewUserModal: React.FC<NewUserModalProps> = ({ isOpen, onClose, onSuccess 
     telefone: ''
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [orphanUser, setOrphanUser] = useState<OrphanUser | null>(null);
+  const [showOrphanDialog, setShowOrphanDialog] = useState(false);
   const { toast } = useToast();
 
-  const handleCreateUser = async () => {
-    if (!newUser.nome || !newUser.email || !newUser.password) {
+  const checkForOrphanUser = async (email: string) => {
+    if (!email) return;
+    
+    const orphan = await checkOrphanUser(email);
+    if (orphan) {
+      setOrphanUser(orphan);
+      setShowOrphanDialog(true);
+    } else {
+      setOrphanUser(null);
+      setShowOrphanDialog(false);
+    }
+  };
+
+  const handleCreateUser = async (adoptOrphan = false) => {
+    if (!newUser.nome || !newUser.email || (!newUser.password && !adoptOrphan)) {
       toast({
         variant: "destructive",
         title: "Campos obrigatórios",
-        description: "Nome, email e senha são obrigatórios.",
+        description: adoptOrphan 
+          ? "Nome e email são obrigatórios." 
+          : "Nome, email e senha são obrigatórios.",
       });
       return;
     }
 
     setIsLoading(true);
     try {
-      // Create auth user
-      const { data: authData, error: authError } = await supabase.auth.signUp({
+      const userData: CreateUserData = {
+        nome: newUser.nome,
         email: newUser.email,
         password: newUser.password,
-        options: {
-          data: {
-            nome: newUser.nome,
-            role: newUser.role
-          }
-        }
+        role: newUser.role as any,
+        cidade: newUser.cidade || undefined,
+        clinica: newUser.clinica || undefined,
+        telefone: newUser.telefone || undefined,
+      };
+
+      await createCompleteUser(userData);
+
+      toast({
+        title: adoptOrphan ? "Usuário recuperado" : "Usuário criado",
+        description: adoptOrphan 
+          ? "Perfil criado para usuário existente com sucesso!" 
+          : "Usuário foi criado com sucesso!",
       });
 
-      if (authError) throw authError;
-
-      // Update profile with additional info
-      if (authData.user) {
-        const { error: profileError } = await supabase
-          .from('perfis')
-          .update({
-            nome: newUser.nome,
-            role: newUser.role,
-            cidade: newUser.cidade,
-            clinica: newUser.clinica,
-            telefone: newUser.telefone
-          })
-          .eq('id', authData.user.id);
-
-        if (profileError) throw profileError;
+      resetForm();
+      onSuccess();
+    } catch (error: any) {
+      console.error('Erro detalhado:', error);
+      
+      let errorMessage = "Não foi possível criar o usuário.";
+      
+      if (error.message?.includes('User already registered')) {
+        errorMessage = "Este email já está registrado. Verifique se o usuário já existe ou se precisa de um perfil.";
+      } else if (error.message?.includes('Invalid email')) {
+        errorMessage = "Email inválido. Verifique o formato do endereço de email.";
+      } else if (error.message?.includes('Password')) {
+        errorMessage = "Senha deve ter pelo menos 6 caracteres.";
+      } else if (error.message) {
+        errorMessage = error.message;
       }
 
       toast({
-        title: "Usuário criado",
-        description: "Usuário foi criado com sucesso!",
-      });
-
-      setNewUser({
-        nome: '',
-        email: '',
-        password: '',
-        role: 'user',
-        cidade: '',
-        clinica: '',
-        telefone: ''
-      });
-
-      onSuccess();
-    } catch (error: any) {
-      toast({
         variant: "destructive",
         title: "Erro ao criar usuário",
-        description: error.message || "Não foi possível criar o usuário.",
+        description: errorMessage,
       });
     } finally {
       setIsLoading(false);
+      setShowOrphanDialog(false);
     }
   };
 
+  const resetForm = () => {
+    setNewUser({
+      nome: '',
+      email: '',
+      password: '',
+      role: 'user',
+      cidade: '',
+      clinica: '',
+      telefone: ''
+    });
+    setOrphanUser(null);
+    setShowOrphanDialog(false);
+  };
+
+  const handleClose = () => {
+    resetForm();
+    onClose();
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
@@ -127,20 +154,28 @@ const NewUserModal: React.FC<NewUserModalProps> = ({ isOpen, onClose, onSuccess 
                   />
                 </div>
 
-                <div>
-                  <Label htmlFor="email">Email *</Label>
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      id="email"
-                      type="email"
-                      placeholder="email@exemplo.com"
-                      value={newUser.email}
-                      onChange={(e) => setNewUser(prev => ({ ...prev, email: e.target.value }))}
-                      className="pl-10"
-                    />
+                  <div>
+                    <Label htmlFor="email">Email *</Label>
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="email"
+                        type="email"
+                        placeholder="email@exemplo.com"
+                        value={newUser.email}
+                        onChange={(e) => {
+                          const email = e.target.value;
+                          setNewUser(prev => ({ ...prev, email }));
+                          // Verificar usuário órfão quando sair do campo
+                          if (email && email.includes('@')) {
+                            checkForOrphanUser(email);
+                          }
+                        }}
+                        onBlur={() => checkForOrphanUser(newUser.email)}
+                        className="pl-10"
+                      />
+                    </div>
                   </div>
-                </div>
 
                 <div>
                   <Label htmlFor="password">Senha Temporária *</Label>
@@ -226,11 +261,48 @@ const NewUserModal: React.FC<NewUserModalProps> = ({ isOpen, onClose, onSuccess 
             </CardContent>
           </Card>
 
+          {/* Alerta para usuário órfão */}
+          {orphanUser && showOrphanDialog && (
+            <Alert className="border-orange-200 bg-orange-50">
+              <AlertTriangle className="h-4 w-4 text-orange-600" />
+              <AlertDescription className="text-orange-800">
+                <div className="space-y-2">
+                  <p className="font-medium">Usuário existente encontrado</p>
+                  <p className="text-sm">
+                    Este email já está registrado no sistema desde {new Date(orphanUser.created_at).toLocaleDateString('pt-BR')}, 
+                    mas não possui um perfil completo.
+                  </p>
+                  <div className="flex gap-2 mt-3">
+                    <Button 
+                      size="sm" 
+                      onClick={() => handleCreateUser(true)}
+                      disabled={isLoading}
+                      className="bg-orange-600 hover:bg-orange-700"
+                    >
+                      <UserCheck className="h-4 w-4 mr-1" />
+                      {isLoading ? 'Recuperando...' : 'Recuperar Usuário'}
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      onClick={() => setShowOrphanDialog(false)}
+                    >
+                      Cancelar
+                    </Button>
+                  </div>
+                </div>
+              </AlertDescription>
+            </Alert>
+          )}
+
           <div className="flex justify-between">
-            <Button variant="outline" onClick={onClose}>
+            <Button variant="outline" onClick={handleClose}>
               Cancelar
             </Button>
-            <Button onClick={handleCreateUser} disabled={isLoading}>
+            <Button 
+              onClick={() => handleCreateUser(false)} 
+              disabled={isLoading || showOrphanDialog}
+            >
               {isLoading ? 'Criando...' : 'Criar Usuário'}
             </Button>
           </div>
