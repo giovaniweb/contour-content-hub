@@ -9,13 +9,6 @@ import CarouselViewer from '@/components/downloads/CarouselViewer';
 import CaptionGenerator from '@/components/downloads/CaptionGenerator';
 import AuroraPageLayout from '@/components/layout/AuroraPageLayout';
 import StandardPageHeader from '@/components/layout/StandardPageHeader';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
 
 const Arts: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -278,37 +271,17 @@ const Arts: React.FC = () => {
                             <Heart className={`h-4 w-4 ${likedMaterials.has(material.id) ? 'fill-current' : ''}`} />
                           </Button>
 
-                          <Dialog>
-                            <DialogTrigger asChild>
+                          <CarouselViewer 
+                            images={material.is_carousel ? (material.carousel_images || []) : [material.file_url]} 
+                            title={material.title}
+                            material={material}
+                            equipments={equipments}
+                            triggerButton={
                               <Button size="sm" variant="outline" className="bg-white/10 border-white/20 text-white hover:bg-white/20">
                                 <Eye className="h-4 w-4" />
                               </Button>
-                            </DialogTrigger>
-                            <DialogContent className="max-w-6xl bg-slate-900 border-aurora-electric-purple/30">
-                              <DialogHeader>
-                                <DialogTitle className="text-white flex items-center gap-2">
-                                  <Eye className="h-5 w-5 text-aurora-electric-purple" />
-                                  {material.title}
-                                </DialogTitle>
-                              </DialogHeader>
-                              
-                              {material.is_carousel ? (
-                                <CarouselViewer 
-                                  images={material.carousel_images || []} 
-                                  title={material.title}
-                                  material={material}
-                                  equipments={equipments}
-                                />
-                              ) : (
-                                <CarouselViewer 
-                                  images={[material.file_url]} 
-                                  title={material.title}
-                                  material={material}
-                                  equipments={equipments}
-                                />
-                              )}
-                            </DialogContent>
-                          </Dialog>
+                            }
+                          />
 
                           <Button size="sm" onClick={() => handleDownload(material)} className="aurora-button hover:aurora-glow">
                             <Download className="h-4 w-4" />
