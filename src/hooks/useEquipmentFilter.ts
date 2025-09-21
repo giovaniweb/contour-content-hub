@@ -36,7 +36,7 @@ export const useEquipmentFilter = () => {
 
   const equipmentOptions = useMemo(() => {
     return equipments.map(equipment => ({
-      value: equipment.id,
+      value: equipment.nome, // Use equipment name as value to match photos.equipamentos array
       label: equipment.nome
     }));
   }, [equipments]);

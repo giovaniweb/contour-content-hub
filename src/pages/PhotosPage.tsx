@@ -7,12 +7,14 @@ import StandardPageHeader from '@/components/layout/StandardPageHeader';
 import SearchAndFilters from '@/components/layout/SearchAndFilters';
 import { EmptyState } from '@/components/ui/empty-state';
 import { PhotoGrid } from '@/components/photos/PhotoGrid';
+import { EquipmentFilter } from '@/components/filters/EquipmentFilter';
 import { photoService, Photo } from '@/services/photoService';
 import { useToast } from '@/hooks/use-toast';
 
 const PhotosPage: React.FC = () => {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedEquipment, setSelectedEquipment] = useState('');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [loading, setLoading] = useState(true);
@@ -24,7 +26,7 @@ const PhotosPage: React.FC = () => {
 
   useEffect(() => {
     filterPhotos();
-  }, [photos, searchTerm]);
+  }, [photos, searchTerm, selectedEquipment]);
 
   const loadPhotos = async () => {
     try {
@@ -48,16 +50,29 @@ const PhotosPage: React.FC = () => {
   };
 
   const filterPhotos = () => {
-    if (!searchTerm.trim()) {
-      setFilteredPhotos(photos);
-      return;
+    let filtered = photos;
+
+    // Filter by equipment
+    if (selectedEquipment) {
+      filtered = filtered.filter(photo => {
+        // Check new equipamentos array (contains equipment names)
+        if (photo.equipamentos && photo.equipamentos.length > 0) {
+          return photo.equipamentos.includes(selectedEquipment);
+        }
+        // Fallback to categoria field for backward compatibility
+        return photo.categoria === selectedEquipment;
+      });
     }
 
-    const filtered = photos.filter(photo => 
-      photo.titulo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      photo.categoria?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      photo.tags?.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
-    );
+    // Filter by search term
+    if (searchTerm.trim()) {
+      filtered = filtered.filter(photo => 
+        photo.titulo.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        photo.categoria?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        photo.tags?.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        photo.equipamentos?.some(eq => eq.toLowerCase().includes(searchTerm.toLowerCase()))
+      );
+    }
     
     setFilteredPhotos(filtered);
   };
@@ -93,6 +108,11 @@ const PhotosPage: React.FC = () => {
         viewMode={viewMode}
         additionalControls={
           <>
+            <EquipmentFilter
+              value={selectedEquipment}
+              onValueChange={setSelectedEquipment}
+              className="w-64"
+            />
             <Button 
               variant="outline" 
               className="flex items-center gap-2 aurora-glass border-aurora-cyan/30 text-aurora-cyan hover:bg-aurora-cyan/20"
