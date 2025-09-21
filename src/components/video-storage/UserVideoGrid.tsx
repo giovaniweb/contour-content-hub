@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Play, Download, Flame, Sparkles, Heart } from 'lucide-react';
+import { Play, Download, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -15,7 +15,6 @@ interface Video {
   url_video?: string;
   categoria?: string;
   tags?: string[];
-  downloads_count?: number;
   data_upload: string;
   duracao?: string;
 }
@@ -97,22 +96,6 @@ const UserVideoGrid: React.FC<UserVideoGridProps> = ({
     setSelectedVideos([]);
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('pt-BR');
-  };
-
-  // Função para determinar se um vídeo é "novo" (últimos 7 dias)
-  const isNewVideo = (dateString: string) => {
-    const videoDate = new Date(dateString);
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-    return videoDate > sevenDaysAgo;
-  };
-
-  // Função para determinar se um vídeo está "baixando" (exemplo: vídeos com downloads > 10)
-  const isDownloadingVideo = (video: Video) => {
-    return (video.downloads_count || 0) > 10;
-  };
 
   if (isLoading) {
     return (
@@ -220,19 +203,6 @@ const UserVideoGrid: React.FC<UserVideoGridProps> = ({
                 </div>
               )}
 
-              {/* Tags de status */}
-              <div className="absolute top-2 right-12 flex gap-1">
-                {isDownloadingVideo(video) && (
-                  <div className="bg-orange-500/90 rounded-full p-1">
-                    <Flame className="h-3 w-3 text-white" />
-                  </div>
-                )}
-                {isNewVideo(video.data_upload) && (
-                  <div className="bg-green-500/90 rounded-full p-1">
-                    <Sparkles className="h-3 w-3 text-white" />
-                  </div>
-                )}
-              </div>
             </div>
 
             <CardContent className="p-4">
