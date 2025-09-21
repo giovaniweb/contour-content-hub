@@ -11,6 +11,7 @@ interface Video {
   thumbnail_url?: string;
   url_video?: string;
   categoria?: string;
+  equipamentos?: string[];
   tags?: string[];
   downloads_count?: number;
   data_upload: string;

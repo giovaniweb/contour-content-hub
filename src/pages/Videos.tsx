@@ -25,6 +25,7 @@ interface Video {
   thumbnail_url?: string;
   url_video?: string;
   categoria?: string;
+  equipamentos?: string[];
   tags?: string[];
   downloads_count?: number;
   data_upload: string;
@@ -81,6 +82,7 @@ const Videos: React.FC = () => {
                            video.descricao_curta?.toLowerCase().includes(searchTerm.toLowerCase());
       
       const matchesEquipment = !selectedEquipment || selectedEquipment === 'all' || 
+                              (video.equipamentos && video.equipamentos.some(eq => eq === selectedEquipment)) ||
                               video.categoria === selectedEquipment;
       
       return matchesSearch && matchesEquipment;
@@ -91,9 +93,23 @@ const Videos: React.FC = () => {
     return new Date(dateString).toLocaleDateString('pt-BR');
   };
 
-  const getEquipmentName = (categoria: string) => {
-    const equipment = equipments.find(eq => eq.nome === categoria);
-    return equipment ? equipment.nome : categoria;
+  const getEquipmentName = (categoria: string | undefined, equipamentos: string[] | undefined) => {
+    // Primeiro tenta buscar pelo array equipamentos
+    if (equipamentos && equipamentos.length > 0) {
+      const equipmentNames = equipamentos.map(eqId => {
+        const equipment = equipments.find(eq => eq.id === eqId || eq.nome === eqId);
+        return equipment ? equipment.nome : eqId;
+      });
+      return equipmentNames.join(', ');
+    }
+    
+    // Fallback para categoria (compatibilidade)
+    if (categoria) {
+      const equipment = equipments.find(eq => eq.nome === categoria);
+      return equipment ? equipment.nome : categoria;
+    }
+    
+    return 'Equipamento não especificado';
   };
 
   const handleLike = async (videoId: string, event: React.MouseEvent) => {
@@ -271,7 +287,7 @@ const Videos: React.FC = () => {
                 <SelectContent className="bg-slate-900 border-cyan-400/30">
                   <SelectItem value="all" className="text-white">Todos Equipamentos</SelectItem>
                   {equipments.map(equipment => (
-                    <SelectItem key={equipment.id} value={equipment.nome} className="text-white">
+                    <SelectItem key={equipment.id} value={equipment.id} className="text-white">
                       {equipment.nome}
                     </SelectItem>
                   ))}
@@ -402,17 +418,9 @@ const Videos: React.FC = () => {
                   <h3 className="font-medium text-white mb-2 line-clamp-2">{video.titulo}</h3>
                   
                   {/* Equipment Name - Destacado como na referência */}
-                  {video.categoria && (
-                    <div className="mb-3">
-                      <p className="text-cyan-400 text-sm font-semibold">{getEquipmentName(video.categoria)}</p>
-                    </div>
-                  )}
-                  
-                  {!video.categoria && (
-                    <div className="mb-3">
-                      <p className="text-slate-400 text-sm italic">Equipamento não especificado</p>
-                    </div>
-                  )}
+                  <div className="mb-3">
+                    <p className="text-cyan-400 text-sm font-semibold">{getEquipmentName(video.categoria, video.equipamentos)}</p>
+                  </div>
                   
                   {video.descricao_curta && (
                     <p className="text-xs text-slate-400 mb-3 line-clamp-2">
@@ -515,17 +523,9 @@ const Videos: React.FC = () => {
                       <h3 className="font-medium text-white mb-1 truncate">{video.titulo}</h3>
                       
                       {/* Equipment Name - Destacado */}
-                      {video.categoria && (
-                        <div className="mb-2">
-                          <span className="text-cyan-400 text-sm font-semibold">{getEquipmentName(video.categoria)}</span>
-                        </div>
-                      )}
-                      
-                      {!video.categoria && (
-                        <div className="mb-2">
-                          <span className="text-slate-400 text-sm italic">Equipamento não especificado</span>
-                        </div>
-                      )}
+                      <div className="mb-2">
+                        <span className="text-cyan-400 text-sm font-semibold">{getEquipmentName(video.categoria, video.equipamentos)}</span>
+                      </div>
                       
                       {video.descricao_curta && (
                         <p className="text-sm text-slate-400 mb-2 line-clamp-2">
