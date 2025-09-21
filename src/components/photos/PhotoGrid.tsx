@@ -46,84 +46,86 @@ export const PhotoGrid: React.FC<PhotoGridProps> = ({ photos, onPhotoClick }) =>
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
       {photos.map((photo) => (
-        <Card key={photo.id} className="bg-slate-800/50 border-cyan-500/20 overflow-hidden hover:border-cyan-500/40 transition-colors group">
+        <Card key={photo.id} className="bg-slate-800/50 border-2 border-slate-600/30 hover:border-cyan-400/50 overflow-hidden transition-all duration-300 group hover:shadow-lg hover:shadow-cyan-400/10 rounded-xl">
           <CardContent className="p-0">
             {/* Image Container */}
             <div className="relative aspect-video bg-slate-700/50 overflow-hidden">
               <img
                 src={photo.thumbnail_url || photo.url_imagem}
                 alt={photo.titulo}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 loading="lazy"
               />
               
-              {/* Overlay com gradiente */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300">
-                {/* Botões de ação no canto inferior direito */}
-                <div className="absolute bottom-3 right-3 flex gap-2 transform translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
+              {/* Hover overlay apenas com botão de visualizar */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300">
+                <div className="absolute bottom-3 right-3 transform translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => onPhotoClick?.(photo)}
-                    className="text-white border-white/30 hover:bg-white/20 bg-black/30 backdrop-blur-sm"
+                    className="text-white border-white/30 hover:bg-white/20 bg-black/50 backdrop-blur-sm rounded-lg"
                   >
                     <Eye className="h-4 w-4" />
                   </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleDownload(photo)}
-                    className="text-white border-white/30 hover:bg-white/20 bg-black/30 backdrop-blur-sm"
-                  >
-                    <Download className="h-4 w-4" />
-                  </Button>
                 </div>
               </div>
+
+              {/* Badge com contagem se aplicável */}
+              {photo.tags && photo.tags.length > 0 && (
+                <div className="absolute top-2 left-2">
+                  <Badge className="bg-purple-600/90 text-white text-xs border-none">
+                    {photo.tags.length} {photo.tags.length === 1 ? 'tag' : 'tags'}
+                  </Badge>
+                </div>
+              )}
             </div>
             
             {/* Content */}
             <div className="p-4">
-              <h3 className="font-semibold text-white text-sm mb-2 truncate">{photo.titulo}</h3>
+              <h3 className="font-semibold text-white text-sm mb-1 truncate">{photo.titulo}</h3>
               
-              {photo.descricao_curta && (
-                <p className="text-slate-400 text-xs mb-3 line-clamp-2">{photo.descricao_curta}</p>
+              {photo.categoria && (
+                <p className="text-cyan-400 text-xs mb-3 font-medium">{photo.categoria}</p>
               )}
               
-              {/* Tags */}
-              {photo.tags && photo.tags.length > 0 && (
-                <div className="flex flex-wrap gap-1 mb-3">
-                  {photo.tags.slice(0, 2).map((tag, index) => (
-                    <Badge
-                      key={index}
-                      variant="secondary"
-                      className="text-xs bg-cyan-500/20 text-cyan-400 border-cyan-500/30"
-                    >
-                      {tag}
-                    </Badge>
-                  ))}
-                  {photo.tags.length > 2 && (
-                    <Badge
-                      variant="secondary"
-                      className="text-xs bg-slate-500/20 text-slate-400"
-                    >
-                      +{photo.tags.length - 2}
-                    </Badge>
-                  )}
-                </div>
-              )}
-              
-              {/* Stats */}
-              <div className="flex justify-between items-center text-xs text-slate-400">
-                <div className="flex items-center gap-3">
-                  <span className="flex items-center gap-1">
-                    <Download className="h-3 w-3" />
-                    {photo.downloads_count || 0} downloads
-                  </span>
-                </div>
-                <div className="text-xs text-slate-500">
-                  {photo.categoria || 'Sem categoria'}
-                </div>
+              {/* Action Buttons - Alinhados horizontalmente */}
+              <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-600/30">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => onPhotoClick?.(photo)}
+                  className="flex-1 bg-slate-700/50 border-slate-600/30 text-slate-200 hover:bg-slate-600/50 hover:border-cyan-400/50 hover:text-white rounded-lg"
+                >
+                  <Eye className="h-4 w-4 mr-1" />
+                  Ver
+                </Button>
+                
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleLike(photo.id)}
+                  className="bg-slate-700/50 border-slate-600/30 text-slate-200 hover:bg-pink-500/20 hover:border-pink-400/50 hover:text-pink-300 rounded-lg px-3"
+                >
+                  <Heart className="h-4 w-4" />
+                </Button>
+                
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleDownload(photo)}
+                  className="bg-slate-700/50 border-slate-600/30 text-slate-200 hover:bg-green-500/20 hover:border-green-400/50 hover:text-green-300 rounded-lg px-3"
+                >
+                  <Download className="h-4 w-4" />
+                </Button>
               </div>
+
+              {/* Data no canto inferior direito */}
+              {photo.created_at && (
+                <div className="text-xs text-slate-500 mt-2 text-right">
+                  {new Date(photo.created_at).toLocaleDateString('pt-BR')}
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Play, Download, Flame, Sparkles } from 'lucide-react';
+import { Play, Download, Flame, Sparkles, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -33,6 +33,10 @@ const UserVideoGrid: React.FC<UserVideoGridProps> = ({
   const [selectedVideos, setSelectedVideos] = useState<string[]>([]);
 
   console.log('🎬 UserVideoGrid recebeu:', videos.length, 'vídeos');
+
+  const handleLike = async (videoId: string) => {
+    console.log('Like functionality needs implementation for video:', videoId);
+  };
 
   const handleVideoSelect = (videoId: string, checked: boolean) => {
     if (checked) {
@@ -169,7 +173,7 @@ const UserVideoGrid: React.FC<UserVideoGridProps> = ({
       {/* Grid de vídeos */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {videos.map((video) => (
-          <Card key={video.id} className="group hover:shadow-xl transition-all duration-300 bg-slate-800/50 border-cyan-500/20 rounded-xl overflow-hidden backdrop-blur-sm relative">
+          <Card key={video.id} className="group bg-slate-800/50 border-2 border-slate-600/30 hover:border-cyan-400/50 rounded-xl overflow-hidden backdrop-blur-sm relative transition-all duration-300 hover:shadow-lg hover:shadow-cyan-400/10">
             {/* Checkbox de seleção */}
             <div className="absolute top-2 right-2 z-10">
               <div className="bg-black/70 rounded-lg p-1 backdrop-blur-sm">
@@ -198,82 +202,84 @@ const UserVideoGrid: React.FC<UserVideoGridProps> = ({
                 </div>
               )}
               
-              {/* Play overlay */}
+              {/* Play overlay apenas no hover */}
               <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                 <div className="bg-cyan-400/90 rounded-full p-3">
                   <Play className="h-6 w-6 text-slate-900" />
                 </div>
               </div>
 
-              {/* Tags sobre o vídeo */}
-              <div className="absolute top-2 left-2 flex gap-2">
+              {/* Badge de duração */}
+              {video.duracao && (
+                <div className="absolute top-2 left-2">
+                  <Badge className="bg-blue-600/90 text-white text-xs border-none">
+                    {video.duracao}
+                  </Badge>
+                </div>
+              )}
+
+              {/* Tags de status */}
+              <div className="absolute top-2 right-12 flex gap-1">
                 {isDownloadingVideo(video) && (
-                  <div className="bg-orange-500/90 rounded-full p-2 backdrop-blur-sm">
-                    <Flame className="h-4 w-4 text-white" />
+                  <div className="bg-orange-500/90 rounded-full p-1">
+                    <Flame className="h-3 w-3 text-white" />
                   </div>
                 )}
                 {isNewVideo(video.data_upload) && (
-                  <div className="bg-green-500/90 rounded-full p-2 backdrop-blur-sm">
-                    <Sparkles className="h-4 w-4 text-white" />
+                  <div className="bg-green-500/90 rounded-full p-1">
+                    <Sparkles className="h-3 w-3 text-white" />
                   </div>
                 )}
               </div>
-
-              {/* Duração */}
-              {video.duracao && (
-                <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded-lg">
-                  {video.duracao}
-                </div>
-              )}
             </div>
 
             <CardContent className="p-4">
-              <h3 className="font-medium text-sm mb-2 line-clamp-2 text-slate-100">{video.titulo}</h3>
+              <h3 className="font-semibold text-white text-sm mb-1 truncate">{video.titulo}</h3>
               
-              {video.descricao_curta && (
-                <p className="text-xs text-slate-400 mb-3 line-clamp-2">
-                  {video.descricao_curta}
-                </p>
+              {video.categoria && (
+                <p className="text-cyan-400 text-xs mb-3 font-medium">{video.categoria}</p>
               )}
 
-              <div className="flex items-center justify-between text-xs text-slate-400 mb-3">
-                <span>{formatDate(video.data_upload)}</span>
-                <span>{video.downloads_count || 0} downloads</span>
-              </div>
-
-              {/* Tags */}
-              {video.tags && video.tags.length > 0 && (
-                <div className="flex flex-wrap gap-1 mb-3">
-                  {video.tags.slice(0, 2).map((tag, index) => (
-                    <Badge key={index} variant="secondary" className="text-xs bg-cyan-500/20 text-cyan-400">
-                      {tag}
-                    </Badge>
-                  ))}
-                  {video.tags.length > 2 && (
-                    <Badge variant="outline" className="text-xs border-cyan-500/30 text-cyan-400">
-                      +{video.tags.length - 2}
-                    </Badge>
-                  )}
-                </div>
-              )}
-
-              {/* Ações */}
-              <div className="flex items-center justify-between">
+              {/* Action Buttons - Alinhados horizontalmente */}
+              <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-600/30">
                 <Button 
                   size="sm" 
                   onClick={() => onVideoPlay(video)}
-                  className="flex-1 mr-2 bg-gradient-to-r from-cyan-500 to-purple-500 text-white hover:from-cyan-600 hover:to-purple-600 rounded-xl"
+                  className="flex-1 bg-slate-700/50 border-slate-600/30 text-slate-200 hover:bg-cyan-500/20 hover:border-cyan-400/50 hover:text-white rounded-lg border"
                 >
                   <Play className="h-4 w-4 mr-1" />
-                  Assistir
+                  Ver
+                </Button>
+                
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleLike(video.id)}
+                  className="bg-slate-700/50 border-slate-600/30 text-slate-200 hover:bg-pink-500/20 hover:border-pink-400/50 hover:text-pink-300 rounded-lg px-3"
+                >
+                  <Heart className="h-4 w-4" />
                 </Button>
                 
                 {video.url_video && (
-                  <VideoDownloadMenu
-                    downloads={[{ quality: 'Original', link: video.url_video }]}
-                    videoId={video.id}
-                  />
+                  <Button
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => {
+                      const link = document.createElement('a');
+                      link.href = video.url_video!;
+                      link.download = `${video.titulo}.mp4`;
+                      link.click();
+                    }}
+                    className="bg-slate-700/50 border-slate-600/30 text-slate-200 hover:bg-green-500/20 hover:border-green-400/50 hover:text-green-300 rounded-lg px-3"
+                  >
+                    <Download className="h-4 w-4" />
+                  </Button>
                 )}
+              </div>
+
+              {/* Data no canto inferior direito */}
+              <div className="text-xs text-slate-500 mt-2 text-right">
+                {formatDate(video.data_upload)}
               </div>
             </CardContent>
           </Card>
