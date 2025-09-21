@@ -8,21 +8,21 @@ import { Search, SlidersHorizontal } from "lucide-react";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
-// Try to use the correct path. If '@/lib/media' does not exist, create a dummy instead.
 import { getMediaItems } from "@/lib/media";
 import { MediaItem } from "@/components/media-library/mockData";
 import FeatureBanner from "@/components/media-library/FeatureBanner";
 import MediaTrendingSection from "@/components/media-library/MediaTrendingSection";
 import MediaCreationSection from "@/components/media-library/MediaCreationSection";
-// Fix MediaCard import - fallback to mock or any if not yet present.
 import MediaCard from "@/components/media-library/MediaCard";
 import DownloadIdeasModal from "@/components/media-library/DownloadIdeasModal";
+import { EquipmentFilter } from "@/components/filters/EquipmentFilter";
 
 const MediaLibrary: React.FC = () => {
   const [activeTab, setActiveTab] = useState("all");
   const [mediaItems, setMediaItems] = useState<MediaItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedEquipment, setSelectedEquipment] = useState("");
   const [selectedMedia, setSelectedMedia] = useState<MediaItem | null>(null);
   const [showIdeasModal, setShowIdeasModal] = useState(false);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
@@ -123,36 +123,30 @@ const MediaLibrary: React.FC = () => {
             <div className="flex flex-col sm:flex-row gap-4">
               <div className="relative flex-1">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search media..." 
-                  className="pl-9"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
+            <Input
+              placeholder="Buscar mídia..."
+              className="pl-9 bg-slate-800/50 border-cyan-400/30 text-white placeholder-slate-400"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
               </div>
               <div className="flex gap-4">
-                <Select defaultValue="recent">
-                  <SelectTrigger className="w-[160px]">
-                    <SelectValue placeholder="Sort by" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="recent">Most Recent</SelectItem>
-                    <SelectItem value="popular">Most Popular</SelectItem>
-                    <SelectItem value="rating">Highest Rated</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Button variant="outline" size="icon">
+                  <EquipmentFilter
+                    value={selectedEquipment}
+                    onValueChange={setSelectedEquipment}
+                  />
+                <Button variant="outline" size="icon" className="bg-slate-800/50 border-cyan-400/30 text-cyan-400 hover:bg-cyan-500/20">
                   <SlidersHorizontal className="h-4 w-4" />
                 </Button>
               </div>
             </div>
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid grid-cols-4 sm:grid-cols-5 md:w-fit">
-                <TabsTrigger value="all">All</TabsTrigger>
-                <TabsTrigger value="video_pronto">Videos</TabsTrigger>
-                <TabsTrigger value="image">Images</TabsTrigger>
-                <TabsTrigger value="take">Takes</TabsTrigger>
-                <TabsTrigger value="document">Documents</TabsTrigger>
+              <TabsList className="grid grid-cols-4 sm:grid-cols-5 md:w-fit bg-slate-800/50 border-cyan-400/30">
+                <TabsTrigger value="all" className="text-white data-[state=active]:bg-cyan-500 data-[state=active]:text-white">All</TabsTrigger>
+                <TabsTrigger value="video_pronto" className="text-white data-[state=active]:bg-cyan-500 data-[state=active]:text-white">Videos</TabsTrigger>
+                <TabsTrigger value="image" className="text-white data-[state=active]:bg-cyan-500 data-[state=active]:text-white">Images</TabsTrigger>
+                <TabsTrigger value="take" className="text-white data-[state=active]:bg-cyan-500 data-[state=active]:text-white">Takes</TabsTrigger>
+                <TabsTrigger value="document" className="text-white data-[state=active]:bg-cyan-500 data-[state=active]:text-white">Documents</TabsTrigger>
               </TabsList>
             </Tabs>
           </div>

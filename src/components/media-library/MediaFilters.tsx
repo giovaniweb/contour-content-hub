@@ -186,18 +186,18 @@ const MediaFilters: React.FC<MediaFiltersProps> = ({
         {showAdvancedFilters && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-muted/30 rounded-lg">
             <div>
-              <label className="text-sm font-medium mb-1 block">Equipamento</label>
+              <label className="text-sm font-medium mb-1 block text-white">Equipamento</label>
               <Select 
                 value={selectedEquipment || ""} 
                 onValueChange={setSelectedEquipment}
               >
-                <SelectTrigger>
+                <SelectTrigger className="bg-slate-800/50 border-cyan-400/30 text-white">
                   <SelectValue placeholder="Todos os equipamentos" />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">Todos os equipamentos</SelectItem>
+                <SelectContent className="bg-slate-900 border-cyan-400/30">
+                  <SelectItem value="" className="text-white hover:bg-slate-800 focus:bg-slate-800">Todos os equipamentos</SelectItem>
                   {equipmentOptions.map(equipment => (
-                    <SelectItem key={equipment} value={equipment}>
+                    <SelectItem key={equipment} value={equipment} className="text-white hover:bg-slate-800 focus:bg-slate-800">
                       {equipment}
                     </SelectItem>
                   ))}
@@ -206,18 +206,18 @@ const MediaFilters: React.FC<MediaFiltersProps> = ({
             </div>
             
             <div>
-              <label className="text-sm font-medium mb-1 block">Área do Corpo</label>
+              <label className="text-sm font-medium mb-1 block text-white">Área do Corpo</label>
               <Select 
                 value={selectedBodyArea || ""} 
                 onValueChange={setSelectedBodyArea}
               >
-                <SelectTrigger>
+                <SelectTrigger className="bg-slate-800/50 border-cyan-400/30 text-white">
                   <SelectValue placeholder="Todas as áreas" />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">Todas as áreas</SelectItem>
+                <SelectContent className="bg-slate-900 border-cyan-400/30">
+                  <SelectItem value="" className="text-white hover:bg-slate-800 focus:bg-slate-800">Todas as áreas</SelectItem>
                   {bodyAreaOptions.map(area => (
-                    <SelectItem key={area} value={area}>
+                    <SelectItem key={area} value={area} className="text-white hover:bg-slate-800 focus:bg-slate-800">
                       {area}
                     </SelectItem>
                   ))}
@@ -226,18 +226,18 @@ const MediaFilters: React.FC<MediaFiltersProps> = ({
             </div>
             
             <div>
-              <label className="text-sm font-medium mb-1 block">Finalidade</label>
+              <label className="text-sm font-medium mb-1 block text-white">Finalidade</label>
               <Select 
                 value={selectedPurpose || ""} 
                 onValueChange={setSelectedPurpose}
               >
-                <SelectTrigger>
+                <SelectTrigger className="bg-slate-800/50 border-cyan-400/30 text-white">
                   <SelectValue placeholder="Todas as finalidades" />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">Todas as finalidades</SelectItem>
+                <SelectContent className="bg-slate-900 border-cyan-400/30">
+                  <SelectItem value="" className="text-white hover:bg-slate-800 focus:bg-slate-800">Todas as finalidades</SelectItem>
                   {purposeOptions.map(purpose => (
-                    <SelectItem key={purpose} value={purpose}>
+                    <SelectItem key={purpose} value={purpose} className="text-white hover:bg-slash-800 focus:bg-slate-800">
                       {purpose}
                     </SelectItem>
                   ))}

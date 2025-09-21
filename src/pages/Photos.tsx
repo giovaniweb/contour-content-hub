@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Image, Search, Grid, List, Tag, Zap, Heart, Download, Archive, Check } from 'lucide-react';
+import { EquipmentFilter } from '@/components/filters/EquipmentFilter';
 import AuroraPageLayout from '@/components/layout/AuroraPageLayout';
 import StandardPageHeader from '@/components/layout/StandardPageHeader';
 import { Button } from '@/components/ui/button';
@@ -8,8 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useUserPhotos } from '@/hooks/useUserPhotos';
-import { useUserEquipments } from '@/hooks/useUserEquipments';
-import { usePhotoLikes } from '@/hooks/usePhotoLikes';
+import { useEquipmentFilter } from '@/hooks/useEquipmentFilter';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import JSZip from 'jszip';
@@ -17,7 +17,7 @@ import { Photo } from '@/services/photoService';
 
 const Photos: React.FC = () => {
   const { photos, isLoading, error } = useUserPhotos();
-  const { equipments } = useUserEquipments();
+  const { getEquipmentName } = useEquipmentFilter();
   // Remover uso do hook antigo
   const [selectedPhoto, setSelectedPhoto] = useState<Photo | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -58,7 +58,7 @@ const Photos: React.FC = () => {
                            photo.descricao_curta?.toLowerCase().includes(searchTerm.toLowerCase());
       
       const matchesEquipment = !selectedEquipment || selectedEquipment === 'all' || 
-                              photo.categoria === selectedEquipment;
+                              (selectedEquipment !== '' && photo.categoria === getEquipmentName(selectedEquipment));
       
       return matchesSearch && matchesEquipment;
     });
@@ -69,10 +69,7 @@ const Photos: React.FC = () => {
     return new Date(dateString).toLocaleDateString('pt-BR');
   };
 
-  const getEquipmentName = (categoria: string) => {
-    const equipment = equipments.find(eq => eq.nome === categoria);
-    return equipment ? equipment.nome : categoria;
-  };
+  // Função removida - usando hook useEquipmentFilter
 
   const handleLike = async (photoId: string, event: React.MouseEvent) => {
     event.stopPropagation();
@@ -244,19 +241,12 @@ const Photos: React.FC = () => {
                 />
               </div>
               
-              <Select value={selectedEquipment} onValueChange={setSelectedEquipment}>
-                <SelectTrigger className="w-48 bg-black/20 border-cyan-400/30 text-white rounded-xl">
-                  <SelectValue placeholder="Equipamento" />
-                </SelectTrigger>
-                <SelectContent className="bg-slate-900 border-cyan-400/30">
-                  <SelectItem value="all" className="text-white">Todos Equipamentos</SelectItem>
-                  {equipments.map(equipment => (
-                    <SelectItem key={equipment.id} value={equipment.nome} className="text-white">
-                      {equipment.nome}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="w-48">
+                <EquipmentFilter
+                  value={selectedEquipment}
+                  onValueChange={setSelectedEquipment}
+                />
+              </div>
             </div>
 
             <div className="flex items-center gap-2">
@@ -412,7 +402,6 @@ const Photos: React.FC = () => {
 
                   <div className="flex items-center justify-between text-xs text-slate-400 mb-3">
                     <div className="flex flex-col">
-                      <span>{formatDate(photo.data_upload)}</span>
                       {photo.categoria && (
                         <span className="text-cyan-400 font-medium">{getEquipmentName(photo.categoria)}</span>
                       )}
@@ -436,7 +425,7 @@ const Photos: React.FC = () => {
                     </div>
                   )}
 
-                  {/* Actions - Remover os botões da parte inferior */}
+                  {/* Stats */}
                   <div className="flex items-center justify-between text-xs text-slate-400">
                     <div className="flex items-center gap-3">
                       <span className="flex items-center gap-1">
@@ -448,7 +437,6 @@ const Photos: React.FC = () => {
                         {photo.downloads_count || 0}
                       </span>
                     </div>
-                    <span>{formatDate(photo.data_upload)}</span>
                   </div>
                 </div>
               </div>

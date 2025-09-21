@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Video, Upload, Grid, Search, Filter, Play, Download, Eye, Calendar } from 'lucide-react';
+import { Video, Upload, Grid, Search, Filter, Play, Download, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useQuery } from '@tanstack/react-query';
@@ -7,9 +7,13 @@ import { supabase } from '@/integrations/supabase/client';
 import AuroraPageLayout from '@/components/layout/AuroraPageLayout';
 import StandardPageHeader from '@/components/layout/StandardPageHeader';
 import { EmptyState } from '@/components/ui/empty-state';
+import { EquipmentFilter } from '@/components/filters/EquipmentFilter';
+import { useEquipmentFilter } from '@/hooks/useEquipmentFilter';
 
 const VideoStorage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedEquipment, setSelectedEquipment] = useState('');
+  const { getEquipmentName } = useEquipmentFilter();
 
   const statusBadges = [
     {
@@ -27,30 +31,45 @@ const VideoStorage: React.FC = () => {
   ];
 
   const { data: videos = [], isLoading } = useQuery({
-    queryKey: ['user_videos'],
+    queryKey: ['videos'],
     queryFn: async () => {
-      // Para demonstração, retornamos dados mockados
-      // Em produção, conectaria com a tabela videos do Supabase
-      return [
-        {
-          id: '1',
-          titulo: 'Procedimento de Harmonização Facial',
-          descricao: 'Demonstração completa do procedimento',
-          categoria: 'Procedimentos',
-          url_video: '/placeholder-video.mp4',
-          thumbnail_url: '/placeholder-thumbnail.jpg',
-          data_upload: new Date().toISOString(),
-          duracao: '15:30'
-        }
-      ];
+      const { data, error } = await supabase
+        .from('videos')
+        .select(`
+          id,
+          titulo,
+          descricao_curta,
+          descricao_detalhada,
+          thumbnail_url,
+          url_video,
+          categoria,
+          tags,
+          downloads_count,
+          data_upload,
+          duracao,
+          equipamentos
+        `)
+        .order('data_upload', { ascending: false });
+
+      if (error) {
+        console.error('Erro ao buscar vídeos:', error);
+        return [];
+      }
+
+      return data || [];
     },
   });
 
-  const filteredVideos = videos.filter(video =>
-    video.titulo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    video.descricao?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    video.categoria?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredVideos = videos.filter(video => {
+    const matchesSearch = video.titulo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         video.descricao_curta?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         video.categoria?.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesEquipment = !selectedEquipment || 
+                            (video.equipamentos && video.equipamentos.includes(selectedEquipment));
+    
+    return matchesSearch && matchesEquipment;
+  });
 
   return (
     <AuroraPageLayout>
@@ -77,10 +96,11 @@ const VideoStorage: React.FC = () => {
           </div>
           
           <div className="flex gap-2">
-            <Button variant="outline">
-              <Filter className="h-4 w-4 mr-2" />
-              Filtros
-            </Button>
+            <EquipmentFilter
+              value={selectedEquipment}
+              onValueChange={setSelectedEquipment}
+              className="w-48"
+            />
             <Button className="aurora-button">
               <Upload className="h-4 w-4 mr-2" />
               Upload Vídeo
@@ -141,18 +161,22 @@ const VideoStorage: React.FC = () => {
                       {video.titulo}
                     </h3>
                     
-                    {video.categoria && (
-                      <span className="inline-block px-2 py-1 text-xs bg-aurora-neon-blue/20 text-aurora-neon-blue rounded-full">
-                        {video.categoria}
-                      </span>
-                    )}
+                    <div className="flex flex-wrap gap-1 mb-2">
+                      {video.equipamentos && video.equipamentos.slice(0, 2).map((equipmentId: string) => (
+                        <span key={equipmentId} className="inline-block px-2 py-1 text-xs bg-aurora-cyan/20 text-aurora-cyan rounded-full">
+                          {getEquipmentName(equipmentId)}
+                        </span>
+                      ))}
+                      {video.equipamentos && video.equipamentos.length > 2 && (
+                        <span className="inline-block px-2 py-1 text-xs bg-slate-600/20 text-slate-400 rounded-full">
+                          +{video.equipamentos.length - 2}
+                        </span>
+                      )}
+                    </div>
                     
                     <div className="flex items-center justify-between text-xs text-slate-500">
-                      <span className="flex items-center gap-1">
-                        <Calendar className="h-3 w-3" />
-                        {new Date(video.data_upload).toLocaleDateString()}
-                      </span>
                       <span>{video.duracao || '00:00'}</span>
+                      <span>{video.downloads_count || 0} downloads</span>
                     </div>
                   </div>
                 </div>

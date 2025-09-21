@@ -129,7 +129,6 @@ export const PhotoGrid: React.FC<PhotoGridProps> = ({ photos, onPhotoClick }) =>
                     {photo.downloads_count || 0}
                   </span>
                 </div>
-                <span>{new Date(photo.data_upload).toLocaleDateString()}</span>
               </div>
             </div>
           </CardContent>
