@@ -284,48 +284,29 @@ const Arts: React.FC = () => {
                                 <Eye className="h-4 w-4" />
                               </Button>
                             </DialogTrigger>
-                            <DialogContent className="max-w-7xl bg-slate-900 border-aurora-electric-purple/30">
+                            <DialogContent className="max-w-6xl bg-slate-900 border-aurora-electric-purple/30">
                               <DialogHeader>
                                 <DialogTitle className="text-white flex items-center gap-2">
-                                  <Wand2 className="h-5 w-5 text-aurora-electric-purple" />
-                                  Visualizar com IA - {material.title}
+                                  <Eye className="h-5 w-5 text-aurora-electric-purple" />
+                                  {material.title}
                                 </DialogTitle>
                               </DialogHeader>
                               
-                              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-h-[80vh] overflow-auto">
-                                {/* Image Preview */}
-                                <div className="space-y-4">
-                                  {material.is_carousel ? (
-                                    <CarouselViewer 
-                                      images={material.carousel_images || []} 
-                                      title={material.title}
-                                      material={material}
-                                      equipments={equipments}
-                                    />
-                                  ) : (
-                                    <div className="aspect-square w-full overflow-hidden rounded-lg border border-aurora-electric-purple/30">
-                                      <img
-                                        src={material.file_url?.includes('http') 
-                                          ? material.file_url
-                                          : `https://mksvzhgqnsjfolvskibq.supabase.co/storage/v1/object/public/downloads/${material.file_url}`
-                                        }
-                                        alt={material.title}
-                                        className="w-full h-full object-cover"
-                                      />
-                                    </div>
-                                  )}
-                                </div>
-
-                                {/* AI Caption Generator */}
-                                <div className="space-y-4">
-                                  <CaptionGenerator
-                                    imageUrl={material.file_url}
-                                    equipments={equipments.filter(eq => 
-                                      material.equipment_ids?.includes(eq.id)
-                                    )}
-                                  />
-                                </div>
-                              </div>
+                              {material.is_carousel ? (
+                                <CarouselViewer 
+                                  images={material.carousel_images || []} 
+                                  title={material.title}
+                                  material={material}
+                                  equipments={equipments}
+                                />
+                              ) : (
+                                <CarouselViewer 
+                                  images={[material.file_url]} 
+                                  title={material.title}
+                                  material={material}
+                                  equipments={equipments}
+                                />
+                              )}
                             </DialogContent>
                           </Dialog>
 
