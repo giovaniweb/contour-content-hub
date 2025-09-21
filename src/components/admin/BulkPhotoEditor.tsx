@@ -9,6 +9,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { photoService, UpdatePhotoData } from '@/services/photoService';
 import TagInput from '@/components/ui/TagInput';
+import EquipmentSelector from '@/components/ui/EquipmentSelector';
 
 interface BulkPhotoEditorProps {
   selectedPhotos: Set<string>;
@@ -21,6 +22,7 @@ interface BulkUpdateFields {
   descricao_curta?: boolean;
   categoria?: boolean;
   tags?: boolean;
+  equipamentos?: boolean;
 }
 
 const BulkPhotoEditor: React.FC<BulkPhotoEditorProps> = ({
@@ -36,7 +38,8 @@ const BulkPhotoEditor: React.FC<BulkPhotoEditorProps> = ({
     titulo: '',
     descricao_curta: '',
     categoria: '',
-    tags: []
+    tags: [],
+    equipamentos: []
   });
 
   const handleFieldToggle = (field: keyof BulkUpdateFields, enabled: boolean) => {
@@ -74,6 +77,10 @@ const BulkPhotoEditor: React.FC<BulkPhotoEditorProps> = ({
       
       if (fieldsToUpdate.tags && formData.tags) {
         updateData.tags = formData.tags;
+      }
+      
+      if (fieldsToUpdate.equipamentos && formData.equipamentos) {
+        updateData.equipamentos = formData.equipamentos;
       }
       
       // Verificar se há pelo menos um campo selecionado
@@ -220,6 +227,26 @@ const BulkPhotoEditor: React.FC<BulkPhotoEditorProps> = ({
                 onChange={(tags) => handleInputChange('tags', tags)}
                 placeholder="Novas tags para todas as fotos"
                 disabled={!fieldsToUpdate.tags}
+              />
+            </div>
+          </div>
+
+          {/* Equipamentos */}
+          <div className="flex items-start gap-3">
+            <Checkbox
+              id="equipamentos-field"
+              checked={fieldsToUpdate.equipamentos || false}
+              onCheckedChange={(checked) => handleFieldToggle('equipamentos', checked as boolean)}
+            />
+            <div className="flex-1 space-y-2">
+              <Label htmlFor="equipamentos-field" className="cursor-pointer">
+                Alterar Equipamentos
+              </Label>
+              <EquipmentSelector
+                value={formData.equipamentos || []}
+                onChange={(equipamentos) => handleInputChange('equipamentos', equipamentos)}
+                placeholder="Novos equipamentos para todas as fotos"
+                disabled={!fieldsToUpdate.equipamentos}
               />
             </div>
           </div>

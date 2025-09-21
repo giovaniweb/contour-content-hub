@@ -428,6 +428,29 @@ const AdminPhotoManager: React.FC = () => {
                     </div>
                   )}
                   
+                  {/* Equipamentos */}
+                  {photo.equipamentos && photo.equipamentos.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mb-3">
+                      {photo.equipamentos.slice(0, 2).map((equipment, index) => (
+                        <Badge
+                          key={index}
+                          variant="secondary"
+                          className="text-xs bg-purple-500/20 text-purple-400 border-purple-500/30"
+                        >
+                          {equipment}
+                        </Badge>
+                      ))}
+                      {photo.equipamentos.length > 2 && (
+                        <Badge
+                          variant="secondary"
+                          className="text-xs bg-slate-500/20 text-slate-400"
+                        >
+                          +{photo.equipamentos.length - 2} equip.
+                        </Badge>
+                      )}
+                    </div>
+                  )}
+                  
                   {/* Stats */}
                   <div className="flex justify-between items-center text-xs text-slate-400">
                     <div className="flex items-center gap-3">
@@ -483,6 +506,9 @@ const AdminPhotoManager: React.FC = () => {
                 </div>
                 <div>
                   <strong>Downloads:</strong> {selectedPhoto.downloads_count || 0}
+                </div>
+                <div className="col-span-2">
+                  <strong>Equipamentos:</strong> {selectedPhoto.equipamentos?.join(', ') || 'Nenhum'}
                 </div>
               </div>
               {selectedPhoto.descricao_curta && (

@@ -2376,6 +2376,7 @@ export type Database = {
           data_upload: string
           descricao_curta: string | null
           downloads_count: number | null
+          equipamentos: string[] | null
           favoritos_count: number | null
           id: string
           tags: string[] | null
@@ -2391,6 +2392,7 @@ export type Database = {
           data_upload?: string
           descricao_curta?: string | null
           downloads_count?: number | null
+          equipamentos?: string[] | null
           favoritos_count?: number | null
           id?: string
           tags?: string[] | null
@@ -2406,6 +2408,7 @@ export type Database = {
           data_upload?: string
           descricao_curta?: string | null
           downloads_count?: number | null
+          equipamentos?: string[] | null
           favoritos_count?: number | null
           id?: string
           tags?: string[] | null

@@ -7,6 +7,7 @@ export interface Photo {
   descricao_curta?: string;
   categoria?: string;
   tags?: string[];
+  equipamentos?: string[];
   url_imagem: string;
   thumbnail_url?: string;
   downloads_count?: number;
@@ -21,6 +22,7 @@ export interface CreatePhotoData {
   descricao_curta?: string;
   categoria?: string;
   tags?: string[];
+  equipamentos?: string[];
   url_imagem: string;
   thumbnail_url?: string;
 }
@@ -30,6 +32,7 @@ export interface UpdatePhotoData {
   descricao_curta?: string;
   categoria?: string;
   tags?: string[];
+  equipamentos?: string[];
   thumbnail_url?: string;
 }
 
@@ -50,6 +53,7 @@ export const photoService = {
           descricao_curta,
           categoria,
           tags,
+          equipamentos,
           thumbnail_url,
           url_imagem,
           downloads_count,
@@ -87,6 +91,7 @@ export const photoService = {
           descricao_curta,
           categoria,
           tags,
+          equipamentos,
           thumbnail_url,
           url_imagem,
           downloads_count,

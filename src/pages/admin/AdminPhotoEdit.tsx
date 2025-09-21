@@ -11,6 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 import { photoService, Photo, UpdatePhotoData } from '@/services/photoService';
 import AppLayout from '@/components/layout/AppLayout';
 import TagInput from '@/components/ui/TagInput';
+import EquipmentSelector from '@/components/ui/EquipmentSelector';
 
 const AdminPhotoEdit: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -26,7 +27,8 @@ const AdminPhotoEdit: React.FC = () => {
     titulo: '',
     descricao_curta: '',
     categoria: '',
-    tags: []
+    tags: [],
+    equipamentos: []
   });
 
   useEffect(() => {
@@ -68,7 +70,8 @@ const AdminPhotoEdit: React.FC = () => {
         titulo: foundPhoto.titulo,
         descricao_curta: foundPhoto.descricao_curta || '',
         categoria: foundPhoto.categoria || '',
-        tags: foundPhoto.tags || []
+        tags: foundPhoto.tags || [],
+        equipamentos: foundPhoto.equipamentos || []
       });
     } catch (error) {
       console.error('Erro ao carregar foto:', error);
@@ -272,6 +275,7 @@ const AdminPhotoEdit: React.FC = () => {
                 <p><span className="text-slate-300">Atualizado:</span> {new Date(photo.updated_at).toLocaleString('pt-BR')}</p>
                 <p><span className="text-slate-300">Downloads:</span> {photo.downloads_count || 0}</p>
                 <p><span className="text-slate-300">Favoritos:</span> {photo.favoritos_count || 0}</p>
+                <p><span className="text-slate-300">Equipamentos:</span> {photo.equipamentos?.length || 0}</p>
               </div>
             </CardContent>
           </Card>
@@ -310,6 +314,15 @@ const AdminPhotoEdit: React.FC = () => {
                   value={formData.categoria}
                   onChange={(e) => handleInputChange('categoria', e.target.value)}
                   placeholder="Digite a categoria da foto"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Equipamentos</Label>
+                <EquipmentSelector
+                  value={formData.equipamentos || []}
+                  onChange={(equipments) => handleInputChange('equipamentos', equipments)}
+                  placeholder="Selecionar equipamentos relacionados"
                 />
               </div>
 
