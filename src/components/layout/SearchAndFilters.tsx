@@ -29,10 +29,20 @@ const SearchAndFilters: React.FC<SearchAndFiltersProps> = ({
           
           {/* View Mode Toggle */}
           <div className="flex items-center border border-cyan-500/30 rounded-xl bg-slate-800/50 p-1">
-            <Button variant={viewMode === 'grid' ? 'default' : 'ghost'} size="sm" onClick={() => onViewModeChange('grid')} className={`h-8 px-3 ${viewMode === 'grid' ? 'bg-cyan-500 text-white' : 'text-cyan-400 hover:text-cyan-300'}`}>
+            <Button 
+              variant={viewMode === 'grid' ? 'default' : 'ghost'} 
+              size="sm" 
+              onClick={() => onViewModeChange('grid')} 
+              className={`h-8 px-3 ${viewMode === 'grid' ? 'bg-cyan-500 text-white font-medium' : 'text-white hover:text-white hover:bg-slate-700'}`}
+            >
               <Grid className="h-4 w-4" />
             </Button>
-            <Button variant={viewMode === 'list' ? 'default' : 'ghost'} size="sm" onClick={() => onViewModeChange('list')} className={`h-8 px-3 ${viewMode === 'list' ? 'bg-cyan-500 text-white' : 'text-cyan-400 hover:text-cyan-300'}`}>
+            <Button 
+              variant={viewMode === 'list' ? 'default' : 'ghost'} 
+              size="sm" 
+              onClick={() => onViewModeChange('list')} 
+              className={`h-8 px-3 ${viewMode === 'list' ? 'bg-cyan-500 text-white font-medium' : 'text-white hover:text-white hover:bg-slate-700'}`}
+            >
               <List className="h-4 w-4" />
             </Button>
           </div>

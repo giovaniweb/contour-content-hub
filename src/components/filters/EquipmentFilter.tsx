@@ -33,18 +33,18 @@ export const EquipmentFilter: React.FC<EquipmentFilterProps> = ({
         onValueChange={(value) => onValueChange(value === "all" ? "" : value)}
         disabled={isLoading}
       >
-        <SelectTrigger className="w-full bg-slate-800/50 border-cyan-400/30 text-white rounded-xl">
+        <SelectTrigger className="w-full bg-slate-800/50 border-white/15 text-white rounded-xl">
           <SelectValue placeholder={isLoading ? "Carregando..." : placeholder} />
         </SelectTrigger>
-        <SelectContent className="bg-slate-900 border-cyan-400/30">
-          <SelectItem value="all" className="text-white hover:bg-slate-800 focus:bg-slate-800">
+        <SelectContent className="bg-slate-900 border-white/15">
+          <SelectItem value="all" className="text-white hover:bg-slate-800 focus:bg-slate-800 focus:text-white">
             {placeholder}
           </SelectItem>
           {equipmentOptions.map((equipment) => (
             <SelectItem 
               key={equipment.value} 
               value={equipment.value}
-              className="text-white hover:bg-slate-800 focus:bg-slate-800"
+              className="text-white hover:bg-slate-800 focus:bg-slate-800 focus:text-white"
             >
               {equipment.label}
             </SelectItem>

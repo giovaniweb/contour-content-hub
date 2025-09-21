@@ -330,7 +330,7 @@ const Photos: React.FC = () => {
                     variant="outline"
                     size="sm"
                     onClick={clearSelection}
-                    className="bg-slate-900/70 border-white/15 text-slate-100 hover:bg-slate-800 rounded-xl"
+                    className="bg-slate-800/50 border-white/15 text-white hover:bg-slate-700 hover:text-white rounded-xl"
                   >
                     Limpar
                   </Button>
@@ -340,7 +340,7 @@ const Photos: React.FC = () => {
                 variant="outline"
                 size="sm"
                 onClick={selectedPhotos.size > 0 ? clearSelection : selectAllPhotos}
-                className="bg-slate-900/70 border-white/15 text-slate-100 hover:bg-slate-800 rounded-xl mr-2"
+                className="bg-slate-800/50 border-white/15 text-white hover:bg-slate-700 hover:text-white rounded-xl mr-2"
               >
                 {selectedPhotos.size > 0 ? 'Desmarcar Todos' : 'Selecionar Todos'}
               </Button>
@@ -350,7 +350,7 @@ const Photos: React.FC = () => {
                 onClick={() => setViewMode('grid')}
                 className={`rounded-xl ${viewMode === 'grid' 
                   ? 'bg-aurora-cyan text-slate-900 font-medium shadow-sm' 
-                  : 'bg-slate-900/70 border-white/10 text-slate-100 hover:bg-slate-800'
+                  : 'bg-slate-800/50 border-white/15 text-white hover:bg-slate-700 hover:text-white'
                 }`}
               >
                 <Grid className="h-4 w-4" />
@@ -361,7 +361,7 @@ const Photos: React.FC = () => {
                 onClick={() => setViewMode('list')}
                 className={`rounded-xl ${viewMode === 'list' 
                   ? 'bg-aurora-cyan text-slate-900 font-medium shadow-sm' 
-                  : 'bg-slate-900/70 border-white/10 text-slate-100 hover:bg-slate-800'
+                  : 'bg-slate-800/50 border-white/15 text-white hover:bg-slate-700 hover:text-white'
                 }`}
               >
                 <List className="h-4 w-4" />
