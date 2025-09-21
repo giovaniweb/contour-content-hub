@@ -29,23 +29,27 @@ const EquipmentSelector: React.FC<EquipmentSelectorProps> = ({
   const { equipments, loading } = useEquipments();
   const [open, setOpen] = React.useState(false);
 
+  // Garantir que equipments e value sejam sempre arrays
+  const safeEquipments = equipments || [];
+  const safeValue = value || [];
+
   const handleEquipmentToggle = (equipmentName: string) => {
     if (disabled) return;
     
-    const isSelected = value.includes(equipmentName);
+    const isSelected = safeValue.includes(equipmentName);
     
     if (isSelected) {
-      onChange(value.filter(eq => eq !== equipmentName));
-    } else if (value.length < maxSelections) {
-      onChange([...value, equipmentName]);
+      onChange(safeValue.filter(eq => eq !== equipmentName));
+    } else if (safeValue.length < maxSelections) {
+      onChange([...safeValue, equipmentName]);
     }
   };
 
   const removeEquipment = (equipmentName: string) => {
-    onChange(value.filter(eq => eq !== equipmentName));
+    onChange(safeValue.filter(eq => eq !== equipmentName));
   };
 
-  const selectedEquipments = equipments.filter(eq => value.includes(eq.nome));
+  const selectedEquipments = safeEquipments.filter(eq => safeValue.includes(eq.nome));
 
   return (
     <div className={cn("space-y-2", className)}>
@@ -81,12 +85,13 @@ const EquipmentSelector: React.FC<EquipmentSelectorProps> = ({
             role="combobox"
             aria-expanded={open}
             className="w-full justify-between"
-            disabled={disabled || loading}
+            disabled={disabled || loading || safeEquipments.length === 0}
           >
             {loading ? "Carregando equipamentos..." : 
-             value.length === 0 ? placeholder :
-             value.length === 1 ? `${value.length} equipamento selecionado` :
-             `${value.length} equipamentos selecionados`
+             safeEquipments.length === 0 ? "Nenhum equipamento disponível" :
+             safeValue.length === 0 ? placeholder :
+             safeValue.length === 1 ? `${safeValue.length} equipamento selecionado` :
+             `${safeValue.length} equipamentos selecionados`
             }
             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
@@ -96,9 +101,9 @@ const EquipmentSelector: React.FC<EquipmentSelectorProps> = ({
             <CommandInput placeholder="Buscar equipamento..." />
             <CommandEmpty>Nenhum equipamento encontrado.</CommandEmpty>
             <CommandGroup className="max-h-64 overflow-auto">
-              {equipments.map((equipment) => {
-                const isSelected = value.includes(equipment.nome);
-                const isDisabled = !isSelected && value.length >= maxSelections;
+              {safeEquipments.map((equipment) => {
+                const isSelected = safeValue.includes(equipment.nome);
+                const isDisabled = !isSelected && safeValue.length >= maxSelections;
                 
                 return (
                   <CommandItem
@@ -133,7 +138,7 @@ const EquipmentSelector: React.FC<EquipmentSelectorProps> = ({
       </Popover>
       
       <div className="text-xs text-muted-foreground">
-        {value.length}/{maxSelections} equipamentos selecionados
+        {safeValue.length}/{maxSelections} equipamentos selecionados
       </div>
     </div>
   );
