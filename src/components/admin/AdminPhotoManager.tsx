@@ -20,7 +20,6 @@ const AdminPhotoManager: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
-  const [filteredPhotos, setFilteredPhotos] = useState<Photo[]>([]);
   const [selectedPhoto, setSelectedPhoto] = useState<Photo | null>(null);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [selectedPhotos, setSelectedPhotos] = useState<Set<string>>(new Set());
@@ -32,13 +31,16 @@ const AdminPhotoManager: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    filterPhotos();
-  }, [photos, searchQuery, selectedCategory]);
+    loadPhotos();
+  }, [searchQuery, selectedCategory]);
 
   const loadPhotos = async () => {
     try {
       setLoading(true);
-      const { data, error } = await photoService.getAllPhotos();
+      const { data, error } = await photoService.getAllPhotos({
+        search: searchQuery,
+        categoria: selectedCategory
+      });
       
       if (error) {
         toast({
@@ -56,26 +58,8 @@ const AdminPhotoManager: React.FC = () => {
     }
   };
 
-  const filterPhotos = () => {
-    let filtered = photos;
-
-    if (searchQuery.trim()) {
-      filtered = filtered.filter(photo => 
-        photo.titulo.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        photo.categoria?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        photo.tags?.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
-      );
-    }
-
-    if (selectedCategory && selectedCategory !== 'all') {
-      filtered = filtered.filter(photo => photo.categoria === selectedCategory);
-    }
-
-    setFilteredPhotos(filtered);
-  };
-
   const handleSearch = () => {
-    filterPhotos();
+    loadPhotos();
   };
 
   const handleDelete = async (photoId: string) => {
@@ -134,7 +118,7 @@ const AdminPhotoManager: React.FC = () => {
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
-      setSelectedPhotos(new Set(filteredPhotos.map(photo => photo.id)));
+      setSelectedPhotos(new Set(photos.map(photo => photo.id)));
     } else {
       setSelectedPhotos(new Set());
     }
@@ -257,7 +241,7 @@ const AdminPhotoManager: React.FC = () => {
         </Card>
         <Card className="bg-slate-800/50 border-cyan-500/20">
           <CardContent className="p-4">
-            <div className="text-2xl font-bold text-green-400">{filteredPhotos.length}</div>
+            <div className="text-2xl font-bold text-green-400">{photos.length}</div>
             <div className="text-sm text-slate-400">Fotos Filtradas</div>
           </CardContent>
         </Card>
@@ -335,21 +319,21 @@ const AdminPhotoManager: React.FC = () => {
       )}
 
       {/* Grid de fotos */}
-      {filteredPhotos.length > 0 ? (
+      {photos.length > 0 ? (
         <div className="space-y-4">
           {/* Header com seleção */}
           <div className="flex items-center gap-2">
             <Checkbox
-              checked={selectedPhotos.size === filteredPhotos.length && filteredPhotos.length > 0}
+              checked={selectedPhotos.size === photos.length && photos.length > 0}
               onCheckedChange={handleSelectAll}
             />
             <span className="text-sm text-slate-300">
-              Selecionar todas ({filteredPhotos.length})
+              Selecionar todas ({photos.length})
             </span>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filteredPhotos.map((photo) => (
+            {photos.map((photo) => (
               <Card key={photo.id} className="bg-slate-800/50 border-cyan-500/20 overflow-hidden hover:border-cyan-500/40 transition-colors group">
                 <CardContent className="p-0">
                   {/* Checkbox de seleção */}

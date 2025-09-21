@@ -5,11 +5,13 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Card, CardContent } from '@/components/ui/card';
 import VideoGrid from '@/components/video-storage/VideoGrid';
 import BulkActionBar from '@/components/video-storage/BulkActionBar';
 import BatchVideoUploader from '@/components/video-storage/BatchVideoUploader';
 import VideoPlayer from '@/components/video-storage/VideoPlayer';
 import VideoEditDialog from '@/components/video-storage/VideoEditDialog';
+import { Pagination } from '@/components/ui/pagination';
 import { useVideoManager } from '@/hooks/useVideoManager';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -34,6 +36,8 @@ const AdminVideoManager: React.FC = () => {
     selectedVideos,
     loading,
     filters,
+    page,
+    total,
     equipments,
     handleSelectVideo,
     handleSelectAll,
@@ -43,6 +47,7 @@ const AdminVideoManager: React.FC = () => {
     handleBulkUpdateEquipment,
     handleBulkAddTags,
     handleFilterChange,
+    setPage,
     loadVideos
   } = useVideoManager();
 
@@ -181,7 +186,14 @@ const AdminVideoManager: React.FC = () => {
             />
           </div>
 
-          <Select value={selectedEquipmentFilter} onValueChange={setSelectedEquipmentFilter}>
+          <Select value={selectedEquipmentFilter} onValueChange={(value) => {
+            setSelectedEquipmentFilter(value);
+            handleFilterChange({
+              ...filters,
+              search: searchQuery,
+              equipment: value === 'all' ? undefined : [value]
+            });
+          }}>
             <SelectTrigger className="w-full sm:w-48">
               <SelectValue placeholder="Filtrar por equipamento" />
             </SelectTrigger>
@@ -199,6 +211,28 @@ const AdminVideoManager: React.FC = () => {
             <Filter className="h-4 w-4" />
           </Button>
         </div>
+      </div>
+
+      {/* Estatísticas */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card className="bg-slate-800/50 border-cyan-500/20">
+          <CardContent className="p-4">
+            <div className="text-2xl font-bold text-cyan-400">{total}</div>
+            <div className="text-sm text-slate-400">Total de Vídeos</div>
+          </CardContent>
+        </Card>
+        <Card className="bg-slate-800/50 border-cyan-500/20">
+          <CardContent className="p-4">
+            <div className="text-2xl font-bold text-green-400">{videos.length}</div>
+            <div className="text-sm text-slate-400">Vídeos Filtrados</div>
+          </CardContent>
+        </Card>
+        <Card className="bg-slate-800/50 border-cyan-500/20">
+          <CardContent className="p-4">
+            <div className="text-2xl font-bold text-purple-400">{validEquipments.length}</div>
+            <div className="text-sm text-slate-400">Equipamentos</div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Barra de ações em massa - now passing validEquipments */}
@@ -222,6 +256,14 @@ const AdminVideoManager: React.FC = () => {
         onPlay={handlePlay}
         onDownload={handleDownload}
         isLoading={loading}
+      />
+
+      {/* Paginação */}
+      <Pagination
+        totalItems={total}
+        itemsPerPage={20}
+        currentPage={page}
+        onPageChange={setPage}
       />
 
       {/* Player de vídeo */}

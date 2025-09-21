@@ -74,9 +74,12 @@ export const photoService = {
     }
   },
 
-  async getAllPhotos(): Promise<{ data: Photo[] | null; error: string | null }> {
+  async getAllPhotos(filters?: {
+    search?: string;
+    categoria?: string;
+  }): Promise<{ data: Photo[] | null; error: string | null }> {
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from('fotos')
         .select(`
           id,
@@ -94,6 +97,17 @@ export const photoService = {
           user_id
         `)
         .order('created_at', { ascending: false });
+
+      // Apply filters
+      if (filters?.search) {
+        query = query.or(`titulo.ilike.%${filters.search}%,descricao_curta.ilike.%${filters.search}%,tags.cs.{${filters.search}}`);
+      }
+
+      if (filters?.categoria && filters.categoria !== 'all') {
+        query = query.eq('categoria', filters.categoria);
+      }
+
+      const { data, error } = await query;
 
       if (error) {
         console.error('Erro ao buscar fotos:', error);
