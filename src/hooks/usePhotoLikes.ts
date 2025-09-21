@@ -7,6 +7,7 @@ export const usePhotoLikes = (photoId: string) => {
   const { data: userLike, isLoading } = useQuery({
     queryKey: ['photo-like', photoId],
     queryFn: () => getUserPhotoLike(photoId),
+    enabled: !!photoId, // Only run query if photoId is not empty
   });
 
   const isLiked = !!userLike;

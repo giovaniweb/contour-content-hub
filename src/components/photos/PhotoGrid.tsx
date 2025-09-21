@@ -29,7 +29,10 @@ export const PhotoGrid: React.FC<PhotoGridProps> = ({ photos, onPhotoClick }) =>
     console.log('Like functionality needs implementation');
   };
 
-  const handleDownload = (photo: Photo) => {
+  const handleDownload = (photo: Photo, event?: React.MouseEvent) => {
+    if (event) {
+      event.stopPropagation();
+    }
     const link = document.createElement('a');
     link.href = photo.url_imagem;
     link.download = `${photo.titulo}.jpg`;
@@ -126,10 +129,7 @@ export const PhotoGrid: React.FC<PhotoGridProps> = ({ photos, onPhotoClick }) =>
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleDownload(photo);
-                  }}
+                  onClick={(e) => handleDownload(photo, e)}
                   className="bg-slate-700/50 border-slate-700/30 text-slate-200 hover:bg-green-500/20 hover:border-green-400/50 hover:text-green-300 rounded-lg px-3"
                 >
                   <Download className="h-4 w-4" />
