@@ -52,7 +52,8 @@ export const getVideos = async (
     }
 
     if (filters.equipment && filters.equipment.length > 0) {
-      query = query.overlaps('equipamentos', filters.equipment);
+      // Use contains for JSONB array compatibility (matches when any of the provided values are present)
+      query = query.contains('equipamentos', filters.equipment);
     }
 
     if (filters.tags && filters.tags.length > 0) {

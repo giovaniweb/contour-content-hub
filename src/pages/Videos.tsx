@@ -81,13 +81,27 @@ const Videos: React.FC = () => {
       const matchesSearch = video.titulo.toLowerCase().includes(searchTerm.toLowerCase()) ||
                            video.descricao_curta?.toLowerCase().includes(searchTerm.toLowerCase());
       
-      const matchesEquipment = !selectedEquipment || selectedEquipment === 'all' || 
-                              (video.equipamentos && video.equipamentos.some(eq => eq === selectedEquipment)) ||
-                              video.categoria === selectedEquipment;
+      if (!selectedEquipment || selectedEquipment === 'all') {
+        return matchesSearch;
+      }
+
+      const selectedEq = equipments.find(eq => eq.id === selectedEquipment || eq.nome === selectedEquipment);
+      const selectedName = selectedEq?.nome;
+
+      const hasEquipMatch = Array.isArray(video.equipamentos) && (
+        video.equipamentos.includes(selectedEquipment) ||
+        (selectedName ? video.equipamentos.includes(selectedName) : false)
+      );
+
+      const hasCategoriaMatch = selectedName
+        ? video.categoria === selectedName
+        : video.categoria === selectedEquipment;
+      
+      const matchesEquipment = hasEquipMatch || hasCategoriaMatch;
       
       return matchesSearch && matchesEquipment;
     });
-  }, [videos, searchTerm, selectedEquipment]);
+  }, [videos, searchTerm, selectedEquipment, equipments]);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('pt-BR');
