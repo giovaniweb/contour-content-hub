@@ -33,7 +33,6 @@ interface CarouselViewerProps {
   equipments?: any[];
   onDownload?: (imageUrl: string, index: number) => void;
   className?: string;
-  triggerButton?: React.ReactNode;
 }
 
 const CarouselViewer: React.FC<CarouselViewerProps> = ({ 
@@ -42,8 +41,7 @@ const CarouselViewer: React.FC<CarouselViewerProps> = ({
   material,
   equipments = [],
   onDownload,
-  className = "",
-  triggerButton
+  className = ""
 }) => {
   const handleDownload = async (imageUrl: string, index: number) => {
     if (onDownload) {
@@ -115,138 +113,17 @@ const CarouselViewer: React.FC<CarouselViewerProps> = ({
     return null;
   }
 
-  // Se for apenas uma imagem, renderizar com modal completo também
+  // Se for apenas uma imagem, renderizar simples
   if (images.length === 1) {
     return (
       <div className={`relative group ${className}`}>
-        {triggerButton ? (
-          <Dialog>
-            <DialogTrigger asChild>
-              {triggerButton}
-            </DialogTrigger>
-            <DialogContent className="max-w-6xl bg-slate-900 border-aurora-electric-purple/30">
-              <DialogHeader>
-                <DialogTitle className="text-white flex items-center gap-2">
-                  <Eye className="h-5 w-5 text-aurora-electric-purple" />
-                  {title}
-                </DialogTitle>
-              </DialogHeader>
-              
-              <div className="grid lg:grid-cols-2 gap-6 h-[80vh]">
-                {/* Lado esquerdo - Imagem */}
-                <div className="flex flex-col space-y-4">
-                  <div className="flex-1">
-                    <div className="relative h-full">
-                      <div className="h-full rounded-lg overflow-hidden bg-black/20">
-                        <img
-                          src={`https://mksvzhgqnsjfolvskibq.supabase.co/storage/v1/object/public/downloads/${images[0]}`}
-                          alt={title}
-                          className="w-full h-full object-contain"
-                        />
-                      </div>
-                      
-                      {/* Botão de download individual */}
-                      <div className="absolute bottom-3 right-3">
-                        <Button
-                          size="sm"
-                          onClick={() => handleDownload(images[0], 0)}
-                          className="aurora-button aurora-glow hover:aurora-glow-intense"
-                        >
-                          <Download className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Lado direito - Informações e Legenda */}
-                <div className="flex flex-col h-full overflow-hidden">
-                  <div className="flex-1 overflow-y-auto aurora-scroll space-y-6 pr-2">
-                  {/* Informações do material */}
-                  {material && (
-                    <div className="aurora-glass p-6 space-y-4 backdrop-blur-md bg-slate-800/30 border border-white/10 rounded-lg">
-                      <div>
-                        <h3 className="text-lg font-medium text-slate-200 mb-2">{material.title}</h3>
-                        {material.description && (
-                          <p className="text-sm text-slate-400 mb-3">{material.description}</p>
-                        )}
-                      </div>
-
-                      {/* Tags */}
-                      {material.tags && material.tags.length > 0 && (
-                        <div className="flex flex-wrap gap-2">
-                          {material.tags.map((tag, index) => (
-                            <span
-                              key={index}
-                              className="px-2 py-1 text-xs bg-aurora-electric-purple/20 text-aurora-electric-purple rounded-full"
-                            >
-                              {tag}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-
-                      {/* Equipamentos */}
-                      {material.equipment_ids && material.equipment_ids.length > 0 && (
-                        <div>
-                          <h4 className="text-sm font-medium text-slate-300 mb-2">Equipamentos:</h4>
-                          <div className="flex flex-wrap gap-2">
-                            {material.equipment_ids.map((equipId, index) => {
-                              const equipment = equipments.find(eq => eq.id === equipId);
-                              return equipment ? (
-                                <span
-                                  key={index}
-                                  className="px-2 py-1 text-xs bg-aurora-neon-blue/20 text-aurora-neon-blue rounded-full"
-                                >
-                                  {equipment.nome}
-                                </span>
-                              ) : null;
-                            })}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Legenda existente */}
-                      {material.metadata && typeof material.metadata === 'object' && 'caption' in material.metadata && (
-                        <div className="p-3 bg-slate-800/50 rounded-lg border border-slate-700/50">
-                          <div className="flex items-start gap-2">
-                            <FileText className="h-4 w-4 text-aurora-electric-purple mt-0.5 flex-shrink-0" />
-                            <div>
-                              <h4 className="text-sm font-medium text-slate-300 mb-1">Legenda atual:</h4>
-                              <p className="text-sm text-slate-400">{String(material.metadata.caption)}</p>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Gerador de Legenda */}
-                  {material && (
-                    <CaptionGenerator
-                      imageUrl={material.file_url}
-                      equipments={material.equipment_ids ? 
-                        equipments.filter(eq => material.equipment_ids.includes(eq.id)) : []
-                      }
-                      onCaptionGenerated={(caption) => {
-                        console.log('Caption generated:', caption);
-                      }}
-                    />
-                  )}
-                  </div>
-                </div>
-              </div>
-            </DialogContent>
-          </Dialog>
-        ) : (
-          <div className="aspect-[16/9] rounded-lg overflow-hidden bg-black/20">
-            <img
-              src={`https://mksvzhgqnsjfolvskibq.supabase.co/storage/v1/object/public/downloads/${images[0]}`}
-              alt={title}
-              className="w-full h-full object-cover"
-            />
-          </div>
-        )}
+        <div className="aspect-[16/9] rounded-lg overflow-hidden bg-black/20">
+          <img
+            src={`https://mksvzhgqnsjfolvskibq.supabase.co/storage/v1/object/public/downloads/${images[0]}`}
+            alt={title}
+            className="w-full h-full object-cover"
+          />
+        </div>
       </div>
     );
   }
@@ -275,11 +152,9 @@ const CarouselViewer: React.FC<CarouselViewerProps> = ({
           <div className="absolute bottom-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
             <Dialog>
               <DialogTrigger asChild>
-                {triggerButton || (
-                  <Button size="sm" className="aurora-button aurora-glow">
-                    <Eye className="h-4 w-4" />
-                  </Button>
-                )}
+                <Button size="sm" className="aurora-button aurora-glow">
+                  <Eye className="h-4 w-4" />
+                </Button>
               </DialogTrigger>
               <DialogContent className="max-w-6xl bg-slate-900 border-aurora-electric-purple/30">
                 <DialogHeader>
