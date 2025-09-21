@@ -6,16 +6,9 @@ import { Input } from '@/components/ui/input';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import CarouselViewer from '@/components/downloads/CarouselViewer';
-import CaptionGenerator from '@/components/downloads/CaptionGenerator';
+import ViewButton from '@/components/downloads/ViewButton';
 import AuroraPageLayout from '@/components/layout/AuroraPageLayout';
 import StandardPageHeader from '@/components/layout/StandardPageHeader';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
 
 const Arts: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -192,7 +185,7 @@ const Arts: React.FC = () => {
             <div className="p-6">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {filteredMaterials.map((material) => (
-                  <div key={material.id} className="group aurora-glass backdrop-blur-md bg-slate-800/30 border border-white/10 rounded-lg overflow-hidden hover:border-aurora-electric-purple/50 transition-all duration-300">
+                        <div key={material.id} className="group aurora-glass backdrop-blur-md bg-slate-800/30 border border-white/10 rounded-lg overflow-hidden hover:border-aurora-electric-purple/50 transition-all duration-300" data-material-id={material.id}>
                     {/* Image Container */}
                     <div className="relative aspect-[16/9] overflow-hidden">
                       {/* Photo Count Badge - Top Left */}
@@ -210,29 +203,38 @@ const Arts: React.FC = () => {
                           equipments={equipments}
                         />
                       ) : (
-                        <img
-                          src={material.thumbnail_url?.includes('http') 
-                            ? material.thumbnail_url 
-                            : material.thumbnail_url 
-                              ? `https://mksvzhgqnsjfolvskibq.supabase.co/storage/v1/object/public/downloads/${material.thumbnail_url}`
-                              : material.file_url?.includes('http')
-                                ? material.file_url
-                                : `https://mksvzhgqnsjfolvskibq.supabase.co/storage/v1/object/public/downloads/${material.file_url}`
-                          }
-                          alt={material.title}
-                          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                          onError={(e) => {
-                            const target = e.target as HTMLImageElement;
-                            if (target.src.includes(material.thumbnail_url || '')) {
-                              const fallbackUrl = material.file_url?.includes('http') 
-                                ? material.file_url
-                                : `https://mksvzhgqnsjfolvskibq.supabase.co/storage/v1/object/public/downloads/${material.file_url}`;
-                              target.src = fallbackUrl;
-                            } else {
-                              target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIwIiBoZWlnaHQ9IjE4MCIgdmlld0JveD0iMCAwIDMyMCAxODAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzMjAiIGhlaWdodD0iMTgwIiBmaWxsPSIjMzMzIi8+CjxwYXRoIGQ9Ik0xNDQgNzJMMTc2IDEwOEgxMTJMMTQ0IDcyWiIgZmlsbD0iIzU1NSIvPgo8Y2lyY2xlIGN4PSIxMzYiIGN5PSI2NCIgcj0iMTIiIGZpbGw9IiM1NTUiLz4KPHN2Zz4K';
+                        <>
+                          <img
+                            src={material.thumbnail_url?.includes('http') 
+                              ? material.thumbnail_url 
+                              : material.thumbnail_url 
+                                ? `https://mksvzhgqnsjfolvskibq.supabase.co/storage/v1/object/public/downloads/${material.thumbnail_url}`
+                                : material.file_url?.includes('http')
+                                  ? material.file_url
+                                  : `https://mksvzhgqnsjfolvskibq.supabase.co/storage/v1/object/public/downloads/${material.file_url}`
                             }
-                          }}
-                        />
+                            alt={material.title}
+                            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              if (target.src.includes(material.thumbnail_url || '')) {
+                                const fallbackUrl = material.file_url?.includes('http') 
+                                  ? material.file_url
+                                  : `https://mksvzhgqnsjfolvskibq.supabase.co/storage/v1/object/public/downloads/${material.file_url}`;
+                                target.src = fallbackUrl;
+                              } else {
+                                target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIwIiBoZWlnaHQ9IjE4MCIgdmlld0JveD0iMCAwIDMyMCAxODAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzMjAiIGhlaWdodD0iMTgwIiBmaWxsPSIjMzMzIi8+CjxwYXRoIGQ9Ik0xNDQgNzJMMTc2IDEwOEgxMTJMMTQ0IDcyWiIgZmlsbD0iIzU1NSIvPgo8Y2lyY2xlIGN4PSIxMzYiIGN5PSI2NCIgcj0iMTIiIGZpbGw9IiM1NTUiLz4KPHN2Zz4K';
+                              }
+                            }}
+                          />
+                          <CarouselViewer 
+                            images={[material.file_url]} 
+                            title={material.title}
+                            material={material}
+                            equipments={equipments}
+                            className="absolute inset-0 opacity-0 pointer-events-none group-hover:pointer-events-auto"
+                          />
+                        </>
                       )}
                     </div>
                     
@@ -278,38 +280,13 @@ const Arts: React.FC = () => {
                             <Heart className={`h-4 w-4 ${likedMaterials.has(material.id) ? 'fill-current' : ''}`} />
                           </Button>
 
-                          <Dialog>
-                            <DialogTrigger asChild>
-                              <Button size="sm" variant="outline" className="bg-white/10 border-white/20 text-white hover:bg-white/20">
-                                <Eye className="h-4 w-4" />
-                              </Button>
-                            </DialogTrigger>
-                            <DialogContent className="max-w-6xl bg-slate-900 border-aurora-electric-purple/30">
-                              <DialogHeader>
-                                <DialogTitle className="text-white flex items-center gap-2">
-                                  <Eye className="h-5 w-5 text-aurora-electric-purple" />
-                                  {material.title}
-                                </DialogTitle>
-                              </DialogHeader>
-                              
-                              {material.is_carousel ? (
-                                <CarouselViewer 
-                                  images={material.carousel_images || []} 
-                                  title={material.title}
-                                  material={material}
-                                  equipments={equipments}
-                                />
-                              ) : (
-                                <CarouselViewer 
-                                  images={[material.file_url]} 
-                                  title={material.title}
-                                  material={material}
-                                  equipments={equipments}
-                                />
-                              )}
-                            </DialogContent>
-                          </Dialog>
-
+                          <ViewButton 
+                            images={material.is_carousel ? (material.carousel_images || []) : [material.file_url]} 
+                            title={material.title}
+                            material={material}
+                            equipments={equipments}
+                          />
+                          
                           <Button size="sm" onClick={() => handleDownload(material)} className="aurora-button hover:aurora-glow">
                             <Download className="h-4 w-4" />
                           </Button>
