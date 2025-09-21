@@ -91,12 +91,12 @@ export const PhotoGrid: React.FC<PhotoGridProps> = ({ photos, onPhotoClick }) =>
               )}
               
               {/* Action Buttons - Alinhados horizontalmente */}
-              <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-600/30">
+              <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-700/30">
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => onPhotoClick?.(photo)}
-                  className="flex-1 bg-slate-700/50 border-slate-600/30 text-slate-200 hover:bg-slate-600/50 hover:border-cyan-400/50 hover:text-white rounded-lg"
+                  className="flex-1 bg-slate-700/50 border-slate-700/30 text-slate-200 hover:bg-slate-600/50 hover:border-cyan-400/50 hover:text-white rounded-lg"
                 >
                   <Eye className="h-4 w-4 mr-1" />
                   Ver
@@ -106,7 +106,7 @@ export const PhotoGrid: React.FC<PhotoGridProps> = ({ photos, onPhotoClick }) =>
                   variant="outline"
                   size="sm"
                   onClick={() => handleLike(photo.id)}
-                  className="bg-slate-700/50 border-slate-600/30 text-slate-200 hover:bg-pink-500/20 hover:border-pink-400/50 hover:text-pink-300 rounded-lg px-3"
+                  className="bg-slate-700/50 border-slate-700/30 text-slate-200 hover:bg-pink-500/20 hover:border-pink-400/50 hover:text-pink-300 rounded-lg px-3"
                 >
                   <Heart className="h-4 w-4" />
                 </Button>
@@ -115,7 +115,7 @@ export const PhotoGrid: React.FC<PhotoGridProps> = ({ photos, onPhotoClick }) =>
                   variant="outline"
                   size="sm"
                   onClick={() => handleDownload(photo)}
-                  className="bg-slate-700/50 border-slate-600/30 text-slate-200 hover:bg-green-500/20 hover:border-green-400/50 hover:text-green-300 rounded-lg px-3"
+                  className="bg-slate-700/50 border-slate-700/30 text-slate-200 hover:bg-green-500/20 hover:border-green-400/50 hover:text-green-300 rounded-lg px-3"
                 >
                   <Download className="h-4 w-4" />
                 </Button>

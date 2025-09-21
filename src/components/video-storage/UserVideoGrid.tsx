@@ -175,7 +175,7 @@ const UserVideoGrid: React.FC<UserVideoGridProps> = ({
       {/* Grid de vídeos */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {videos.map((video) => (
-          <Card key={video.id} className="group bg-slate-800/50 border-2 border-slate-700/50 hover:border-cyan-400/50 rounded-xl overflow-hidden backdrop-blur-sm relative transition-all duration-300 hover:shadow-lg hover:shadow-cyan-400/10">
+          <Card key={video.id} className="group bg-slate-800/50 border-2 border-slate-700/50 hover:border-cyan-400/50 rounded-2xl overflow-hidden backdrop-blur-sm relative transition-all duration-300 hover:shadow-lg hover:shadow-cyan-400/10">
             {/* Checkbox de seleção */}
             <div className="absolute top-2 right-2 z-10">
               <div className="bg-black/70 rounded-lg p-1 backdrop-blur-sm">
