@@ -5,6 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import VideoDownloadMenu from './VideoDownloadMenu';
+import { useEquipmentFilter } from '@/hooks/useEquipmentFilter';
 
 interface Video {
   id: string;
@@ -31,6 +32,7 @@ const UserVideoGrid: React.FC<UserVideoGridProps> = ({
   isLoading = false
 }) => {
   const [selectedVideos, setSelectedVideos] = useState<string[]>([]);
+  const { getEquipmentName } = useEquipmentFilter();
 
   console.log('🎬 UserVideoGrid recebeu:', videos.length, 'vídeos');
 
@@ -173,7 +175,7 @@ const UserVideoGrid: React.FC<UserVideoGridProps> = ({
       {/* Grid de vídeos */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {videos.map((video) => (
-          <Card key={video.id} className="group bg-slate-800/50 border-2 border-slate-600/30 hover:border-cyan-400/50 rounded-xl overflow-hidden backdrop-blur-sm relative transition-all duration-300 hover:shadow-lg hover:shadow-cyan-400/10">
+          <Card key={video.id} className="group bg-slate-800/50 border-2 border-slate-700/50 hover:border-cyan-400/50 rounded-xl overflow-hidden backdrop-blur-sm relative transition-all duration-300 hover:shadow-lg hover:shadow-cyan-400/10">
             {/* Checkbox de seleção */}
             <div className="absolute top-2 right-2 z-10">
               <div className="bg-black/70 rounded-lg p-1 backdrop-blur-sm">
@@ -237,15 +239,15 @@ const UserVideoGrid: React.FC<UserVideoGridProps> = ({
               <h3 className="font-semibold text-white text-sm mb-1 truncate">{video.titulo}</h3>
               
               {video.categoria && (
-                <p className="text-cyan-400 text-xs mb-3 font-medium">{video.categoria}</p>
+                <p className="text-cyan-400 text-xs mb-3 font-medium">{getEquipmentName(video.categoria)}</p>
               )}
 
               {/* Action Buttons - Alinhados horizontalmente */}
-              <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-600/30">
+              <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-700/30">
                 <Button 
                   size="sm" 
                   onClick={() => onVideoPlay(video)}
-                  className="flex-1 bg-slate-700/50 border-slate-600/30 text-slate-200 hover:bg-cyan-500/20 hover:border-cyan-400/50 hover:text-white rounded-lg border"
+                  className="flex-1 bg-slate-700/50 border-slate-700/30 text-slate-200 hover:bg-cyan-500/20 hover:border-cyan-400/50 hover:text-white rounded-lg border"
                 >
                   <Play className="h-4 w-4 mr-1" />
                   Ver
@@ -255,7 +257,7 @@ const UserVideoGrid: React.FC<UserVideoGridProps> = ({
                   variant="outline"
                   size="sm"
                   onClick={() => handleLike(video.id)}
-                  className="bg-slate-700/50 border-slate-600/30 text-slate-200 hover:bg-pink-500/20 hover:border-pink-400/50 hover:text-pink-300 rounded-lg px-3"
+                  className="bg-slate-700/50 border-slate-700/30 text-slate-200 hover:bg-pink-500/20 hover:border-pink-400/50 hover:text-pink-300 rounded-lg px-3"
                 >
                   <Heart className="h-4 w-4" />
                 </Button>
@@ -270,16 +272,11 @@ const UserVideoGrid: React.FC<UserVideoGridProps> = ({
                       link.download = `${video.titulo}.mp4`;
                       link.click();
                     }}
-                    className="bg-slate-700/50 border-slate-600/30 text-slate-200 hover:bg-green-500/20 hover:border-green-400/50 hover:text-green-300 rounded-lg px-3"
+                    className="bg-slate-700/50 border-slate-700/30 text-slate-200 hover:bg-green-500/20 hover:border-green-400/50 hover:text-green-300 rounded-lg px-3"
                   >
                     <Download className="h-4 w-4" />
                   </Button>
                 )}
-              </div>
-
-              {/* Data no canto inferior direito */}
-              <div className="text-xs text-slate-500 mt-2 text-right">
-                {formatDate(video.data_upload)}
               </div>
             </CardContent>
           </Card>
