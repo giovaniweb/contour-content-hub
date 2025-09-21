@@ -75,11 +75,11 @@ const BulkPhotoEditor: React.FC<BulkPhotoEditorProps> = ({
         updateData.categoria = formData.categoria;
       }
       
-      if (fieldsToUpdate.tags && formData.tags) {
+      if (fieldsToUpdate.tags && formData.tags !== undefined) {
         updateData.tags = formData.tags;
       }
       
-      if (fieldsToUpdate.equipamentos && formData.equipamentos) {
+      if (fieldsToUpdate.equipamentos && formData.equipamentos !== undefined) {
         updateData.equipamentos = formData.equipamentos;
       }
       
@@ -144,6 +144,7 @@ const BulkPhotoEditor: React.FC<BulkPhotoEditorProps> = ({
         <div className="text-sm text-muted-foreground">
           Selecione os campos que deseja atualizar e digite os novos valores.
           Apenas os campos marcados serão alterados em todas as fotos selecionadas.
+          {selectedPhotos.size} foto(s) selecionada(s) para edição.
         </div>
 
         <div className="space-y-4">
@@ -259,7 +260,7 @@ const BulkPhotoEditor: React.FC<BulkPhotoEditorProps> = ({
             className="flex items-center gap-2"
           >
             <Save className="h-4 w-4" />
-            {updating ? 'Atualizando...' : 'Aplicar Alterações'}
+            {updating ? 'Atualizando...' : `Aplicar Alterações (${selectedPhotos.size} fotos)`}
           </Button>
           
           <Button
