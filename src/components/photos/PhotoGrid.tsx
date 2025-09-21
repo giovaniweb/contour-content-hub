@@ -47,10 +47,13 @@ export const PhotoGrid: React.FC<PhotoGridProps> = ({ photos, onPhotoClick }) =>
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
       {photos.map((photo) => (
-        <Card key={photo.id} className="bg-slate-800/50 border-2 border-slate-700/50 hover:border-cyan-400/50 overflow-hidden transition-all duration-300 group hover:shadow-lg hover:shadow-cyan-400/10 rounded-2xl">
+        <Card key={photo.id} className="bg-slate-800/50 border-2 border-slate-700/50 hover:border-cyan-400/50 overflow-hidden transition-all duration-300 group hover:shadow-lg hover:shadow-cyan-400/10 rounded-2xl cursor-pointer">
           <CardContent className="p-0">
             {/* Image Container */}
-            <div className="relative aspect-video bg-slate-700/50 overflow-hidden rounded-t-2xl">
+            <div 
+              className="relative aspect-video bg-slate-700/50 overflow-hidden rounded-t-2xl"
+              onClick={() => onPhotoClick?.(photo)}
+            >
               <img
                 src={photo.thumbnail_url || photo.url_imagem}
                 alt={photo.titulo}
@@ -61,12 +64,15 @@ export const PhotoGrid: React.FC<PhotoGridProps> = ({ photos, onPhotoClick }) =>
               {/* Hover overlay apenas com botão de visualizar */}
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300">
                 <div className="absolute bottom-3 right-3 transform translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => onPhotoClick?.(photo)}
-                    className="text-white border-white/30 hover:bg-white/20 bg-black/50 backdrop-blur-sm rounded-lg"
-                  >
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onPhotoClick?.(photo);
+                  }}
+                  className="text-white border-white/30 hover:bg-white/20 bg-black/50 backdrop-blur-sm rounded-lg"
+                >
                     <Eye className="h-4 w-4" />
                   </Button>
                 </div>
@@ -95,7 +101,10 @@ export const PhotoGrid: React.FC<PhotoGridProps> = ({ photos, onPhotoClick }) =>
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => onPhotoClick?.(photo)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onPhotoClick?.(photo);
+                  }}
                   className="flex-1 bg-slate-700/50 border-slate-700/30 text-slate-200 hover:bg-slate-600/50 hover:border-cyan-400/50 hover:text-white rounded-lg"
                 >
                   <Eye className="h-4 w-4 mr-1" />
@@ -105,7 +114,10 @@ export const PhotoGrid: React.FC<PhotoGridProps> = ({ photos, onPhotoClick }) =>
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => handleLike(photo.id)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleLike(photo.id);
+                  }}
                   className="bg-slate-700/50 border-slate-700/30 text-slate-200 hover:bg-pink-500/20 hover:border-pink-400/50 hover:text-pink-300 rounded-lg px-3"
                 >
                   <Heart className="h-4 w-4" />
@@ -114,7 +126,10 @@ export const PhotoGrid: React.FC<PhotoGridProps> = ({ photos, onPhotoClick }) =>
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => handleDownload(photo)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDownload(photo);
+                  }}
                   className="bg-slate-700/50 border-slate-700/30 text-slate-200 hover:bg-green-500/20 hover:border-green-400/50 hover:text-green-300 rounded-lg px-3"
                 >
                   <Download className="h-4 w-4" />

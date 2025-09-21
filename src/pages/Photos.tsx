@@ -15,6 +15,7 @@ import { supabase } from '@/integrations/supabase/client';
 import JSZip from 'jszip';
 import { Photo } from '@/services/photoService';
 import { PhotoGrid } from '@/components/photos/PhotoGrid';
+import { PhotoPreviewDialog } from '@/components/photos/PhotoPreviewDialog';
 
 const Photos: React.FC = () => {
   const { photos, isLoading, error } = useUserPhotos();
@@ -417,7 +418,10 @@ const Photos: React.FC = () => {
                     {/* Thumbnail */}
                     <div 
                       className="relative w-20 h-20 bg-slate-800/50 rounded-xl overflow-hidden flex-shrink-0 cursor-pointer"
-                      onClick={() => setSelectedPhoto(photo)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedPhoto(photo);
+                      }}
                     >
                       <img
                         src={photo.thumbnail_url || photo.url_imagem}
@@ -447,7 +451,10 @@ const Photos: React.FC = () => {
                     <div className="flex items-center gap-2">
                       <Button 
                         size="sm" 
-                        onClick={() => setSelectedPhoto(photo)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedPhoto(photo);
+                        }}
                         className="bg-aurora-cyan text-slate-900 hover:bg-aurora-cyan/80 font-medium rounded-lg"
                       >
                         <Eye className="h-4 w-4 mr-1" />
@@ -497,30 +504,12 @@ const Photos: React.FC = () => {
         )}
       </div>
 
-      {/* Photo Modal */}
-      {selectedPhoto && (
-        <div 
-          className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4"
-          onClick={() => setSelectedPhoto(null)}
-        >
-          <div className="max-w-4xl max-h-full flex items-center justify-center">
-            <img
-              src={selectedPhoto.url_imagem}
-              alt={selectedPhoto.titulo}
-              className="max-w-full max-h-full object-contain rounded-xl"
-              onClick={(e) => e.stopPropagation()}
-            />
-          </div>
-          <button
-            onClick={() => setSelectedPhoto(null)}
-            className="absolute top-4 right-4 text-white hover:text-cyan-400 transition-colors"
-          >
-            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
-      )}
+      {/* Photo Preview Dialog */}
+      <PhotoPreviewDialog
+        photo={selectedPhoto}
+        open={!!selectedPhoto}
+        onOpenChange={(open) => !open && setSelectedPhoto(null)}
+      />
     </AuroraPageLayout>
   );
 };
