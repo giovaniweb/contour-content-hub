@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Palette, Grid, Search, List, Brush, Download, Eye, Heart, FileImage } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -70,11 +70,22 @@ const Arts: React.FC = () => {
     }
   }, [equipmentsData]);
 
-  const filteredMaterials = materials.filter(material =>
-    material.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    material.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    material.tags?.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
+  const filteredMaterials = useMemo(() => {
+    return materials.filter(material => {
+      const matchesSearch = searchTerm === '' || 
+        material.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        material.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        material.tags?.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
+
+      const matchesEquipment = selectedEquipment === '' || 
+        (material.equipment_ids && material.equipment_ids.length > 0 && 
+         getEquipmentNames(material.equipment_ids).some(equipName => 
+           equipName.toLowerCase().includes(selectedEquipment.toLowerCase())
+         ));
+
+      return matchesSearch && matchesEquipment;
+    });
+  }, [materials, searchTerm, selectedEquipment, equipments]);
 
   const getEquipmentNames = (equipmentIds: string[]) => {
     if (!equipmentIds || equipmentIds.length === 0) return [];
