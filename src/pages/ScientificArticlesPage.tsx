@@ -14,21 +14,24 @@ const ScientificArticlesPage: React.FC = () => {
     },
     {
       icon: Sparkles,
-      label: 'Pesquisas Avançadas',
+      label: 'Artigos Científicos',
       variant: 'secondary' as const,
       color: 'bg-aurora-cyan/20 text-aurora-cyan border-aurora-cyan/30'
     }
   ];
 
   return (
-    <AuroraPageLayout containerSize="lg" padding="sm">
+    <AuroraPageLayout>
       <StandardPageHeader
         icon={FileText}
-        title="Artigos Científicos"
+        title="FluiArtigos"
         subtitle="Base de conhecimento científico completa"
         statusBadges={statusBadges}
       />
-      <ScientificArticlesUserManager />
+      
+      <div className="container mx-auto px-6 py-8">
+        <ScientificArticlesUserManager />
+      </div>
     </AuroraPageLayout>
   );
 };
