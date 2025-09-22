@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Video, Search, Filter, Play, Grid, List, Tag, Zap, Heart, Download, Archive, Check } from 'lucide-react';
+import { EquipmentFilter } from '@/components/filters/EquipmentFilter';
 import AuroraPageLayout from '@/components/layout/AuroraPageLayout';
 import StandardPageHeader from '@/components/layout/StandardPageHeader';
 import { Button } from '@/components/ui/button';
@@ -79,18 +80,16 @@ const Videos: React.FC = () => {
   // Filtrar vídeos
   const filteredVideos = useMemo(() => {
     return videos.filter(video => {
-      const matchesSearch = video.titulo.toLowerCase().includes(searchTerm.toLowerCase()) || video.descricao_curta?.toLowerCase().includes(searchTerm.toLowerCase());
-      if (!selectedEquipment || selectedEquipment === 'all') {
-        return matchesSearch;
-      }
-      const selectedEq = equipments.find(eq => eq.id === selectedEquipment || eq.nome === selectedEquipment);
-      const selectedName = selectedEq?.nome;
-      const hasEquipMatch = Array.isArray(video.equipamentos) && (video.equipamentos.includes(selectedEquipment) || (selectedName ? video.equipamentos.includes(selectedName) : false));
-      const hasCategoriaMatch = selectedName ? video.categoria === selectedName : video.categoria === selectedEquipment;
-      const matchesEquipment = hasEquipMatch || hasCategoriaMatch;
+      const matchesSearch = video.titulo.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                           video.descricao_curta?.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      const matchesEquipment = !selectedEquipment || selectedEquipment === '' ||
+                               video.categoria === selectedEquipment ||
+                               (Array.isArray(video.equipamentos) && video.equipamentos.includes(selectedEquipment));
+      
       return matchesSearch && matchesEquipment;
     });
-  }, [videos, searchTerm, selectedEquipment, equipments]);
+  }, [videos, searchTerm, selectedEquipment]);
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('pt-BR');
   };
@@ -246,39 +245,74 @@ const Videos: React.FC = () => {
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full lg:w-auto">
               <div className="relative flex-1 lg:w-80">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-cyan-400" />
-                <Input placeholder="Buscar vídeos..." className="pl-10 bg-black/20 border-cyan-400/30 text-white placeholder-slate-400 rounded-xl" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
+                <Input
+                  placeholder="Buscar vídeos..."
+                  className="pl-10 bg-black/20 border-cyan-400/30 text-white placeholder-slate-400 rounded-xl"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
               </div>
               
-              <Select value={selectedEquipment} onValueChange={setSelectedEquipment}>
-                <SelectTrigger className="w-48 bg-black/20 border-cyan-400/30 text-white rounded-xl">
-                  <SelectValue placeholder="Equipamento" />
-                </SelectTrigger>
-                <SelectContent className="bg-slate-900 border-cyan-400/30">
-                  <SelectItem value="all" className="text-white">Todos Equipamentos</SelectItem>
-                  {equipments.map(equipment => <SelectItem key={equipment.id} value={equipment.id} className="text-white">
-                      {equipment.nome}
-                    </SelectItem>)}
-                </SelectContent>
-              </Select>
+              <div className="w-48">
+                <EquipmentFilter
+                  value={selectedEquipment}
+                  onValueChange={setSelectedEquipment}
+                  placeholder="Todos os..."
+                />
+              </div>
             </div>
 
             <div className="flex items-center gap-2">
-              {selectedVideos.size > 0 && <div className="flex items-center gap-2 mr-4 px-3 py-2 bg-cyan-400/20 rounded-xl border border-cyan-400/30">
-                  <span className="text-cyan-400 text-sm font-medium">
-                    {selectedVideos.size} vídeo(s) selecionado(s)
-                  </span>
-                  <Button variant="outline" size="sm" onClick={handleMultipleDownload} disabled={isDownloading} className="aurora-button rounded-xl text-xs">
+              {selectedVideos.size > 0 && (
+                <div className="flex items-center gap-2 mr-4">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleMultipleDownload}
+                    disabled={isDownloading}
+                    className="aurora-button rounded-xl"
+                  >
                     <Archive className="h-4 w-4 mr-1" />
-                    {isDownloading ? 'Baixando...' : 'Baixar ZIP'}
+                    {isDownloading ? 'Baixando...' : `Baixar ${selectedVideos.size} ZIP`}
                   </Button>
-                  <Button variant="outline" size="sm" onClick={clearSelection} className="rounded-xl border-red-400/30 text-red-400 hover:bg-red-400/20 text-xs">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={clearSelection}
+                    className="bg-slate-800/50 border-white/15 text-white hover:bg-slate-700 hover:text-white rounded-xl"
+                  >
                     Limpar
                   </Button>
-                </div>}
-              <Button variant={viewMode === 'grid' ? 'default' : 'outline'} size="sm" onClick={() => setViewMode('grid')} className="aurora-button rounded-xl">
+                </div>
+              )}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={selectedVideos.size > 0 ? clearSelection : selectAllVideos}
+                className="bg-slate-800/50 border-white/15 text-white hover:bg-slate-700 hover:text-white rounded-xl mr-2"
+              >
+                {selectedVideos.size > 0 ? 'Desmarcar Todos' : 'Selecionar Todos'}
+              </Button>
+              <Button
+                variant={viewMode === 'grid' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setViewMode('grid')}
+                className={`rounded-xl ${viewMode === 'grid' 
+                  ? 'bg-aurora-cyan text-slate-900 font-medium shadow-sm' 
+                  : 'bg-slate-800/50 border-white/15 text-white hover:bg-slate-700 hover:text-white'
+                }`}
+              >
                 <Grid className="h-4 w-4" />
               </Button>
-              <Button variant={viewMode === 'list' ? 'default' : 'outline'} size="sm" onClick={() => setViewMode('list')} className="aurora-button rounded-xl">
+              <Button
+                variant={viewMode === 'list' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setViewMode('list')}
+                className={`rounded-xl ${viewMode === 'list' 
+                  ? 'bg-aurora-cyan text-slate-900 font-medium shadow-sm' 
+                  : 'bg-slate-800/50 border-white/15 text-white hover:bg-slate-700 hover:text-white'
+                }`}
+              >
                 <List className="h-4 w-4" />
               </Button>
             </div>
@@ -309,9 +343,15 @@ const Videos: React.FC = () => {
           </div> : viewMode === 'grid' ? <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {filteredVideos.map(video => <div key={video.id} className="bg-slate-800/50 border-2 border-slate-700/50 hover:border-cyan-400/50 overflow-hidden transition-all duration-300 group hover:shadow-lg hover:shadow-cyan-400/10 rounded-2xl">
                 {/* Selection Checkbox */}
-                {video.url_video && <div className="absolute top-3 left-3 z-10">
-                    
-                  </div>}
+                {video.url_video && (
+                  <div className="absolute top-3 left-3 z-10">
+                    <Checkbox
+                      checked={selectedVideos.has(video.id)}
+                      onCheckedChange={() => toggleVideoSelection(video.id)}
+                      className="bg-black/50 border-cyan-400/50"
+                    />
+                  </div>
+                )}
                 
                 {/* Thumbnail */}
                 <div className="relative aspect-video bg-slate-800/50 overflow-hidden rounded-t-2xl cursor-pointer" onClick={() => handleVideoPlay(video)}>
