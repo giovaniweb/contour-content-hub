@@ -41,6 +41,7 @@ export const useUserVideos = (options: UseUserVideosOptions = {}) => {
       const from = (page - 1) * itemsPerPage;
       const to = from + itemsPerPage - 1;
       
+      // Get data with count in a single query
       const { data, error, count } = await supabase
         .from('videos')
         .select('*', { count: 'exact' })
@@ -52,6 +53,7 @@ export const useUserVideos = (options: UseUserVideosOptions = {}) => {
       }
       
       console.log('✅ Vídeos carregados:', data?.length || 0, 'de', count || 0);
+      console.log('📈 Total count from query:', count);
       setVideos(data || []);
       setTotal(count || 0);
     } catch (error) {
