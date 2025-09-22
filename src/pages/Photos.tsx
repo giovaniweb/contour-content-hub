@@ -16,9 +16,9 @@ import JSZip from 'jszip';
 import { Photo } from '@/services/photoService';
 import { PhotoGrid } from '@/components/photos/PhotoGrid';
 import { PhotoPreviewDialog } from '@/components/photos/PhotoPreviewDialog';
+import { Pagination } from '@/components/ui/pagination';
 
 const Photos: React.FC = () => {
-  const { photos, isLoading, error } = useUserPhotos();
   const { getEquipmentName } = useEquipmentFilter();
   // Remover uso do hook antigo
   const [selectedPhoto, setSelectedPhoto] = useState<Photo | null>(null);
@@ -29,6 +29,24 @@ const Photos: React.FC = () => {
   const [selectedPhotos, setSelectedPhotos] = useState<Set<string>>(new Set());
   const [likesCount, setLikesCount] = useState<Record<string, number>>({});
   const [isDownloading, setIsDownloading] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 12;
+
+  const { photos, totalCount, isLoading, error } = useUserPhotos({
+    page: currentPage,
+    itemsPerPage,
+    searchTerm,
+    selectedEquipment
+  });
+
+  // Reset to first page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, selectedEquipment]);
+
+  const totalPages = Math.ceil((totalCount || 0) / itemsPerPage);
+  const startIndex = totalCount ? (currentPage - 1) * itemsPerPage + 1 : 0;
+  const endIndex = totalCount ? Math.min(currentPage * itemsPerPage, totalCount) : 0;
 
   // Carregar contagem de curtidas e status de curtida do usuário
   useEffect(() => {
@@ -70,18 +88,18 @@ const Photos: React.FC = () => {
     loadLikesData();
   }, [photos]);
 
-  // Filtrar fotos
-  const filteredPhotos = useMemo(() => {
-    return photos.filter(photo => {
-      const matchesSearch = photo.titulo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           photo.descricao_curta?.toLowerCase().includes(searchTerm.toLowerCase());
-      
-      const matchesEquipment = !selectedEquipment || selectedEquipment === 'all' || 
-                              photo.categoria === selectedEquipment;
-      
-      return matchesSearch && matchesEquipment;
-    });
-  }, [photos, searchTerm, selectedEquipment]);
+  const filteredPhotos = photos;
+
+        {totalPages > 1 && (
+          <div className="flex justify-center mt-8">
+            <Pagination
+              totalItems={totalCount}
+              itemsPerPage={itemsPerPage}
+              currentPage={currentPage}
+              onPageChange={setCurrentPage}
+            />
+          </div>
+        )}
 
 
   const formatDate = (dateString: string) => {
@@ -277,7 +295,7 @@ const Photos: React.FC = () => {
   const statusBadges = [
     {
       icon: Image,
-      label: `${filteredPhotos.length} Fotos`,
+      label: `${totalCount} Fotos`,
       variant: 'secondary' as const,
       color: 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30'
     }
@@ -383,7 +401,7 @@ const Photos: React.FC = () => {
 
         {/* Results counter */}
         <div className="text-slate-300 text-sm">
-          {filteredPhotos.length} foto(s) encontrada(s)
+          {totalCount > 0 ? `Mostrando ${startIndex}-${endIndex} de ${totalCount} foto(s)` : '0 foto(s) encontradas'}
         </div>
 
         {/* Photos Grid/List */}
