@@ -44,12 +44,6 @@ export const photoService = {
     selectedEquipment?: string;
   }): Promise<{ data: Photo[] | null; error: string | null; totalCount?: number }> {
     try {
-      const { data: userData, error: userError } = await supabase.auth.getUser();
-      
-      if (userError || !userData.user) {
-        return { data: null, error: 'Usuário não autenticado' };
-      }
-
       const { page = 1, itemsPerPage = 12, searchTerm = '', selectedEquipment = '' } = params || {};
       const from = (page - 1) * itemsPerPage;
       const to = from + itemsPerPage - 1;
@@ -71,8 +65,7 @@ export const photoService = {
           created_at,
           updated_at,
           user_id
-        `, { count: 'exact' })
-        .eq('user_id', userData.user.id);
+        `, { count: 'exact' });
 
       // Apply search filter
       if (searchTerm.trim()) {
