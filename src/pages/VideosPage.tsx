@@ -109,6 +109,9 @@ const VideosPage: React.FC = () => {
                 videos={videos}
                 onVideoPlay={handleVideoPlay}
                 isLoading={isLoading}
+                total={total}
+                currentPage={currentPage}
+                itemsPerPage={itemsPerPage}
               />
             </div>
             

@@ -23,12 +23,18 @@ interface UserVideoGridProps {
   videos: Video[];
   onVideoPlay: (video: Video) => void;
   isLoading?: boolean;
+  total?: number;
+  currentPage?: number;
+  itemsPerPage?: number;
 }
 
 const UserVideoGrid: React.FC<UserVideoGridProps> = ({
   videos,
   onVideoPlay,
-  isLoading = false
+  isLoading = false,
+  total,
+  currentPage = 1,
+  itemsPerPage = 20
 }) => {
   const [selectedVideos, setSelectedVideos] = useState<string[]>([]);
   const { getEquipmentName } = useEquipmentFilter();
@@ -152,7 +158,13 @@ const UserVideoGrid: React.FC<UserVideoGridProps> = ({
 
       {/* Resultados */}
       <div className="text-sm text-slate-400">
-        {videos.length} vídeo(s) encontrado(s)
+        {total ? (
+          <>
+            Mostrando {(currentPage - 1) * itemsPerPage + 1}-{Math.min(currentPage * itemsPerPage, total)} de {total} vídeos
+          </>
+        ) : (
+          `${videos.length} vídeo(s) encontrado(s)`
+        )}
       </div>
 
       {/* Grid de vídeos */}
