@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { equipmentService } from '@/services/equipmentService';
 
 interface Video {
   id: string;
@@ -32,6 +33,7 @@ export const useUserVideos = (options: UseUserVideosOptions = {}) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [total, setTotal] = useState(0);
+  const [equipments, setEquipments] = useState<any[]>([]);
 
   const loadVideos = async () => {
     setIsLoading(true);
@@ -55,7 +57,17 @@ export const useUserVideos = (options: UseUserVideosOptions = {}) => {
 
       // Apply equipment filter
       if (selectedEquipment) {
-        query = query.or(`categoria.eq.${selectedEquipment},equipamentos.cs.{${selectedEquipment}}`);
+        // Find equipment ID by name
+        const equipment = equipments.find(eq => eq.nome === selectedEquipment);
+        const equipmentId = equipment?.id;
+        
+        if (equipmentId) {
+          // Filter by equipment ID in the equipamentos array or categoria
+          query = query.or(`categoria.eq.${selectedEquipment},equipamentos.cs.{${equipmentId}}`);
+        } else {
+          // Fallback to search by name
+          query = query.or(`categoria.eq.${selectedEquipment},equipamentos.cs.{${selectedEquipment}}`);
+        }
       }
 
       // Apply sorting and pagination
@@ -87,7 +99,18 @@ export const useUserVideos = (options: UseUserVideosOptions = {}) => {
   };
 
   useEffect(() => {
-    loadVideos();
+    const loadEquipmentsAndVideos = async () => {
+      // Load equipments first if not loaded
+      if (equipments.length === 0) {
+        const equipmentResult = await equipmentService.getAllEquipments();
+        if (!equipmentResult.error) {
+          setEquipments(equipmentResult.data || []);
+        }
+      }
+      await loadVideos();
+    };
+    
+    loadEquipmentsAndVideos();
   }, [page, itemsPerPage, searchTerm, selectedEquipment]);
 
   return {
