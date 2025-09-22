@@ -30,7 +30,7 @@ const Photos: React.FC = () => {
   const [likesCount, setLikesCount] = useState<Record<string, number>>({});
   const [isDownloading, setIsDownloading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 12;
+  const itemsPerPage = 20;
 
   const { photos, totalCount, isLoading, error } = useUserPhotos({
     page: currentPage,
