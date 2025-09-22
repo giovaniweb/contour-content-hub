@@ -70,6 +70,14 @@ const Arts: React.FC = () => {
     }
   }, [equipmentsData]);
 
+  const getEquipmentNames = (equipmentIds: string[]) => {
+    if (!equipmentIds || equipmentIds.length === 0) return [];
+    return equipmentIds.map(id => {
+      const equipment = equipments.find(eq => eq.id === id);
+      return equipment?.nome || 'Equipamento';
+    });
+  };
+
   const filteredMaterials = useMemo(() => {
     return materials.filter(material => {
       const matchesSearch = searchTerm === '' || 
@@ -86,14 +94,6 @@ const Arts: React.FC = () => {
       return matchesSearch && matchesEquipment;
     });
   }, [materials, searchTerm, selectedEquipment, equipments]);
-
-  const getEquipmentNames = (equipmentIds: string[]) => {
-    if (!equipmentIds || equipmentIds.length === 0) return [];
-    return equipmentIds.map(id => {
-      const equipment = equipments.find(eq => eq.id === id);
-      return equipment?.nome || 'Equipamento';
-    });
-  };
 
   const handleDownload = async (material: any) => {
     try {
