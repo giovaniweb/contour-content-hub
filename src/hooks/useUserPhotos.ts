@@ -1,21 +1,39 @@
 import { useQuery } from '@tanstack/react-query';
 import { photoService, Photo } from '@/services/photoService';
 
-export const useUserPhotos = () => {
+interface UseUserPhotosParams {
+  page?: number;
+  itemsPerPage?: number;
+  searchTerm?: string;
+  selectedEquipment?: string;
+}
+
+export const useUserPhotos = (params: UseUserPhotosParams = {}) => {
+  const { page = 1, itemsPerPage = 12, searchTerm = '', selectedEquipment = '' } = params;
+
   const { data, isLoading, error, refetch } = useQuery({
-    queryKey: ['userPhotos'],
+    queryKey: ['userPhotos', page, itemsPerPage, searchTerm, selectedEquipment],
     queryFn: async () => {
-      const result = await photoService.getUserPhotos();
+      const result = await photoService.getUserPhotos({
+        page,
+        itemsPerPage,
+        searchTerm,
+        selectedEquipment
+      });
       if (result.error) {
         throw new Error(result.error);
       }
-      return result.data || [];
+      return {
+        photos: result.data || [],
+        totalCount: result.totalCount || 0
+      };
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
   return {
-    photos: data || [],
+    photos: data?.photos || [],
+    totalCount: data?.totalCount || 0,
     isLoading,
     error: error?.message || null,
     refetch

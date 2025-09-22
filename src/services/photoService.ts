@@ -37,7 +37,12 @@ export interface UpdatePhotoData {
 }
 
 export const photoService = {
-  async getUserPhotos(): Promise<{ data: Photo[] | null; error: string | null }> {
+  async getUserPhotos(params?: {
+    page?: number;
+    itemsPerPage?: number;
+    searchTerm?: string;
+    selectedEquipment?: string;
+  }): Promise<{ data: Photo[] | null; error: string | null; totalCount?: number }> {
     try {
       const { data: userData, error: userError } = await supabase.auth.getUser();
       
@@ -45,7 +50,11 @@ export const photoService = {
         return { data: null, error: 'Usuário não autenticado' };
       }
 
-      const { data, error } = await supabase
+      const { page = 1, itemsPerPage = 12, searchTerm = '', selectedEquipment = '' } = params || {};
+      const from = (page - 1) * itemsPerPage;
+      const to = from + itemsPerPage - 1;
+
+      let query = supabase
         .from('fotos')
         .select(`
           id,
@@ -62,16 +71,29 @@ export const photoService = {
           created_at,
           updated_at,
           user_id
-        `)
-        .eq('user_id', userData.user.id)
-        .order('created_at', { ascending: false });
+        `, { count: 'exact' })
+        .eq('user_id', userData.user.id);
+
+      // Apply search filter
+      if (searchTerm.trim()) {
+        query = query.or(`titulo.ilike.%${searchTerm}%,categoria.ilike.%${searchTerm}%,tags.cs.{${searchTerm}},equipamentos.cs.{${searchTerm}}`);
+      }
+
+      // Apply equipment filter
+      if (selectedEquipment.trim()) {
+        query = query.or(`equipamentos.cs.{${selectedEquipment}},categoria.ilike.%${selectedEquipment}%`);
+      }
+
+      const { data, error, count } = await query
+        .order('created_at', { ascending: false })
+        .range(from, to);
 
       if (error) {
         console.error('Erro ao buscar fotos:', error);
         return { data: null, error: error.message };
       }
 
-      return { data: data || [], error: null };
+      return { data: data || [], error: null, totalCount: count || 0 };
     } catch (error) {
       console.error('Erro inesperado:', error);
       return { data: null, error: 'Erro inesperado ao buscar fotos' };

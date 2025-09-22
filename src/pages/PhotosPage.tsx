@@ -8,7 +8,8 @@ import SearchAndFilters from '@/components/layout/SearchAndFilters';
 import { EmptyState } from '@/components/ui/empty-state';
 import { PhotoGrid } from '@/components/photos/PhotoGrid';
 import { EquipmentFilter } from '@/components/filters/EquipmentFilter';
-import { photoService, Photo } from '@/services/photoService';
+import { Pagination } from '@/components/ui/pagination';
+import { useUserPhotos } from '@/hooks/useUserPhotos';
 import { useToast } from '@/hooks/use-toast';
 
 const PhotosPage: React.FC = () => {
@@ -16,66 +17,32 @@ const PhotosPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedEquipment, setSelectedEquipment] = useState('');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const [photos, setPhotos] = useState<Photo[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [filteredPhotos, setFilteredPhotos] = useState<Photo[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 12;
 
+  const { photos, totalCount, isLoading, error } = useUserPhotos({
+    page: currentPage,
+    itemsPerPage,
+    searchTerm,
+    selectedEquipment
+  });
+
+  // Reset to first page when filters change
   useEffect(() => {
-    loadPhotos();
-  }, []);
+    setCurrentPage(1);
+  }, [searchTerm, selectedEquipment]);
 
-  useEffect(() => {
-    filterPhotos();
-  }, [photos, searchTerm, selectedEquipment]);
+  if (error) {
+    toast({
+      title: "Erro ao carregar fotos",
+      description: error,
+      variant: "destructive"
+    });
+  }
 
-  const loadPhotos = async () => {
-    try {
-      setLoading(true);
-      const { data, error } = await photoService.getUserPhotos();
-      
-      if (error) {
-        toast({
-          title: "Erro ao carregar fotos",
-          description: error,
-          variant: "destructive"
-        });
-      } else {
-        setPhotos(data || []);
-      }
-    } catch (error) {
-      console.error('Erro ao carregar fotos:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const filterPhotos = () => {
-    let filtered = photos;
-
-    // Filter by equipment
-    if (selectedEquipment) {
-      filtered = filtered.filter(photo => {
-        // Check new equipamentos array (contains equipment names)
-        if (photo.equipamentos && photo.equipamentos.length > 0) {
-          return photo.equipamentos.includes(selectedEquipment);
-        }
-        // Fallback to categoria field for backward compatibility
-        return photo.categoria === selectedEquipment;
-      });
-    }
-
-    // Filter by search term
-    if (searchTerm.trim()) {
-      filtered = filtered.filter(photo => 
-        photo.titulo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        photo.categoria?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        photo.tags?.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        photo.equipamentos?.some(eq => eq.toLowerCase().includes(searchTerm.toLowerCase()))
-      );
-    }
-    
-    setFilteredPhotos(filtered);
-  };
+  const totalPages = Math.ceil(totalCount / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage + 1;
+  const endIndex = Math.min(currentPage * itemsPerPage, totalCount);
 
   const statusBadges = [
     {
@@ -86,7 +53,7 @@ const PhotosPage: React.FC = () => {
     },
     {
       icon: Sparkles,
-      label: `${photos.length} Fotos`,
+      label: `${totalCount} Fotos`,
       variant: 'secondary' as const,
       color: 'bg-aurora-cyan/20 text-aurora-cyan border-aurora-cyan/30'
     }
@@ -129,7 +96,7 @@ const PhotosPage: React.FC = () => {
       />
 
       <div className="container mx-auto px-6 py-8">
-        {loading ? (
+        {isLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {Array.from({ length: 8 }).map((_, index) => (
               <div key={index} className="bg-slate-800/50 rounded-xl overflow-hidden border border-cyan-500/20">
@@ -141,11 +108,30 @@ const PhotosPage: React.FC = () => {
               </div>
             ))}
           </div>
-        ) : filteredPhotos.length > 0 ? (
-          <PhotoGrid 
-            photos={filteredPhotos}
-            onPhotoClick={(photo) => console.log('View photo:', photo)}
-          />
+        ) : photos.length > 0 ? (
+          <>
+            <div className="flex items-center justify-between mb-6">
+              <p className="text-sm text-white/70">
+                Mostrando {startIndex}-{endIndex} de {totalCount} fotos
+              </p>
+            </div>
+            
+            <PhotoGrid 
+              photos={photos}
+              onPhotoClick={(photo) => console.log('View photo:', photo)}
+            />
+            
+            {totalPages > 1 && (
+              <div className="flex justify-center mt-8">
+                <Pagination
+                  totalItems={totalCount}
+                  itemsPerPage={itemsPerPage}
+                  currentPage={currentPage}
+                  onPageChange={setCurrentPage}
+                />
+              </div>
+            )}
+          </>
         ) : (
           <div className="aurora-glass rounded-3xl border border-aurora-electric-purple/30 p-8">
             <EmptyState
