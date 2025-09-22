@@ -15,39 +15,39 @@ const DASHBOARD_BREADCRUMB = [{ label: "Dashboard", href: "/dashboard" }];
 
 export const pageMetadata: Record<string, PageMeta> = {
   "/mestre-da-beleza": {
-    icon: Crown, title: "Mestre da Beleza",
+    icon: Crown, title: "FluiChat",
     subtitle: "Descubra recomendações inteligentes para sua clínica",
-    breadcrumbs: [...DASHBOARD_BREADCRUMB, { label: "Mestre da Beleza", isCurrent: true }]
+    breadcrumbs: [...DASHBOARD_BREADCRUMB, { label: "FluiChat", isCurrent: true }]
   },
   "/marketing-consultant": {
-    icon: BrainCircuit, title: "Consultor de Marketing",
+    icon: BrainCircuit, title: "FluiMKT",
     subtitle: "Estratégias personalizadas para seu negócio",
-    breadcrumbs: [...DASHBOARD_BREADCRUMB, { label: "Marketing", href: "#" }, { label: "Consultor", isCurrent: true }]
+    breadcrumbs: [...DASHBOARD_BREADCRUMB, { label: "Marketing", href: "#" }, { label: "FluiMKT", isCurrent: true }]
   },
   "/fluidaroteirista": {
-    icon: PenTool, title: "Fluida Roteirista",
+    icon: PenTool, title: "FluiRoteiro",
     subtitle: "Crie roteiros emocionantes com IA",
-    breadcrumbs: [...DASHBOARD_BREADCRUMB, { label: "Conteúdo", href: "#" }, { label: "Fluida Roteirista", isCurrent: true }]
+    breadcrumbs: [...DASHBOARD_BREADCRUMB, { label: "Conteúdo", href: "#" }, { label: "FluiRoteiro", isCurrent: true }]
   },
   "/videos": {
-    icon: Video, title: "Galeria de Vídeos",
+    icon: Video, title: "FluiVideos",
     subtitle: "Gerencie, crie e compartilhe vídeos",
-    breadcrumbs: [...DASHBOARD_BREADCRUMB, { label: "Mídia", href: "#" }, { label: "Vídeos", isCurrent: true }]
+    breadcrumbs: [...DASHBOARD_BREADCRUMB, { label: "Mídia", href: "#" }, { label: "FluiVideos", isCurrent: true }]
   },
   "/photos": {
-    icon: Image, title: "Galeria de Fotos",
+    icon: Image, title: "FluiFotos",
     subtitle: "Gerencie e organize suas fotos",
-    breadcrumbs: [...DASHBOARD_BREADCRUMB, { label: "Mídia", href: "#" }, { label: "Fotos", isCurrent: true }]
+    breadcrumbs: [...DASHBOARD_BREADCRUMB, { label: "Mídia", href: "#" }, { label: "FluiFotos", isCurrent: true }]
   },
   "/arts": {
-    icon: Palette, title: "Galeria de Artes",
+    icon: Palette, title: "FluiArtes",
     subtitle: "Crie e gerencie suas artes e designs",
-    breadcrumbs: [...DASHBOARD_BREADCRUMB, { label: "Mídia", href: "#" }, { label: "Artes", isCurrent: true }]
+    breadcrumbs: [...DASHBOARD_BREADCRUMB, { label: "Mídia", href: "#" }, { label: "FluiArtes", isCurrent: true }]
   },
   "/equipments": {
-    icon: Wrench, title: "Equipamentos",
+    icon: Wrench, title: "FluiEquipamentos",
     subtitle: "Explore equipamentos disponíveis",
-    breadcrumbs: [...DASHBOARD_BREADCRUMB, { label: "Sistema", href: "#" }, { label: "Equipamentos", isCurrent: true }]
+    breadcrumbs: [...DASHBOARD_BREADCRUMB, { label: "Sistema", href: "#" }, { label: "FluiEquipamentos", isCurrent: true }]
   },
   "/content-planner": {
     icon: Calendar, title: "Planner de Conteúdo",

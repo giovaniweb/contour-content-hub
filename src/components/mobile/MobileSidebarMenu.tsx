@@ -24,14 +24,14 @@ import { Separator } from "@/components/ui/separator";
 
 const sidebarItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
-  { icon: Crown, label: "Mestre da Beleza", path: "/mestre-da-beleza" },
-  { icon: BrainCircuit, label: "Consultor MKT", path: "/marketing-consultant" },
-  { icon: PenTool, label: "Fluida Roteirista", path: "/fluidaroteirista" },
-  { icon: Video, label: "Vídeos", path: "/videos" },
-  { icon: Image, label: "Fotos", path: "/photos" },
-  { icon: Palette, label: "Artes", path: "/arts" },
-  { icon: BookOpen, label: "Artigos Científicos", path: "/scientific-articles" },
-  { icon: Wrench, label: "Equipamentos", path: "/equipments" },
+  { icon: Crown, label: "FluiChat", path: "/mestre-da-beleza" },
+  { icon: BrainCircuit, label: "FluiMKT", path: "/marketing-consultant" },
+  { icon: PenTool, label: "FluiRoteiro", path: "/fluidaroteirista" },
+  { icon: Video, label: "FluiVideos", path: "/videos" },
+  { icon: Image, label: "FluiFotos", path: "/photos" },
+  { icon: Palette, label: "FluiArtes", path: "/arts" },
+  { icon: BookOpen, label: "FluiArtigos", path: "/scientific-articles" },
+  { icon: Wrench, label: "FluiEquipamentos", path: "/equipments" },
 ];
 
 const MobileSidebarMenu: React.FC = () => {
