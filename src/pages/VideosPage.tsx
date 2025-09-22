@@ -8,19 +8,31 @@ import UserVideoPlayer from '@/components/video-storage/UserVideoPlayer';
 import AuroraPageLayout from '@/components/layout/AuroraPageLayout';
 import StandardPageHeader from '@/components/layout/StandardPageHeader';
 import SearchAndFilters from '@/components/layout/SearchAndFilters';
+import { Pagination } from '@/components/ui/pagination';
 
 const VideosPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedVideo, setSelectedVideo] = useState(null);
   const [isPlayerOpen, setIsPlayerOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
   
-  const { videos, isLoading, error, loadVideos } = useUserVideos();
+  const itemsPerPage = 20;
+  const { videos, isLoading, error, total, loadVideos } = useUserVideos({
+    page: currentPage,
+    itemsPerPage
+  });
 
   console.log('📊 Estado dos vídeos:', { 
     videosCount: videos.length, 
+    total,
+    currentPage,
     isLoading, 
     error 
   });
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
 
   const handleVideoPlay = (video) => {
     console.log('🎬 Reproduzindo vídeo:', video.titulo);
@@ -58,9 +70,9 @@ const VideosPage: React.FC = () => {
       variant: 'secondary' as const,
       color: 'bg-aurora-neon-blue/20 text-aurora-neon-blue border-aurora-neon-blue/30'
     },
-    {
+      {
       icon: Sparkles,
-      label: `${videos.length} Vídeos`,
+      label: `${total} Vídeos`,
       variant: 'secondary' as const,
       color: 'bg-aurora-cyan/20 text-aurora-cyan border-aurora-cyan/30'
     }
@@ -91,12 +103,25 @@ const VideosPage: React.FC = () => {
             </div>
           </div>
         ) : (
-          <div className="aurora-glass rounded-3xl border border-aurora-electric-purple/30 p-8">
-            <UserVideoGrid
-              videos={videos}
-              onVideoPlay={handleVideoPlay}
-              isLoading={isLoading}
-            />
+          <div className="space-y-6">
+            <div className="aurora-glass rounded-3xl border border-aurora-electric-purple/30 p-8">
+              <UserVideoGrid
+                videos={videos}
+                onVideoPlay={handleVideoPlay}
+                isLoading={isLoading}
+              />
+            </div>
+            
+            {!isLoading && total > itemsPerPage && (
+              <div className="flex justify-center">
+                <Pagination
+                  totalItems={total}
+                  itemsPerPage={itemsPerPage}
+                  currentPage={currentPage}
+                  onPageChange={handlePageChange}
+                />
+              </div>
+            )}
           </div>
         )}
       </div>

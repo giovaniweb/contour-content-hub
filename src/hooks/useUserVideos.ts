@@ -18,11 +18,18 @@ interface Video {
   duracao?: string;
 }
 
-export const useUserVideos = () => {
+interface UseUserVideosOptions {
+  page?: number;
+  itemsPerPage?: number;
+}
+
+export const useUserVideos = (options: UseUserVideosOptions = {}) => {
+  const { page = 1, itemsPerPage = 20 } = options;
   const { toast } = useToast();
   const [videos, setVideos] = useState<Video[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [total, setTotal] = useState(0);
 
   const loadVideos = async () => {
     setIsLoading(true);
@@ -31,18 +38,22 @@ export const useUserVideos = () => {
     try {
       console.log('🎬 Carregando vídeos...');
       
-      const { data, error } = await supabase
+      const from = (page - 1) * itemsPerPage;
+      const to = from + itemsPerPage - 1;
+      
+      const { data, error, count } = await supabase
         .from('videos')
-        .select('*')
+        .select('*', { count: 'exact' })
         .order('data_upload', { ascending: false })
-        .limit(50);
+        .range(from, to);
       
       if (error) {
         throw new Error(error.message);
       }
       
-      console.log('✅ Vídeos carregados:', data?.length || 0);
+      console.log('✅ Vídeos carregados:', data?.length || 0, 'de', count || 0);
       setVideos(data || []);
+      setTotal(count || 0);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erro ao carregar vídeos';
       setError(errorMessage);
@@ -60,12 +71,13 @@ export const useUserVideos = () => {
 
   useEffect(() => {
     loadVideos();
-  }, []);
+  }, [page, itemsPerPage]);
 
   return {
     videos,
     isLoading,
     error,
+    total,
     loadVideos
   };
 };
