@@ -21,10 +21,12 @@ interface Video {
 interface UseUserVideosOptions {
   page?: number;
   itemsPerPage?: number;
+  searchTerm?: string;
+  selectedEquipment?: string;
 }
 
 export const useUserVideos = (options: UseUserVideosOptions = {}) => {
-  const { page = 1, itemsPerPage = 20 } = options;
+  const { page = 1, itemsPerPage = 20, searchTerm = '', selectedEquipment = '' } = options;
   const { toast } = useToast();
   const [videos, setVideos] = useState<Video[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -41,10 +43,23 @@ export const useUserVideos = (options: UseUserVideosOptions = {}) => {
       const from = (page - 1) * itemsPerPage;
       const to = from + itemsPerPage - 1;
       
-      // Get data with count in a single query
-      const { data, error, count } = await supabase
+      // Build query with filters
+      let query = supabase
         .from('videos')
-        .select('*', { count: 'exact' })
+        .select('*', { count: 'exact' });
+
+      // Apply search filter
+      if (searchTerm) {
+        query = query.or(`titulo.ilike.%${searchTerm}%,descricao_curta.ilike.%${searchTerm}%`);
+      }
+
+      // Apply equipment filter
+      if (selectedEquipment) {
+        query = query.or(`categoria.eq.${selectedEquipment},equipamentos.cs.{${selectedEquipment}}`);
+      }
+
+      // Apply sorting and pagination
+      const { data, error, count } = await query
         .order('data_upload', { ascending: false })
         .range(from, to);
       
@@ -73,7 +88,7 @@ export const useUserVideos = (options: UseUserVideosOptions = {}) => {
 
   useEffect(() => {
     loadVideos();
-  }, [page, itemsPerPage]);
+  }, [page, itemsPerPage, searchTerm, selectedEquipment]);
 
   return {
     videos,
