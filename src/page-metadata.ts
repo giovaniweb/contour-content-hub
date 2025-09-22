@@ -45,9 +45,9 @@ export const pageMetadata: Record<string, PageMeta> = {
     breadcrumbs: [...DASHBOARD_BREADCRUMB, { label: "Mídia", href: "#" }, { label: "FluiArtes", isCurrent: true }]
   },
   "/equipments": {
-    icon: Wrench, title: "FluiEquipamentos",
+    icon: Wrench, title: "Equipamentos",
     subtitle: "Explore equipamentos disponíveis",
-    breadcrumbs: [...DASHBOARD_BREADCRUMB, { label: "Sistema", href: "#" }, { label: "FluiEquipamentos", isCurrent: true }]
+    breadcrumbs: [...DASHBOARD_BREADCRUMB, { label: "Sistema", href: "#" }, { label: "Equipamentos", isCurrent: true }]
   },
   "/content-planner": {
     icon: Calendar, title: "Planner de Conteúdo",

@@ -31,7 +31,7 @@ const sidebarItems = [
   { icon: Image, label: "FluiFotos", path: "/photos" },
   { icon: Palette, label: "FluiArtes", path: "/arts" },
   { icon: BookOpen, label: "FluiArtigos", path: "/scientific-articles" },
-  { icon: Wrench, label: "FluiEquipamentos", path: "/equipments" },
+  { icon: Wrench, label: "Equipamentos", path: "/equipments" },
 ];
 
 const MobileSidebarMenu: React.FC = () => {

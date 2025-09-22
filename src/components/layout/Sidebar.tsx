@@ -27,7 +27,7 @@ const sidebarItems = [
   { icon: Palette, label: "FluiArtes", path: "/arts" },
   { icon: BookOpen, label: "FluiArtigos", path: "/scientific-articles" },
   { icon: GraduationCap, label: "FluiAulas", path: "/academia" },
-  { icon: Wrench, label: "FluiEquipamentos", path: "/equipments" },
+  { icon: Wrench, label: "Equipamentos", path: "/equipments" },
 ];
 
 const SIDEBAR_WIDTH = 96; // px (w-24 ~ 96px, more compact for smaller screens)
