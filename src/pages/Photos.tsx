@@ -90,18 +90,6 @@ const Photos: React.FC = () => {
 
   const filteredPhotos = photos;
 
-        {totalPages > 1 && (
-          <div className="flex justify-center mt-8">
-            <Pagination
-              totalItems={totalCount}
-              itemsPerPage={itemsPerPage}
-              currentPage={currentPage}
-              onPageChange={setCurrentPage}
-            />
-          </div>
-        )}
-
-
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('pt-BR');
   };
@@ -518,6 +506,18 @@ const Photos: React.FC = () => {
                 ? "Você ainda não possui fotos cadastradas." 
                 : "Tente ajustar os filtros para encontrar o que procura."}
             </p>
+          </div>
+        )}
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="flex justify-center mt-8">
+            <Pagination
+              totalItems={totalCount}
+              itemsPerPage={itemsPerPage}
+              currentPage={currentPage}
+              onPageChange={setCurrentPage}
+            />
           </div>
         )}
       </div>
