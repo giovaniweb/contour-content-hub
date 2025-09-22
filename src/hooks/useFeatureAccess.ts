@@ -92,7 +92,20 @@ export const useFeatureAccess = (): UseFeatureAccessReturn => {
       if (error) throw error;
 
       const perms = data || [];
-      setPermissions(perms);
+      
+      // If user has no permissions, initialize defaults
+      if (perms.length === 0) {
+        const { initializeUserPermissions } = await import('@/utils/initializeUserPermissions');
+        await initializeUserPermissions(user.id);
+        // Refetch after initialization
+        const { data: newData } = await supabase
+          .from('user_feature_permissions')
+          .select('feature, enabled, expires_at, granted_at')
+          .eq('user_id', user.id);
+        setPermissions(newData || []);
+      } else {
+        setPermissions(perms);
+      }
       
       // Also fetch notifications
       const { data: notificationData, error: notificationError } = await supabase
@@ -107,7 +120,7 @@ export const useFeatureAccess = (): UseFeatureAccessReturn => {
       const notifs = notificationData || [];
       setNotifications(notifs);
       
-      saveToCache(perms, notifs);
+      saveToCache(perms.length === 0 ? [] : perms, notifs);
     } catch (error) {
       console.error('Error fetching permissions:', error);
     } finally {
