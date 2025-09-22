@@ -17,14 +17,14 @@ interface RestrictedAccessModalProps {
 }
 
 const featureNames: Record<AppFeature, string> = {
-  'mestre_beleza': 'Mestre da Beleza',
-  'consultor_mkt': 'Consultor de Marketing',
-  'fluida_roteirista': 'Fluida Roteirista',
-  'videos': 'Vídeos',
-  'fotos': 'Fotos',
-  'artes': 'Artes',
-  'artigos_cientificos': 'Artigos Científicos',
-  'academia': 'Academia',
+  'mestre_beleza': 'FluiChat',
+  'consultor_mkt': 'FluiMKT',
+  'fluida_roteirista': 'FluiRoteiro',
+  'videos': 'FluiVideos',
+  'fotos': 'FluiFotos',
+  'artes': 'FluiArtes',
+  'artigos_cientificos': 'FluiArtigos',
+  'academia': 'FluiAulas',
   'equipamentos': 'Equipamentos',
   'fotos_antes_depois': 'Fotos Antes e Depois',
   'reports': 'Relatórios',

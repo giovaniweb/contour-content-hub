@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -13,9 +13,14 @@ import {
   BookOpen,
   GraduationCap,
   Bot,
+  Lock,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useFeatureAccess } from "@/hooks/useFeatureAccess";
+import { usePermissions } from "@/hooks/use-permissions";
+import { getFeatureFromPath } from "@/utils/featureMapping";
+import { RestrictedAccessModal } from "@/components/access-control/RestrictedAccessModal";
 
 const sidebarItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
@@ -36,11 +41,48 @@ const Sidebar: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
+  const { hasAccess, isNewFeature, markNotificationAsRead, notifications } = useFeatureAccess();
+  const { isAdmin } = usePermissions();
+  const [restrictedModal, setRestrictedModal] = useState<{
+    isOpen: boolean;
+    feature?: any;
+  }>({ isOpen: false });
 
   // Ocultar sidebar no mobile
   if (isMobile) {
     return null;
   }
+
+  const handleItemClick = async (path: string) => {
+    const feature = getFeatureFromPath(path);
+    
+    // Dashboard is always accessible, or admin has full access
+    if (path === '/dashboard' || isAdmin()) {
+      navigate(path);
+      return;
+    }
+
+    if (feature) {
+      const hasPermission = hasAccess(feature);
+      
+      if (hasPermission) {
+        // Mark as read if it's a new feature
+        if (isNewFeature(feature)) {
+          const notification = notifications.find(n => n.feature === feature && !n.is_read);
+          if (notification) {
+            await markNotificationAsRead(notification.id);
+          }
+        }
+        navigate(path);
+      } else {
+        // Show restricted access modal
+        setRestrictedModal({ isOpen: true, feature });
+      }
+    } else {
+      // If no feature mapping, allow navigation (fallback)
+      navigate(path);
+    }
+  };
 
   return (
     <aside
@@ -56,22 +98,42 @@ const Sidebar: React.FC = () => {
           const active = location.pathname === item.path;
           const labelLines = item.label.split('\n');
           const isLast = index === sidebarItems.length - 1;
+          
+          // Check permissions for this item
+          const feature = getFeatureFromPath(item.path);
+          const hasPermission = item.path === '/dashboard' || isAdmin() || (feature && hasAccess(feature));
+          const isNew = feature && isNewFeature(feature);
+          const isRestricted = feature && !hasPermission && !isAdmin();
+
           return (
             <button
               key={item.path}
               className={cn(
                 "flex flex-col items-center justify-center gap-1 text-aurora-text-muted hover:text-aurora-neon-blue hover:bg-aurora-neon-blue/10 rounded-lg transition-all duration-150 mx-auto w-[80px] py-2 group relative",
                 active && "bg-aurora-neon-blue/20 text-aurora-neon-blue shadow-lg border border-aurora-neon-blue/30",
-                !isLast && "after:content-[''] after:absolute after:bottom-0 after:left-1/2 after:transform after:-translate-x-1/2 after:w-12 after:h-px after:bg-aurora-neon-blue/10"
+                !isLast && "after:content-[''] after:absolute after:bottom-0 after:left-1/2 after:transform after:-translate-x-1/2 after:w-12 after:h-px after:bg-aurora-neon-blue/10",
+                isRestricted && "opacity-60 cursor-not-allowed"
               )}
-              onClick={() => navigate(item.path)}
+              onClick={() => handleItemClick(item.path)}
               tabIndex={0}
               style={{ outline: "none" }}
+              disabled={isRestricted}
             >
-              <item.icon className="w-5 h-5 mb-1" />
+              <div className="relative">
+                <item.icon className="w-5 h-5 mb-1" />
+                {isRestricted && (
+                  <Lock className="absolute -top-1 -right-1 w-3 h-3 text-aurora-text-muted" />
+                )}
+                {isNew && (
+                  <span className="absolute -top-2 -right-2 bg-gradient-to-r from-aurora-electric-purple to-aurora-neon-blue text-white text-[0.6rem] px-1.5 py-0.5 rounded-full font-bold leading-none">
+                    Novo
+                  </span>
+                )}
+              </div>
               <span className={cn(
                 "text-[0.75rem] font-medium truncate leading-tight text-center break-words",
-                active && "text-aurora-neon-blue"
+                active && "text-aurora-neon-blue",
+                isRestricted && "text-aurora-text-muted"
               )}>
                 {labelLines.map((line, idx) => (
                   <span key={idx} className="block">
@@ -83,6 +145,13 @@ const Sidebar: React.FC = () => {
           );
         })}
       </nav>
+
+      {/* Restricted Access Modal */}
+      <RestrictedAccessModal 
+        isOpen={restrictedModal.isOpen}
+        onClose={() => setRestrictedModal({ isOpen: false })}
+        feature={restrictedModal.feature}
+      />
     </aside>
   );
 };
