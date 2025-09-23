@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { UniversalDeleteService } from '@/services/universalDeleteService';
 import { supabase } from '@/integrations/supabase/client';
-import { Users, Search, UserPlus, Edit, Trash2, Mail, Calendar, Settings } from 'lucide-react';
+import { Users, Search, UserPlus, Trash2, Mail, Calendar, Settings } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { useNavigate } from 'react-router-dom';
@@ -252,13 +252,6 @@ const AdminUsers: React.FC = () => {
                   </Badge>
                   
                   <div className="flex gap-2">
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => setEditingUser(user)}
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
                     <Button 
                       variant="outline" 
                       size="sm"

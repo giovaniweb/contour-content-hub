@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -32,6 +32,26 @@ const UserBasicInfoEditor: React.FC<UserBasicInfoEditorProps> = ({ user, onUpdat
   const [editedUser, setEditedUser] = useState<User>({ ...user });
   const { toast } = useToast();
 
+  // Check if current user is admin
+  const { data: currentUserRole } = useQuery({
+    queryKey: ['current-user-role'],
+    queryFn: async () => {
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      if (!authUser) return null;
+      
+      const { data, error } = await supabase
+        .from('perfis')
+        .select('role')
+        .eq('id', authUser.id)
+        .single();
+      
+      if (error) return null;
+      return data.role;
+    }
+  });
+
+  const isAdmin = currentUserRole === 'admin' || currentUserRole === 'superadmin';
+
   const updateUserMutation = useMutation({
     mutationFn: async (updates: Partial<User>) => {
       const { error } = await supabase
@@ -58,7 +78,7 @@ const UserBasicInfoEditor: React.FC<UserBasicInfoEditorProps> = ({ user, onUpdat
   });
 
   const handleSave = () => {
-    updateUserMutation.mutate({
+    const updates: Partial<User> = {
       nome: editedUser.nome,
       role: editedUser.role,
       cidade: editedUser.cidade,
@@ -66,7 +86,14 @@ const UserBasicInfoEditor: React.FC<UserBasicInfoEditorProps> = ({ user, onUpdat
       telefone: editedUser.telefone,
       equipamentos: editedUser.equipamentos,
       observacoes_conteudo: editedUser.observacoes_conteudo
-    });
+    };
+
+    // Include email in updates if user is admin and email changed
+    if (isAdmin && editedUser.email !== user.email) {
+      updates.email = editedUser.email;
+    }
+
+    updateUserMutation.mutate(updates);
   };
 
   const hasChanges = JSON.stringify(editedUser) !== JSON.stringify(user);
@@ -97,11 +124,15 @@ const UserBasicInfoEditor: React.FC<UserBasicInfoEditorProps> = ({ user, onUpdat
                 <Input
                   id="email"
                   value={editedUser.email}
-                  disabled
-                  className="bg-muted"
+                  disabled={!isAdmin}
+                  className={!isAdmin ? "bg-muted" : ""}
+                  onChange={(e) => isAdmin && setEditedUser(prev => ({ ...prev, email: e.target.value }))}
                 />
                 <p className="text-xs text-muted-foreground mt-1">
-                  O email não pode ser alterado por questões de segurança
+                  {isAdmin 
+                    ? "Como administrador, você pode alterar o email do usuário"
+                    : "O email não pode ser alterado por questões de segurança"
+                  }
                 </p>
               </div>
 
