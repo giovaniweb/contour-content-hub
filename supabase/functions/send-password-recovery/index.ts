@@ -1,8 +1,5 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { Resend } from "npm:resend@2.0.0";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.4';
-
-const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -75,64 +72,72 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error("Failed to generate reset URL");
     }
 
-    // Send custom email using Resend
-    const emailResponse = await resend.emails.send({
-      from: "Fluida Online <noreply@fluida.online>",
-      to: [email],
-      subject: "Redefinir senha - Fluida Online",
-      html: `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <meta charset="utf-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        </head>
-        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-          <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
-            <h1 style="color: white; margin: 0; font-size: 28px;">Fluida Online</h1>
-            <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0;">Redefinição de Senha</p>
-          </div>
-          
-          <div style="background: white; padding: 30px; border-radius: 0 0 10px 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-            <h2 style="color: #333; margin-top: 0;">Olá!</h2>
-            
-            <p>Você solicitou a redefinição da sua senha na Fluida Online.</p>
-            
-            <div style="text-align: center; margin: 30px 0;">
-              <a href="${resetUrl}" 
-                 style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
-                        color: white; 
-                        padding: 15px 30px; 
-                        text-decoration: none; 
-                        border-radius: 25px; 
-                        font-weight: bold;
-                        display: inline-block;
-                        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);">
-                Redefinir Minha Senha
-              </a>
+    // Send email using native SMTP system
+    const emailResponse = await supabase.functions.invoke('send-native-email', {
+      body: {
+        to_email: email,
+        from_name: "Fluida Online",
+        from_email: "noreply@fluida.online",
+        subject: "Redefinir senha - Fluida Online",
+        html_content: `
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          </head>
+          <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+              <h1 style="color: white; margin: 0; font-size: 28px;">Fluida Online</h1>
+              <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0;">Redefinição de Senha</p>
             </div>
             
-            <p style="color: #666; font-size: 14px;">
-              Se você não solicitou esta alteração, pode ignorar este email com segurança. 
-              Sua senha atual permanecerá inalterada.
-            </p>
-            
-            <p style="color: #666; font-size: 14px;">
-              Este link expira em 1 hora por motivos de segurança.
-            </p>
-            
-            <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
-            
-            <p style="color: #999; font-size: 12px; text-align: center;">
-              © 2024 Fluida Online. Todos os direitos reservados.<br>
-              Se você não conseguir clicar no botão acima, copie e cole este link no seu navegador:<br>
-              <span style="word-break: break-all;">${resetUrl}</span>
-            </p>
-          </div>
-        </body>
-        </html>
-      `,
+            <div style="background: white; padding: 30px; border-radius: 0 0 10px 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+              <h2 style="color: #333; margin-top: 0;">Olá!</h2>
+              
+              <p>Você solicitou a redefinição da sua senha na Fluida Online.</p>
+              
+              <div style="text-align: center; margin: 30px 0;">
+                <a href="${resetUrl}" 
+                   style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                          color: white; 
+                          padding: 15px 30px; 
+                          text-decoration: none; 
+                          border-radius: 25px; 
+                          font-weight: bold;
+                          display: inline-block;
+                          box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);">
+                  Redefinir Minha Senha
+                </a>
+              </div>
+              
+              <p style="color: #666; font-size: 14px;">
+                Se você não solicitou esta alteração, pode ignorar este email com segurança. 
+                Sua senha atual permanecerá inalterada.
+              </p>
+              
+              <p style="color: #666; font-size: 14px;">
+                Este link expira em 1 hora por motivos de segurança.
+              </p>
+              
+              <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
+              
+              <p style="color: #999; font-size: 12px; text-align: center;">
+                © 2024 Fluida Online. Todos os direitos reservados.<br>
+                Se você não conseguir clicar no botão acima, copie e cole este link no seu navegador:<br>
+                <span style="word-break: break-all;">${resetUrl}</span>
+              </p>
+            </div>
+          </body>
+          </html>
+        `
+      }
     });
+
+    if (emailResponse.error) {
+      console.error("Error sending password recovery email:", emailResponse.error);
+      throw new Error("Failed to send recovery email");
+    }
 
     console.log("Password recovery email sent successfully:", emailResponse);
 
