@@ -21,10 +21,10 @@ async function sendEmailSMTP(
       return false;
     }
 
-    console.log(`Attempting SMTP connection to ${host}:${port}, secure: ${secure}`);
+    console.log(`[SMTP] Connecting to ${host}:${port}, secure: ${secure}`);
 
     // Create TLS or TCP connection based on configuration
-    const conn = secure 
+    let conn = secure 
       ? await Deno.connectTls({ hostname: host, port: port })
       : await Deno.connect({ hostname: host, port: port });
 
@@ -32,55 +32,119 @@ async function sendEmailSMTP(
     const decoder = new TextDecoder();
 
     // Helper function to send command and get response
-    const sendCommand = async (command: string): Promise<string> => {
-      await conn.write(encoder.encode(command + '\r\n'));
+    let sendCommand = async (command: string): Promise<string> => {
+      if (command !== '') {
+        console.log(`[SMTP] > ${command}`);
+        await conn.write(encoder.encode(command + '\r\n'));
+      }
       const buffer = new Uint8Array(1024);
       const n = await conn.read(buffer);
-      return decoder.decode(buffer.subarray(0, n || 0));
+      const response = decoder.decode(buffer.subarray(0, n || 0));
+      console.log(`[SMTP] < ${response.trim()}`);
+      return response;
     };
 
     // Read initial greeting
     let response = await sendCommand('');
-    console.log('Server greeting:', response.trim());
 
     // EHLO command
     response = await sendCommand(`EHLO ${host}`);
-    console.log('EHLO response:', response.trim());
 
     // STARTTLS if not already secure
     if (!secure && response.includes('STARTTLS')) {
+      console.log('[SMTP] Upgrading to TLS...');
       response = await sendCommand('STARTTLS');
-      console.log('STARTTLS response:', response.trim());
       
-      // Upgrade to TLS
-      conn.close();
-      const tlsConn = await Deno.connectTls({ hostname: host, port: port });
-      
-      // Re-establish EHLO after TLS
-      response = await sendCommand('EHLO ' + host);
-      console.log('EHLO after TLS:', response.trim());
+      if (response.startsWith('220')) {
+        // Close old connection and upgrade to TLS
+        conn.close();
+        conn = await Deno.connectTls({ hostname: host, port: port });
+        
+        // Update sendCommand to use new connection
+        sendCommand = async (command: string): Promise<string> => {
+          if (command !== '') {
+            console.log(`[SMTP-TLS] > ${command}`);
+            await conn.write(encoder.encode(command + '\r\n'));
+          }
+          const buffer = new Uint8Array(1024);
+          const n = await conn.read(buffer);
+          const response = decoder.decode(buffer.subarray(0, n || 0));
+          console.log(`[SMTP-TLS] < ${response.trim()}`);
+          return response;
+        };
+        
+        // Re-establish EHLO after TLS
+        response = await sendCommand(`EHLO ${host}`);
+        console.log('[SMTP] TLS upgrade successful');
+      } else {
+        console.warn('[SMTP] STARTTLS failed, continuing without TLS');
+      }
     }
 
-    // Authentication
-    const authString = btoa(`\0${user}\0${pass}`);
-    response = await sendCommand(`AUTH PLAIN ${authString}`);
-    console.log('AUTH response:', response.trim());
+    // Authentication - try AUTH PLAIN first, fallback to AUTH LOGIN
+    console.log('[SMTP] Attempting authentication...');
+    let authSuccess = false;
+    
+    // Try AUTH PLAIN
+    try {
+      const authString = btoa(`\0${user}\0${pass}`);
+      response = await sendCommand(`AUTH PLAIN ${authString}`);
+      
+      if (response.startsWith('235')) {
+        console.log('[SMTP] AUTH PLAIN successful');
+        authSuccess = true;
+      }
+    } catch (error) {
+      console.log('[SMTP] AUTH PLAIN failed, trying AUTH LOGIN');
+    }
+    
+    // Fallback to AUTH LOGIN if PLAIN failed
+    if (!authSuccess) {
+      try {
+        response = await sendCommand('AUTH LOGIN');
+        
+        if (response.startsWith('334')) {
+          // Send username
+          response = await sendCommand(btoa(user));
+          
+          if (response.startsWith('334')) {
+            // Send password
+            response = await sendCommand(btoa(pass));
+            
+            if (response.startsWith('235')) {
+              console.log('[SMTP] AUTH LOGIN successful');
+              authSuccess = true;
+            }
+          }
+        }
+      } catch (error) {
+        console.error('[SMTP] AUTH LOGIN failed:', error);
+      }
+    }
 
-    if (!response.startsWith('235')) {
+    if (!authSuccess) {
       throw new Error(`Authentication failed: ${response}`);
     }
 
     // Mail transaction
+    console.log('[SMTP] Starting mail transaction...');
     response = await sendCommand(`MAIL FROM:<${fromEmail}>`);
-    console.log('MAIL FROM response:', response.trim());
+    if (!response.startsWith('250')) {
+      throw new Error(`MAIL FROM failed: ${response}`);
+    }
 
     response = await sendCommand(`RCPT TO:<${to}>`);
-    console.log('RCPT TO response:', response.trim());
+    if (!response.startsWith('250')) {
+      throw new Error(`RCPT TO failed: ${response}`);
+    }
 
     response = await sendCommand('DATA');
-    console.log('DATA response:', response.trim());
+    if (!response.startsWith('354')) {
+      throw new Error(`DATA command failed: ${response}`);
+    }
 
     // Email headers and content
+    console.log('[SMTP] Sending email content...');
     const emailContent = [
       `From: ${fromName} <${fromEmail}>`,
       `To: ${to}`,
@@ -97,17 +161,21 @@ async function sendEmailSMTP(
     const dataBuffer = new Uint8Array(1024);
     const dataRead = await conn.read(dataBuffer);
     const dataResponse = decoder.decode(dataBuffer.subarray(0, dataRead || 0));
-    console.log('Email sent response:', dataResponse.trim());
+    console.log(`[SMTP] Data response: ${dataResponse.trim()}`);
+
+    if (!dataResponse.startsWith('250')) {
+      throw new Error(`Email sending failed: ${dataResponse}`);
+    }
 
     // Quit
     await sendCommand('QUIT');
     conn.close();
 
-    console.log('Email sent successfully via SMTP');
+    console.log('[SMTP] Email sent successfully');
     return true;
 
   } catch (error) {
-    console.error('SMTP Error:', error);
+    console.error('[SMTP] Error:', error);
     return false;
   }
 }
@@ -146,24 +214,10 @@ const handler = async (req: Request): Promise<Response> => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    // Check if user exists
-    const { data: userData, error: userError } = await supabase.auth.admin.getUserByEmail(email);
-    
-    if (userError || !userData.user) {
-      console.log(`Password recovery attempted for non-existent email: ${email}`);
-      // Always return success for security (don't reveal if email exists)
-      return new Response(
-        JSON.stringify({ 
-          message: "Se o email existir em nossa base de dados, você receberá instruções para redefinir sua senha." 
-        }),
-        {
-          status: 200,
-          headers: { "Content-Type": "application/json", ...corsHeaders },
-        }
-      );
-    }
+    console.log(`[AUTH] Processing password recovery for: ${email}`);
 
     // Generate password reset link using Supabase Auth
+    // This will automatically check if user exists and handle appropriately
     const { data, error } = await supabase.auth.admin.generateLink({
       type: 'recovery',
       email: email,
@@ -173,7 +227,25 @@ const handler = async (req: Request): Promise<Response> => {
     });
 
     if (error) {
-      console.error("Error generating recovery link:", error);
+      console.error("[AUTH] Error generating recovery link:", error);
+      
+      // Check if error is because user doesn't exist
+      if (error.message?.includes('User not found') || error.message?.includes('Unable to get user')) {
+        console.log(`[AUTH] User not found for email: ${email}`);
+        // Always return success for security (don't reveal if email exists)
+        return new Response(
+          JSON.stringify({ 
+            message: "Se o email existir em nossa base de dados, você receberá instruções para redefinir sua senha.",
+            success: true
+          }),
+          {
+            status: 200,
+            headers: { "Content-Type": "application/json", ...corsHeaders },
+          }
+        );
+      }
+      
+      // Other errors should be thrown
       throw error;
     }
 
