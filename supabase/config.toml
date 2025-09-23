@@ -83,5 +83,8 @@ verify_jwt = true
 [functions.send-test-email]
 verify_jwt = true
 
+[functions.send-password-recovery]
+verify_jwt = false
+
 [functions.test-smtp-connection]
 verify_jwt = true

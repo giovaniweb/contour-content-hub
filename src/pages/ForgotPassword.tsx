@@ -17,25 +17,38 @@ const ForgotPassword: React.FC = () => {
     e.preventDefault();
     
     if (!email) {
-      toast.error('Por favor, digite seu email');
+      toast.error("Por favor, digite seu email");
+      return;
+    }
+
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      toast.error("Por favor, digite um email válido");
       return;
     }
 
     setIsLoading(true);
 
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`
+      // Use custom edge function for better email delivery
+      const { data, error } = await supabase.functions.invoke('send-password-recovery', {
+        body: { 
+          email,
+          redirectTo: 'https://fluida.online/reset-password'
+        }
       });
 
       if (error) {
-        toast.error(error.message);
+        console.error('Password recovery error:', error);
+        toast.error("Erro ao enviar email de recuperação. Tente novamente.");
       } else {
         setIsSubmitted(true);
-        toast.success('Email de recuperação enviado! Verifique sua caixa de entrada.');
+        toast.success(data.message || "Email de recuperação enviado!");
       }
     } catch (error) {
-      toast.error('Erro ao enviar email de recuperação. Tente novamente.');
+      console.error('Password recovery error:', error);
+      toast.error("Erro ao enviar email de recuperação. Tente novamente.");
     } finally {
       setIsLoading(false);
     }
@@ -46,22 +59,22 @@ const ForgotPassword: React.FC = () => {
       <div className="min-h-screen flex items-center justify-center bg-background px-4">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
-            <CardTitle className="text-2xl">Email Enviado</CardTitle>
+            <CardTitle className="text-2xl">Email Enviado!</CardTitle>
             <CardDescription>
-              Enviamos um link de recuperação para seu email. Verifique sua caixa de entrada e siga as instruções.
+              Se o email existir em nossa base de dados, você receberá instruções para redefinir sua senha.
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="text-center space-y-4">
               <p className="text-sm text-muted-foreground">
-                Não recebeu o email? Verifique sua pasta de spam ou tente novamente.
+                Não esqueça de verificar sua pasta de spam. O email pode demorar alguns minutos para chegar.
               </p>
               <Button 
                 variant="outline" 
                 onClick={() => setIsSubmitted(false)}
                 className="w-full"
               >
-                Tentar Novamente
+                Tentar outro email
               </Button>
               <Link to="/auth">
                 <Button variant="ghost" className="w-full">
