@@ -21,6 +21,12 @@ import {
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { 
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 interface UserPermission {
   id?: string;
@@ -344,11 +350,30 @@ const UserPermissionsManager: React.FC<UserPermissionsManagerProps> = ({ userId 
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       )}
-                      <Switch
-                        checked={hasFeaturePermission && !isPermissionExpired}
-                        onCheckedChange={(checked) => handleTogglePermission(feature, checked)}
-                        disabled={isPermissionExpired}
-                      />
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <div>
+                              <Switch
+                                checked={hasFeaturePermission && !isPermissionExpired}
+                                onCheckedChange={(checked) => handleTogglePermission(feature, checked)}
+                                disabled={isPermissionExpired}
+                                className="data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-red-500/50 border-2 data-[state=checked]:border-green-600 data-[state=unchecked]:border-red-400"
+                              />
+                            </div>
+                          </TooltipTrigger>
+                          <TooltipContent 
+                            side="top" 
+                            className={`${
+                              hasFeaturePermission && !isPermissionExpired 
+                                ? 'bg-green-600 text-white border-green-700' 
+                                : 'bg-red-600 text-white border-red-700'
+                            }`}
+                          >
+                            {hasFeaturePermission && !isPermissionExpired ? 'Liberado' : 'Bloqueado'}
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
                     </div>
                   </div>
                 );
