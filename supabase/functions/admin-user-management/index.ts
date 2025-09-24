@@ -87,6 +87,26 @@ serve(async (req) => {
           );
         }
 
+        // Check if email already exists in auth.users (excluding current user)
+        const { data: existingUsers } = await supabaseAdmin.auth.admin.listUsers();
+        const emailExists = existingUsers.users?.find(u => 
+          u.email?.toLowerCase() === email.toLowerCase() && u.id !== userId
+        );
+
+        if (emailExists) {
+          console.error('❌ Email already exists in auth.users:', email);
+          return new Response(
+            JSON.stringify({ 
+              error: `Este email já está em uso por outro usuário (ID: ${emailExists.id})`,
+              success: false 
+            }),
+            { 
+              status: 400, 
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            }
+          );
+        }
+
         console.log(`📧 Syncing email for user ${userId} to ${email}`);
 
         // Call database function to update perfis table

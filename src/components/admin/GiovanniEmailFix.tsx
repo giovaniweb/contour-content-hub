@@ -53,12 +53,10 @@ export const GiovanniEmailFix: React.FC = () => {
     
     setFixing(true);
     try {
-      console.log('🔧 Corrigindo email do Giovanni...');
+      console.log('🔧 Sincronizando email do Giovanni...');
       
-      // Email correto que deveria estar nos dois lugares
-      const correctEmail = 'giovani@contourline.com.br';
-      
-      const result = await syncUserEmail(giovanniInfo.user_id, correctEmail);
+      // Use the current email from perfis (which is correct)
+      const result = await syncUserEmail(giovanniInfo.user_id, giovanniInfo.current_email);
       
       if (result.success || result.partialSuccess) {
         setFixed(true);
@@ -67,8 +65,8 @@ export const GiovanniEmailFix: React.FC = () => {
         throw new Error(result.error || 'Falha na sincronização');
       }
     } catch (err) {
-      console.error('Erro ao corrigir email:', err);
-      toast.error(`Erro ao corrigir email: ${err instanceof Error ? err.message : 'Erro desconhecido'}`);
+      console.error('Erro ao sincronizar email:', err);
+      toast.error(`Erro ao sincronizar email: ${err instanceof Error ? err.message : 'Erro desconhecido'}`);
     } finally {
       setFixing(false);
     }
@@ -150,10 +148,9 @@ export const GiovanniEmailFix: React.FC = () => {
             <Alert>
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
-                <strong>Problema identificado:</strong> O email em <code>auth.users</code> está como 
-                <code className="mx-1">giovani@contoulirne.com.br</code> (com erro), 
-                mas em <code>perfis</code> está correto como 
-                <code className="mx-1">giovani@contourline.com.br</code>.
+                <strong>Problema identificado:</strong> O email precisa ser sincronizado de <code>perfis</code> 
+                (<code className="mx-1">{giovanniInfo.current_email}</code>) 
+                para <code>auth.users</code> para permitir reset de senha.
               </AlertDescription>
             </Alert>
 
@@ -168,7 +165,7 @@ export const GiovanniEmailFix: React.FC = () => {
                 ) : (
                   <CheckCircle className="h-4 w-4 mr-2" />
                 )}
-                Corrigir Email no auth.users
+                Sincronizar Email em auth.users
               </Button>
             )}
           </div>

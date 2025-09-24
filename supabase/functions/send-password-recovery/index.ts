@@ -12,7 +12,8 @@ async function sendEmailSMTP(
 ): Promise<boolean> {
   try {
     const host = Deno.env.get('NATIVE_SMTP_HOST');
-    const port = parseInt(Deno.env.get('NATIVE_SMTP_PORT') || '587');
+    const portEnv = Deno.env.get('NATIVE_SMTP_PORT');
+    const port = portEnv && !isNaN(parseInt(portEnv)) ? parseInt(portEnv) : 587;
     const user = Deno.env.get('NATIVE_SMTP_USER');
     const pass = Deno.env.get('NATIVE_SMTP_PASS');
     const secure = Deno.env.get('NATIVE_SMTP_SECURE') === 'true';
@@ -231,13 +232,14 @@ const handler = async (req: Request): Promise<Response> => {
       console.error("[AUTH] Error generating recovery link:", error);
       
       // Check if error is because user doesn't exist
-      if (error.message?.includes('User not found') || error.message?.includes('Unable to get user')) {
-        console.log(`[AUTH] User not found for email: ${email}`);
+      if (error.message?.includes('User not found') || error.message?.includes('Unable to get user') || error.code === 'user_not_found') {
+        console.log(`[AUTH] User not found for email: ${email} - Error: ${error.message}`);
         // Always return success for security (don't reveal if email exists)
         return new Response(
           JSON.stringify({ 
             message: "Se o email existir em nossa base de dados, você receberá instruções para redefinir sua senha.",
-            success: true
+            success: true,
+            debug_info: `User not found: ${email}`
           }),
           {
             status: 200,
@@ -323,16 +325,22 @@ if (!emailSent) {
       console.log("Attempting Resend fallback...");
       const resend = new Resend(resendKey);
       const resendResp = await resend.emails.send({
-        from: "Fluida <noreply@fluida.online>",
+        from: "Fluida <onboarding@resend.dev>", // Use verified sender
         to: [email],
         subject: emailSubject,
         html: emailHtml,
       });
       console.log("Resend response:", resendResp);
-      emailSent = true;
+      if (resendResp.error) {
+        console.error("Resend error details:", resendResp.error);
+      } else {
+        emailSent = true;
+      }
     } catch (resendErr) {
       console.error("Resend fallback failed:", resendErr);
     }
+  } else {
+    console.error("No RESEND_API_KEY available for fallback");
   }
 }
 
