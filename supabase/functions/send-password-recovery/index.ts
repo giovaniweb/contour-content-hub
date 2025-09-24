@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.4';
+import { Resend } from "npm:resend@2.0.0";
 
 // SMTP sending functionality
 async function sendEmailSMTP(
@@ -310,16 +311,36 @@ const handler = async (req: Request): Promise<Response> => {
       </html>
     `;
 
-    // Send email using direct SMTP
-    console.log(`Sending password recovery email to: ${email}`);
-    const emailSent = await sendEmailSMTP(email, emailSubject, emailHtml);
+// Send email using direct SMTP
+console.log(`Sending password recovery email to: ${email}`);
+let emailSent = await sendEmailSMTP(email, emailSubject, emailHtml);
 
-    if (!emailSent) {
-      console.error("Failed to send password recovery email via SMTP");
-      throw new Error("Failed to send recovery email");
+if (!emailSent) {
+  console.error("Failed to send password recovery email via SMTP");
+  const resendKey = Deno.env.get('RESEND_API_KEY');
+  if (resendKey) {
+    try {
+      console.log("Attempting Resend fallback...");
+      const resend = new Resend(resendKey);
+      const resendResp = await resend.emails.send({
+        from: "Fluida <noreply@fluida.online>",
+        to: [email],
+        subject: emailSubject,
+        html: emailHtml,
+      });
+      console.log("Resend response:", resendResp);
+      emailSent = true;
+    } catch (resendErr) {
+      console.error("Resend fallback failed:", resendErr);
     }
+  }
+}
 
-    console.log("Password recovery email sent successfully via SMTP");
+if (!emailSent) {
+  throw new Error("Failed to send recovery email via all providers");
+}
+
+console.log("Password recovery email sent successfully");
 
     return new Response(
       JSON.stringify({ 

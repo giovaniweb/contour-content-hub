@@ -15,14 +15,49 @@ const ResetPassword: React.FC = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Check if we have the access token from the URL
-    const accessToken = searchParams.get('access_token');
-    const refreshToken = searchParams.get('refresh_token');
-    
-    if (!accessToken || !refreshToken) {
-      toast.error('Link de recuperação inválido ou expirado');
-      navigate('/auth');
-    }
+    // Processa tokens do hash (#) gerados pelo Supabase e configura a sessão
+    const hash = window.location.hash; // ex: #access_token=...&refresh_token=...
+    const params = new URLSearchParams(hash.startsWith('#') ? hash.slice(1) : hash);
+
+    const accessToken = params.get('access_token') || searchParams.get('access_token');
+    const refreshToken = params.get('refresh_token') || searchParams.get('refresh_token');
+
+    const init = async () => {
+      try {
+        if (accessToken && refreshToken) {
+          const { error } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken,
+          });
+          if (error) {
+            console.error('Erro ao configurar sessão de recuperação:', error);
+            toast.error('Link de recuperação inválido ou expirado');
+            navigate('/auth');
+            return;
+          }
+        } else {
+          // Verifica se já há sessão ativa (o SDK pode ter processado o hash automaticamente)
+          const { data } = await supabase.auth.getSession();
+          if (!data.session) {
+            toast.error('Link de recuperação inválido ou expirado');
+            navigate('/auth');
+            return;
+          }
+        }
+      } catch (err) {
+        console.error('Erro ao processar link de recuperação:', err);
+        toast.error('Link de recuperação inválido ou expirado');
+        navigate('/auth');
+        return;
+      } finally {
+        // Limpa o hash da URL para não expor tokens
+        if (window.location.hash) {
+          history.replaceState(null, document.title, window.location.pathname + window.location.search);
+        }
+      }
+    };
+
+    void init();
   }, [searchParams, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
