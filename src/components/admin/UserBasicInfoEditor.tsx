@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { syncUserEmail } from '@/services/adminService';
 import { User, Save, AlertTriangle } from 'lucide-react';
 
 interface User {
@@ -54,12 +55,47 @@ const UserBasicInfoEditor: React.FC<UserBasicInfoEditorProps> = ({ user, onUpdat
 
   const updateUserMutation = useMutation({
     mutationFn: async (updates: Partial<User>) => {
-      const { error } = await supabase
-        .from('perfis')
-        .update(updates)
-        .eq('id', user.id);
-      
-      if (error) throw error;
+      // Check if email is being updated and user is admin
+      if (isAdmin && updates.email && updates.email !== user.email) {
+        console.log('🔧 Syncing email via admin service:', updates.email);
+        
+        // Use admin service to sync email between auth.users and perfis
+        const syncResult = await syncUserEmail(user.id, updates.email);
+        
+        if (!syncResult.success && !syncResult.partialSuccess) {
+          throw new Error(syncResult.error || 'Erro ao sincronizar email');
+        }
+
+        if (syncResult.partialSuccess) {
+          console.warn('⚠️ Partial sync success:', syncResult);
+          toast({
+            title: "Sincronização parcial",
+            description: "Email atualizado parcialmente. Verifique os logs.",
+            variant: "destructive",
+          });
+        }
+
+        // Remove email from updates since it was handled by admin service
+        const { email, ...otherUpdates } = updates;
+        
+        // Update remaining fields if any
+        if (Object.keys(otherUpdates).length > 0) {
+          const { error } = await supabase
+            .from('perfis')
+            .update(otherUpdates)
+            .eq('id', user.id);
+          
+          if (error) throw error;
+        }
+      } else {
+        // Regular update without email changes
+        const { error } = await supabase
+          .from('perfis')
+          .update(updates)
+          .eq('id', user.id);
+        
+        if (error) throw error;
+      }
     },
     onSuccess: () => {
       toast({
@@ -69,6 +105,7 @@ const UserBasicInfoEditor: React.FC<UserBasicInfoEditorProps> = ({ user, onUpdat
       onUpdate();
     },
     onError: (error: any) => {
+      console.error('❌ Update user error:', error);
       toast({
         variant: "destructive",
         title: "Erro ao atualizar",
@@ -130,7 +167,7 @@ const UserBasicInfoEditor: React.FC<UserBasicInfoEditorProps> = ({ user, onUpdat
                 />
                 <p className="text-xs text-muted-foreground mt-1">
                   {isAdmin 
-                    ? "Como administrador, você pode alterar o email do usuário"
+                    ? "Como administrador, você pode alterar o email. Isso sincronizará auth.users e perfis."
                     : "O email não pode ser alterado por questões de segurança"
                   }
                 </p>

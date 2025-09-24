@@ -4459,6 +4459,10 @@ export type Database = {
         Args: { video_id_param: string }
         Returns: Json
       }
+      fix_giovanni_email: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
       get_current_user_role: {
         Args: Record<PropertyKey, never>
         Returns: string
@@ -4572,6 +4576,10 @@ export type Database = {
           p_value: Json
         }
         Returns: string
+      }
+      sync_user_email: {
+        Args: { new_email: string; user_id_param: string }
+        Returns: Json
       }
       update_ai_performance_metrics: {
         Args: {
