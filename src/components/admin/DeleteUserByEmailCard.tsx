@@ -66,30 +66,29 @@ export const DeleteUserByEmailCard = () => {
 
   return (
     <Card className="border-destructive/20">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-destructive">
-          <Trash2 className="w-5 h-5" />
-          Exclusão Direta por Email
+      <CardHeader className="pb-3">
+        <CardTitle className="flex items-center gap-2 text-destructive text-sm">
+          <Trash2 className="w-4 h-4" />
+          Exclusão por Email
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="flex items-start gap-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-          <AlertTriangle className="w-4 h-4 text-yellow-600 mt-0.5" />
-          <div className="text-sm text-yellow-800">
-            <p className="font-medium">Uso apenas em casos especiais</p>
-            <p>Para emails "presos" em auth.users sem perfil associado. Esta ação é irreversível.</p>
+      <CardContent className="space-y-3 pt-0">
+        <div className="bg-yellow-50 border border-yellow-200 p-2 rounded text-xs text-yellow-800">
+          <div className="flex items-center gap-1">
+            <AlertTriangle className="w-3 h-3" />
+            <span className="font-medium">Só em casos especiais</span>
           </div>
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="email-to-delete">Email do usuário</Label>
+          <Label htmlFor="email-to-delete" className="text-xs">Email do usuário</Label>
           <Input
             id="email-to-delete"
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="exemplo@email.com"
-            className="w-full"
+            className="w-full text-xs h-8"
           />
         </div>
 
@@ -98,7 +97,7 @@ export const DeleteUserByEmailCard = () => {
             <Button
               variant="destructive"
               disabled={!email.trim() || !isValidEmail(email) || deleteUserMutation.isPending}
-              className="w-full"
+              className="w-full text-xs h-8"
               onClick={() => setShowConfirmDialog(true)}
             >
               {deleteUserMutation.isPending ? 'Excluindo...' : 'Excluir Usuário'}

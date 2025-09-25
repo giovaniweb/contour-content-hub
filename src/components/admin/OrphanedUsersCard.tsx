@@ -115,10 +115,10 @@ const OrphanedUsersCard: React.FC = () => {
   return (
     <>
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center justify-between">
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center justify-between text-sm">
             <div className="flex items-center gap-2">
-              <Database className="h-5 w-5" />
+              <Database className="h-4 w-4" />
               Usuários Órfãos
             </div>
             <Button
@@ -126,69 +126,57 @@ const OrphanedUsersCard: React.FC = () => {
               size="sm"
               onClick={() => refetch()}
               disabled={isLoading}
+              className="h-7 w-7 p-0"
             >
-              <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+              <RefreshCw className={`h-3 w-3 ${isLoading ? 'animate-spin' : ''}`} />
             </Button>
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-3 pt-0">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Users className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm font-medium">Usuários órfãos encontrados:</span>
-            </div>
-            <Badge variant={orphanedCount > 0 ? "destructive" : "outline"}>
+            <span className="text-xs text-muted-foreground">Encontrados:</span>
+            <Badge variant={orphanedCount > 0 ? "destructive" : "outline"} className="text-xs">
               {orphanedCount}
             </Badge>
           </div>
 
           {orphanedCount > 0 && (
             <>
-              <div className="bg-muted/50 p-3 rounded-md">
-                <div className="flex items-start gap-2">
-                  <AlertTriangle className="h-4 w-4 text-amber-500 mt-0.5 flex-shrink-0" />
-                  <div className="text-sm text-muted-foreground">
-                    <p className="mb-2">
-                      Usuários órfãos são contas que existem na autenticação mas não possuem perfil completo.
-                      Estes usuários não conseguem usar o sistema normalmente.
-                    </p>
-                    <p>
-                      A limpeza removerá estes usuários completamente do sistema, liberando os emails para novos cadastros.
-                    </p>
-                  </div>
+              <div className="bg-amber-50 border border-amber-200 p-2 rounded text-xs text-amber-800">
+                <div className="flex items-center gap-1">
+                  <AlertTriangle className="h-3 w-3 flex-shrink-0" />
+                  <span>Contas sem perfil completo</span>
                 </div>
               </div>
 
-              <div className="flex gap-2">
+              <div className="grid grid-cols-2 gap-2">
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => setShowDetailsDialog(true)}
-                  className="flex-1"
+                  className="text-xs h-8"
                 >
-                  Ver Detalhes
+                  Detalhes
                 </Button>
                 <Button
                   variant="destructive"
                   size="sm"
                   onClick={handleCleanup}
                   disabled={cleanupMutation.isPending}
-                  className="flex-1"
+                  className="text-xs h-8"
                 >
-                  <Trash2 className="h-4 w-4 mr-1" />
-                  {cleanupMutation.isPending ? 'Limpando...' : 'Limpar Órfãos'}
+                  <Trash2 className="h-3 w-3 mr-1" />
+                  {cleanupMutation.isPending ? 'Limpando...' : 'Limpar'}
                 </Button>
               </div>
             </>
           )}
 
           {orphanedCount === 0 && (
-            <div className="bg-green-50 border border-green-200 p-3 rounded-md">
+            <div className="bg-green-50 border border-green-200 p-2 rounded">
               <div className="flex items-center gap-2">
                 <div className="h-2 w-2 bg-green-500 rounded-full"></div>
-                <span className="text-sm text-green-700 font-medium">
-                  Sistema limpo - nenhum usuário órfão encontrado
-                </span>
+                <span className="text-xs text-green-700">Sistema limpo</span>
               </div>
             </div>
           )}

@@ -183,12 +183,12 @@ const AdminUsers: React.FC = () => {
         </Button>
       </div>
 
-      {/* System Management Cards */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2">
+      {/* Filters and System Management Cards */}
+      <div className="grid grid-cols-1 xl:grid-cols-4 gap-4">
+        <div className="xl:col-span-2">
           {/* Filters */}
           <Card>
-            <CardContent className="p-6">
+            <CardContent className="p-4">
               <div className="flex flex-col md:flex-row gap-4">
                 <div className="flex-1">
                   <div className="relative">
@@ -220,10 +220,12 @@ const AdminUsers: React.FC = () => {
           </Card>
         </div>
         
-        <div className="space-y-6">
+        <div className="xl:col-span-1">
           {/* Orphaned Users Management */}
           <OrphanedUsersCard />
-          
+        </div>
+        
+        <div className="xl:col-span-1">
           {/* Direct Email Deletion */}
           <DeleteUserByEmailCard />
         </div>
