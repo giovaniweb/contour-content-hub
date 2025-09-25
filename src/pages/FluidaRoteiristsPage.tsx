@@ -1,11 +1,12 @@
 
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { PenTool, Wand2, Sparkles, Home, ChevronRight } from 'lucide-react';
 import FluidaRoteiristaNovo from '@/components/fluidaroteirista/FluidaRoteiristaNovo';
 import AuroraPageLayout from '@/components/layout/AuroraPageLayout';
 import StandardPageHeader from '@/components/layout/StandardPageHeader';
 import { Helmet } from 'react-helmet-async';
+import { useFeatureAccess } from '@/hooks/useFeatureAccess';
 
 const Breadcrumb = () => {
   const navigate = useNavigate();
@@ -40,6 +41,12 @@ const Breadcrumb = () => {
 };
 
 const FluidaRoteiristsPage: React.FC = () => {
+  const { hasAccess } = useFeatureAccess();
+
+  if (!hasAccess('fluida_roteirista')) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
   const statusBadges = [
     {
       icon: Wand2,

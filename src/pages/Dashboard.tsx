@@ -32,6 +32,8 @@ import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import PermissionRefreshButton from '@/components/auth/PermissionRefreshButton';
 import { usePermissions } from '@/hooks/use-permissions';
+import { FeatureAccessControl } from '@/components/access-control/FeatureAccessControl';
+import { AppFeature } from '@/hooks/useFeatureAccess';
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -199,7 +201,8 @@ const Dashboard: React.FC = () => {
       path: "/mestre-da-beleza",
       gradient: "from-yellow-500 to-orange-500",
       badge: "IA Premium",
-      isPopular: true
+      isPopular: true,
+      feature: "mestre_beleza" as AppFeature
     },
     {
       icon: BrainCircuit,
@@ -207,7 +210,8 @@ const Dashboard: React.FC = () => {
       description: "Estratégias de marketing personalizadas",
       path: "/marketing-consultant",
       gradient: "from-purple-500 to-pink-500",
-      badge: "Estratégia"
+      badge: "Estratégia",
+      feature: "consultor_mkt" as AppFeature
     },
     {
       icon: PenTool,
@@ -215,7 +219,8 @@ const Dashboard: React.FC = () => {
       description: "Criação de roteiros e conteúdos",
       path: "/fluidaroteirista",
       gradient: "from-blue-500 to-cyan-500",
-      badge: "Criativo"
+      badge: "Criativo",
+      feature: "fluida_roteirista" as AppFeature
     }
   ];
 
@@ -379,40 +384,47 @@ const Dashboard: React.FC = () => {
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.3, delay: index * 0.1 }}
             >
-              <Card 
-                className="cursor-pointer h-full hover:shadow-xl transition-all duration-300 aurora-glass-enhanced aurora-border-enhanced relative overflow-hidden group"
-                onClick={() => navigate(tool.path)}
+              <FeatureAccessControl
+                feature={tool.feature}
+                onRestrictedClick={() => {
+                  // Optional: Show upgrade modal or toast
+                }}
               >
-                {tool.isPopular && (
-                  <div className="absolute top-3 right-3 z-10">
-                    <Badge className="bg-yellow-500 text-yellow-900 text-xs">
-                      Popular
+                <Card 
+                  className="cursor-pointer h-full hover:shadow-xl transition-all duration-300 aurora-glass-enhanced aurora-border-enhanced relative overflow-hidden group"
+                  onClick={() => navigate(tool.path)}
+                >
+                  {tool.isPopular && (
+                    <div className="absolute top-3 right-3 z-10">
+                      <Badge className="bg-yellow-500 text-yellow-900 text-xs">
+                        Popular
+                      </Badge>
+                    </div>
+                  )}
+                  
+                  <CardContent className="p-6">
+                    <div className={`w-16 h-16 mb-4 rounded-xl bg-gradient-to-r ${tool.gradient} flex items-center justify-center group-hover:scale-110 transition-transform duration-300`}>
+                      <tool.icon className="w-8 h-8 text-white" />
+                    </div>
+                    
+                    <Badge variant="outline" className="mb-3 text-xs">
+                      {tool.badge}
                     </Badge>
-                  </div>
-                )}
-                
-                <CardContent className="p-6">
-                  <div className={`w-16 h-16 mb-4 rounded-xl bg-gradient-to-r ${tool.gradient} flex items-center justify-center group-hover:scale-110 transition-transform duration-300`}>
-                    <tool.icon className="w-8 h-8 text-white" />
-                  </div>
-                  
-                  <Badge variant="outline" className="mb-3 text-xs">
-                    {tool.badge}
-                  </Badge>
-                  
-                  <h3 className="text-lg font-medium text-white mb-2">
-                    {tool.title}
-                  </h3>
-                  <p className="text-white/70 text-sm mb-4">
-                    {tool.description}
-                  </p>
-                  
-                  <div className="flex items-center text-purple-400 text-sm group-hover:translate-x-1 transition-transform duration-300">
-                    <Play className="w-4 h-4 mr-1" />
-                    Usar agora
-                  </div>
-                </CardContent>
-              </Card>
+                    
+                    <h3 className="text-lg font-medium text-white mb-2">
+                      {tool.title}
+                    </h3>
+                    <p className="text-white/70 text-sm mb-4">
+                      {tool.description}
+                    </p>
+                    
+                    <div className="flex items-center text-purple-400 text-sm group-hover:translate-x-1 transition-transform duration-300">
+                      <Play className="w-4 h-4 mr-1" />
+                      Usar agora
+                    </div>
+                  </CardContent>
+                </Card>
+              </FeatureAccessControl>
             </motion.div>
           ))}
         </div>
@@ -555,14 +567,16 @@ const Dashboard: React.FC = () => {
               Explore todas as ferramentas disponíveis e leve seu conteúdo para o próximo nível
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button 
-                size="lg"
-                onClick={() => navigate("/mestre-da-beleza")}
-                className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 border-0"
-              >
-                <Crown className="w-5 h-5 mr-2" />
-                Usar Mestre da Beleza
-              </Button>
+              <FeatureAccessControl feature="mestre_beleza">
+                <Button 
+                  size="lg"
+                  onClick={() => navigate("/mestre-da-beleza")}
+                  className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 border-0"
+                >
+                  <Crown className="w-5 h-5 mr-2" />
+                  Usar Mestre da Beleza
+                </Button>
+              </FeatureAccessControl>
               <Button 
                 variant="outline"
                 size="lg"
