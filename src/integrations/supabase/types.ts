@@ -4404,6 +4404,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      cleanup_orphaned_users: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
       coordinate_agents: {
         Args: {
           p_agent_ids: string[]
