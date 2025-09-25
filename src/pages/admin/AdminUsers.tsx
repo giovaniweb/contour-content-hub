@@ -15,6 +15,7 @@ import { useNavigate } from 'react-router-dom';
 import NewUserModal from '@/components/admin/NewUserModal';
 import EditUserModal from '@/components/admin/EditUserModal';
 import { DeleteUserDialog } from '@/components/admin/DeleteUserDialog';
+import OrphanedUsersCard from '@/components/admin/OrphanedUsersCard';
 
 interface User {
   id: string;
@@ -181,38 +182,48 @@ const AdminUsers: React.FC = () => {
         </Button>
       </div>
 
-      {/* Filters */}
-      <Card>
-        <CardContent className="p-6">
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Buscar por nome ou email..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
+      {/* System Management Cards */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2">
+          {/* Filters */}
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex flex-col md:flex-row gap-4">
+                <div className="flex-1">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Buscar por nome ou email..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
+                </div>
+                <div className="w-full md:w-48">
+                  <Select value={roleFilter} onValueChange={setRoleFilter}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Filtrar por role" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos os roles</SelectItem>
+                      <SelectItem value="user">Usuário</SelectItem>
+                      <SelectItem value="consultor">Consultor</SelectItem>
+                      <SelectItem value="admin">Admin</SelectItem>
+                      <SelectItem value="superadmin">Super Admin</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
-            </div>
-            <div className="w-full md:w-48">
-              <Select value={roleFilter} onValueChange={setRoleFilter}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Filtrar por role" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos os roles</SelectItem>
-                  <SelectItem value="user">Usuário</SelectItem>
-                  <SelectItem value="consultor">Consultor</SelectItem>
-                  <SelectItem value="admin">Admin</SelectItem>
-                  <SelectItem value="superadmin">Super Admin</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+            </CardContent>
+          </Card>
+        </div>
+        
+        <div>
+          {/* Orphaned Users Management */}
+          <OrphanedUsersCard />
+        </div>
+      </div>
 
       {/* Users Table */}
       <Card>
