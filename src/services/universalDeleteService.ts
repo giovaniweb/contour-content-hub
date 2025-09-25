@@ -66,7 +66,7 @@ export class UniversalDeleteService {
       before_after: 'delete_before_after_cascade',
       material: 'delete_material_cascade',
       download_storage: 'delete_download_storage_cascade',
-      user_profile: 'delete_user_profile_cascade'
+      user_profile: 'delete_auth_user'
     };
     
     return functionMap[entityType];
@@ -82,7 +82,7 @@ export class UniversalDeleteService {
       before_after: 'photo_id_param',
       material: 'material_id_param',
       download_storage: 'download_id_param',
-      user_profile: 'profile_id_param'
+      user_profile: 'user_id'
     };
     
     return paramMap[entityType];
