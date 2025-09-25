@@ -29,7 +29,7 @@ async function sendEmailViaSMTP(config: SMTPConfig, emailData: any): Promise<any
     tls: config.tls 
   });
   
-  let conn: Deno.TcpConn | Deno.TlsConn;
+  let conn: Deno.TcpConn | Deno.TlsConn | undefined;
   
   try {
     // Connect to SMTP server
