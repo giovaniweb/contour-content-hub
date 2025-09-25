@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -43,10 +43,29 @@ const Sidebar: React.FC = () => {
   const isMobile = useIsMobile();
   const { hasAccess, isNewFeature, markNotificationAsRead, notifications } = useFeatureAccess();
   const { isAdmin } = usePermissions();
+  const [isAdminFlag, setIsAdminFlag] = useState(false);
   const [restrictedModal, setRestrictedModal] = useState<{
     isOpen: boolean;
     feature?: any;
   }>({ isOpen: false });
+
+  // Resolve isAdmin() Promise to boolean state
+  useEffect(() => {
+    let mounted = true;
+    isAdmin().then(result => {
+      if (mounted) {
+        setIsAdminFlag(result);
+      }
+    }).catch(() => {
+      if (mounted) {
+        setIsAdminFlag(false);
+      }
+    });
+    
+    return () => {
+      mounted = false;
+    };
+  }, [isAdmin]);
 
   // Ocultar sidebar no mobile
   if (isMobile) {
@@ -60,11 +79,11 @@ const Sidebar: React.FC = () => {
       path,
       feature,
       hasAccess: feature ? hasAccess(feature) : 'N/A',
-      isAdmin: isAdmin()
+      isAdmin: isAdminFlag
     });
     
     // Dashboard is always accessible, or admin has full access
-    if (path === '/dashboard' || isAdmin()) {
+    if (path === '/dashboard' || isAdminFlag) {
       console.log('✅ [Sidebar] Navegando para:', path);
       navigate(path);
       return;
@@ -76,7 +95,7 @@ const Sidebar: React.FC = () => {
       console.log('🔍 [Sidebar] Verificação de permissão:', {
         feature,
         hasPermission,
-        isAdmin: isAdmin()
+        isAdmin: isAdminFlag
       });
       
       if (hasPermission) {
@@ -118,14 +137,14 @@ const Sidebar: React.FC = () => {
           
           // Check permissions for this item
           const feature = getFeatureFromPath(item.path);
-          const hasPermission = item.path === '/dashboard' || isAdmin() || (feature && hasAccess(feature));
+          const hasPermission = item.path === '/dashboard' || isAdminFlag || (feature && hasAccess(feature));
           const isNew = feature && isNewFeature(feature);
-          const isRestricted = feature && !hasPermission && !isAdmin();
+          const isRestricted = feature && !hasPermission && !isAdminFlag;
           
           // Debug log para cada item renderizado
           if (feature && index === 0) { // Log apenas uma vez por renderização
             console.log('🔍 [Sidebar] Estado dos itens:', {
-              isAdmin: isAdmin(),
+              isAdmin: isAdminFlag,
               totalItems: sidebarItems.length,
               timestamp: new Date().toISOString()
             });
@@ -135,7 +154,7 @@ const Sidebar: React.FC = () => {
             console.log(`🔍 [Sidebar] Item ${item.label}:`, {
               feature,
               hasPermission,
-              isAdmin: isAdmin(),
+              isAdmin: isAdminFlag,
               isRestricted
             });
           }

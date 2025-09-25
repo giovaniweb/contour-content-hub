@@ -41,16 +41,16 @@ interface UserPermissionsManagerProps {
 }
 
 const AVAILABLE_FEATURES: { feature: AppFeature; label: string; description: string; category: string }[] = [
-  { feature: 'videos', label: 'Biblioteca de Vídeos', description: 'Acesso completo à biblioteca de vídeos', category: 'Conteúdo' },
+  { feature: 'videos', label: 'FluiVideos', description: 'Acesso completo à biblioteca de vídeos', category: 'Conteúdo' },
   { feature: 'mestre_beleza', label: 'Mestre da Beleza', description: 'Ferramenta de diagnóstico estético com IA', category: 'IA' },
   { feature: 'consultor_mkt', label: 'Consultor de Marketing', description: 'Consultoria de marketing digital', category: 'IA' },
   { feature: 'fluida_roteirista', label: 'Fluida Roteirista', description: 'Criação automática de roteiros', category: 'IA' },
   { feature: 'artigos_cientificos', label: 'Documentos Científicos', description: 'Acesso a documentos e artigos científicos', category: 'Conteúdo' },
-  { feature: 'fotos', label: 'Galeria Antes/Depois', description: 'Visualização de casos de sucesso', category: 'Conteúdo' },
-  { feature: 'equipamentos', label: 'Catálogo de Equipamentos', description: 'Informações sobre equipamentos estéticos', category: 'Conteúdo' },
+  { feature: 'fotos', label: 'FluiFotos', description: 'Visualização de casos de sucesso', category: 'Conteúdo' },
+  { feature: 'equipamentos', label: 'Equipamentos', description: 'Informações sobre equipamentos estéticos', category: 'Conteúdo' },
   { feature: 'planner', label: 'Planejador de Conteúdo', description: 'Ferramenta de planejamento estratégico', category: 'Produtividade' },
-  { feature: 'academia', label: 'Academia', description: 'Cursos e certificações', category: 'Educação' },
-  { feature: 'artes', label: 'Materiais Educativos', description: 'Downloads e materiais complementares', category: 'Educação' }
+  { feature: 'academia', label: 'FluiAulas', description: 'Cursos e certificações', category: 'Educação' },
+  { feature: 'artes', label: 'FluiArtes', description: 'Downloads e materiais complementares', category: 'Educação' }
 ];
 
 const UserPermissionsManager: React.FC<UserPermissionsManagerProps> = ({ userId }) => {
