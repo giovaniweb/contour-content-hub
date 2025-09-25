@@ -82,22 +82,20 @@ serve(async (req) => {
     if (action === 'cleanup_orphaned_users') {
       console.log('🧹 Starting orphaned users cleanup...')
       
-      // Get orphaned users (exist in auth.users but not in perfis)
-      const { data: orphanedUsers, error: fetchError } = await supabaseAdmin
-        .from('auth.users')
-        .select('id, email, created_at')
-        .not('id', 'in', `(SELECT id FROM perfis)`)
+      // Use secure RPC to get orphaned users
+      const { data: orphanedUsersData, error: fetchError } = await supabaseAdmin.rpc('get_orphan_users')
 
       if (fetchError) {
-        console.error('❌ Error fetching orphaned users:', fetchError)
+        console.error('❌ Error fetching orphaned users via RPC:', fetchError)
         return new Response(
           JSON.stringify({ success: false, error: 'Failed to fetch orphaned users' }),
           { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         )
       }
 
-      const orphanedCount = orphanedUsers?.length || 0
-      console.log(`📊 Found ${orphanedCount} orphaned users`)
+      const orphanedUsers = orphanedUsersData || []
+      const orphanedCount = orphanedUsers.length
+      console.log(`📊 Found ${orphanedCount} orphaned users via RPC`)
 
       if (orphanedCount > 0) {
         // Log the operation in admin audit log
@@ -108,7 +106,7 @@ serve(async (req) => {
             action_type: 'CLEANUP_ORPHANED_USERS',
             old_values: { 
               orphaned_users_found: orphanedCount,
-              orphaned_users_list: orphanedUsers.map(u => ({ id: u.id, email: u.email }))
+              orphaned_users_list: orphanedUsers.map((u: any) => ({ id: u.id, email: u.email }))
             }
           })
 
@@ -133,31 +131,34 @@ serve(async (req) => {
           success: true,
           message: 'Orphaned users cleanup completed successfully',
           orphaned_users_cleaned: orphanedCount,
-          cleaned_users: orphanedUsers?.map(u => u.email) || []
+          cleaned_users: orphanedUsers.map((u: any) => u.email)
         }),
         { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
     if (action === 'get_orphaned_stats') {
-      // Get count of orphaned users
-      const { data: orphanedUsers, error: fetchError } = await supabaseAdmin
-        .from('auth.users')
-        .select('id, email, created_at')
-        .not('id', 'in', `(SELECT id FROM perfis)`)
+      console.log('📊 Getting orphaned users stats via RPC...')
+      
+      // Use secure RPC to get orphaned users
+      const { data: orphanedUsers, error: fetchError } = await supabaseAdmin.rpc('get_orphan_users')
 
       if (fetchError) {
+        console.error('❌ Error fetching orphaned users stats via RPC:', fetchError)
         return new Response(
           JSON.stringify({ success: false, error: 'Failed to fetch orphaned users stats' }),
           { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         )
       }
 
+      const safeOrphanedUsers = orphanedUsers || []
+      console.log(`📊 Stats: ${safeOrphanedUsers.length} orphaned users found`)
+
       return new Response(
         JSON.stringify({
           success: true,
-          orphaned_count: orphanedUsers?.length || 0,
-          orphaned_users: orphanedUsers || []
+          orphaned_count: safeOrphanedUsers.length,
+          orphaned_users: safeOrphanedUsers
         }),
         { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
@@ -175,18 +176,63 @@ serve(async (req) => {
 
       console.log(`🔍 Buscando usuário por email: ${email}`)
       
-      // Verificar se usuário existe em auth.users
+      // Primeiro tentar via RPC segura
       const { data: userCheck } = await supabaseAdmin.rpc('check_user_exists_by_email', { user_email: email })
       
-      if (!userCheck?.exists) {
+      let userId = null
+      
+      if (userCheck?.exists && userCheck?.id) {
+        userId = userCheck.id
+        console.log(`👤 Usuário encontrado via RPC: ${userId}`)
+      } else {
+        console.log('⚠️ RPC não retornou resultado, tentando busca via Admin API...')
+        
+        // Fallback: buscar via Admin API com paginação
+        let page = 1
+        const perPage = 1000
+        let found = false
+        
+        while (!found && page <= 10) { // Limite de 10 páginas para segurança
+          console.log(`🔍 Buscando página ${page} via Admin API...`)
+          
+          const { data: { users }, error: listError } = await supabaseAdmin.auth.admin.listUsers({
+            page: page,
+            perPage: perPage
+          })
+          
+          if (listError) {
+            console.error('❌ Erro na busca via Admin API:', listError)
+            break
+          }
+          
+          // Procurar o email (case-insensitive)
+          const foundUser = users?.find(u => u.email?.toLowerCase() === email.toLowerCase())
+          
+          if (foundUser) {
+            userId = foundUser.id
+            found = true
+            console.log(`👤 Usuário encontrado via Admin API (página ${page}): ${userId}`)
+            break
+          }
+          
+          if (!users || users.length < perPage) {
+            // Não há mais páginas
+            break
+          }
+          
+          page++
+        }
+      }
+      
+      if (!userId) {
+        console.log(`❌ Usuário não encontrado: ${email}`)
         return new Response(
-          JSON.stringify({ success: false, error: 'Usuário não encontrado' }),
+          JSON.stringify({ success: false, error: 'Usuário não encontrado em auth.users' }),
           { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         )
       }
-
-      const userId = userCheck.id
-      console.log(`👤 Usuário encontrado: ${userId}`)
+      
+      console.log(`✅ Usuário confirmado para exclusão: ${userId}`)
 
       // Log da operação
       await supabaseAdmin

@@ -108,13 +108,15 @@ export const DeleteUserByEmailCard = () => {
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>Confirmar exclusão definitiva</AlertDialogTitle>
-              <AlertDialogDescription className="space-y-2">
-                <p>Você está prestes a excluir PERMANENTEMENTE o usuário:</p>
-                <p className="font-mono font-medium bg-muted px-2 py-1 rounded">{email}</p>
-                <p className="text-destructive font-medium">
-                  Esta ação removerá o usuário de auth.users e todos os dados relacionados. 
-                  NÃO É POSSÍVEL DESFAZER.
-                </p>
+              <AlertDialogDescription>
+                <div className="space-y-2">
+                  <div>Você está prestes a excluir PERMANENTEMENTE o usuário:</div>
+                  <div className="font-mono font-medium bg-muted px-2 py-1 rounded">{email}</div>
+                  <div className="text-destructive font-medium">
+                    Esta ação removerá o usuário de auth.users e todos os dados relacionados. 
+                    NÃO É POSSÍVEL DESFAZER.
+                  </div>
+                </div>
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
