@@ -185,7 +185,7 @@ ${500 + cleanTitle.length + cleanText.substring(0, 1000).length}
     );
   } catch (error) {
     console.error('Erro na função generate-pdf:', error);
-    return new Response(JSON.stringify({ error: error.message }), {
+    return new Response(JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });

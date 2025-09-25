@@ -47,7 +47,7 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error in ai-monitoring-system:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
       { 
         status: 500, 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
@@ -161,7 +161,7 @@ async function checkServiceHealth(supabase: any, serviceName: string): Promise<M
 
   // 5. Verificar custos
   const weeklyMetrics = metrics.slice(0, 7);
-  const weeklyCost = weeklyMetrics.reduce((sum, m) => sum + (m.estimated_cost || 0), 0);
+  const weeklyCost = weeklyMetrics.reduce((sum: number, m: any) => sum + (m.estimated_cost || 0), 0);
   
   if (weeklyCost > 100) { // Mais de $100 por semana
     alerts.push({
@@ -274,7 +274,7 @@ async function autoDiagnose(supabase: any, serviceName: string) {
     if (feedbackError) {
       console.error('Failed to fetch feedback:', feedbackError);
     } else if (feedback && feedback.length > 0) {
-      const negativeFeedback = feedback.filter(f => f.user_feedback.rating < 3);
+      const negativeFeedback = feedback.filter((f: any) => f.user_feedback.rating < 3);
       
       if (negativeFeedback.length > feedback.length * 0.3) {
         diagnosis.issues.push({
@@ -313,7 +313,7 @@ async function autoDiagnose(supabase: any, serviceName: string) {
     diagnosis.issues.push({
       type: 'diagnosis_error',
       severity: 'high',
-      description: `Falha no auto-diagnóstico: ${error.message}`
+      description: `Falha no auto-diagnóstico: ${error instanceof Error ? error.message : 'Unknown error'}`
     });
     diagnosis.health_score = 0;
   }

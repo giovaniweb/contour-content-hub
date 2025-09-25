@@ -132,7 +132,7 @@ FORMATO DE RESPOSTA:
   } catch (error) {
     console.error('Erro na função chat-assistant:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }

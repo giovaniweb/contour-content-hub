@@ -161,7 +161,7 @@ export class EnhancedRequestHandler {
           .limit(10);
         
         console.log('📋 [EnhancedRequestHandler] Equipamentos disponíveis (amostra):', 
-          availableEquipments?.map(eq => eq.nome) || 'Nenhum');
+          availableEquipments?.map((eq: any) => eq.nome) || 'Nenhum');
         
         return [];
       }

@@ -83,8 +83,8 @@ serve(async (req) => {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error) {
-    console.error("Error in analyze-topic function:", error.message);
-    return new Response(JSON.stringify({ error: error.message }), {
+    console.error("Error in analyze-topic function:", error instanceof Error ? error.message : error);
+    return new Response(JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });

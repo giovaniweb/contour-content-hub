@@ -48,7 +48,11 @@ serve(async (req) => {
       case 'store_cache':
         return await storeCache(supabase, data);
       case 'compress_prompt':
-        return await compressPrompt(data.prompt, data.context);
+        const compressionResult = await compressPrompt(data.prompt, data.context);
+        return new Response(
+          JSON.stringify(compressionResult),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
       case 'optimize_costs':
         return await optimizeCosts(supabase, data.service_name);
       case 'cache_analytics':
@@ -62,7 +66,7 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error in ai-cache-optimizer:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
       { 
         status: 500, 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
@@ -278,7 +282,9 @@ async function optimizeCosts(supabase: any, serviceName: string) {
     current_costs: 0,
     potential_savings: 0,
     recommendations: [] as any[],
-    cache_opportunities: [] as any[]
+    cache_opportunities: [] as any[],
+    auto_applied: [] as any[],
+    error: null as string | null
   };
 
   try {
@@ -295,7 +301,7 @@ async function optimizeCosts(supabase: any, serviceName: string) {
     }
 
     if (metrics && metrics.length > 0) {
-      optimization.current_costs = metrics.reduce((sum, m) => sum + (m.estimated_cost || 0), 0);
+      optimization.current_costs = metrics.reduce((sum: number, m: any) => sum + (m.estimated_cost || 0), 0);
     }
 
     // 2. Analisar padrões de cache
@@ -308,8 +314,8 @@ async function optimizeCosts(supabase: any, serviceName: string) {
       .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString());
 
     if (!cacheError && cacheData) {
-      const totalHits = cacheData.reduce((sum, entry) => sum + (entry.hit_count || 0), 0);
-      const totalSaved = cacheData.reduce((sum, entry) => sum + (entry.cost_saved || 0), 0);
+      const totalHits = cacheData.reduce((sum: number, entry: any) => sum + (entry.hit_count || 0), 0);
+      const totalSaved = cacheData.reduce((sum: number, entry: any) => sum + (entry.cost_saved || 0), 0);
       
       optimization.cache_opportunities.push({
         type: 'current_cache_performance',
@@ -374,7 +380,7 @@ async function optimizeCosts(supabase: any, serviceName: string) {
 
   } catch (error) {
     console.error('Cost optimization failed:', error);
-    optimization.error = error.message;
+    optimization.error = error instanceof Error ? error.message : 'Unknown error';
   }
 
   return new Response(
@@ -397,8 +403,8 @@ async function getCacheAnalytics(supabase: any) {
 
   const analytics = {
     total_entries: cacheData?.length || 0,
-    total_hits: cacheData?.reduce((sum, entry) => sum + (entry.hit_count || 0), 0) || 0,
-    total_cost_saved: cacheData?.reduce((sum, entry) => sum + (entry.cost_saved || 0), 0) || 0,
+    total_hits: cacheData?.reduce((sum: number, entry: any) => sum + (entry.hit_count || 0), 0) || 0,
+    total_cost_saved: cacheData?.reduce((sum: number, entry: any) => sum + (entry.cost_saved || 0), 0) || 0,
     hit_rate: 0,
     by_service: {} as any,
     cache_efficiency: 'low' as 'low' | 'medium' | 'high'
@@ -406,11 +412,11 @@ async function getCacheAnalytics(supabase: any) {
 
   if (cacheData && cacheData.length > 0) {
     // Calcular hit rate
-    const totalRequests = cacheData.reduce((sum, entry) => sum + (entry.hit_count || 0), 0) + cacheData.length;
+    const totalRequests = cacheData.reduce((sum: number, entry: any) => sum + (entry.hit_count || 0), 0) + cacheData.length;
     analytics.hit_rate = totalRequests > 0 ? (analytics.total_hits / totalRequests) * 100 : 0;
 
     // Agrupar por serviço
-    const serviceGroups = cacheData.reduce((groups, entry) => {
+    const serviceGroups = cacheData.reduce((groups: any, entry: any) => {
       const service = entry.ai_service;
       if (!groups[service]) {
         groups[service] = {
@@ -462,7 +468,7 @@ async function cleanupCache(supabase: any) {
     expired_removed: expired?.length || 0,
     unused_removed: unused?.length || 0,
     cleanup_date: new Date().toISOString(),
-    errors: []
+    errors: [] as string[]
   };
 
   if (expiredError) cleanup.errors.push(`Expired cleanup error: ${expiredError.message}`);
@@ -540,7 +546,7 @@ async function applyAutoOptimizations(supabase: any, serviceName: string, optimi
   const applied = [];
   
   // Auto-aplicar extensão de cache se economia for significativa
-  const cacheRecommendation = optimization.recommendations.find(r => r.type === 'cache_extension');
+  const cacheRecommendation = optimization.recommendations.find((r: any) => r.type === 'cache_extension');
   if (cacheRecommendation && cacheRecommendation.potential_monthly_savings > 20) {
     // Estender período de cache automaticamente
     await supabase

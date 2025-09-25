@@ -52,7 +52,7 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error in ai-feedback-processor:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
       { 
         status: 500, 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
@@ -197,8 +197,8 @@ async function autoImprovePrompts(supabase: any, serviceName: string) {
     }
 
     // 3. Calcular métricas de performance atual
-    const avgRating = recentFeedback.reduce((sum, f) => sum + (f.user_feedback.rating || 0), 0) / recentFeedback.length;
-    const lowRatingCount = recentFeedback.filter(f => f.user_feedback.rating < 3).length;
+    const avgRating = recentFeedback.reduce((sum: number, f: any) => sum + (f.user_feedback.rating || 0), 0) / recentFeedback.length;
+    const lowRatingCount = recentFeedback.filter((f: any) => f.user_feedback.rating < 3).length;
     
     // 4. Só melhorar se performance estiver abaixo do threshold
     if (avgRating >= 4.0 && lowRatingCount < recentFeedback.length * 0.2) {
@@ -279,7 +279,7 @@ async function autoImprovePrompts(supabase: any, serviceName: string) {
   } catch (error) {
     console.error('Auto-improvement failed:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
       { 
         status: 500, 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
