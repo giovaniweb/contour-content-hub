@@ -74,7 +74,10 @@ serve(async (req) => {
       )
     }
 
-    const { action } = await req.json()
+    const body = await req.json()
+    const { action } = body
+    
+    console.log('📥 Request received:', { action, body })
 
     if (action === 'cleanup_orphaned_users') {
       console.log('🧹 Starting orphaned users cleanup...')
@@ -161,7 +164,7 @@ serve(async (req) => {
     }
 
     if (action === 'delete_user_by_email') {
-      const { email } = await req.json()
+      const { email } = body
       
       if (!email) {
         return new Response(

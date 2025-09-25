@@ -30,8 +30,10 @@ export const DeleteUserByEmailCard = () => {
         body: { action: 'delete_user_by_email', email: emailToDelete }
       });
 
+      console.log('Edge function response:', { data, error });
+
       if (error) throw error;
-      if (!data.success) throw new Error(data.error || 'Erro ao excluir usuário');
+      if (data && !data.success) throw new Error(data.error || 'Erro ao excluir usuário');
       
       return data;
     },
