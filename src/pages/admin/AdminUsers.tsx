@@ -185,6 +185,9 @@ const AdminUsers: React.FC = () => {
       {/* System Management Cards */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
+      {/* System Management Cards */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2">
           {/* Filters */}
           <Card>
             <CardContent className="p-6">
@@ -217,6 +220,13 @@ const AdminUsers: React.FC = () => {
               </div>
             </CardContent>
           </Card>
+        </div>
+        
+        <div>
+          {/* Orphaned Users Management */}
+          <OrphanedUsersCard />
+        </div>
+      </div>
         </div>
         
         <div>
