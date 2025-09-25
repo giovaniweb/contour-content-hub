@@ -54,6 +54,7 @@ async function sendEmailViaSMTP(config: SMTPConfig, emailData: any): Promise<any
     const decoder = new TextDecoder();
 
     async function sendCommand(command: string): Promise<string> {
+      if (!conn) throw new Error("Connection not established");
       console.log("SMTP CMD:", command.replace(/AUTH PLAIN.*/, "AUTH PLAIN [HIDDEN]"));
       await conn.write(encoder.encode(command + "\r\n"));
       
