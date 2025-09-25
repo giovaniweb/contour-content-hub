@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { usePermissions } from '@/hooks/use-permissions';
+import '@/utils/debug'; // Import debug utilities
 
 export type AppFeature = 
   | 'mestre_beleza'
@@ -83,6 +84,12 @@ export const useFeatureAccess = (): UseFeatureAccessReturn => {
   const fetchPermissions = useCallback(async () => {
     if (!isAuthenticated || !user) return;
 
+    console.log('🔍 [useFeatureAccess] Iniciando fetch de permissões para usuário:', {
+      userId: user.id,
+      email: user.email,
+      role: user.role
+    });
+
     try {
       const { data, error } = await supabase
         .from('user_feature_permissions')
@@ -92,6 +99,15 @@ export const useFeatureAccess = (): UseFeatureAccessReturn => {
       if (error) throw error;
 
       const perms = data || [];
+      
+      console.log('📊 [useFeatureAccess] Permissões carregadas do banco:', {
+        count: perms.length,
+        permissions: perms.map(p => ({
+          feature: p.feature,
+          enabled: p.enabled,
+          expires: p.expires_at
+        }))
+      });
       
       // If user has no permissions, initialize defaults
       if (perms.length === 0) {
@@ -133,20 +149,42 @@ export const useFeatureAccess = (): UseFeatureAccessReturn => {
   }, [fetchPermissions]);
 
   const hasAccess = useCallback((feature: AppFeature): boolean => {
-    // Admins têm acesso a tudo
-    if (isAdmin()) return true;
+    // Admin has access to everything
+    if (isAdmin()) {
+      console.log('👑 [useFeatureAccess] Usuário é admin, acesso liberado para:', feature);
+      return true;
+    }
 
     const permission = permissions.find(p => p.feature === feature);
+    console.log('🔍 [useFeatureAccess] Verificando acesso para feature:', {
+      feature,
+      permission: permission ? {
+        enabled: permission.enabled,
+        expires_at: permission.expires_at,
+        isExpired: permission.expires_at ? new Date(permission.expires_at) < new Date() : false
+      } : 'NÃO ENCONTRADA'
+    });
     
-    if (!permission) return false;
-    if (!permission.enabled) return false;
+    if (!permission) {
+      console.log('❌ [useFeatureAccess] Permissão não encontrada para:', feature);
+      return false;
+    }
+    
+    if (!permission.enabled) {
+      console.log('🔒 [useFeatureAccess] Feature bloqueada (enabled: false):', feature);
+      return false;
+    }
     
     // Verificar se expirou
     if (permission.expires_at) {
       const expiryDate = new Date(permission.expires_at);
-      if (expiryDate < new Date()) return false;
+      if (expiryDate < new Date()) {
+        console.log('⏰ [useFeatureAccess] Feature expirada:', feature);
+        return false;
+      }
     }
     
+    console.log('✅ [useFeatureAccess] Acesso liberado para:', feature);
     return true;
   }, [permissions, isAdmin]);
 

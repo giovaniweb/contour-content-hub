@@ -56,14 +56,28 @@ const Sidebar: React.FC = () => {
   const handleItemClick = async (path: string) => {
     const feature = getFeatureFromPath(path);
     
+    console.log('🖱️ [Sidebar] Clique no item:', {
+      path,
+      feature,
+      hasAccess: feature ? hasAccess(feature) : 'N/A',
+      isAdmin: isAdmin()
+    });
+    
     // Dashboard is always accessible, or admin has full access
     if (path === '/dashboard' || isAdmin()) {
+      console.log('✅ [Sidebar] Navegando para:', path);
       navigate(path);
       return;
     }
 
     if (feature) {
       const hasPermission = hasAccess(feature);
+      
+      console.log('🔍 [Sidebar] Verificação de permissão:', {
+        feature,
+        hasPermission,
+        isAdmin: isAdmin()
+      });
       
       if (hasPermission) {
         // Mark as read if it's a new feature
@@ -73,13 +87,16 @@ const Sidebar: React.FC = () => {
             await markNotificationAsRead(notification.id);
           }
         }
+        console.log('✅ [Sidebar] Navegando para:', path);
         navigate(path);
       } else {
         // Show restricted access modal
+        console.log('🚫 [Sidebar] Acesso negado, mostrando modal');
         setRestrictedModal({ isOpen: true, feature });
       }
     } else {
       // If no feature mapping, allow navigation (fallback)
+      console.log('✅ [Sidebar] Navegando para (sem feature mapping):', path);
       navigate(path);
     }
   };
@@ -104,6 +121,24 @@ const Sidebar: React.FC = () => {
           const hasPermission = item.path === '/dashboard' || isAdmin() || (feature && hasAccess(feature));
           const isNew = feature && isNewFeature(feature);
           const isRestricted = feature && !hasPermission && !isAdmin();
+          
+          // Debug log para cada item renderizado
+          if (feature && index === 0) { // Log apenas uma vez por renderização
+            console.log('🔍 [Sidebar] Estado dos itens:', {
+              isAdmin: isAdmin(),
+              totalItems: sidebarItems.length,
+              timestamp: new Date().toISOString()
+            });
+          }
+          
+          if (feature) {
+            console.log(`🔍 [Sidebar] Item ${item.label}:`, {
+              feature,
+              hasPermission,
+              isAdmin: isAdmin(),
+              isRestricted
+            });
+          }
 
           return (
             <button
