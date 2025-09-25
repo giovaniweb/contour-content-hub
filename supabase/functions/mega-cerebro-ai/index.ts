@@ -117,14 +117,14 @@ FORMATO DE RESPOSTA:
       
       knowledgeContext: `
 📚 ROTEIROS DE REFERÊNCIA:
-${knowledgeBase.approvedScripts.map(script => `
+${knowledgeBase.approvedScripts.map((script: any) => `
 • ${script.title}
   Equipamentos: ${Array.isArray(script.equipment_used) ? script.equipment_used.join(', ') : script.equipment_used}
   Trecho: ${script.script_content?.substring(0, 200)}...
 `).join('\n')}
 
 🔧 EQUIPAMENTOS DISPONÍVEIS:
-${knowledgeBase.equipments.map(eq => `
+${knowledgeBase.equipments.map((eq: any) => `
 • ${eq.nome} (${eq.categoria})
   Indicações: ${eq.indicacoes}
   Benefícios: ${eq.beneficios}
@@ -172,7 +172,7 @@ FORMATO DE RESPOSTA:
       
       knowledgeContext: `
 🎓 CURSOS DISPONÍVEIS:
-${(courses || []).map(course => `
+${(courses || []).map((course: any) => `
 • ${course.title}
   Equipamento: ${course.equipment_name}
   Duração: ${course.estimated_duration_hours}h
@@ -180,7 +180,7 @@ ${(courses || []).map(course => `
 `).join('\n')}
 
 📚 LIÇÕES PRÁTICAS:
-${(lessons || []).map(lesson => `
+${(lessons || []).map((lesson: any) => `
 • ${lesson.title} (${lesson.duration_minutes}min)
   ${lesson.description}
 `).join('\n')}`,
@@ -225,7 +225,7 @@ FORMATO DE RESPOSTA:
       
       knowledgeContext: `
 🔧 BASE COMPLETA DE EQUIPAMENTOS:
-${(equipments || []).map(eq => `
+${(equipments || []).map((eq: any) => `
 • ${eq.nome} - ${eq.categoria}
   Tecnologia: ${eq.tecnologia}
   Indicações: ${eq.indicacoes}
@@ -275,7 +275,7 @@ FORMATO DE RESPOSTA:
       
       knowledgeContext: `
 📹 BIBLIOTECA DE VÍDEOS:
-${(videos || []).map(video => `
+${(videos || []).map((video: any) => `
 • ${video.titulo} (${video.duracao})
   Categoria: ${video.categoria}
   Equipamento: ${video.equipamento}
@@ -321,7 +321,7 @@ FORMATO DE RESPOSTA:
       
       knowledgeContext: `
 📖 ARTIGOS CIENTÍFICOS:
-${(articles || []).map(article => `
+${(articles || []).map((article: any) => `
 • "${article.titulo_extraido}"
   Autores: ${Array.isArray(article.autores) ? article.autores.join(', ') : article.autores}
   Keywords: ${Array.isArray(article.palavras_chave) ? article.palavras_chave.join(', ') : article.palavras_chave}
@@ -488,7 +488,7 @@ IMPORTANTE: Use APENAS as informações fornecidas na base de conhecimento.`
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('💥 Erro no MEGA CÉREBRO:', error);
     return new Response(
       JSON.stringify({ error: error.message }),

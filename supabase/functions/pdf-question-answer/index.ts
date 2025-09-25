@@ -40,7 +40,7 @@ serve(async (req) => {
             } else {
                 console.log('No user found for the provided token.');
             }
-        } catch (e) {
+        } catch (e: any) {
             console.warn('Exception during token processing for user ID:', e.message);
         }
     } else {
@@ -88,7 +88,7 @@ serve(async (req) => {
         } else {
           console.log(`Question logged for document ${documentId} by user ${userId}`);
         }
-      } catch (logCatchError) {
+      } catch (logCatchError: any) {
         console.warn('Exception during history logging:', logCatchError.message);
       }
     }
@@ -102,7 +102,7 @@ serve(async (req) => {
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error answering question:', error.message ? error.message : error);
     return new Response(
       JSON.stringify({ error: 'Failed to answer question', details: error.message }),
@@ -151,7 +151,7 @@ async function generateAnswer(question: string, document: any) {
     } else {
       throw new Error(`OpenAI API error: ${response.status}`);
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error generating answer:', error);
     return `Baseado no documento "${document.titulo}", não foi possível gerar uma resposta precisa para: "${question}". Erro: ${error.message}`;
   }

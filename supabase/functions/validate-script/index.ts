@@ -247,7 +247,7 @@ serve(async (req) => {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
-    } catch (fetchError) {
+    } catch (fetchError: any) {
       clearTimeout(timeoutId);
       
       // If it's a timeout error, return a specific error response
@@ -288,7 +288,7 @@ serve(async (req) => {
       );
     }
     
-  } catch (error) {
+  } catch (error: any) {
     console.error('Erro na função validate-script:', error);
     return new Response(JSON.stringify({ 
       error: error.message,

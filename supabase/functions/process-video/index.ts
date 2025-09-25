@@ -261,7 +261,7 @@ Deno.serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         error: 'Error processing video',
-        details: error.message 
+        details: (error as any).message 
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

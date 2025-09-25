@@ -48,7 +48,7 @@ serve(async (req) => {
       default:
         throw new Error('Invalid action')
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error:', error)
     return new Response(
       JSON.stringify({ error: error.message }),

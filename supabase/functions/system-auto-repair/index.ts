@@ -30,12 +30,12 @@ serve(async (req) => {
       );
     }
     // Rate limiting por IP (função pública)
-    const supabaseAdmin = createClient(
+    const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') || '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || ''
     );
     const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || req.headers.get('cf-connecting-ip') || 'anonymous';
-    const { data: rateData, error: rateError } = await supabaseAdmin.rpc('check_rate_limit', {
+    const { data: rateData, error: rateError } = await supabaseClient.rpc('check_rate_limit', {
       p_identifier: ip,
       p_endpoint: 'system-auto-repair',
       p_max_requests: 15,
@@ -139,13 +139,13 @@ Responda de maneira técnica e direta, como se estivesse escrevendo para um dese
     }
 
     // Log de uso para monitoramento
-    const supabaseAdmin = createClient(
+    const supabaseLogger = createClient(
       Deno.env.get('SUPABASE_URL') || '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || ''
     );
 
     try {
-      await supabaseAdmin.from('logs_uso').insert({
+      await supabaseLogger.from('logs_uso').insert({
         acao: 'system_auto_repair',
         detalhe: `Análise de problema: ${issue.component} - ${issue.description}`,
         usuario_id: null // Idealmente seria o ID do usuário da requisição
@@ -164,7 +164,7 @@ Responda de maneira técnica e direta, como se estivesse escrevendo para um dese
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Erro:', error.message);
     return new Response(
       JSON.stringify({ error: error.message }),

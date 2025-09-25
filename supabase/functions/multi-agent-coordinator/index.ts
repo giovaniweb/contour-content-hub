@@ -90,7 +90,7 @@ serve(async (req) => {
         task: task,
         agents_used: agents.map(a => a.name),
         coordination_pattern: coordinationPattern,
-        performance_score: results.performance_score,
+        performance_score: (results as any).performance_score,
         timestamp: new Date().toISOString()
       },
       p_importance: 0.8
@@ -102,12 +102,12 @@ serve(async (req) => {
       results: results,
       agents_used: agents.map(a => ({ name: a.name, specialization: a.specialization })),
       coordination_pattern: coordinationPattern,
-      performance_score: results.performance_score
+      performance_score: (results as any).performance_score
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Multi-agent coordination error:', error);
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500,
@@ -117,7 +117,7 @@ serve(async (req) => {
 });
 
 async function coordinateSequentially(agents: any[], task: string, sessionId: string) {
-  const results = { responses: [], coordination_type: 'sequential' };
+  const results: any = { responses: [], coordination_type: 'sequential' };
   let previousOutput = task;
 
   for (const agent of agents) {

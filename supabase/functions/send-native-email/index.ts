@@ -167,7 +167,9 @@ async function sendEmailViaSMTP(config: SMTPConfig, emailData: any): Promise<any
     throw error;
   } finally {
     try {
-      conn?.close();
+      if (conn) {
+        conn.close();
+      }
     } catch (e) {
       console.log("Connection cleanup complete");
     }

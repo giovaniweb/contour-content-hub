@@ -65,7 +65,8 @@ const MENTOR_STYLES = {
 };
 
 // Estrutura universal dos 10 elementos
-const buildUniversalElementsPrompt = (mentor: string, elementos: ElementosUniversais): string => {
+const buildUniversalElementsPrompt = (mentor: string | undefined, elementos: ElementosUniversais): string => {
+  if (!mentor) return '';
   const especialidades = getEspecialidadesByMentor(mentor);
   
   return `

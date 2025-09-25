@@ -298,7 +298,7 @@ ${artigosInfo.map(art => `
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
-  } catch (error) {
+  } catch (error: any) {
     console.error('💥 Erro na função mestre-da-beleza-ai:', error);
     return new Response(
       JSON.stringify({ error: error.message }),

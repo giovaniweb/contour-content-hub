@@ -66,12 +66,18 @@ async function getTargetAudience(target: string): Promise<any[]> {
       break;
     
     case 'academy':
-      // Users with academy access
-      query = query.in('id', 
-        supabase.from('academy_user_course_access')
-          .select('user_id')
-          .eq('status', 'approved')
-      );
+      // Users with academy access - need to properly handle the query
+      const { data: academyUserIds } = await supabase
+        .from('academy_user_course_access')
+        .select('user_id')
+        .eq('status', 'approved');
+      
+      if (academyUserIds && academyUserIds.length > 0) {
+        query = query.in('id', academyUserIds.map(u => u.user_id));
+      } else {
+        // Return empty result if no academy users found
+        query = query.eq('id', 'no-users');
+      }
       break;
     
     case 'all':

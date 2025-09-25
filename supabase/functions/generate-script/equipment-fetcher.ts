@@ -59,7 +59,7 @@ export class EquipmentFetcher {
 
           if (equipment && equipment.length > 0) {
             console.log(`✅ [EquipmentFetcher] Encontrado ${equipment.length} resultado(s) para "${variation}"`);
-            equipment.forEach(eq => {
+            equipment.forEach((eq: EquipmentData) => {
               console.log(`📋 [EquipmentFetcher] Encontrado: ${eq.nome} (${eq.tecnologia})`);
               // Evitar duplicatas
               if (!allEquipments.find(existing => existing.id === eq.id)) {
@@ -82,7 +82,7 @@ export class EquipmentFetcher {
           .limit(10);
         
         console.log('📋 [EquipmentFetcher] Equipamentos disponíveis no banco (amostra):', 
-          availableEquipments?.map(eq => eq.nome) || 'Nenhum');
+          availableEquipments?.map((eq: any) => eq.nome) || 'Nenhum');
         
         return [];
       }

@@ -128,7 +128,7 @@ const handler = async (req: Request): Promise<Response> => {
       console.error(`[${requestId}] SMTP connection failed:`, connectionError);
       
       let errorMessage = "Falha na conexão SMTP";
-      let suggestions = [];
+      let suggestions: string[] = [];
       
       if (connectionError.message.includes("ECONNREFUSED")) {
         errorMessage = "Conexão recusada pelo servidor SMTP";

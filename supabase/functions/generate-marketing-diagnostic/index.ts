@@ -217,7 +217,7 @@ serve(async (req) => {
         p_tokens_used: totalTokens,
         p_estimated_cost: null
       });
-    } catch (e) {
+    } catch (e: any) {
       console.log('ℹ️ Telemetria falhou silenciosamente:', e?.message || e);
     }
 
@@ -264,7 +264,7 @@ serve(async (req) => {
     });
 
     
-  } catch (error) {
+  } catch (error: any) {
     console.error('💥 Erro geral:', error);
     
     const diagnosticData = await req.json().catch(() => ({}));

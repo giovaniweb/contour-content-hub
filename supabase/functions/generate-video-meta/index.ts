@@ -72,7 +72,7 @@ serve(async (req) => {
       title = titleMatch[1].trim();
     } else {
       // Se não encontrar o formato esperado, usar a primeira linha como título
-      const lines = generatedContent.split('\n').filter(line => line.trim());
+      const lines = generatedContent.split('\n').filter((line: string) => line.trim());
       if (lines.length > 0) {
         title = lines[0].trim();
       }
@@ -82,7 +82,7 @@ serve(async (req) => {
       description = descriptionMatch[1].trim();
     } else {
       // Se não encontrar o formato esperado, usar o resto do texto como descrição
-      const lines = generatedContent.split('\n').filter(line => line.trim());
+      const lines = generatedContent.split('\n').filter((line: string) => line.trim());
       if (lines.length > 1) {
         description = lines.slice(1).join('\n').trim();
       }
@@ -104,7 +104,7 @@ serve(async (req) => {
         } 
       }
     );
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error in generate-video-meta function:', error);
     
     return new Response(

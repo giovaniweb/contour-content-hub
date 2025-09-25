@@ -57,7 +57,7 @@ serve(async (req) => {
           })
         }
       }
-    } catch (error) {
+    } catch (error: any) {
       console.log('API v2 failed, trying oEmbed fallback...', error.message)
     }
 
@@ -104,7 +104,7 @@ serve(async (req) => {
       }
     )
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error fetching Vimeo metadata:', error)
     
     return new Response(

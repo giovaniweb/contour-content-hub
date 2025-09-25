@@ -122,7 +122,7 @@ serve(async (req) => {
         } else {
           console.log(`No need to send alert for user ${userId} today`);
         }
-      } catch (userError) {
+      } catch (userError: any) {
         console.error(`Error processing alert for user ${config.usuario_id}:`, userError);
         processedAlerts.push({
           userId: config.usuario_id,
@@ -143,7 +143,7 @@ serve(async (req) => {
       }
     );
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error in trigger-calendar-alerts function:', error);
     return new Response(
       JSON.stringify({ error: error.message }),

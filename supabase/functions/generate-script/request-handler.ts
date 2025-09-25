@@ -73,7 +73,7 @@ export class RequestHandler {
       console.log("✅ Resposta OpenAI recebida com sucesso");
       
       return data.choices[0].message.content;
-    } catch (error) {
+    } catch (error: any) {
       clearTimeout(timeoutId);
       
       if (error.name === 'AbortError') {

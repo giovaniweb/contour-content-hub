@@ -162,7 +162,7 @@ serve(async (req) => {
       return await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
         method: 'POST',
         headers: {
-          'xi-api-key': apiKey,
+          'xi-api-key': apiKey!,
           'Content-Type': 'application/json',
           'Accept': 'audio/mpeg',
         },
