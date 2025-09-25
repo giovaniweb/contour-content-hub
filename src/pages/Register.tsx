@@ -14,6 +14,10 @@ const Register: React.FC = () => {
   const [password, setPassword] = React.useState('');
   const [confirmPassword, setConfirmPassword] = React.useState('');
   const [name, setName] = React.useState('');
+  const [phone, setPhone] = React.useState('');
+  const [city, setCity] = React.useState('');
+  const [clinic, setClinic] = React.useState('');
+  const [specialization, setSpecialization] = React.useState('');
   const [isLoading, setIsLoading] = React.useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -30,7 +34,11 @@ const Register: React.FC = () => {
       await register({
         email,
         password,
-        nome: name // Remove role assignment for security - defaults to 'user' in database
+        nome: name,
+        telefone: phone,
+        cidade: city,
+        clinica: clinic,
+        especialidade: specialization
       });
       toast.success("Conta criada com sucesso", {
         description: "Você será redirecionado para o dashboard."
@@ -97,6 +105,46 @@ const Register: React.FC = () => {
                 onChange={(e) => setConfirmPassword(e.target.value)} 
                 placeholder="••••••••" 
                 required 
+              />
+            </div>
+            <div className="space-y-2">
+              <label htmlFor="phone" className="text-sm font-medium">Telefone (opcional)</label>
+              <Input 
+                id="phone" 
+                type="tel"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)} 
+                placeholder="(11) 99999-9999"
+              />
+            </div>
+            <div className="space-y-2">
+              <label htmlFor="city" className="text-sm font-medium">Cidade (opcional)</label>
+              <Input 
+                id="city" 
+                type="text"
+                value={city}
+                onChange={(e) => setCity(e.target.value)} 
+                placeholder="São Paulo"
+              />
+            </div>
+            <div className="space-y-2">
+              <label htmlFor="clinic" className="text-sm font-medium">Clínica/Empresa (opcional)</label>
+              <Input 
+                id="clinic" 
+                type="text"
+                value={clinic}
+                onChange={(e) => setClinic(e.target.value)} 
+                placeholder="Nome da sua clínica ou empresa"
+              />
+            </div>
+            <div className="space-y-2">
+              <label htmlFor="specialization" className="text-sm font-medium">Especialidade (opcional)</label>
+              <Input 
+                id="specialization" 
+                type="text"
+                value={specialization}
+                onChange={(e) => setSpecialization(e.target.value)} 
+                placeholder="Estética, Medicina, etc."
               />
             </div>
           </CardContent>

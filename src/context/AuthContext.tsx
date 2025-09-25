@@ -333,7 +333,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         options: {
           emailRedirectTo: `${window.location.origin}/dashboard`,
           data: {
-            nome: userData.nome
+            nome: userData.nome,
+            telefone: userData.telefone,
+            cidade: userData.cidade,
+            clinica: userData.clinica,
+            especialidade: userData.especialidade
           }
         }
       });
@@ -343,8 +347,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return { error };
       }
 
-      // Try to create profile, but don't fail if table doesn't exist
+      // Send welcome email after successful registration
       if (data.user) {
+        try {
+          console.log('📧 Enviando email de boas-vindas');
+          await supabase.functions.invoke('send-signup-confirmation', {
+            body: {
+              email: userData.email,
+              name: userData.nome,
+              userId: data.user.id
+            }
+          });
+          console.log('✅ Email de boas-vindas enviado com sucesso');
+        } catch (emailError) {
+          console.warn('⚠️ Erro ao enviar email de boas-vindas (não crítico):', emailError);
+        }
+
         try {
           console.log('📝 Tentando criar perfil no banco de dados');
           const { error: profileError } = await supabase
