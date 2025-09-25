@@ -11,7 +11,23 @@ interface AuthContextType {
   isLoading: boolean;
   login: (email: string, password: string) => Promise<{ error?: any }>;
   logout: () => Promise<void>;
-  register: (userData: any) => Promise<{ error?: any }>;
+  register: (userData: { 
+    email: string; 
+    password: string; 
+    nome: string;
+    role?: string;
+    clinica?: string;
+    cidade?: string;
+    telefone?: string;
+    especialidade?: string;
+    experiencia?: string;
+    estado?: string;
+    endereco_completo?: string;
+    equipamentos?: string[];
+    observacoes_conteudo?: string;
+    idioma?: "PT" | "EN" | "ES";
+    foto_url?: string;
+  }) => Promise<{ error?: any }>;
   refreshUser: () => Promise<void>;
   refreshAuth: () => Promise<void>;
   validateAuthState: () => Promise<boolean>;
@@ -290,7 +306,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const register = async (userData: { email: string; password: string; nome: string }) => {
+  const register = async (userData: { 
+    email: string; 
+    password: string; 
+    nome: string;
+    role?: string;
+    clinica?: string;
+    cidade?: string;
+    telefone?: string;
+    especialidade?: string;
+    experiencia?: string;
+    estado?: string;
+    endereco_completo?: string;
+    equipamentos?: string[];
+    observacoes_conteudo?: string;
+    idioma?: "PT" | "EN" | "ES";
+    foto_url?: string;
+  }) => {
     try {
       console.log('📝 Registrando novo usuário:', userData.email);
       setIsLoading(true);
@@ -321,7 +353,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               id: data.user.id,
               email: userData.email,
               nome: userData.nome,
-              role: 'user' as UserRole
+              role: (userData.role || 'user') as UserRole,
+              clinica: userData.clinica,
+              cidade: userData.cidade,
+              telefone: userData.telefone,
+              especialidade: userData.especialidade,
+              estado: userData.estado,
+              endereco_completo: userData.endereco_completo,
+              equipamentos: userData.equipamentos,
+              observacoes_conteudo: userData.observacoes_conteudo,
+              idioma: userData.idioma || 'PT',
+              foto_url: userData.foto_url
             });
 
           if (profileError) {

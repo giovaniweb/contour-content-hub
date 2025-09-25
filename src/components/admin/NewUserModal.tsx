@@ -1,14 +1,16 @@
 import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useToast } from '@/hooks/use-toast';
-import { UserPlus, Mail, User, MapPin, Building, Phone, AlertTriangle } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Textarea } from '@/components/ui/textarea';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { X, User, MapPin, Briefcase } from 'lucide-react';
+import { toast } from 'sonner';
 import { createCompleteUser, checkExistingProfile, type CreateUserData } from '@/services/auth/userManagement';
+import type { UserRole } from '@/types/auth';
 
 interface NewUserModalProps {
   isOpen: boolean;
@@ -16,91 +18,103 @@ interface NewUserModalProps {
   onSuccess: () => void;
 }
 
+const ROLES = [
+  { value: 'cliente', label: 'Cliente' },
+  { value: 'consultor', label: 'Consultor' },
+  { value: 'operador', label: 'Operador' },
+  { value: 'gerente', label: 'Gerente' },
+  { value: 'admin', label: 'Administrador' }
+];
+
+const ESPECIALIDADES = [
+  'Médico Dermatologista',
+  'Médico Clínico Geral',
+  'Enfermeiro(a)',
+  'Fisioterapeuta',
+  'Biomédico(a)',
+  'Esteticista',
+  'Cosmetólogo(a)',
+  'Técnico em Estética',
+  'Outros'
+];
+
+const ESTADOS_BRASIL = [
+  'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 
+  'MA', 'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 
+  'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO'
+];
+
+const EQUIPAMENTOS_COMUNS = [
+  'Laser CO2',
+  'Laser Nd:YAG',
+  'IPL',
+  'Radiofrequência',
+  'Ultrassom Focado',
+  'Criolipólise',
+  'Microagulhamento',
+  'Peeling Químico',
+  'Luz Pulsada',
+  'Outros'
+];
+
 const NewUserModal: React.FC<NewUserModalProps> = ({ isOpen, onClose, onSuccess }) => {
-  const [newUser, setNewUser] = useState({
+  const [newUser, setNewUser] = useState<CreateUserData>({
     nome: '',
     email: '',
     password: '',
-    role: 'user',
+    role: 'cliente' as UserRole,
     cidade: '',
     clinica: '',
-    telefone: ''
+    telefone: '',
+    especialidade: '',
+    experiencia: '',
+    estado: '',
+    endereco_completo: '',
+    equipamentos: [],
+    observacoes_conteudo: '',
+    idioma: 'PT' as 'PT' | 'EN' | 'ES'
   });
+
   const [isLoading, setIsLoading] = useState(false);
-  const [userExistsWarning, setUserExistsWarning] = useState(false);
-  const { toast } = useToast();
+  const [userExists, setUserExists] = useState(false);
 
   const checkForExistingUser = async (email: string) => {
-    if (!email || !email.includes('@')) return;
-    
-    const exists = await checkExistingProfile(email);
-    setUserExistsWarning(exists);
+    if (!email) {
+      setUserExists(false);
+      return;
+    }
+
+    try {
+      const exists = await checkExistingProfile(email);
+      setUserExists(exists);
+    } catch (error) {
+      console.error('Erro ao verificar usuário:', error);
+      setUserExists(false);
+    }
   };
 
   const handleCreateUser = async () => {
     if (!newUser.nome || !newUser.email || !newUser.password) {
-      toast({
-        variant: "destructive",
-        title: "Campos obrigatórios",
-        description: "Nome, email e senha são obrigatórios.",
-      });
+      toast.error('Preencha todos os campos obrigatórios');
       return;
     }
 
-    if (userExistsWarning) {
-      toast({
-        variant: "destructive",
-        title: "Usuário já existe",
-        description: "Este email já possui um perfil cadastrado no sistema.",
-      });
+    if (userExists) {
+      toast.error('Este email já está em uso');
       return;
     }
 
     setIsLoading(true);
     try {
-      const userData: CreateUserData = {
-        nome: newUser.nome,
-        email: newUser.email,
-        password: newUser.password,
-        role: newUser.role as any,
-        cidade: newUser.cidade || undefined,
-        clinica: newUser.clinica || undefined,
-        telefone: newUser.telefone || undefined,
-      };
-
-      await createCompleteUser(userData);
-
-      toast({
-        title: "Usuário criado",
-        description: "Usuário foi criado com sucesso!",
-      });
-
-      resetForm();
+      await createCompleteUser(newUser);
+      toast.success('Usuário criado com sucesso!');
       onSuccess();
+      resetForm();
+      onClose();
     } catch (error: any) {
-      console.error('Erro detalhado:', error);
-      
-      let errorMessage = "Não foi possível criar o usuário.";
-      let errorTitle = "Erro ao criar usuário";
-      
-      if (error.message?.includes('User already registered') || error.message?.includes('já está registrado')) {
-        errorTitle = "Email já registrado";
-        errorMessage = error.message;
-      } else if (error.message?.includes('Invalid email')) {
-        errorMessage = "Email inválido. Verifique o formato do endereço de email.";
-      } else if (error.message?.includes('Password')) {
-        errorMessage = "Senha deve ter pelo menos 6 caracteres.";
-      } else if (error.message?.includes('já existe e possui perfil')) {
-        errorTitle = "Usuário já existe";
-        errorMessage = "Este usuário já está cadastrado no sistema.";
-      } else if (error.message) {
-        errorMessage = error.message;
-      }
-
-      toast({
-        variant: "destructive",
-        title: errorTitle,
-        description: errorMessage,
+      console.error('Erro ao criar usuário:', error);
+      toast.error('Erro ao criar usuário', {
+        description: error.message || 'Não foi possível criar o usuário. Tente novamente.'
       });
     } finally {
       setIsLoading(false);
@@ -112,12 +126,19 @@ const NewUserModal: React.FC<NewUserModalProps> = ({ isOpen, onClose, onSuccess 
       nome: '',
       email: '',
       password: '',
-      role: 'user',
+      role: 'cliente' as UserRole,
       cidade: '',
       clinica: '',
-      telefone: ''
+      telefone: '',
+      especialidade: '',
+      experiencia: '',
+      estado: '',
+      endereco_completo: '',
+      equipamentos: [],
+      observacoes_conteudo: '',
+      idioma: 'PT' as 'PT' | 'EN' | 'ES'
     });
-    setUserExistsWarning(false);
+    setUserExists(false);
   };
 
   const handleClose = () => {
@@ -125,156 +146,316 @@ const NewUserModal: React.FC<NewUserModalProps> = ({ isOpen, onClose, onSuccess 
     onClose();
   };
 
+  const addEquipamento = (equipamento: string) => {
+    if (!newUser.equipamentos?.includes(equipamento)) {
+      setNewUser(prev => ({
+        ...prev,
+        equipamentos: [...(prev.equipamentos || []), equipamento]
+      }));
+    }
+  };
+
+  const removeEquipamento = (equipamento: string) => {
+    setNewUser(prev => ({
+      ...prev,
+      equipamentos: prev.equipamentos?.filter(e => e !== equipamento) || []
+    }));
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <UserPlus className="h-5 w-5 text-primary" />
+            <User className="h-5 w-5" />
             Criar Novo Usuário
           </DialogTitle>
+          <DialogDescription>
+            Preencha as informações para criar um novo usuário no sistema
+          </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Informações Básicas */}
           <Card>
-            <CardContent className="p-4 space-y-4">
-              <h3 className="font-medium flex items-center gap-2">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-lg">
                 <User className="h-4 w-4" />
                 Informações Básicas
-              </h3>
-              
-              <div className="grid grid-cols-1 gap-4">
-                <div>
-                  <Label htmlFor="nome">Nome *</Label>
-                  <Input
-                    id="nome"
-                    placeholder="Nome completo"
-                    value={newUser.nome}
-                    onChange={(e) => setNewUser(prev => ({ ...prev, nome: e.target.value }))}
-                  />
-                </div>
+              </CardTitle>
+              <CardDescription>Dados de acesso e identificação</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="nome">Nome Completo *</Label>
+                <Input
+                  id="nome"
+                  value={newUser.nome}
+                  onChange={(e) => setNewUser(prev => ({ ...prev, nome: e.target.value }))}
+                  placeholder="Nome completo do usuário"
+                />
+              </div>
 
-                  <div>
-                    <Label htmlFor="email">Email *</Label>
-                    <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        id="email"
-                        type="email"
-                        placeholder="email@exemplo.com"
-                        value={newUser.email}
-                        onChange={(e) => {
-                          const email = e.target.value;
-                          setNewUser(prev => ({ ...prev, email }));
-                          setUserExistsWarning(false); // Limpar aviso quando digitando
-                        }}
-                        onBlur={() => checkForExistingUser(newUser.email)}
-                        className={`pl-10 ${userExistsWarning ? 'border-orange-500 bg-orange-50' : ''}`}
-                      />
-                    </div>
-                    {userExistsWarning && (
-                      <p className="text-sm text-orange-600 mt-1">
-                        ⚠️ Este email já possui cadastro no sistema
-                      </p>
-                    )}
-                  </div>
+              <div className="space-y-2">
+                <Label htmlFor="email">Email *</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={newUser.email}
+                  onChange={(e) => {
+                    setNewUser(prev => ({ ...prev, email: e.target.value }));
+                    checkForExistingUser(e.target.value);
+                  }}
+                  placeholder="email@exemplo.com"
+                />
+                {userExists && (
+                  <p className="text-sm text-red-500">Este email já está em uso!</p>
+                )}
+              </div>
 
-                <div>
-                  <Label htmlFor="password">Senha Temporária *</Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    placeholder="Senha inicial"
-                    value={newUser.password}
-                    onChange={(e) => setNewUser(prev => ({ ...prev, password: e.target.value }))}
-                  />
-                </div>
+              <div className="space-y-2">
+                <Label htmlFor="password">Senha *</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  value={newUser.password}
+                  onChange={(e) => setNewUser(prev => ({ ...prev, password: e.target.value }))}
+                  placeholder="Senha temporária"
+                />
+              </div>
 
-                <div>
-                  <Label htmlFor="role">Tipo de Usuário</Label>
-                  <Select 
-                    value={newUser.role}
-                    onValueChange={(value) => setNewUser(prev => ({ ...prev, role: value }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="user">Usuário</SelectItem>
-                      <SelectItem value="cliente">Cliente</SelectItem>
-                      <SelectItem value="consultor">Consultor</SelectItem>
-                      <SelectItem value="operador">Operador</SelectItem>
-                      <SelectItem value="gerente">Gerente</SelectItem>
-                      <SelectItem value="admin">Admin</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+              <div className="space-y-2">
+                <Label htmlFor="role">Função *</Label>
+                <Select 
+                  value={newUser.role} 
+                  onValueChange={(value) => setNewUser(prev => ({ ...prev, role: value as UserRole }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione a função" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {ROLES.map(role => (
+                      <SelectItem key={role.value} value={role.value}>
+                        {role.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="telefone">Telefone/WhatsApp</Label>
+                <Input
+                  id="telefone"
+                  value={newUser.telefone || ''}
+                  onChange={(e) => setNewUser(prev => ({ ...prev, telefone: e.target.value }))}
+                  placeholder="(11) 99999-9999"
+                />
               </div>
             </CardContent>
           </Card>
 
           {/* Informações Profissionais */}
           <Card>
-            <CardContent className="p-4 space-y-4">
-              <h3 className="font-medium flex items-center gap-2">
-                <Building className="h-4 w-4" />
-                Informações Profissionais
-              </h3>
-              
-              <div className="grid grid-cols-1 gap-4">
-                <div>
-                  <Label htmlFor="clinica">Clínica/Empresa</Label>
-                  <Input
-                    id="clinica"
-                    placeholder="Nome da clínica ou empresa"
-                    value={newUser.clinica}
-                    onChange={(e) => setNewUser(prev => ({ ...prev, clinica: e.target.value }))}
-                  />
-                </div>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Briefcase className="h-4 w-4" />
+                Perfil Profissional
+              </CardTitle>
+              <CardDescription>Especialidade e experiência</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="especialidade">Especialidade</Label>
+                <Select 
+                  value={newUser.especialidade || ''} 
+                  onValueChange={(value) => setNewUser(prev => ({ ...prev, especialidade: value }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione a especialidade" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {ESPECIALIDADES.map(esp => (
+                      <SelectItem key={esp} value={esp}>
+                        {esp}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
-                <div>
-                  <Label htmlFor="cidade">Cidade</Label>
-                  <div className="relative">
-                    <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      id="cidade"
-                      placeholder="Cidade"
-                      value={newUser.cidade}
-                      onChange={(e) => setNewUser(prev => ({ ...prev, cidade: e.target.value }))}
-                      className="pl-10"
-                    />
-                  </div>
-                </div>
+              <div className="space-y-2">
+                <Label htmlFor="clinica">Clínica/Consultório</Label>
+                <Input
+                  id="clinica"
+                  value={newUser.clinica || ''}
+                  onChange={(e) => setNewUser(prev => ({ ...prev, clinica: e.target.value }))}
+                  placeholder="Nome da clínica ou consultório"
+                />
+              </div>
 
-                <div>
-                  <Label htmlFor="telefone">Telefone</Label>
-                  <div className="relative">
-                    <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      id="telefone"
-                      placeholder="(00) 00000-0000"
-                      value={newUser.telefone}
-                      onChange={(e) => setNewUser(prev => ({ ...prev, telefone: e.target.value }))}
-                      className="pl-10"
-                    />
-                  </div>
-                </div>
+              <div className="space-y-2">
+                <Label htmlFor="experiencia">Tempo de Experiência</Label>
+                <Select 
+                  value={newUser.experiencia || ''} 
+                  onValueChange={(value) => setNewUser(prev => ({ ...prev, experiencia: value }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Tempo de experiência" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="menos_1_ano">Menos de 1 ano</SelectItem>
+                    <SelectItem value="1_3_anos">1 a 3 anos</SelectItem>
+                    <SelectItem value="3_5_anos">3 a 5 anos</SelectItem>
+                    <SelectItem value="5_10_anos">5 a 10 anos</SelectItem>
+                    <SelectItem value="mais_10_anos">Mais de 10 anos</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="idioma">Idioma Preferido</Label>
+                <Select 
+                  value={newUser.idioma || 'PT'} 
+                  onValueChange={(value) => setNewUser(prev => ({ ...prev, idioma: value as 'PT' | 'EN' | 'ES' }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="PT">Português</SelectItem>
+                    <SelectItem value="EN">English</SelectItem>
+                    <SelectItem value="ES">Español</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </CardContent>
           </Card>
 
-          <div className="flex justify-between">
-            <Button variant="outline" onClick={handleClose}>
-              Cancelar
-            </Button>
-            <Button 
-              onClick={() => handleCreateUser()} 
-              disabled={isLoading || userExistsWarning}
-            >
-              {isLoading ? 'Criando...' : 'Criar Usuário'}
-            </Button>
-          </div>
+          {/* Localização */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <MapPin className="h-4 w-4" />
+                Localização
+              </CardTitle>
+              <CardDescription>Endereço e localização</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label htmlFor="cidade">Cidade</Label>
+                  <Input
+                    id="cidade"
+                    value={newUser.cidade || ''}
+                    onChange={(e) => setNewUser(prev => ({ ...prev, cidade: e.target.value }))}
+                    placeholder="São Paulo"
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="estado">Estado</Label>
+                  <Select 
+                    value={newUser.estado || ''} 
+                    onValueChange={(value) => setNewUser(prev => ({ ...prev, estado: value }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="UF" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {ESTADOS_BRASIL.map(estado => (
+                        <SelectItem key={estado} value={estado}>
+                          {estado}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="endereco">Endereço Completo</Label>
+                <Textarea
+                  id="endereco"
+                  value={newUser.endereco_completo || ''}
+                  onChange={(e) => setNewUser(prev => ({ ...prev, endereco_completo: e.target.value }))}
+                  placeholder="Rua, número, bairro, complemento..."
+                  rows={3}
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Equipamentos e Interesses */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Equipamentos de Interesse</CardTitle>
+              <CardDescription>Equipamentos com os quais trabalha ou tem interesse</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label>Selecionar Equipamentos</Label>
+                <Select onValueChange={addEquipamento}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Adicionar equipamento" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {EQUIPAMENTOS_COMUNS.map(eq => (
+                      <SelectItem key={eq} value={eq}>
+                        {eq}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Equipamentos Selecionados</Label>
+                <div className="flex flex-wrap gap-2 min-h-[60px] p-3 border rounded-md bg-muted/30">
+                  {newUser.equipamentos?.length ? (
+                    newUser.equipamentos.map((equipamento) => (
+                      <Badge
+                        key={equipamento}
+                        variant="secondary"
+                        className="flex items-center gap-1"
+                      >
+                        {equipamento}
+                        <X
+                          className="h-3 w-3 cursor-pointer hover:text-destructive"
+                          onClick={() => removeEquipamento(equipamento)}
+                        />
+                      </Badge>
+                    ))
+                  ) : (
+                    <span className="text-sm text-muted-foreground">Nenhum equipamento selecionado</span>
+                  )}
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="observacoes">Observações Adicionais</Label>
+                <Textarea
+                  id="observacoes"
+                  value={newUser.observacoes_conteudo || ''}
+                  onChange={(e) => setNewUser(prev => ({ ...prev, observacoes_conteudo: e.target.value }))}
+                  placeholder="Informações adicionais, interesses específicos, etc."
+                  rows={3}
+                />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="flex justify-end gap-2 pt-4 border-t">
+          <Button variant="outline" onClick={handleClose} disabled={isLoading}>
+            Cancelar
+          </Button>
+          <Button 
+            onClick={handleCreateUser} 
+            disabled={isLoading || userExists || !newUser.nome || !newUser.email || !newUser.password}
+          >
+            {isLoading ? 'Criando...' : 'Criar Usuário'}
+          </Button>
         </div>
       </DialogContent>
     </Dialog>

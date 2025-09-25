@@ -9,6 +9,14 @@ export interface CreateUserData {
   cidade?: string;
   clinica?: string;
   telefone?: string;
+  especialidade?: string;
+  experiencia?: string;
+  estado?: string;
+  endereco_completo?: string;
+  equipamentos?: string[];
+  observacoes_conteudo?: string;
+  idioma?: "PT" | "EN" | "ES";
+  foto_url?: string;
 }
 
 /**
@@ -61,7 +69,14 @@ export async function createProfileForExistingUser(userData: CreateUserData): Pr
         role: userData.role,
         cidade: userData.cidade,
         clinica: userData.clinica,
-        telefone: userData.telefone
+        telefone: userData.telefone,
+        especialidade: userData.especialidade,
+        estado: userData.estado,
+        endereco_completo: userData.endereco_completo,
+        equipamentos: userData.equipamentos,
+        observacoes_conteudo: userData.observacoes_conteudo,
+        idioma: userData.idioma || 'PT',
+        foto_url: userData.foto_url
       });
 
     return !insertError;
@@ -120,7 +135,14 @@ export async function createCompleteUser(userData: CreateUserData): Promise<void
         role: userData.role,
         cidade: userData.cidade,
         clinica: userData.clinica,
-        telefone: userData.telefone
+        telefone: userData.telefone,
+        especialidade: userData.especialidade,
+        estado: userData.estado,
+        endereco_completo: userData.endereco_completo,
+        equipamentos: userData.equipamentos,
+        observacoes_conteudo: userData.observacoes_conteudo,
+        idioma: userData.idioma || 'PT',
+        foto_url: userData.foto_url
       })
       .eq('id', authData.user.id);
 

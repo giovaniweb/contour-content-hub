@@ -174,7 +174,19 @@ const SignUp: React.FC = () => {
       const result = await register({
         email: formData.email,
         password: formData.password,
-        nome: formData.nome
+        nome: formData.nome,
+        role: formData.role,
+        clinica: formData.clinica,
+        cidade: formData.cidade,
+        telefone: formData.telefone,
+        especialidade: formData.especialidade,
+        experiencia: formData.experiencia,
+        estado: formData.estado,
+        endereco_completo: formData.endereco_completo,
+        equipamentos: formData.equipamentos,
+        observacoes_conteudo: formData.observacoes_conteudo,
+        idioma: formData.idioma,
+        foto_url: formData.foto_url
       });
 
       if (result?.error) {
