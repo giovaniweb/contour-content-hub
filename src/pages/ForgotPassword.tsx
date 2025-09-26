@@ -95,6 +95,10 @@ const ForgotPassword: React.FC = () => {
           <CardTitle className="text-2xl">Esqueci Minha Senha</CardTitle>
           <CardDescription>
             Digite seu email para receber um link de recuperação de senha
+            <br />
+            <span className="text-sm text-muted-foreground mt-2 block">
+              ⚠️ Certifique-se de usar exatamente o mesmo email do seu cadastro
+            </span>
           </CardDescription>
         </CardHeader>
         <CardContent>
