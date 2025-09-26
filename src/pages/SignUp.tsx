@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, ArrowRight, CheckCircle, User, MapPin, Briefcase, Settings, Camera } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { ErrorBoundarySignUp } from "@/components/ErrorBoundarySignUp";
 
 // Step Components
 import { BasicInfoStep } from "@/components/signup/BasicInfoStep";
@@ -242,25 +243,26 @@ const SignUp: React.FC = () => {
   const progress = (currentStep / steps.length) * 100;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-aurora-space-black via-aurora-void-black to-aurora-space-black">
-      {/* Header */}
-      <header className="py-6 border-b border-aurora-electric-purple/20 bg-aurora-void-black/50 backdrop-blur-md">
-        <div className="container flex items-center justify-between">
-          <Link to="/" className="text-2xl font-bold text-aurora-bright-cyan">
-            Fluida
-          </Link>
-          <div className="flex items-center gap-4">
-            <span className="text-sm text-slate-300">
-              Já tem uma conta?
-            </span>
-            <Link to="/login">
-              <Button variant="outline" size="sm">
-                Fazer login
-              </Button>
+    <ErrorBoundarySignUp>
+      <div className="min-h-screen bg-gradient-to-br from-aurora-space-black via-aurora-void-black to-aurora-space-black">
+        {/* Header */}
+        <header className="py-6 border-b border-aurora-electric-purple/20 bg-aurora-void-black/50 backdrop-blur-md">
+          <div className="container flex items-center justify-between">
+            <Link to="/" className="text-2xl font-bold text-aurora-bright-cyan">
+              Fluida
             </Link>
+            <div className="flex items-center gap-4">
+              <span className="text-sm text-slate-300">
+                Já tem uma conta?
+              </span>
+              <Link to="/login">
+                <Button variant="outline" size="sm">
+                  Fazer login
+                </Button>
+              </Link>
+            </div>
           </div>
-        </div>
-      </header>
+        </header>
 
       <main className="container py-8">
         <div className="max-w-4xl mx-auto">
@@ -390,6 +392,7 @@ const SignUp: React.FC = () => {
         </div>
       </footer>
     </div>
+    </ErrorBoundarySignUp>
   );
 };
 

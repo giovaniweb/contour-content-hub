@@ -88,10 +88,35 @@ export const EquipmentStep: React.FC<EquipmentStepProps> = ({
         .select('id, nome, categoria')
         .order('nome');
       
-      if (error) throw error;
-      setEquipments(data || []);
+      if (error) {
+        console.warn('Não foi possível carregar equipamentos:', error);
+        // Define uma lista básica de equipamentos se não conseguir carregar
+        setEquipments([
+          { id: '1', nome: 'Laser CO2', categoria: 'laser' },
+          { id: '2', nome: 'Ultraformer', categoria: 'ultrassom' },
+          { id: '3', nome: 'Sculptra', categoria: 'preenchimento' },
+          { id: '4', nome: 'Botox', categoria: 'toxina' },
+          { id: '5', nome: 'Peeling Químico', categoria: 'peeling' },
+          { id: '6', nome: 'Radiofrequência', categoria: 'radiofrequencia' },
+          { id: '7', nome: 'Fios de PDO', categoria: 'fios' },
+          { id: '8', nome: 'Microagulhamento', categoria: 'microagulhamento' }
+        ]);
+      } else {
+        setEquipments(data || []);
+      }
     } catch (error) {
       console.error('Erro ao carregar equipamentos:', error);
+      // Fallback para lista básica em caso de erro
+      setEquipments([
+        { id: '1', nome: 'Laser CO2', categoria: 'laser' },
+        { id: '2', nome: 'Ultraformer', categoria: 'ultrassom' },
+        { id: '3', nome: 'Sculptra', categoria: 'preenchimento' },
+        { id: '4', nome: 'Botox', categoria: 'toxina' },
+        { id: '5', nome: 'Peeling Químico', categoria: 'peeling' },
+        { id: '6', nome: 'Radiofrequência', categoria: 'radiofrequencia' },
+        { id: '7', nome: 'Fios de PDO', categoria: 'fios' },
+        { id: '8', nome: 'Microagulhamento', categoria: 'microagulhamento' }
+      ]);
     } finally {
       setLoadingEquipments(false);
     }

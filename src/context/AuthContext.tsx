@@ -338,6 +338,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.log('📝 Registrando novo usuário:', userData.email);
       setIsLoading(true);
       
+      // Validação básica antes de tentar registrar
+      if (!userData.email || !userData.password || !userData.nome) {
+        throw new Error('Dados obrigatórios não fornecidos');
+      }
+      
       const { data, error } = await supabase.auth.signUp({
         email: userData.email,
         password: userData.password,
@@ -355,7 +360,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (error) {
         console.error('❌ Erro no registro:', error);
-        return { error };
+        // Mapear erros comuns
+        if (error.message.includes('User already registered')) {
+          throw new Error('Este email já está cadastrado. Faça login ou use um email diferente.');
+        }
+        if (error.message.includes('Password should be at least')) {
+          throw new Error('A senha deve ter pelo menos 6 caracteres.');
+        }
+        if (error.message.includes('Invalid email')) {
+          throw new Error('Por favor, digite um email válido.');
+        }
+        throw new Error(error.message || 'Erro ao criar conta');
       }
 
       // Send welcome email after successful registration
@@ -408,9 +423,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       console.log('✅ Registro realizado com sucesso');
       return { data };
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ Erro crítico no registro:', error);
-      return { error };
+      return { error: { message: error.message || 'Erro inesperado ao criar conta' } };
     } finally {
       setIsLoading(false);
     }
