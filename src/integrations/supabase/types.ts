@@ -4436,8 +4436,8 @@ export type Database = {
         Returns: undefined
       }
       delete_auth_user: {
-        Args: { user_id: string }
-        Returns: boolean
+        Args: { user_id_param: string }
+        Returns: Json
       }
       delete_before_after_cascade: {
         Args: { photo_id_param: string }

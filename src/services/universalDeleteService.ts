@@ -82,7 +82,7 @@ export class UniversalDeleteService {
       before_after: 'photo_id_param',
       material: 'material_id_param',
       download_storage: 'download_id_param',
-      user_profile: 'user_id'
+      user_profile: 'user_id_param'
     };
     
     return paramMap[entityType];

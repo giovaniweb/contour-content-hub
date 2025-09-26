@@ -97,42 +97,100 @@ serve(async (req) => {
       const orphanedCount = orphanedUsers.length
       console.log(`📊 Found ${orphanedCount} orphaned users via RPC`)
 
-      if (orphanedCount > 0) {
-        // Log the operation in admin audit log
-        await supabaseAdmin
-          .from('admin_audit_log')
-          .insert({
-            admin_user_id: user.id,
-            action_type: 'CLEANUP_ORPHANED_USERS',
-            old_values: { 
-              orphaned_users_found: orphanedCount,
-              orphaned_users_list: orphanedUsers.map((u: any) => ({ id: u.id, email: u.email }))
-            }
-          })
+      if (orphanedCount === 0) {
+        return new Response(
+          JSON.stringify({
+            success: true,
+            message: 'No orphaned users found',
+            orphaned_users_cleaned: 0
+          }),
+          { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
 
-        // Delete orphaned users from auth.users
-        for (const orphanedUser of orphanedUsers) {
+      // Log the operation in admin audit log
+      await supabaseAdmin
+        .from('admin_audit_log')
+        .insert({
+          admin_user_id: user.id,
+          action_type: 'CLEANUP_ORPHANED_USERS',
+          old_values: { 
+            orphaned_users_found: orphanedCount,
+            orphaned_users_list: orphanedUsers.map((u: any) => ({ id: u.id, email: u.email }))
+          }
+        })
+
+      let cleanedCount = 0
+      const failedUsers: string[] = []
+
+      // Delete orphaned users with improved constraint handling
+      for (const orphanedUser of orphanedUsers) {
+        try {
           console.log(`🗑️ Deleting orphaned user: ${orphanedUser.email}`)
           
-          const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(
-            orphanedUser.id
-          )
+          // First clean up constraint tables that might prevent deletion
+          console.log(`🧹 Cleaning constraints for user: ${orphanedUser.id}`)
           
+          const constraintTables = [
+            { table: 'intent_history', column: 'user_id' },
+            { table: 'user_actions', column: 'user_id' },
+            { table: 'academy_user_course_access', column: 'user_id' },
+            { table: 'academy_user_lesson_progress', column: 'user_id' },
+            { table: 'academy_user_exam_attempts', column: 'user_id' },
+            { table: 'academy_user_survey_responses', column: 'user_id' },
+            { table: 'ai_feedback', column: 'user_id' },
+            { table: 'ai_usage_metrics', column: 'user_id' },
+            { table: 'user_memory', column: 'user_id' },
+            { table: 'user_usage', column: 'user_id' },
+            { table: 'ad_creative_performance', column: 'user_id' }
+          ]
+          
+          for (const { table, column } of constraintTables) {
+            try {
+              const { error: tableError } = await supabaseAdmin
+                .from(table)
+                .delete()
+                .eq(column, orphanedUser.id)
+              
+              if (tableError && !tableError.message.includes('not found') && !tableError.message.includes('does not exist')) {
+                console.warn(`⚠️ Warning cleaning ${table} for ${orphanedUser.email}:`, tableError)
+              }
+            } catch (cleanupError) {
+              console.warn(`⚠️ Non-critical error cleaning ${table}:`, cleanupError)
+            }
+          }
+
+          // Now try to delete the auth user
+          const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(orphanedUser.id)
+
           if (deleteError) {
             console.error(`❌ Error deleting user ${orphanedUser.email}:`, deleteError)
+            failedUsers.push(orphanedUser.email)
           } else {
             console.log(`✅ Successfully deleted orphaned user: ${orphanedUser.email}`)
+            cleanedCount++
           }
+
+        } catch (error) {
+          console.error(`💥 Unexpected error deleting user ${orphanedUser.email}:`, error)
+          failedUsers.push(orphanedUser.email)
         }
       }
 
+      const result = {
+        success: cleanedCount > 0 || failedUsers.length === 0,
+        message: failedUsers.length === 0 
+          ? `Successfully cleaned ${cleanedCount} orphaned users`
+          : `Cleaned ${cleanedCount} users, ${failedUsers.length} failed`,
+        orphaned_users_cleaned: cleanedCount,
+        cleaned_users: orphanedUsers.filter((u: any) => !failedUsers.includes(u.email)).map((u: any) => u.email),
+        failed_users: failedUsers.length > 0 ? failedUsers : undefined
+      }
+
+      console.log('🎯 Cleanup completed:', result)
+
       return new Response(
-        JSON.stringify({
-          success: true,
-          message: 'Orphaned users cleanup completed successfully',
-          orphaned_users_cleaned: orphanedCount,
-          cleaned_users: orphanedUsers.map((u: any) => u.email)
-        }),
+        JSON.stringify(result),
         { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
