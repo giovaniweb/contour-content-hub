@@ -154,6 +154,13 @@ async function upsertProfileWithRetry(userId: string, profileData: any, maxRetri
  * Cria um novo usuário completo (auth + perfil)
  */
 export async function createCompleteUser(userData: CreateUserData): Promise<void> {
+  console.log('🚀 [createCompleteUser] Iniciando criação de usuário:', { 
+    email: userData.email, 
+    nome: userData.nome,
+    role: userData.role,
+    hasEquipamentos: !!userData.equipamentos?.length
+  });
+
   try {
     // Verificar se já existe perfil
     const hasProfile = await checkExistingProfile(userData.email);
@@ -163,6 +170,7 @@ export async function createCompleteUser(userData: CreateUserData): Promise<void
 
     // Normalizar dados
     const normalizedData = normalizeUserData(userData);
+    console.log('📊 [createCompleteUser] Dados normalizados:', normalizedData);
 
     // Preparar metadata completo para o signUp
     const metadata = {
@@ -174,11 +182,13 @@ export async function createCompleteUser(userData: CreateUserData): Promise<void
       especialidade: normalizedData.especialidade,
       estado: normalizedData.estado,
       endereco_completo: normalizedData.endereco_completo,
-      equipamentos: normalizedData.equipamentos,
+      equipamentos: normalizedData.equipamentos ? JSON.stringify(normalizedData.equipamentos) : null,
       observacoes_conteudo: normalizedData.observacoes_conteudo,
       idioma: normalizedData.idioma || 'PT',
       foto_url: normalizedData.foto_url
     };
+
+    console.log('📝 [createCompleteUser] Metadata preparado:', metadata);
 
     // Criar usuário no auth com metadata completo
     const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -191,39 +201,71 @@ export async function createCompleteUser(userData: CreateUserData): Promise<void
     });
 
     if (authError) {
+      console.error('❌ [createCompleteUser] Erro no auth.signUp:', authError);
       if (authError.message.includes('User already registered')) {
         throw new Error(
           'Este email já está registrado. Se você esqueceu a senha, use a opção de recuperação de senha na tela de login.'
         );
       }
-      throw authError;
+      throw new Error(`Erro na autenticação: ${authError.message}`);
     }
 
     if (!authData.user) {
       throw new Error('Erro ao criar usuário: dados de autenticação não retornados');
     }
 
+    console.log('✅ [createCompleteUser] Usuário criado no auth:', authData.user.id);
+
     // Aguardar para o trigger processar
-    await new Promise(resolve => setTimeout(resolve, 500));
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    // Verificar se o trigger criou o perfil básico
+    console.log('🔍 [createCompleteUser] Verificando se trigger criou perfil básico...');
+    const { data: existingProfile, error: checkError } = await supabase
+      .from('perfis')
+      .select('id, nome, role')
+      .eq('id', authData.user.id)
+      .maybeSingle();
+
+    if (checkError) {
+      console.error('❌ [createCompleteUser] Erro ao verificar perfil criado pelo trigger:', checkError);
+    } else {
+      console.log('📊 [createCompleteUser] Status do perfil após trigger:', { 
+        exists: !!existingProfile,
+        profile: existingProfile 
+      });
+    }
 
     // Fazer upsert com retry para garantir que todos os dados são salvos
-    await upsertProfileWithRetry(authData.user.id, normalizedData);
+    try {
+      console.log('🔄 [createCompleteUser] Fazendo upsert com retry...');
+      await upsertProfileWithRetry(authData.user.id, normalizedData);
+      console.log('✅ [createCompleteUser] Upsert concluído com sucesso');
+    } catch (upsertError) {
+      console.error('❌ [createCompleteUser] Erro no upsert:', upsertError);
+      throw new Error(`Erro ao salvar perfil completo: ${upsertError.message}`);
+    }
 
     // Enviar email de boas-vindas
     try {
+      console.log('📧 [createCompleteUser] Enviando email de confirmação...');
       await supabase.functions.invoke('send-signup-confirmation', {
         body: {
           email: userData.email,
           name: userData.nome,
+          userId: authData.user.id,
           isAdminCreated: true
         }
       });
+      console.log('✅ [createCompleteUser] Email enviado com sucesso');
     } catch (emailError) {
-      console.warn('Erro ao enviar email de confirmação:', emailError);
+      console.warn('⚠️ [createCompleteUser] Erro ao enviar email (não crítico):', emailError);
       // Não falhar o processo por causa do email
     }
-  } catch (error) {
-    console.error('Erro em createCompleteUser:', error);
-    throw error;
+
+    console.log('🎉 [createCompleteUser] Usuário criado com sucesso!');
+  } catch (error: any) {
+    console.error('❌ [createCompleteUser] Erro crítico:', error);
+    throw new Error(`Database error saving new user: ${error.message || error}`);
   }
 }

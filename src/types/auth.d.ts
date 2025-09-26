@@ -33,13 +33,16 @@ export interface UserProfile {
   role: UserRole;
   workspace_id?: string;
   passwordChanged?: boolean;
-  clinic?: string;
-  city?: string;
-  phone?: string;
-  equipment?: string[];
-  language?: "PT" | "EN" | "ES";
-  profilePhotoUrl?: string;
-  name: string; // Propriedade obrigatória para uso interno no sistema
+  clinica?: string;
+  cidade?: string;
+  telefone?: string;
+  equipamentos?: string[];
+  idioma?: "PT" | "EN" | "ES";
+  foto_url?: string;
+  especialidade?: string;
+  estado?: string;
+  endereco_completo?: string;
+  observacoes_conteudo?: string;
 }
 
 export interface AuthContextType {

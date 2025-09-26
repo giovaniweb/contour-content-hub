@@ -335,97 +335,53 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     foto_url?: string;
   }) => {
     try {
-      console.log('📝 Registrando novo usuário:', userData.email);
+      console.log('📝 [AuthContext.register] Iniciando registro:', userData.email);
       setIsLoading(true);
       
       // Validação básica antes de tentar registrar
       if (!userData.email || !userData.password || !userData.nome) {
         throw new Error('Dados obrigatórios não fornecidos');
       }
+
+      // Usar createCompleteUser para melhor controle e debugging
+      const { createCompleteUser } = await import('@/services/auth/userManagement');
       
-      const { data, error } = await supabase.auth.signUp({
+      await createCompleteUser({
+        nome: userData.nome,
         email: userData.email,
         password: userData.password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/dashboard`,
-          data: {
-            nome: userData.nome,
-            telefone: userData.telefone,
-            cidade: userData.cidade,
-            clinica: userData.clinica,
-            especialidade: userData.especialidade
-          }
-        }
+        role: (userData.role || 'cliente') as UserRole,
+        cidade: userData.cidade,
+        clinica: userData.clinica,
+        telefone: userData.telefone,
+        especialidade: userData.especialidade,
+        estado: userData.estado,
+        endereco_completo: userData.endereco_completo,
+        equipamentos: userData.equipamentos,
+        observacoes_conteudo: userData.observacoes_conteudo,
+        idioma: userData.idioma || 'PT',
+        foto_url: userData.foto_url
       });
 
-      if (error) {
-        console.error('❌ Erro no registro:', error);
-        // Mapear erros comuns
-        if (error.message.includes('User already registered')) {
-          throw new Error('Este email já está cadastrado. Faça login ou use um email diferente.');
-        }
-        if (error.message.includes('Password should be at least')) {
-          throw new Error('A senha deve ter pelo menos 6 caracteres.');
-        }
-        if (error.message.includes('Invalid email')) {
-          throw new Error('Por favor, digite um email válido.');
-        }
-        throw new Error(error.message || 'Erro ao criar conta');
-      }
-
-      // Send welcome email after successful registration
-      if (data.user) {
-        try {
-          console.log('📧 Enviando email de boas-vindas');
-          await supabase.functions.invoke('send-signup-confirmation', {
-            body: {
-              email: userData.email,
-              name: userData.nome,
-              userId: data.user.id
-            }
-          });
-          console.log('✅ Email de boas-vindas enviado com sucesso');
-        } catch (emailError) {
-          console.warn('⚠️ Erro ao enviar email de boas-vindas (não crítico):', emailError);
-        }
-
-        try {
-          console.log('📝 Tentando criar perfil no banco de dados');
-          const { error: profileError } = await supabase
-            .from('perfis')
-            .insert({
-              id: data.user.id,
-              email: userData.email,
-              nome: userData.nome,
-              role: (userData.role || 'user') as UserRole,
-              clinica: userData.clinica,
-              cidade: userData.cidade,
-              telefone: userData.telefone,
-              especialidade: userData.especialidade,
-              estado: userData.estado,
-              endereco_completo: userData.endereco_completo,
-              equipamentos: userData.equipamentos,
-              observacoes_conteudo: userData.observacoes_conteudo,
-              idioma: userData.idioma || 'PT',
-              foto_url: userData.foto_url
-            });
-
-          if (profileError) {
-            console.warn('⚠️ Não foi possível criar perfil (tabela pode não existir):', profileError);
-            // Don't throw - just log the warning
-          } else {
-            console.log('✅ Perfil criado com sucesso');
-          }
-        } catch (profileError) {
-          console.warn('⚠️ Erro ao criar perfil (não crítico):', profileError);
-        }
-      }
-
-      console.log('✅ Registro realizado com sucesso');
-      return { data };
+      console.log('✅ [AuthContext.register] Registro realizado com sucesso');
+      return { data: { success: true } };
     } catch (error: any) {
-      console.error('❌ Erro crítico no registro:', error);
-      return { error: { message: error.message || 'Erro inesperado ao criar conta' } };
+      console.error('❌ [AuthContext.register] Erro crítico no registro:', error);
+      
+      // Melhorar mensagens de erro para o usuário
+      let userMessage = error.message || 'Erro inesperado ao criar conta';
+      
+      if (error.message?.includes('User already registered')) {
+        userMessage = 'Este email já está cadastrado. Faça login ou use um email diferente.';
+      } else if (error.message?.includes('Password should be at least')) {
+        userMessage = 'A senha deve ter pelo menos 6 caracteres.';
+      } else if (error.message?.includes('Invalid email')) {
+        userMessage = 'Por favor, digite um email válido.';
+      } else if (error.message?.includes('Database error saving new user')) {
+        userMessage = 'Erro ao salvar dados do usuário. Tente novamente ou contate o suporte.';
+      }
+      
+      return { error: { message: userMessage } };
     } finally {
       setIsLoading(false);
     }
