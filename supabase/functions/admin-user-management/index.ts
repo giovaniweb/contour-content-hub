@@ -6,272 +6,164 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-serve(async (req) => {
-  // Handle CORS preflight requests
+interface AdminUserSyncRequest {
+  action: 'syncEmail' | 'updateUserData' | 'checkGiovanni';
+  userId?: string;
+  email?: string;
+  userData?: Record<string, any>;
+}
+
+const handler = async (req: Request): Promise<Response> => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    console.log('🔧 Admin User Management - Starting request');
-    
-    // Create admin client
-    const supabaseAdmin = createClient(
+    const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
-      {
-        auth: {
-          autoRefreshToken: false,
-          persistSession: false
-        }
-      }
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    // Get user from authorization header
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader?.startsWith('Bearer ')) {
-      console.error('❌ Missing or invalid authorization header');
-      return new Response(
-        JSON.stringify({ error: 'Authorization header required' }),
-        { 
-          status: 401, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        }
-      );
-    }
+    const { action, userId, email, userData }: AdminUserSyncRequest = await req.json();
 
-    const token = authHeader.replace('Bearer ', '');
-    const { data: { user }, error: userError } = await supabaseAdmin.auth.getUser(token);
-    
-    if (userError || !user) {
-      console.error('❌ Invalid token:', userError);
-      return new Response(
-        JSON.stringify({ error: 'Invalid token' }),
-        { 
-          status: 401, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        }
-      );
-    }
-
-    // Verify user is admin
-    const { data: adminProfile } = await supabaseAdmin
-      .from('perfis')
-      .select('role')
-      .eq('id', user.id)
-      .single();
-
-    if (!adminProfile || !['admin', 'superadmin'].includes(adminProfile.role)) {
-      console.error('❌ User is not admin');
-      return new Response(
-        JSON.stringify({ error: 'Access denied. Admin role required.' }),
-        { 
-          status: 403, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        }
-      );
-    }
-
-    const { action, userId, email, userData } = await req.json();
-    console.log(`🎯 Action: ${action} for user: ${userId}`);
+    console.log(`[ADMIN] Processing action: ${action}`);
 
     switch (action) {
       case 'syncEmail': {
         if (!userId || !email) {
           return new Response(
-            JSON.stringify({ error: 'userId and email are required' }),
-            { 
-              status: 400, 
-              headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-            }
+            JSON.stringify({ success: false, error: 'userId and email required' }),
+            { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
           );
         }
 
-        // Check if email already exists in auth.users (excluding current user)
-        const { data: existingUsers } = await supabaseAdmin.auth.admin.listUsers();
-        const emailExists = existingUsers.users?.find(u => 
-          u.email?.toLowerCase() === email.toLowerCase() && u.id !== userId
-        );
+        // Update profile email
+        const { error: profileError } = await supabase
+          .from('perfis')
+          .update({ email: email })
+          .eq('id', userId);
 
-        if (emailExists) {
-          console.error('❌ Email already exists in auth.users:', email);
-          return new Response(
-            JSON.stringify({ 
-              error: `Este email já está em uso por outro usuário (ID: ${emailExists.id})`,
-              success: false 
-            }),
-            { 
-              status: 400, 
-              headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-            }
-          );
+        if (profileError) {
+          throw new Error(`Profile update error: ${profileError.message}`);
         }
 
-        console.log(`📧 Syncing email for user ${userId} to ${email}`);
-
-        // Call database function to update perfis table
-        const { data: syncResult, error: syncError } = await supabaseAdmin
-          .rpc('sync_user_email', {
-            user_id_param: userId,
-            new_email: email
-          });
-
-        if (syncError) {
-          console.error('❌ Sync function error:', syncError);
-          return new Response(
-            JSON.stringify({ error: syncError.message }),
-            { 
-              status: 400, 
-              headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-            }
-          );
-        }
-
-        if (!syncResult.success) {
-          console.error('❌ Sync failed:', syncResult.error);
-          return new Response(
-            JSON.stringify({ error: syncResult.error }),
-            { 
-              status: 400, 
-              headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-            }
-          );
-        }
-
-        // Update email in auth.users using admin API
-        const { error: authUpdateError } = await supabaseAdmin.auth.admin.updateUserById(
+        // Update auth email via Admin API
+        const { error: authError } = await supabase.auth.admin.updateUserById(
           userId,
-          { email }
+          { email: email }
         );
 
-        if (authUpdateError) {
-          console.error('❌ Failed to update auth.users email:', authUpdateError);
-          return new Response(
-            JSON.stringify({ 
-              error: `Profile updated but auth update failed: ${authUpdateError.message}`,
-              partialSuccess: true,
-              profileUpdated: true,
-              authUpdated: false
-            }),
-            { 
-              status: 207, 
-              headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-            }
-          );
-        }
+        const response = {
+          success: !authError,
+          profileUpdated: !profileError,
+          authUpdated: !authError,
+          message: authError 
+            ? `Profile updated successfully. Auth error: ${authError.message}` 
+            : 'Email synchronized successfully in both profile and auth',
+          partialSuccess: !profileError && !!authError
+        };
 
-        console.log('✅ Email successfully synced in both tables');
         return new Response(
-          JSON.stringify({
-            success: true,
-            message: 'Email successfully synced in both auth.users and perfis',
-            profileUpdated: true,
-            authUpdated: true
-          }),
-          { 
-            status: 200, 
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-          }
+          JSON.stringify(response),
+          { status: authError ? 207 : 200, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
         );
       }
 
       case 'updateUserData': {
         if (!userId || !userData) {
           return new Response(
-            JSON.stringify({ error: 'userId and userData are required' }),
-            { 
-              status: 400, 
-              headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-            }
+            JSON.stringify({ success: false, error: 'userId and userData required' }),
+            { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
           );
         }
 
-        console.log(`📝 Updating user data for ${userId}:`, userData);
-
-        // Update perfis table
-        const { error: profileError } = await supabaseAdmin
+        // Update profile with provided data
+        const { error: profileError } = await supabase
           .from('perfis')
           .update(userData)
           .eq('id', userId);
 
         if (profileError) {
-          console.error('❌ Profile update error:', profileError);
-          return new Response(
-            JSON.stringify({ error: profileError.message }),
-            { 
-              status: 400, 
-              headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-            }
-          );
+          throw new Error(`Profile update error: ${profileError.message}`);
         }
 
-        // If email is being updated, sync with auth.users
-        if (userData.email) {
-          const { error: authError } = await supabaseAdmin.auth.admin.updateUserById(
-            userId,
-            { email: userData.email }
-          );
+        // Send welcome email if this is a new user creation by admin
+        if (userData.email && userData.nome) {
+          try {
+            const { error: emailError } = await supabase.functions.invoke('send-signup-confirmation', {
+              body: {
+                email: userData.email,
+                name: userData.nome,
+                userId: userId
+              }
+            });
 
-          if (authError) {
-            console.warn('⚠️ Profile updated but auth email sync failed:', authError);
+            if (emailError) {
+              console.error('Welcome email error:', emailError);
+            } else {
+              console.log('Welcome email sent successfully');
+            }
+          } catch (emailErr) {
+            console.error('Failed to send welcome email:', emailErr);
           }
         }
 
-        console.log('✅ User data updated successfully');
         return new Response(
           JSON.stringify({
             success: true,
-            message: 'User data updated successfully'
+            message: 'User data updated successfully',
+            profileUpdated: true
           }),
-          { 
-            status: 200, 
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-          }
+          { status: 200, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
         );
       }
 
       case 'checkGiovanni': {
-        const { data: giovanniResult, error: checkError } = await supabaseAdmin
-          .rpc('fix_giovanni_email');
+        const { data: user, error } = await supabase
+          .from('perfis')
+          .select('id, email, nome')
+          .eq('email', 'giovani@contourline.com.br')
+          .single();
 
-        if (checkError) {
-          console.error('❌ Error checking Giovanni:', checkError);
+        if (error || !user) {
           return new Response(
-            JSON.stringify({ error: checkError.message }),
-            { 
-              status: 400, 
-              headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-            }
+            JSON.stringify({
+              success: false,
+              error: 'Giovanni user not found'
+            }),
+            { status: 404, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
           );
         }
 
         return new Response(
-          JSON.stringify(giovanniResult),
-          { 
-            status: 200, 
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-          }
+          JSON.stringify({
+            success: true,
+            message: 'Giovanni found',
+            user_id: user.id,
+            current_email: user.email,
+            name: user.nome
+          }),
+          { status: 200, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
         );
       }
 
       default:
         return new Response(
-          JSON.stringify({ error: 'Invalid action' }),
-          { 
-            status: 400, 
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-          }
+          JSON.stringify({ success: false, error: 'Invalid action' }),
+          { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
         );
     }
 
-  } catch (error) {
-    console.error('🔥 Unexpected error:', error);
+  } catch (error: any) {
+    console.error('Admin user management error:', error);
     return new Response(
-      JSON.stringify({ error: 'Internal server error' }),
-      { 
-        status: 500, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      }
+      JSON.stringify({
+        success: false,
+        error: error.message || 'Internal server error'
+      }),
+      { status: 500, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
     );
   }
-});
+};
+
+serve(handler);

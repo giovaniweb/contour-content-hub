@@ -22,6 +22,7 @@ import { Separator } from '@/components/ui/separator';
 import UserPermissionsManager from '@/components/admin/UserPermissionsManager';
 import UserActivityHistory from '@/components/admin/UserActivityHistory';
 import UserBasicInfoEditor from '@/components/admin/UserBasicInfoEditor';
+import '@/utils/fixEmptyProfile'; // Auto-fix for empty profiles
 
 const AdminUserEdit: React.FC = () => {
   const { userId } = useParams<{ userId: string }>();

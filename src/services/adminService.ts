@@ -96,3 +96,23 @@ export const updateUserData = async (
     throw error;
   }
 };
+
+/**
+ * Corrige perfil específico com campos em branco
+ */
+export const fixUserProfile = async (
+  userId: string
+): Promise<AdminUserSyncResponse> => {
+  const defaultData = {
+    telefone: '',
+    cidade: 'Não informado',
+    clinica: 'Não informado', 
+    especialidade: 'Não informado',
+    estado: '',
+    endereco_completo: '',
+    observacoes_conteudo: '',
+    perfil_tipo: 'user'
+  };
+
+  return updateUserData(userId, defaultData);
+};
