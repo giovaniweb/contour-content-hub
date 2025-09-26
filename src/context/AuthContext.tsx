@@ -9,7 +9,7 @@ interface AuthContextType {
   session: Session | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<{ error?: any }>;
+  login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   register: (userData: { 
     email: string; 
@@ -281,11 +281,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const login = async (email: string, password: string) => {
+  const mapSupabaseAuthError = (error: any): string => {
+    const message = (error?.message || '').toLowerCase();
+    if (error?.status === 400 || message.includes('invalid login credentials')) {
+      return 'Email ou senha incorretos';
+    }
+    if (message.includes('email not confirmed')) {
+      return 'Email não confirmado. Verifique sua caixa de entrada.';
+    }
+    if (message.includes('too many requests')) {
+      return 'Muitas tentativas. Tente novamente em alguns minutos.';
+    }
+    return error?.message || 'Não foi possível entrar. Tente novamente.';
+  };
+
+  const login = async (email: string, password: string): Promise<void> => {
+    console.log('🔐 Tentando fazer login para:', email);
+    setIsLoading(true);
+    
     try {
-      console.log('🔐 Tentando fazer login para:', email);
-      setIsLoading(true);
-      
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password
@@ -293,14 +307,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (error) {
         console.error('❌ Erro no login:', error);
-        return { error };
+        throw new Error(mapSupabaseAuthError(error));
       }
 
       console.log('✅ Login realizado com sucesso');
-      return { data };
-    } catch (error) {
-      console.error('❌ Erro crítico no login:', error);
-      return { error };
+      // Success: onAuthStateChange will handle state updates
     } finally {
       setIsLoading(false);
     }
