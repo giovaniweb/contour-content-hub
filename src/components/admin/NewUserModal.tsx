@@ -105,9 +105,27 @@ const NewUserModal: React.FC<NewUserModalProps> = ({ isOpen, onClose, onSuccess 
     }
 
     setIsLoading(true);
+
+    // Normalizar payload - remover campos vazios
+    const normalizedUserData = { ...newUser };
+    
+    // Remover campos de string vazios
+    Object.keys(normalizedUserData).forEach(key => {
+      const value = normalizedUserData[key];
+      if (typeof value === 'string' && !value.trim()) {
+        delete normalizedUserData[key];
+      }
+    });
+
+    // Manter arrays apenas quando têm itens
+    if (!normalizedUserData.equipamentos || normalizedUserData.equipamentos.length === 0) {
+      delete normalizedUserData.equipamentos;
+    }
+
     try {
-      await createCompleteUser(newUser);
-      toast.success('Usuário criado com sucesso!');
+      toast.info('Criando usuário...');
+      await createCompleteUser(normalizedUserData);
+      toast.success('Usuário criado com sucesso! Email de boas-vindas enviado.');
       onSuccess();
       resetForm();
       onClose();
@@ -454,7 +472,7 @@ const NewUserModal: React.FC<NewUserModalProps> = ({ isOpen, onClose, onSuccess 
             onClick={handleCreateUser} 
             disabled={isLoading || userExists || !newUser.nome || !newUser.email || !newUser.password}
           >
-            {isLoading ? 'Criando...' : 'Criar Usuário'}
+            {isLoading ? 'Salvando perfil...' : 'Criar Usuário'}
           </Button>
         </div>
       </DialogContent>

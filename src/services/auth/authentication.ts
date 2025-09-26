@@ -9,6 +9,45 @@ export async function loginWithEmailAndPassword(email: string, password: string)
   });
 }
 
+/**
+ * Executa upsert com retry e backoff exponencial
+ */
+async function upsertProfileWithRetry(userId: string, profileData: any, maxRetries = 5): Promise<void> {
+  const delays = [200, 400, 800, 1600, 3200]; // ms
+  
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      const { error } = await supabase
+        .from('perfis')
+        .upsert({ 
+          id: userId, 
+          ...profileData,
+          updated_at: new Date().toISOString()
+        }, {
+          onConflict: 'id'
+        });
+
+      if (!error) {
+        return; // Sucesso
+      }
+
+      // Se é o último attempt, lança o erro
+      if (attempt === maxRetries - 1) {
+        throw error;
+      }
+
+      console.warn(`Tentativa ${attempt + 1} falhou, tentando novamente em ${delays[attempt]}ms:`, error);
+      await new Promise(resolve => setTimeout(resolve, delays[attempt]));
+    } catch (error) {
+      if (attempt === maxRetries - 1) {
+        throw error;
+      }
+      console.warn(`Tentativa ${attempt + 1} falhou com erro:`, error);
+      await new Promise(resolve => setTimeout(resolve, delays[attempt]));
+    }
+  }
+}
+
 export async function registerUser(userData: {
   email: string;
   password: string;
@@ -20,15 +59,25 @@ export async function registerUser(userData: {
   equipment?: string[];
   language?: "PT" | "EN" | "ES";
 }) {
-  // Primeiro, vamos registrar o usuário no auth
+  // Preparar metadata completo
+  const metadata: any = {
+    nome: userData.name,
+  };
+
+  // Adicionar campos adicionais se fornecidos
+  if (userData.phone?.trim()) metadata.telefone = userData.phone.trim();
+  if (userData.city?.trim()) metadata.cidade = userData.city.trim();
+  if (userData.clinic?.trim()) metadata.clinica = userData.clinic.trim();
+  if (userData.equipment && userData.equipment.length > 0) metadata.equipamentos = userData.equipment;
+  if (userData.language) metadata.idioma = userData.language;
+
+  // Registrar o usuário no auth com metadata completo
   const { data: authData, error: authError } = await supabase.auth.signUp({
     email: userData.email,
     password: userData.password,
     options: {
       emailRedirectTo: `${window.location.origin}/`,
-      data: {
-        nome: userData.name,
-      },
+      data: metadata,
     },
   });
 
@@ -45,20 +94,18 @@ export async function registerUser(userData: {
     .single();
 
   if (inviteData) {
-    // Se existe um convite, atualizar com o workspace_id e role do convite
-    const { error: updateError } = await supabase
-      .from('perfis')
-      .update({
-        nome: userData.name,
-        role: inviteData.role_sugerido
-        // Note: Not setting workspace_id as it may not exist in the perfis table
-      })
-      .eq('id', authData.user.id);
-      
-    if (updateError) {
-      console.error("Erro ao atualizar usuário com convite:", updateError);
-      throw updateError;
-    }
+    // Se existe um convite, fazer upsert com role do convite
+    const profileData = {
+      nome: userData.name,
+      role: inviteData.role_sugerido,
+      telefone: metadata.telefone,
+      cidade: metadata.cidade,
+      clinica: metadata.clinica,
+      equipamentos: metadata.equipamentos,
+      idioma: metadata.idioma
+    };
+
+    await upsertProfileWithRetry(authData.user.id, profileData);
 
     // Atualizar o status do convite
     await supabase
@@ -72,26 +119,28 @@ export async function registerUser(userData: {
     return authData;
   }
   
-  // Note: Role is now automatically set to 'user' by the database trigger for security
-  // Only update additional profile information if provided
+  // Aguardar para o trigger processar
+  await new Promise(resolve => setTimeout(resolve, 300));
+
+  // Se há dados adicionais, fazer upsert para garantir que foram salvos
   if (userData.clinic || userData.city || userData.phone || userData.equipment || userData.language) {
-    const { error: updateError } = await supabase
-      .from('perfis')
-      .update({
-        nome: userData.name,
-        clinica: userData.clinic,
-        cidade: userData.city,
-        telefone: userData.phone,
-        equipamentos: userData.equipment,
-        idioma: userData.language
-        // Note: role is managed by trigger, not set manually for security
-      })
-      .eq('id', authData.user.id);
-      
-    if (updateError) {
-      console.error("Erro ao atualizar usuário:", updateError);
-      throw updateError;
-    }
+    const profileData = {
+      nome: userData.name,
+      clinica: userData.clinic,
+      cidade: userData.city,
+      telefone: userData.phone,
+      equipamentos: userData.equipment && userData.equipment.length > 0 ? userData.equipment : undefined,
+      idioma: userData.language
+    };
+
+    // Remover campos undefined
+    Object.keys(profileData).forEach(key => {
+      if (profileData[key] === undefined) {
+        delete profileData[key];
+      }
+    });
+
+    await upsertProfileWithRetry(authData.user.id, profileData);
   }
 
   return authData;

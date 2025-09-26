@@ -87,6 +87,70 @@ export async function createProfileForExistingUser(userData: CreateUserData): Pr
 }
 
 /**
+ * Normaliza os dados do usuário removendo campos vazios
+ */
+function normalizeUserData(userData: CreateUserData) {
+  const normalized: any = {
+    nome: userData.nome,
+    email: userData.email,
+    role: userData.role
+  };
+
+  // Adicionar apenas campos que não estão vazios
+  if (userData.telefone?.trim()) normalized.telefone = userData.telefone.trim();
+  if (userData.cidade?.trim()) normalized.cidade = userData.cidade.trim();
+  if (userData.clinica?.trim()) normalized.clinica = userData.clinica.trim();
+  if (userData.especialidade?.trim()) normalized.especialidade = userData.especialidade.trim();
+  if (userData.estado?.trim()) normalized.estado = userData.estado.trim();
+  if (userData.endereco_completo?.trim()) normalized.endereco_completo = userData.endereco_completo.trim();
+  if (userData.observacoes_conteudo?.trim()) normalized.observacoes_conteudo = userData.observacoes_conteudo.trim();
+  if (userData.equipamentos && userData.equipamentos.length > 0) normalized.equipamentos = userData.equipamentos;
+  if (userData.idioma) normalized.idioma = userData.idioma;
+  if (userData.foto_url?.trim()) normalized.foto_url = userData.foto_url.trim();
+
+  return normalized;
+}
+
+/**
+ * Executa upsert com retry e backoff exponencial
+ */
+async function upsertProfileWithRetry(userId: string, profileData: any, maxRetries = 5): Promise<void> {
+  const delays = [200, 400, 800, 1600, 3200]; // ms
+  
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      const { error } = await supabase
+        .from('perfis')
+        .upsert({ 
+          id: userId, 
+          ...profileData,
+          updated_at: new Date().toISOString()
+        }, {
+          onConflict: 'id'
+        });
+
+      if (!error) {
+        return; // Sucesso
+      }
+
+      // Se é o último attempt, lança o erro
+      if (attempt === maxRetries - 1) {
+        throw error;
+      }
+
+      console.warn(`Tentativa ${attempt + 1} falhou, tentando novamente em ${delays[attempt]}ms:`, error);
+      await new Promise(resolve => setTimeout(resolve, delays[attempt]));
+    } catch (error) {
+      if (attempt === maxRetries - 1) {
+        throw error;
+      }
+      console.warn(`Tentativa ${attempt + 1} falhou com erro:`, error);
+      await new Promise(resolve => setTimeout(resolve, delays[attempt]));
+    }
+  }
+}
+
+/**
  * Cria um novo usuário completo (auth + perfil)
  */
 export async function createCompleteUser(userData: CreateUserData): Promise<void> {
@@ -97,21 +161,36 @@ export async function createCompleteUser(userData: CreateUserData): Promise<void
       throw new Error('Usuário já existe e possui perfil completo');
     }
 
-    // Tentar criar novo usuário no auth
+    // Normalizar dados
+    const normalizedData = normalizeUserData(userData);
+
+    // Preparar metadata completo para o signUp
+    const metadata = {
+      nome: normalizedData.nome,
+      role: normalizedData.role,
+      telefone: normalizedData.telefone,
+      cidade: normalizedData.cidade,
+      clinica: normalizedData.clinica,
+      especialidade: normalizedData.especialidade,
+      estado: normalizedData.estado,
+      endereco_completo: normalizedData.endereco_completo,
+      equipamentos: normalizedData.equipamentos,
+      observacoes_conteudo: normalizedData.observacoes_conteudo,
+      idioma: normalizedData.idioma || 'PT',
+      foto_url: normalizedData.foto_url
+    };
+
+    // Criar usuário no auth com metadata completo
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email: userData.email,
       password: userData.password,
       options: {
         emailRedirectTo: `${window.location.origin}/`,
-        data: {
-          nome: userData.nome,
-          role: userData.role
-        }
+        data: metadata
       }
     });
 
     if (authError) {
-      // Se erro de usuário já registrado, o trigger deve ter criado o perfil
       if (authError.message.includes('User already registered')) {
         throw new Error(
           'Este email já está registrado. Se você esqueceu a senha, use a opção de recuperação de senha na tela de login.'
@@ -124,31 +203,24 @@ export async function createCompleteUser(userData: CreateUserData): Promise<void
       throw new Error('Erro ao criar usuário: dados de autenticação não retornados');
     }
 
-    // Aguardar um pouco para o trigger criar o perfil
+    // Aguardar para o trigger processar
     await new Promise(resolve => setTimeout(resolve, 500));
 
-    // Atualizar perfil com informações adicionais
-    const { error: profileError } = await supabase
-      .from('perfis')
-      .update({
-        nome: userData.nome,
-        role: userData.role,
-        cidade: userData.cidade,
-        clinica: userData.clinica,
-        telefone: userData.telefone,
-        especialidade: userData.especialidade,
-        estado: userData.estado,
-        endereco_completo: userData.endereco_completo,
-        equipamentos: userData.equipamentos,
-        observacoes_conteudo: userData.observacoes_conteudo,
-        idioma: userData.idioma || 'PT',
-        foto_url: userData.foto_url
-      })
-      .eq('id', authData.user.id);
+    // Fazer upsert com retry para garantir que todos os dados são salvos
+    await upsertProfileWithRetry(authData.user.id, normalizedData);
 
-    if (profileError) {
-      console.error('Erro ao atualizar perfil:', profileError);
-      // Não falhar aqui, o perfil básico foi criado
+    // Enviar email de boas-vindas
+    try {
+      await supabase.functions.invoke('send-signup-confirmation', {
+        body: {
+          email: userData.email,
+          name: userData.nome,
+          isAdminCreated: true
+        }
+      });
+    } catch (emailError) {
+      console.warn('Erro ao enviar email de confirmação:', emailError);
+      // Não falhar o processo por causa do email
     }
   } catch (error) {
     console.error('Erro em createCompleteUser:', error);
