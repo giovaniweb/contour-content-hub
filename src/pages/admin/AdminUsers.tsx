@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { UniversalDeleteService } from '@/services/universalDeleteService';
 import { supabase } from '@/integrations/supabase/client';
-import { Users, Search, UserPlus, Trash2, Mail, Calendar, Settings } from 'lucide-react';
+import { Users, Search, UserPlus, Trash2, Mail, Calendar, Settings, Eye } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { useNavigate } from 'react-router-dom';
@@ -16,6 +16,7 @@ import NewUserModal from '@/components/admin/NewUserModal';
 import EditUserModal from '@/components/admin/EditUserModal';
 import { DeleteUserDialog } from '@/components/admin/DeleteUserDialog';
 import OrphanedUsersCard from '@/components/admin/OrphanedUsersCard';
+import UserViewModal from '@/components/admin/UserViewModal';
 
 
 interface User {
@@ -28,6 +29,12 @@ interface User {
   telefone?: string;
   data_criacao: string;
   equipamentos?: string[];
+  estado?: string;
+  endereco_completo?: string;
+  especialidade?: string;
+  observacoes_conteudo?: string;
+  idioma?: string;
+  foto_url?: string;
 }
 
 const AdminUsers: React.FC = () => {
@@ -37,6 +44,7 @@ const AdminUsers: React.FC = () => {
   const [showNewUserModal, setShowNewUserModal] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
+  const [viewingUser, setViewingUser] = useState<User | null>(null);
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -267,7 +275,16 @@ const AdminUsers: React.FC = () => {
                     <Button 
                       variant="outline" 
                       size="sm"
+                      onClick={() => setViewingUser(user)}
+                      title="Visualizar dados completos"
+                    >
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
                       onClick={() => navigate(`/admin/users/${user.id}/edit`)}
+                      title="Editar usuário"
                     >
                       <Settings className="h-4 w-4" />
                     </Button>
@@ -276,6 +293,7 @@ const AdminUsers: React.FC = () => {
                       size="sm"
                       onClick={() => handleDeleteUser(user)}
                       disabled={deleteUserMutation.isPending}
+                      title="Excluir usuário"
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
@@ -311,6 +329,12 @@ const AdminUsers: React.FC = () => {
         onOpenChange={setShowDeleteDialog}
         onConfirm={confirmDelete}
         isDeleting={deleteUserMutation.isPending}
+      />
+
+      <UserViewModal
+        user={viewingUser}
+        isOpen={!!viewingUser}
+        onClose={() => setViewingUser(null)}
       />
     </div>
   );

@@ -18,36 +18,54 @@ const NewUserModal: React.FC<NewUserModalProps> = ({ isOpen, onClose, onSuccess 
   const handleCreateUser = async (formData: any) => {
     setIsLoading(true);
 
-    // Normalizar payload - remover campos vazios
-    const normalizedUserData = { ...formData };
-    
-    // Remover campos de string vazios
-    Object.keys(normalizedUserData).forEach(key => {
-      const value = normalizedUserData[key];
-      if (typeof value === 'string' && !value.trim()) {
-        delete normalizedUserData[key];
-      }
-    });
-
-    // Manter arrays apenas quando têm itens
-    if (!normalizedUserData.equipamentos || normalizedUserData.equipamentos.length === 0) {
-      delete normalizedUserData.equipamentos;
-    }
-
     try {
-      // Check if user already exists
+      console.log('🚀 [NewUserModal] Iniciando criação:', formData);
+      
+      // Check if user already exists first
       const exists = await checkExistingProfile(formData.email);
       if (exists) {
         throw new Error('Este email já está em uso');
       }
+      
+      const normalizedData = {
+        nome: formData.nome?.trim(),
+        email: formData.email?.trim()?.toLowerCase(),
+        password: formData.password,
+        role: formData.role || 'cliente',
+        telefone: formData.telefone?.trim() || undefined,
+        cidade: formData.cidade?.trim() || undefined,
+        clinica: formData.clinica?.trim() || undefined,
+        especialidade: formData.especialidade?.trim() || undefined,
+        experiencia: formData.experiencia?.trim() || undefined,
+        estado: formData.estado?.trim() || undefined,
+        endereco_completo: formData.endereco_completo?.trim() || undefined,
+        equipamentos: formData.equipamentos?.length ? formData.equipamentos : undefined,
+        observacoes_conteudo: formData.observacoes_conteudo?.trim() || undefined,
+        idioma: (formData.idioma as "PT" | "EN" | "ES") || 'PT',
+        foto_url: formData.foto_url?.trim() || undefined
+      };
 
-      await createCompleteUser(normalizedUserData);
-      toast.success('Usuário criado com sucesso!');
+      console.log('📊 [NewUserModal] Dados normalizados:', normalizedData);
+      
+      await createCompleteUser(normalizedData as CreateUserData);
+      
+      toast.success('Usuário criado com sucesso!', {
+        description: 'O usuário foi criado e pode fazer login imediatamente.'
+      });
+      
       onSuccess();
       onClose();
     } catch (error: any) {
-      console.error('Erro ao criar usuário:', error);
-      throw new Error(error.message || 'Não foi possível criar o usuário. Tente novamente.');
+      console.error('❌ [NewUserModal] Erro:', error);
+      
+      const errorMessage = error.message || 'Erro desconhecido ao criar usuário';
+      
+      // Só mostrar toast de erro se realmente houver erro
+      toast.error('Erro ao criar usuário', {
+        description: errorMessage
+      });
+      
+      // Não fechar o modal em caso de erro para o usuário tentar novamente
     } finally {
       setIsLoading(false);
     }

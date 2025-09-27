@@ -282,6 +282,10 @@ export async function createCompleteUser(userData: CreateUserData): Promise<void
     console.log('🎉 [createCompleteUser] Usuário criado com sucesso!');
   } catch (error: any) {
     console.error('❌ [createCompleteUser] Erro crítico:', error);
-    throw new Error(`Database error saving new user: ${error.message || error}`);
+    // Lançar erro mais amigável para o usuário
+    if (error.message.includes('User already registered')) {
+      throw new Error('Este email já está registrado. Use a opção de recuperação de senha se necessário.');
+    }
+    throw new Error(`Erro ao criar usuário: ${error.message || 'Erro desconhecido no servidor'}`);
   }
 }
