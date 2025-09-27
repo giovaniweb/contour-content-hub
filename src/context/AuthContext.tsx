@@ -345,7 +345,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       // Usar createCompleteUser para melhor controle e debugging
-      
       await createCompleteUser({
         nome: userData.nome,
         email: userData.email,
@@ -355,6 +354,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         clinica: userData.clinica,
         telefone: userData.telefone,
         especialidade: userData.especialidade,
+        experiencia: userData.experiencia,
         estado: userData.estado,
         endereco_completo: userData.endereco_completo,
         equipamentos: userData.equipamentos,

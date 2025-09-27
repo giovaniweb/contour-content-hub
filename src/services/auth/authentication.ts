@@ -122,8 +122,11 @@ export async function registerUser(userData: {
   // Aguardar para o trigger processar
   await new Promise(resolve => setTimeout(resolve, 300));
 
-  // Se há dados adicionais, fazer upsert para garantir que foram salvos
-  if (userData.clinic || userData.city || userData.phone || userData.equipment || userData.language) {
+  // IMPORTANTE: Só fazer upsert se temos uma sessão ativa (confirmação de email desabilitada)
+  // Se não temos sessão, significa que precisa confirmar email e o trigger já criou o perfil básico
+  const { data: { session } } = await supabase.auth.getSession();
+  
+  if (session && (userData.clinic || userData.city || userData.phone || userData.equipment || userData.language)) {
     const profileData = {
       nome: userData.name,
       clinica: userData.clinic,
