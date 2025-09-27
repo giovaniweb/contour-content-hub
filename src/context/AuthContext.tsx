@@ -3,6 +3,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { UserProfile, UserRole } from '@/types/auth';
+import { createCompleteUser } from '@/services/auth/userManagement';
 
 interface AuthContextType {
   user: UserProfile | null;
@@ -344,7 +345,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       // Usar createCompleteUser para melhor controle e debugging
-      const { createCompleteUser } = await import('@/services/auth/userManagement');
       
       await createCompleteUser({
         nome: userData.nome,
