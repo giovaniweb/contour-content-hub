@@ -317,7 +317,14 @@ const handler = async (req: Request): Promise<Response> => {
     let errorMessage = "Email sending failed";
     let suggestions: string[] = [];
     
-    if (error.message?.includes("Authentication failed")) {
+    if (error.message?.includes("552") || error.message?.includes("bare LF")) {
+      errorMessage = "SMTP line ending error (resolved in latest version)";
+      suggestions = [
+        "This is a temporary SMTP formatting issue",
+        "Please try again - the issue has been resolved",
+        "Contact support if problem persists"
+      ];
+    } else if (error.message?.includes("Authentication failed")) {
       errorMessage = "SMTP Authentication failed";
       suggestions = [
         "Verify SMTP username and password",

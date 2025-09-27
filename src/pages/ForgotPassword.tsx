@@ -31,6 +31,8 @@ const ForgotPassword: React.FC = () => {
     setIsLoading(true);
 
     try {
+      console.log('🔄 Iniciando recuperação de senha para:', email);
+      
       // Use custom edge function for better email delivery
       const { data, error } = await supabase.functions.invoke('send-password-recovery', {
         body: { 
@@ -39,16 +41,27 @@ const ForgotPassword: React.FC = () => {
         }
       });
 
+      console.log('📧 Resposta do envio:', { data, error });
+
       if (error) {
-        console.error('Password recovery error:', error);
-        toast.error("Erro ao enviar email de recuperação. Tente novamente.");
+        console.error('❌ Password recovery error:', error);
+        
+        // Check for specific error types
+        if (error.message?.includes('User not found')) {
+          toast.error("Email não encontrado. Verifique se está correto ou registre-se primeiro.");
+        } else if (error.message?.includes('SMTP') || error.message?.includes('Email sending failed')) {
+          toast.error("Erro temporário no envio de email. Tente novamente em alguns minutos.");
+        } else {
+          toast.error("Erro ao enviar email de recuperação. Tente novamente.");
+        }
       } else {
+        console.log('✅ Email de recuperação enviado com sucesso');
         setIsSubmitted(true);
-        toast.success(data.message || "Email de recuperação enviado!");
+        toast.success(data?.message || "Email de recuperação enviado! Verifique sua caixa de entrada.");
       }
-    } catch (error) {
-      console.error('Password recovery error:', error);
-      toast.error("Erro ao enviar email de recuperação. Tente novamente.");
+    } catch (error: any) {
+      console.error('❌ Critical password recovery error:', error);
+      toast.error("Erro inesperado. Tente novamente em alguns minutos.");
     } finally {
       setIsLoading(false);
     }

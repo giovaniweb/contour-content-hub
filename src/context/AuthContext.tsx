@@ -284,15 +284,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const mapSupabaseAuthError = (error: any): string => {
     const message = (error?.message || '').toLowerCase();
+    
+    // Storage/Private mode issues (Safari, navegação privada)
+    if (message.includes('quota') || message.includes('exceeded') || message.includes('domexception')) {
+      return 'Falha ao salvar a sessão do login. Verifique se o navegador não está em modo privado e se o armazenamento/localStorage não está bloqueado.';
+    }
+    // Rate limiting
+    if (error?.status === 429 || message.includes('rate limit') || message.includes('too many requests')) {
+      return 'Muitas tentativas. Aguarde alguns minutos e tente novamente.';
+    }
     if (error?.status === 400 || message.includes('invalid login credentials')) {
       return 'Email ou senha incorretos';
     }
     if (message.includes('email not confirmed')) {
       return 'Email não confirmado. Verifique sua caixa de entrada.';
     }
-    if (message.includes('too many requests')) {
-      return 'Muitas tentativas. Tente novamente em alguns minutos.';
-    }
+    
     return error?.message || 'Não foi possível entrar. Tente novamente.';
   };
 
@@ -301,6 +308,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsLoading(true);
     
     try {
+      // Clear any existing auth state first
+      await supabase.auth.signOut();
+      
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password
@@ -308,11 +318,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (error) {
         console.error('❌ Erro no login:', error);
+        
+        // Handle specific quota exceeded error
+        if (error.message?.includes('quota') || error.message?.includes('exceeded')) {
+          throw new Error('Muitas tentativas de login. Aguarde alguns minutos antes de tentar novamente.');
+        }
+        
         throw new Error(mapSupabaseAuthError(error));
       }
 
+      if (!data.user) {
+        throw new Error('Falha na autenticação. Tente novamente.');
+      }
+
       console.log('✅ Login realizado com sucesso');
-      // Success: onAuthStateChange will handle state updates
+      
+      // The onAuthStateChange will handle the rest
+    } catch (error: any) {
+      console.error('❌ Erro crítico no login:', error);
+      throw error;
     } finally {
       setIsLoading(false);
     }

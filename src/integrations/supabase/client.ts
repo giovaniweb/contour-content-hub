@@ -6,10 +6,31 @@ import type { Database } from './types';
 const SUPABASE_URL = "https://mksvzhgqnsjfolvskibq.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1rc3Z6aGdxbnNqZm9sdnNraWJxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYxMjg3NTgsImV4cCI6MjA2MTcwNDc1OH0.ERpPooxjvC4BthjXKus6s1xqE7FAE_cjZbEciS_VD4Q";
 
+// Safe storage wrapper: falls back to in-memory when localStorage is unavailable (Safari Private Mode, quota exceeded)
+const memoryStore = new Map<string, string>();
+const safeStorage = {
+  getItem: (key: string) => {
+    try { return globalThis.localStorage?.getItem(key) ?? memoryStore.get(key) ?? null; } catch { return memoryStore.get(key) ?? null; }
+  },
+  setItem: (key: string, value: string) => {
+    try { globalThis.localStorage?.setItem(key, value); } catch { memoryStore.set(key, value); }
+  },
+  removeItem: (key: string) => {
+    try { globalThis.localStorage?.removeItem(key); } catch { memoryStore.delete(key); }
+  }
+};
+
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
 
-export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+  auth: {
+    storage: safeStorage as unknown as Storage,
+    autoRefreshToken: true,
+    persistSession: true,
+    detectSessionInUrl: true,
+  }
+});
 
 // Export the Supabase URL for direct function calls
 export const SUPABASE_BASE_URL = SUPABASE_URL;
