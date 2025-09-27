@@ -216,6 +216,22 @@ export async function createCompleteUser(userData: CreateUserData): Promise<void
 
     console.log('✅ [createCompleteUser] Usuário criado no auth:', authData.user.id);
 
+    // Verificar se há sessão ativa após o signUp
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    
+    if (sessionError) {
+      console.error('❌ [createCompleteUser] Erro ao verificar sessão:', sessionError);
+    }
+
+    if (!session) {
+      console.log('📝 [createCompleteUser] Sem sessão ativa - confirmação de email necessária. Confiando no trigger para criar perfil.');
+      // Sem sessão significa que confirmação de email está ativada
+      // O trigger handle_new_user_signup() já criará o perfil quando o usuário confirmar
+      return;
+    }
+
+    console.log('🔐 [createCompleteUser] Sessão ativa encontrada - prosseguindo com upsert');
+
     // Aguardar para o trigger processar
     await new Promise(resolve => setTimeout(resolve, 1000));
 
@@ -236,7 +252,7 @@ export async function createCompleteUser(userData: CreateUserData): Promise<void
       });
     }
 
-    // Fazer upsert com retry para garantir que todos os dados são salvos
+    // Fazer upsert com retry apenas se há sessão ativa
     try {
       console.log('🔄 [createCompleteUser] Fazendo upsert com retry...');
       await upsertProfileWithRetry(authData.user.id, normalizedData);

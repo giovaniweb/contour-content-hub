@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 const Register: React.FC = () => {
   const { register } = useAuth();
@@ -40,11 +41,21 @@ const Register: React.FC = () => {
         clinica: clinic,
         especialidade: specialization
       });
-      toast.success("Conta criada com sucesso", {
-        description: "Você será redirecionado para o dashboard."
-      });
-      // Navigate to dashboard after successful registration
-      navigate('/dashboard');
+      
+      // Verificar se há sessão ativa após o registro
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (session) {
+        toast.success("Conta criada com sucesso", {
+          description: "Você será redirecionado para o dashboard."
+        });
+        navigate('/dashboard');
+      } else {
+        toast.success("Conta criada com sucesso", {
+          description: "Verifique seu e-mail para confirmar sua conta antes de fazer login."
+        });
+        navigate('/login');
+      }
     } catch (error: any) {
       toast.error("Erro ao criar conta", {
         description: error.message || "Não foi possível criar sua conta. Tente novamente."
