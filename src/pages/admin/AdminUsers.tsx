@@ -16,7 +16,7 @@ import NewUserModal from '@/components/admin/NewUserModal';
 import EditUserModal from '@/components/admin/EditUserModal';
 import { DeleteUserDialog } from '@/components/admin/DeleteUserDialog';
 import OrphanedUsersCard from '@/components/admin/OrphanedUsersCard';
-import { DeleteUserByEmailCard } from '@/components/admin/DeleteUserByEmailCard';
+
 
 interface User {
   id: string;
@@ -184,7 +184,7 @@ const AdminUsers: React.FC = () => {
       </div>
 
       {/* Filters and System Management Cards */}
-      <div className="grid grid-cols-1 xl:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
         <div className="xl:col-span-2">
           {/* Filters */}
           <Card>
@@ -223,11 +223,6 @@ const AdminUsers: React.FC = () => {
         <div className="xl:col-span-1">
           {/* Orphaned Users Management */}
           <OrphanedUsersCard />
-        </div>
-        
-        <div className="xl:col-span-1">
-          {/* Direct Email Deletion */}
-          <DeleteUserByEmailCard />
         </div>
       </div>
 
