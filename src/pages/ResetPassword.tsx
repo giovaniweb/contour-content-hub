@@ -23,59 +23,40 @@ const ResetPassword: React.FC = () => {
   useEffect(() => {
     const validateToken = async () => {
       if (!token) {
-        console.error('❌ No token provided in URL');
-        toast.error('Link inválido ou expirado');
-        navigate('/login');
+        setIsValidToken(false);
+        setIsCheckingToken(false);
         return;
       }
 
       try {
         console.log('🔍 Validating recovery token...');
         
-        // Validate token with service role client
-        const { data: tokenData, error } = await supabase
-          .from('password_recovery_tokens')
-          .select('user_id, email, expires_at, used_at')
-          .eq('token', token)
-          .single();
+        // Validate token using edge function
+        const { data, error } = await supabase.functions.invoke('process-password-reset', {
+          body: { token, validateOnly: true }
+        });
 
-        if (error || !tokenData) {
-          console.error('❌ Invalid token:', error);
-          toast.error('Link de recuperação inválido ou expirado');
-          navigate('/login');
+        if (error || !data?.valid) {
+          console.error('❌ Token validation failed:', error || 'Invalid token');
+          setIsValidToken(false);
+          setIsCheckingToken(false);
           return;
         }
 
-        // Check if token is expired
-        if (new Date(tokenData.expires_at) < new Date()) {
-          console.error('❌ Token expired');
-          toast.error('Link de recuperação expirado. Solicite um novo link.');
-          navigate('/forgot-password');
-          return;
-        }
-
-        // Check if token was already used
-        if (tokenData.used_at) {
-          console.error('❌ Token already used');
-          toast.error('Este link já foi utilizado. Solicite um novo link se necessário.');
-          navigate('/login');
-          return;
-        }
-
+        // Token is valid
         console.log('✅ Token is valid');
-        setUserEmail(tokenData.email);
+        setUserEmail(data.email);
         setIsValidToken(true);
+        setIsCheckingToken(false);
       } catch (error) {
         console.error('❌ Error validating token:', error);
-        toast.error('Erro ao validar link de recuperação');
-        navigate('/login');
-      } finally {
+        setIsValidToken(false);
         setIsCheckingToken(false);
       }
     };
 
     validateToken();
-  }, [token, navigate]);
+  }, [token]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

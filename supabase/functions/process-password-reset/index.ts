@@ -8,7 +8,8 @@ const corsHeaders = {
 
 interface PasswordResetRequest {
   token: string;
-  newPassword: string;
+  newPassword?: string;
+  validateOnly?: boolean;
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -17,11 +18,11 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { token, newPassword }: PasswordResetRequest = await req.json();
+    const { token, newPassword, validateOnly }: PasswordResetRequest = await req.json();
 
-    if (!token || !newPassword) {
+    if (!token) {
       return new Response(
-        JSON.stringify({ error: "Token e nova senha são obrigatórios" }),
+        JSON.stringify({ error: "Token é obrigatório" }),
         {
           status: 400,
           headers: { "Content-Type": "application/json", ...corsHeaders },
@@ -29,9 +30,9 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    if (newPassword.length < 6) {
+    if (!validateOnly && (!newPassword || newPassword.length < 6)) {
       return new Response(
-        JSON.stringify({ error: "A senha deve ter pelo menos 6 caracteres" }),
+        JSON.stringify({ error: "Nova senha deve ter pelo menos 6 caracteres" }),
         {
           status: 400,
           headers: { "Content-Type": "application/json", ...corsHeaders },
@@ -89,12 +90,28 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    console.log(`[PASSWORD_RESET] Token valid, updating password for user: ${tokenData.user_id}`);
+    console.log(`[PASSWORD_RESET] Token valid for user: ${tokenData.user_id}`);
+
+    // If only validating, return success with email
+    if (validateOnly) {
+      return new Response(
+        JSON.stringify({ 
+          valid: true,
+          email: tokenData.email
+        }),
+        {
+          status: 200,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
+      );
+    }
+
+    console.log(`[PASSWORD_RESET] Updating password for user: ${tokenData.user_id}`);
 
     // Update user password using admin API
     const { error: updateError } = await supabase.auth.admin.updateUserById(
       tokenData.user_id,
-      { password: newPassword }
+      { password: newPassword! }
     );
 
     if (updateError) {
