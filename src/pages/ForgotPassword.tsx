@@ -76,7 +76,7 @@ const ForgotPassword: React.FC = () => {
               >
                 Tentar outro email
               </Button>
-              <Link to="/auth">
+              <Link to="/login">
                 <Button variant="ghost" className="w-full">
                   Voltar para o Login
                 </Button>
@@ -127,7 +127,7 @@ const ForgotPassword: React.FC = () => {
           
           <div className="mt-6 text-center">
             <Link 
-              to="/auth" 
+              to="/login" 
               className="text-sm text-muted-foreground hover:text-primary underline-offset-4 hover:underline"
             >
               Lembrou sua senha? Faça login

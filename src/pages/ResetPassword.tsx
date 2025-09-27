@@ -8,107 +8,192 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
 const ResetPassword: React.FC = () => {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
+  const [isValidToken, setIsValidToken] = useState(false);
+  const [isCheckingToken, setIsCheckingToken] = useState(true);
+  const [userEmail, setUserEmail] = useState('');
+
+  // Get token from URL parameters
+  const token = searchParams.get('token');
 
   useEffect(() => {
-    // Processa tokens do hash (#) gerados pelo Supabase e configura a sessão
-    const hash = window.location.hash; // ex: #access_token=...&refresh_token=...
-    const params = new URLSearchParams(hash.startsWith('#') ? hash.slice(1) : hash);
-
-    const accessToken = params.get('access_token') || searchParams.get('access_token');
-    const refreshToken = params.get('refresh_token') || searchParams.get('refresh_token');
-
-    const init = async () => {
-      try {
-        if (accessToken && refreshToken) {
-          const { error } = await supabase.auth.setSession({
-            access_token: accessToken,
-            refresh_token: refreshToken,
-          });
-          if (error) {
-            console.error('Erro ao configurar sessão de recuperação:', error);
-            toast.error('Link de recuperação inválido ou expirado');
-            navigate('/auth');
-            return;
-          }
-        } else {
-          // Verifica se já há sessão ativa (o SDK pode ter processado o hash automaticamente)
-          const { data } = await supabase.auth.getSession();
-          if (!data.session) {
-            toast.error('Link de recuperação inválido ou expirado');
-            navigate('/auth');
-            return;
-          }
-        }
-      } catch (err) {
-        console.error('Erro ao processar link de recuperação:', err);
-        toast.error('Link de recuperação inválido ou expirado');
-        navigate('/auth');
+    const validateToken = async () => {
+      if (!token) {
+        console.error('❌ No token provided in URL');
+        toast.error('Link inválido ou expirado');
+        navigate('/login');
         return;
-      } finally {
-        // Limpa o hash da URL para não expor tokens
-        if (window.location.hash) {
-          history.replaceState(null, document.title, window.location.pathname + window.location.search);
+      }
+
+      try {
+        console.log('🔍 Validating recovery token...');
+        
+        // Validate token with service role client
+        const { data: tokenData, error } = await supabase
+          .from('password_recovery_tokens')
+          .select('user_id, email, expires_at, used_at')
+          .eq('token', token)
+          .single();
+
+        if (error || !tokenData) {
+          console.error('❌ Invalid token:', error);
+          toast.error('Link de recuperação inválido ou expirado');
+          navigate('/login');
+          return;
         }
+
+        // Check if token is expired
+        if (new Date(tokenData.expires_at) < new Date()) {
+          console.error('❌ Token expired');
+          toast.error('Link de recuperação expirado. Solicite um novo link.');
+          navigate('/forgot-password');
+          return;
+        }
+
+        // Check if token was already used
+        if (tokenData.used_at) {
+          console.error('❌ Token already used');
+          toast.error('Este link já foi utilizado. Solicite um novo link se necessário.');
+          navigate('/login');
+          return;
+        }
+
+        console.log('✅ Token is valid');
+        setUserEmail(tokenData.email);
+        setIsValidToken(true);
+      } catch (error) {
+        console.error('❌ Error validating token:', error);
+        toast.error('Erro ao validar link de recuperação');
+        navigate('/login');
+      } finally {
+        setIsCheckingToken(false);
       }
     };
 
-    void init();
-  }, [searchParams, navigate]);
+    validateToken();
+  }, [token, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!password || !confirmPassword) {
-      toast.error('Por favor, preencha todos os campos');
+      toast.error("Por favor, preencha todos os campos");
       return;
     }
 
     if (password !== confirmPassword) {
-      toast.error('As senhas não coincidem');
+      toast.error("As senhas não coincidem");
       return;
     }
 
     if (password.length < 6) {
-      toast.error('A senha deve ter pelo menos 6 caracteres');
+      toast.error("A senha deve ter pelo menos 6 caracteres");
       return;
     }
 
     setIsLoading(true);
 
     try {
-      const { error } = await supabase.auth.updateUser({
-        password: password
+      console.log('🔄 Processing password reset...');
+
+      // Call custom edge function to handle password reset
+      const { data, error } = await supabase.functions.invoke('process-password-reset', {
+        body: {
+          token: token,
+          newPassword: password
+        }
       });
 
       if (error) {
-        toast.error(error.message);
-      } else {
-        toast.success('Senha alterada com sucesso!');
-        navigate('/auth');
+        console.error('❌ Password reset error:', error);
+        if (error.message?.includes('Token expired')) {
+          toast.error('Link expirado. Solicite um novo link de recuperação.');
+          navigate('/forgot-password');
+        } else if (error.message?.includes('Token already used')) {
+          toast.error('Link já utilizado. Solicite um novo link se necessário.');
+          navigate('/login');
+        } else {
+          toast.error('Erro ao redefinir senha. Tente novamente.');
+        }
+        return;
       }
-    } catch (error) {
-      toast.error('Erro ao alterar senha. Tente novamente.');
+
+      if (data?.success) {
+        console.log('✅ Password reset successful');
+        toast.success('Senha redefinida com sucesso! Você será redirecionado para o login.');
+        
+        // Redirect to login after a short delay
+        setTimeout(() => {
+          navigate('/login');
+        }, 2000);
+      } else {
+        toast.error(data?.error || 'Erro ao redefinir senha');
+      }
+    } catch (error: any) {
+      console.error('❌ Error resetting password:', error);
+      toast.error('Erro inesperado. Tente novamente.');
     } finally {
       setIsLoading(false);
     }
   };
 
+  // Show loading while checking token
+  if (isCheckingToken) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  // Show error if token is invalid
+  if (!isValidToken) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50 p-4">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <CardTitle className="text-2xl text-red-600">Link Inválido</CardTitle>
+            <CardDescription>
+              O link de recuperação é inválido ou expirou.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="text-center space-y-4">
+              <Button 
+                onClick={() => navigate('/forgot-password')}
+                className="w-full"
+              >
+                Solicitar Novo Link
+              </Button>
+              <Button 
+                variant="outline"
+                onClick={() => navigate('/login')}
+                className="w-full"
+              >
+                Voltar ao Login
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background px-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50 p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl">Nova Senha</CardTitle>
+          <CardTitle className="text-2xl">Redefinir Senha</CardTitle>
           <CardDescription>
-            Digite sua nova senha
+            Digite sua nova senha para a conta: <strong>{userEmail}</strong>
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit}>
+          <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="password">Nova Senha</Label>
               <Input
@@ -122,7 +207,6 @@ const ResetPassword: React.FC = () => {
                 minLength={6}
               />
             </div>
-            
             <div className="space-y-2">
               <Label htmlFor="confirmPassword">Confirmar Nova Senha</Label>
               <Input
@@ -139,19 +223,17 @@ const ResetPassword: React.FC = () => {
             
             <Button 
               type="submit" 
-              className="w-full" 
+              className="w-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600" 
               disabled={isLoading}
             >
               {isLoading ? 'Alterando...' : 'Alterar Senha'}
             </Button>
-          </form>
-          
-          <div className="mt-6 text-center">
-            <p className="text-sm text-muted-foreground">
-              Após alterar a senha, você será redirecionado para fazer login
-            </p>
-          </div>
-        </CardContent>
+          </CardContent>
+        </form>
+        
+        <div className="text-center p-6 text-sm text-muted-foreground">
+          <p>Após alterar sua senha, você será redirecionado para o login.</p>
+        </div>
       </Card>
     </div>
   );

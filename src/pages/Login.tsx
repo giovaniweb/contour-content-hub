@@ -33,13 +33,19 @@ const Login: React.FC = () => {
     setIsSubmitting(true);
     
     try {
+      console.log('🔄 Iniciando processo de login...');
       await login(email, password);
-      toast.success('Login realizado com sucesso!');
-      navigate('/dashboard');
+      
+      // Give a small delay to ensure auth state is updated
+      setTimeout(() => {
+        console.log('✅ Login concluído, redirecionando...');
+        toast.success('Login realizado com sucesso!');
+        navigate('/dashboard');
+      }, 500);
+      
     } catch (error: any) {
       console.error('❌ Erro no login:', error);
-      toast.error('Erro no login: ' + (error.message || 'Verifique suas credenciais'));
-    } finally {
+      toast.error(error.message || 'Email ou senha incorretos');
       setIsSubmitting(false);
     }
   };

@@ -2857,6 +2857,36 @@ export type Database = {
         }
         Relationships: []
       }
+      password_recovery_tokens: {
+        Row: {
+          created_at: string
+          email: string
+          expires_at: string
+          id: string
+          token: string
+          used_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          expires_at: string
+          id?: string
+          token: string
+          used_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          expires_at?: string
+          id?: string
+          token?: string
+          used_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       perfis: {
         Row: {
           cidade: string | null
@@ -4401,6 +4431,10 @@ export type Database = {
         Returns: undefined
       }
       cleanup_expired_invites: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      cleanup_expired_recovery_tokens: {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
