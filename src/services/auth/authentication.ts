@@ -21,8 +21,7 @@ async function upsertProfileWithRetry(userId: string, profileData: any, maxRetri
         .from('perfis')
         .upsert({ 
           id: userId, 
-          ...profileData,
-          updated_at: new Date().toISOString()
+          ...profileData
         }, {
           onConflict: 'id'
         });
