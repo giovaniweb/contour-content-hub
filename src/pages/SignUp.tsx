@@ -345,10 +345,10 @@ const SignUp: React.FC = () => {
           {/* Navigation */}
           <div className="flex justify-between items-center mt-6">
             <Button
-              variant="outline"
+              variant="secondary"
               onClick={prevStep}
               disabled={currentStep === 1}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 bg-aurora-void-black/50 hover:bg-aurora-void-black/70 border-aurora-electric-purple/30 text-white"
             >
               <ArrowLeft className="w-4 h-4" />
               Anterior

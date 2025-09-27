@@ -182,7 +182,7 @@ export async function createCompleteUser(userData: CreateUserData): Promise<void
       especialidade: normalizedData.especialidade,
       estado: normalizedData.estado,
       endereco_completo: normalizedData.endereco_completo,
-      equipamentos: normalizedData.equipamentos ? JSON.stringify(normalizedData.equipamentos) : null,
+      equipamentos: normalizedData.equipamentos || null,
       observacoes_conteudo: normalizedData.observacoes_conteudo,
       idioma: normalizedData.idioma || 'PT',
       foto_url: normalizedData.foto_url
