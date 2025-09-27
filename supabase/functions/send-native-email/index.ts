@@ -128,17 +128,30 @@ async function sendEmailViaSMTP(config: SMTPConfig, emailData: any): Promise<any
       throw new Error(`DATA command failed: ${response}`);
     }
 
-    // Build email content
-    const emailContent = [
+    // Build email content with proper RFC5321 compliance
+    const now = new Date();
+    const messageId = `<${crypto.randomUUID()}@fluida.online>`;
+    
+    // Normalize HTML content - ensure proper line endings
+    let htmlContent = emailData.html_content || '';
+    htmlContent = htmlContent.replace(/\r?\n/g, '\r\n'); // Normalize line endings
+    
+    // Dot-stuffing: RFC5321 requires lines starting with '.' to be escaped
+    htmlContent = htmlContent.replace(/^\.(.*)$/gm, '..$1');
+    
+    const emailHeaders = [
       `From: ${emailData.from_name} <${emailData.from_email}>`,
       `To: ${emailData.to_email}`,
       `Subject: ${emailData.subject}`,
-      `Content-Type: text/html; charset=UTF-8`,
+      `Date: ${now.toUTCString()}`,
+      `Message-ID: ${messageId}`,
       `MIME-Version: 1.0`,
-      ``,
-      emailData.html_content,
-      `.`
-    ].join("\r\n");
+      `Content-Type: text/html; charset=UTF-8`,
+      `Content-Transfer-Encoding: 8bit`,
+      ``
+    ].join('\r\n');
+    
+    const emailContent = emailHeaders + htmlContent + '\r\n.';
 
     await conn.write(encoder.encode(emailContent + "\r\n"));
     

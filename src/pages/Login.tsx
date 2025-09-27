@@ -36,16 +36,14 @@ const Login: React.FC = () => {
       console.log('🔄 Iniciando processo de login...');
       await login(email, password);
       
-      // Give a small delay to ensure auth state is updated
-      setTimeout(() => {
-        console.log('✅ Login concluído, redirecionando...');
-        toast.success('Login realizado com sucesso!');
-        navigate('/dashboard');
-      }, 500);
+      console.log('✅ Login concluído com sucesso!');
+      toast.success('Login realizado com sucesso!');
+      // Navigation will be handled by useEffect when isAuthenticated changes
       
     } catch (error: any) {
       console.error('❌ Erro no login:', error);
       toast.error(error.message || 'Email ou senha incorretos');
+    } finally {
       setIsSubmitting(false);
     }
   };
