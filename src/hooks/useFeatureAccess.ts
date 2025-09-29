@@ -55,6 +55,7 @@ export const useFeatureAccess = (): UseFeatureAccessReturn => {
   const [permissions, setPermissions] = useState<FeaturePermission[]>([]);
   const [notifications, setNotifications] = useState<FeatureNotification[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [adminFlag, setAdminFlag] = useState(false);
 
   const loadFromCache = useCallback(() => {
     try {
@@ -150,7 +151,7 @@ export const useFeatureAccess = (): UseFeatureAccessReturn => {
 
   const hasAccess = useCallback((feature: AppFeature): boolean => {
     // Admin has access to everything
-    if (isAdmin()) {
+    if (adminFlag) {
       console.log('👑 [useFeatureAccess] Usuário é admin, acesso liberado para:', feature);
       return true;
     }
@@ -186,7 +187,7 @@ export const useFeatureAccess = (): UseFeatureAccessReturn => {
     
     console.log('✅ [useFeatureAccess] Acesso liberado para:', feature);
     return true;
-  }, [permissions, isAdmin]);
+  }, [permissions, adminFlag]);
 
   const isNewFeature = useCallback((feature: AppFeature): boolean => {
     const unreadNotification = notifications.find(n => 
@@ -220,6 +221,31 @@ export const useFeatureAccess = (): UseFeatureAccessReturn => {
   }, []);
 
   const hasNewNotifications = notifications.some(n => !n.is_read);
+
+  // Resolve admin status asynchronously
+  useEffect(() => {
+    const checkAdminStatus = async () => {
+      if (!isAuthenticated || !user) {
+        setAdminFlag(false);
+        return;
+      }
+      
+      try {
+        const isUserAdmin = await isAdmin();
+        setAdminFlag(isUserAdmin);
+        console.log('👑 [useFeatureAccess] Admin status resolved:', { 
+          userId: user.id, 
+          email: user.email, 
+          isAdmin: isUserAdmin 
+        });
+      } catch (error) {
+        console.error('Error checking admin status:', error);
+        setAdminFlag(false);
+      }
+    };
+
+    checkAdminStatus();
+  }, [isAuthenticated, user, isAdmin]);
 
   useEffect(() => {
     loadFromCache();
