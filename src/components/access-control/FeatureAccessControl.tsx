@@ -60,7 +60,7 @@ export const FeatureAccessControl: React.FC<FeatureAccessControlProps> = ({
       {/* Lock overlay for restricted features */}
       {!hasFeatureAccess && !isLoading && (
         <div className="absolute -top-1 -right-1 bg-background border border-border rounded-full p-1">
-          <Lock size={12} className="text-muted-foreground" />
+          <Lock size={12} className="text-yellow-400" />
         </div>
       )}
 

@@ -175,15 +175,18 @@ const Sidebar: React.FC = () => {
             >
               <div className="relative">
                 <item.icon className="w-5 h-5 mb-1" />
-                {isRestricted && (
-                  <Lock className="absolute -top-1 -right-1 w-3 h-3 text-aurora-text-muted" />
-                )}
                 {isNew && (
                   <span className="absolute -top-2 -right-2 bg-gradient-to-r from-aurora-electric-purple to-aurora-neon-blue text-white text-[0.6rem] px-1.5 py-0.5 rounded-full font-bold leading-none">
                     Novo
                   </span>
                 )}
               </div>
+              {/* Padlock positioned at button corner */}
+              {isRestricted && (
+                <div className="absolute -top-1 -right-1 bg-aurora-card-bg rounded-full p-0.5 border border-aurora-neon-blue/20" title="Recurso bloqueado">
+                  <Lock className="w-3 h-3 text-yellow-400" />
+                </div>
+              )}
               <span className={cn(
                 "text-[0.75rem] font-medium truncate leading-tight text-center break-words",
                 active && "text-aurora-neon-blue",
