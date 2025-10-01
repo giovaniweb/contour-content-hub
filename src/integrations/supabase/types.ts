@@ -2369,6 +2369,39 @@ export type Database = {
         }
         Relationships: []
       }
+      feature_status_changes: {
+        Row: {
+          affected_users_count: number | null
+          changed_at: string
+          changed_by: string
+          feature: Database["public"]["Enums"]["app_feature"]
+          id: string
+          new_status: Database["public"]["Enums"]["feature_status"]
+          notes: string | null
+          old_status: Database["public"]["Enums"]["feature_status"] | null
+        }
+        Insert: {
+          affected_users_count?: number | null
+          changed_at?: string
+          changed_by: string
+          feature: Database["public"]["Enums"]["app_feature"]
+          id?: string
+          new_status: Database["public"]["Enums"]["feature_status"]
+          notes?: string | null
+          old_status?: Database["public"]["Enums"]["feature_status"] | null
+        }
+        Update: {
+          affected_users_count?: number | null
+          changed_at?: string
+          changed_by?: string
+          feature?: Database["public"]["Enums"]["app_feature"]
+          id?: string
+          new_status?: Database["public"]["Enums"]["feature_status"]
+          notes?: string | null
+          old_status?: Database["public"]["Enums"]["feature_status"] | null
+        }
+        Relationships: []
+      }
       fotos: {
         Row: {
           categoria: string | null
@@ -3784,6 +3817,7 @@ export type Database = {
           granted_at: string | null
           granted_by: string | null
           id: string
+          status: Database["public"]["Enums"]["feature_status"]
           updated_at: string | null
           user_id: string
         }
@@ -3795,6 +3829,7 @@ export type Database = {
           granted_at?: string | null
           granted_by?: string | null
           id?: string
+          status?: Database["public"]["Enums"]["feature_status"]
           updated_at?: string | null
           user_id: string
         }
@@ -3806,6 +3841,7 @@ export type Database = {
           granted_at?: string | null
           granted_by?: string | null
           id?: string
+          status?: Database["public"]["Enums"]["feature_status"]
           updated_at?: string | null
           user_id?: string
         }
@@ -4646,6 +4682,7 @@ export type Database = {
         | "reports"
         | "planner"
         | "ideas"
+      feature_status: "blocked" | "coming_soon" | "beta" | "released"
       investment_range:
         | "300-500"
         | "500-800"
@@ -4795,6 +4832,7 @@ export const Constants = {
         "planner",
         "ideas",
       ],
+      feature_status: ["blocked", "coming_soon", "beta", "released"],
       investment_range: [
         "300-500",
         "500-800",
