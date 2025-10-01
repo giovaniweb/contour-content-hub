@@ -86,6 +86,7 @@ const EmailTemplates = React.lazy(() => import('@/pages/admin/EmailSystem/Templa
 const Newsletter = React.lazy(() => import('@/pages/admin/EmailSystem/Newsletter'));
 const EmailMonitoring = React.lazy(() => import('@/pages/admin/EmailSystem/Monitoring'));
 const EmailTesting = React.lazy(() => import('@/pages/admin/EmailSystem/Testing'));
+const AdminFeatures = React.lazy(() => import('@/pages/AdminFeatures'));
 
 const AppRoutes: React.FC = () => {
   return (
@@ -632,6 +633,17 @@ const AppRoutes: React.FC = () => {
               <AppLayout requireAdmin={true}>
                 <Suspense fallback={<AuroraLoadingSkeleton />}>
                   <AdminUsers />
+                </Suspense>
+              </AppLayout>
+            } 
+          />
+
+          <Route 
+            path="/admin/features"
+            element={
+              <AppLayout requireAdmin={true}>
+                <Suspense fallback={<AuroraLoadingSkeleton />}>
+                  <AdminFeatures />
                 </Suspense>
               </AppLayout>
             } 
