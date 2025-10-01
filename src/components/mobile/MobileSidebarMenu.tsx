@@ -27,6 +27,7 @@ import { useFeatureAccess } from "@/hooks/useFeatureAccess";
 import { usePermissions } from "@/hooks/use-permissions";
 import { getFeatureFromPath } from "@/utils/featureMapping";
 import { RestrictedAccessModal } from "@/components/access-control/RestrictedAccessModal";
+import { FeatureBadge } from "@/components/access-control/FeatureBadge";
 
 const sidebarItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
@@ -46,7 +47,7 @@ const MobileSidebarMenu: React.FC = () => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const { open, setOpen } = useSidebar();
-  const { hasAccess, isNewFeature, markNotificationAsRead, notifications } = useFeatureAccess();
+  const { hasAccess, getFeatureStatus, isNewFeature, markNotificationAsRead, notifications } = useFeatureAccess();
   const { isAdmin } = usePermissions();
   const [isAdminFlag, setIsAdminFlag] = useState(false);
   const [restrictedModal, setRestrictedModal] = useState<{
@@ -147,6 +148,7 @@ const MobileSidebarMenu: React.FC = () => {
             
             // Check permissions for this item
             const feature = getFeatureFromPath(item.path);
+            const featureStatus = feature ? getFeatureStatus(feature) : null;
             const hasPermission = item.path === '/dashboard' || isAdminFlag || (feature && hasAccess(feature));
             const isNew = feature && isNewFeature(feature);
             const isRestricted = feature && !hasPermission && !isAdminFlag;
@@ -165,18 +167,18 @@ const MobileSidebarMenu: React.FC = () => {
                 title={isRestricted ? "Recurso bloqueado" : undefined}
               >
                 <item.icon className="w-5 h-5 flex-shrink-0" />
-                <span className="text-sm font-medium">{item.label}</span>
+                <span className="text-sm font-medium flex-1">{item.label}</span>
                 
-                {/* Padlock for restricted items */}
-                {isRestricted && (
-                  <div className="absolute -top-1 -right-1 bg-aurora-card-bg rounded-full p-0.5 border border-aurora-neon-blue/20">
-                    <Lock className="w-3 h-3 text-yellow-400" />
+                {/* Status badge */}
+                {featureStatus && featureStatus !== 'released' && (
+                  <div className="flex-shrink-0">
+                    <FeatureBadge status={featureStatus} variant="default" className="text-xs" />
                   </div>
                 )}
                 
                 {/* New feature badge */}
-                {isNew && (
-                  <span className="absolute -top-2 -right-2 bg-gradient-to-r from-aurora-electric-purple to-aurora-neon-blue text-white text-[0.6rem] px-1.5 py-0.5 rounded-full font-bold leading-none">
+                {isNew && !featureStatus && (
+                  <span className="bg-gradient-to-r from-aurora-electric-purple to-aurora-neon-blue text-white text-[0.6rem] px-1.5 py-0.5 rounded-full font-bold leading-none">
                     Novo
                   </span>
                 )}

@@ -1,5 +1,5 @@
 import React, { ReactNode } from 'react';
-import { Lock, Sparkles } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   Tooltip,
@@ -9,6 +9,7 @@ import {
 } from '@/components/ui/tooltip';
 import { Badge } from '@/components/ui/badge';
 import { useFeatureAccess, AppFeature } from '@/hooks/useFeatureAccess';
+import { FeatureBadge } from './FeatureBadge';
 
 interface FeatureAccessControlProps {
   feature: AppFeature;
@@ -25,9 +26,10 @@ export const FeatureAccessControl: React.FC<FeatureAccessControlProps> = ({
   showTooltip = true,
   onRestrictedClick
 }) => {
-  const { hasAccess, isNewFeature, isLoading } = useFeatureAccess();
+  const { hasAccess, getFeatureStatus, isNewFeature, isLoading } = useFeatureAccess();
 
   const hasFeatureAccess = hasAccess(feature);
+  const featureStatus = getFeatureStatus(feature);
   const isNew = isNewFeature(feature);
 
   const handleClick = (e: React.MouseEvent) => {
@@ -39,6 +41,12 @@ export const FeatureAccessControl: React.FC<FeatureAccessControlProps> = ({
       }
     }
   };
+
+  const tooltipMessage = 
+    featureStatus === 'blocked' ? 'Recurso bloqueado - Entre em contato para liberar' :
+    featureStatus === 'coming_soon' ? 'Recurso em breve - Aguarde liberação' :
+    featureStatus === 'beta' ? 'Recurso em BETA - Pode apresentar erros' :
+    'Acesso restrito';
 
   const content = (
     <div 
@@ -57,10 +65,10 @@ export const FeatureAccessControl: React.FC<FeatureAccessControlProps> = ({
         {children}
       </div>
 
-      {/* Lock overlay for restricted features */}
-      {!hasFeatureAccess && !isLoading && (
-        <div className="absolute -top-1 -right-1 bg-background border border-border rounded-full p-1">
-          <Lock size={12} className="text-yellow-400" />
+      {/* Status badge for restricted features */}
+      {!hasFeatureAccess && !isLoading && featureStatus && (
+        <div className="absolute -top-1 -right-1">
+          <FeatureBadge status={featureStatus} variant="compact" />
         </div>
       )}
 
@@ -89,7 +97,7 @@ export const FeatureAccessControl: React.FC<FeatureAccessControlProps> = ({
         </TooltipTrigger>
         <TooltipContent>
           <p className="text-sm">
-            Acesso restrito - Entre em contato para liberar
+            {tooltipMessage}
           </p>
         </TooltipContent>
       </Tooltip>

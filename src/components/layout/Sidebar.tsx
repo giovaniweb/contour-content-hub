@@ -21,6 +21,13 @@ import { useFeatureAccess } from "@/hooks/useFeatureAccess";
 import { usePermissions } from "@/hooks/use-permissions";
 import { getFeatureFromPath } from "@/utils/featureMapping";
 import { RestrictedAccessModal } from "@/components/access-control/RestrictedAccessModal";
+import { FeatureBadge } from "@/components/access-control/FeatureBadge";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 const sidebarItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
@@ -41,7 +48,7 @@ const Sidebar: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
-  const { hasAccess, isNewFeature, markNotificationAsRead, notifications } = useFeatureAccess();
+  const { hasAccess, getFeatureStatus, isNewFeature, markNotificationAsRead, notifications } = useFeatureAccess();
   const { isAdmin } = usePermissions();
   const [isAdminFlag, setIsAdminFlag] = useState(false);
   const [restrictedModal, setRestrictedModal] = useState<{
@@ -129,17 +136,19 @@ const Sidebar: React.FC = () => {
       style={{ width: SIDEBAR_WIDTH }}
     >
       {/* Menu */}
-      <nav className="flex-1 flex flex-col gap-2 w-full">
-        {sidebarItems.map((item, index) => {
-          const active = location.pathname === item.path;
-          const labelLines = item.label.split('\n');
-          const isLast = index === sidebarItems.length - 1;
-          
-          // Check permissions for this item
-          const feature = getFeatureFromPath(item.path);
-          const hasPermission = item.path === '/dashboard' || isAdminFlag || (feature && hasAccess(feature));
-          const isNew = feature && isNewFeature(feature);
-          const isRestricted = feature && !hasPermission && !isAdminFlag;
+      <TooltipProvider>
+        <nav className="flex-1 flex flex-col gap-2 w-full">
+          {sidebarItems.map((item, index) => {
+            const active = location.pathname === item.path;
+            const labelLines = item.label.split('\n');
+            const isLast = index === sidebarItems.length - 1;
+            
+            // Check permissions for this item
+            const feature = getFeatureFromPath(item.path);
+            const featureStatus = feature ? getFeatureStatus(feature) : null;
+            const hasPermission = item.path === '/dashboard' || isAdminFlag || (feature && hasAccess(feature));
+            const isNew = feature && isNewFeature(feature);
+            const isRestricted = feature && !hasPermission && !isAdminFlag;
           
           // Debug log para cada item renderizado
           if (feature && index === 0) { // Log apenas uma vez por renderização
@@ -159,49 +168,66 @@ const Sidebar: React.FC = () => {
             });
           }
 
-          return (
-            <button
-              key={item.path}
-              className={cn(
-                "flex flex-col items-center justify-center gap-1 text-aurora-text-muted hover:text-aurora-neon-blue hover:bg-aurora-neon-blue/10 rounded-lg transition-all duration-150 mx-auto w-[80px] py-2 group relative",
-                active && "bg-aurora-neon-blue/20 text-aurora-neon-blue shadow-lg border border-aurora-neon-blue/30",
-                !isLast && "after:content-[''] after:absolute after:bottom-0 after:left-1/2 after:transform after:-translate-x-1/2 after:w-12 after:h-px after:bg-aurora-neon-blue/10",
-                isRestricted && "opacity-60 cursor-not-allowed"
-              )}
-              onClick={() => handleItemClick(item.path)}
-              tabIndex={0}
-              style={{ outline: "none" }}
-              disabled={isRestricted}
-            >
-              <div className="relative">
-                <item.icon className="w-5 h-5 mb-1" />
-                {isNew && (
-                  <span className="absolute -top-2 -right-2 bg-gradient-to-r from-aurora-electric-purple to-aurora-neon-blue text-white text-[0.6rem] px-1.5 py-0.5 rounded-full font-bold leading-none">
-                    Novo
-                  </span>
+            const tooltipMessage = 
+              featureStatus === 'blocked' ? 'Recurso bloqueado - Entre em contato para liberar' :
+              featureStatus === 'coming_soon' ? 'Recurso em breve - Aguarde liberação' :
+              featureStatus === 'beta' ? 'Recurso em BETA - Pode apresentar erros' :
+              null;
+
+            return (
+              <Tooltip key={item.path}>
+                <TooltipTrigger asChild>
+                  <button
+                    className={cn(
+                      "flex flex-col items-center justify-center gap-1 text-aurora-text-muted hover:text-aurora-neon-blue hover:bg-aurora-neon-blue/10 rounded-lg transition-all duration-150 mx-auto w-[80px] py-2 group relative",
+                      active && "bg-aurora-neon-blue/20 text-aurora-neon-blue shadow-lg border border-aurora-neon-blue/30",
+                      !isLast && "after:content-[''] after:absolute after:bottom-0 after:left-1/2 after:transform after:-translate-x-1/2 after:w-12 after:h-px after:bg-aurora-neon-blue/10",
+                      isRestricted && "opacity-60 cursor-not-allowed"
+                    )}
+                    onClick={() => handleItemClick(item.path)}
+                    tabIndex={0}
+                    style={{ outline: "none" }}
+                    disabled={isRestricted}
+                  >
+                    <div className="relative">
+                      <item.icon className="w-5 h-5 mb-1" />
+                      {isNew && (
+                        <span className="absolute -top-2 -right-2 bg-gradient-to-r from-aurora-electric-purple to-aurora-neon-blue text-white text-[0.6rem] px-1.5 py-0.5 rounded-full font-bold leading-none">
+                          Novo
+                        </span>
+                      )}
+                    </div>
+                    
+                    {/* Status badge no canto superior direito */}
+                    {featureStatus && featureStatus !== 'released' && (
+                      <div className="absolute -top-1 -right-1">
+                        <FeatureBadge status={featureStatus} variant="compact" />
+                      </div>
+                    )}
+                    
+                    <span className={cn(
+                      "text-[0.75rem] font-medium truncate leading-tight text-center break-words",
+                      active && "text-aurora-neon-blue",
+                      isRestricted && "text-aurora-text-muted"
+                    )}>
+                      {labelLines.map((line, idx) => (
+                        <span key={idx} className="block">
+                          {line}
+                        </span>
+                      ))}
+                    </span>
+                  </button>
+                </TooltipTrigger>
+                {tooltipMessage && (
+                  <TooltipContent side="right">
+                    <p>{tooltipMessage}</p>
+                  </TooltipContent>
                 )}
-              </div>
-              {/* Padlock positioned at button corner */}
-              {isRestricted && (
-                <div className="absolute -top-1 -right-1 bg-aurora-card-bg rounded-full p-0.5 border border-aurora-neon-blue/20" title="Recurso bloqueado">
-                  <Lock className="w-3 h-3 text-yellow-400" />
-                </div>
-              )}
-              <span className={cn(
-                "text-[0.75rem] font-medium truncate leading-tight text-center break-words",
-                active && "text-aurora-neon-blue",
-                isRestricted && "text-aurora-text-muted"
-              )}>
-                {labelLines.map((line, idx) => (
-                  <span key={idx} className="block">
-                    {line}
-                  </span>
-                ))}
-              </span>
-            </button>
-          );
-        })}
-      </nav>
+              </Tooltip>
+            );
+          })}
+        </nav>
+      </TooltipProvider>
 
       {/* Restricted Access Modal */}
       <RestrictedAccessModal 
