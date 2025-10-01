@@ -3820,6 +3820,7 @@ export type Database = {
           status: Database["public"]["Enums"]["feature_status"]
           updated_at: string | null
           user_id: string
+          user_override_status: string | null
         }
         Insert: {
           created_at?: string | null
@@ -3832,6 +3833,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["feature_status"]
           updated_at?: string | null
           user_id: string
+          user_override_status?: string | null
         }
         Update: {
           created_at?: string | null
@@ -3843,6 +3845,40 @@ export type Database = {
           id?: string
           status?: Database["public"]["Enums"]["feature_status"]
           updated_at?: string | null
+          user_id?: string
+          user_override_status?: string | null
+        }
+        Relationships: []
+      }
+      user_feature_status_history: {
+        Row: {
+          change_reason: string | null
+          changed_by: string | null
+          created_at: string | null
+          feature: string
+          id: string
+          new_status: string
+          old_status: string | null
+          user_id: string
+        }
+        Insert: {
+          change_reason?: string | null
+          changed_by?: string | null
+          created_at?: string | null
+          feature: string
+          id?: string
+          new_status: string
+          old_status?: string | null
+          user_id: string
+        }
+        Update: {
+          change_reason?: string | null
+          changed_by?: string | null
+          created_at?: string | null
+          feature?: string
+          id?: string
+          new_status?: string
+          old_status?: string | null
           user_id?: string
         }
         Relationships: []
@@ -4539,6 +4575,10 @@ export type Database = {
       }
       get_current_user_role: {
         Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      get_effective_feature_status: {
+        Args: { p_feature: string; p_user_id: string }
         Returns: string
       }
       get_orphan_users: {

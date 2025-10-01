@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { AppFeature } from '@/hooks/useFeatureAccess';
+import { AppFeature, FeatureStatus } from '@/hooks/useFeatureAccess';
 import { 
   Shield, 
   Calendar, 
@@ -16,7 +16,9 @@ import {
   Search, 
   Plus,
   Trash2,
-  AlertCircle 
+  AlertCircle,
+  RotateCcw,
+  History
 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -32,6 +34,8 @@ interface UserPermission {
   id?: string;
   feature: AppFeature;
   enabled: boolean;
+  status?: FeatureStatus;
+  user_override_status?: FeatureStatus | null;
   expires_at?: string;
   granted_at?: string;
 }
@@ -60,6 +64,8 @@ const UserPermissionsManager: React.FC<UserPermissionsManagerProps> = ({ userId 
     expires_at: ''
   });
   const [showAddDialog, setShowAddDialog] = useState(false);
+  const [showHistoryDialog, setShowHistoryDialog] = useState(false);
+  const [selectedFeatureHistory, setSelectedFeatureHistory] = useState<AppFeature | null>(null);
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -76,6 +82,25 @@ const UserPermissionsManager: React.FC<UserPermissionsManagerProps> = ({ userId 
       if (error) throw error;
       return data || [];
     }
+  });
+
+  // Fetch status history for a specific feature
+  const { data: statusHistory = [] } = useQuery({
+    queryKey: ['feature-status-history', userId, selectedFeatureHistory],
+    queryFn: async () => {
+      if (!selectedFeatureHistory) return [];
+      
+      const { data, error } = await supabase
+        .from('user_feature_status_history')
+        .select('*, changed_by_profile:perfis!user_feature_status_history_changed_by_fkey(nome)')
+        .eq('user_id', userId)
+        .eq('feature', selectedFeatureHistory)
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!selectedFeatureHistory
   });
 
   // Grant permission mutation
@@ -108,6 +133,42 @@ const UserPermissionsManager: React.FC<UserPermissionsManagerProps> = ({ userId 
       toast({
         variant: "destructive",
         title: "Erro ao conceder permissão",
+        description: error.message,
+      });
+    }
+  });
+
+  // Update feature status mutation
+  const updateStatusMutation = useMutation({
+    mutationFn: async ({ feature, status, reason }: { 
+      feature: AppFeature; 
+      status: FeatureStatus | null;
+      reason?: string;
+    }) => {
+      const { data, error } = await supabase.functions.invoke('update-user-feature-status', {
+        body: {
+          userId,
+          feature,
+          status,
+          reason
+        }
+      });
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['user-permissions', userId] });
+      queryClient.invalidateQueries({ queryKey: ['feature-status-history', userId] });
+      toast({
+        title: "Status atualizado",
+        description: "O status da feature foi atualizado com sucesso.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        variant: "destructive",
+        title: "Erro ao atualizar status",
         description: error.message,
       });
     }
@@ -147,9 +208,38 @@ const UserPermissionsManager: React.FC<UserPermissionsManagerProps> = ({ userId 
     return permissions.find(p => p.feature === feature);
   };
 
+  const getEffectiveStatus = (permission?: UserPermission): FeatureStatus => {
+    if (!permission) return 'blocked';
+    return permission.user_override_status || permission.status || 'released';
+  };
+
+  const isOverrideActive = (permission?: UserPermission): boolean => {
+    return permission?.user_override_status !== null && permission?.user_override_status !== undefined;
+  };
+
   const isExpired = (expiresAt?: string) => {
     if (!expiresAt) return false;
     return new Date(expiresAt) < new Date();
+  };
+
+  const getStatusBadgeVariant = (status: FeatureStatus) => {
+    switch (status) {
+      case 'released': return 'default';
+      case 'beta': return 'secondary';
+      case 'coming_soon': return 'outline';
+      case 'blocked': return 'destructive';
+      default: return 'default';
+    }
+  };
+
+  const getStatusLabel = (status: FeatureStatus) => {
+    switch (status) {
+      case 'released': return 'Liberado';
+      case 'beta': return 'Beta';
+      case 'coming_soon': return 'Em Breve';
+      case 'blocked': return 'Bloqueado';
+      default: return status;
+    }
   };
 
   const filteredFeatures = AVAILABLE_FEATURES.filter(feature =>
@@ -300,15 +390,46 @@ const UserPermissionsManager: React.FC<UserPermissionsManagerProps> = ({ userId 
           <CardContent>
             <div className="space-y-4">
               {features.map(({ feature, label, description }) => {
-                const permissionData = getPermissionData(feature);
+                const permissionDataRaw = getPermissionData(feature);
+                // Type-safe permission data
+                const permissionData: UserPermission | undefined = permissionDataRaw ? {
+                  ...permissionDataRaw,
+                  user_override_status: permissionDataRaw.user_override_status as FeatureStatus | null,
+                  status: permissionDataRaw.status as FeatureStatus | undefined
+                } : undefined;
+                
                 const isPermissionExpired = isExpired(permissionData?.expires_at);
                 const hasFeaturePermission = hasPermission(feature);
+                const effectiveStatus = getEffectiveStatus(permissionData);
+                const hasOverride = isOverrideActive(permissionData);
 
                 return (
                   <div key={feature} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
+                    <div className="flex-1 space-y-2">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <h4 className="font-medium">{label}</h4>
+                        
+                        {/* Status Badge */}
+                        <Badge variant={getStatusBadgeVariant(effectiveStatus)}>
+                          {getStatusLabel(effectiveStatus)}
+                        </Badge>
+
+                        {/* Override Indicator */}
+                        {hasOverride && (
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Badge variant="outline" className="border-blue-500 text-blue-700">
+                                  Override
+                                </Badge>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Status específico para este usuário</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        )}
+
                         {hasFeaturePermission && (
                           <Badge variant={isPermissionExpired ? "destructive" : "default"}>
                             {isPermissionExpired ? 'Expirada' : 'Ativa'}
@@ -318,7 +439,71 @@ const UserPermissionsManager: React.FC<UserPermissionsManagerProps> = ({ userId 
                           <AlertCircle className="h-4 w-4 text-destructive" />
                         )}
                       </div>
+                      
                       <p className="text-sm text-muted-foreground">{description}</p>
+
+                      {/* Status Control */}
+                      <div className="flex items-center gap-2">
+                        <Label className="text-xs text-muted-foreground">Status:</Label>
+                        <Select
+                          value={permissionData?.user_override_status || ''}
+                          onValueChange={(value) => {
+                            updateStatusMutation.mutate({
+                              feature,
+                              status: value === '' ? null : value as FeatureStatus
+                            });
+                          }}
+                        >
+                          <SelectTrigger className="h-8 w-[180px]">
+                            <SelectValue placeholder="Global" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="">Global ({getStatusLabel(permissionData?.status || 'blocked')})</SelectItem>
+                            <SelectItem value="released">Liberado</SelectItem>
+                            <SelectItem value="beta">Beta</SelectItem>
+                            <SelectItem value="coming_soon">Em Breve</SelectItem>
+                            <SelectItem value="blocked">Bloqueado</SelectItem>
+                          </SelectContent>
+                        </Select>
+
+                        {/* History Button */}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            setSelectedFeatureHistory(feature);
+                            setShowHistoryDialog(true);
+                          }}
+                        >
+                          <History className="h-4 w-4" />
+                        </Button>
+
+                        {/* Reset Override Button */}
+                        {hasOverride && (
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => {
+                                    updateStatusMutation.mutate({
+                                      feature,
+                                      status: null,
+                                      reason: 'Resetado para status global'
+                                    });
+                                  }}
+                                >
+                                  <RotateCcw className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Resetar para status global</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        )}
+                      </div>
                       
                       {permissionData?.expires_at && (
                         <div className="flex items-center gap-1 mt-1">
@@ -337,7 +522,6 @@ const UserPermissionsManager: React.FC<UserPermissionsManagerProps> = ({ userId 
                           </span>
                         </div>
                       )}
-                      
                     </div>
                     
                     <div className="flex items-center gap-2">
@@ -370,7 +554,7 @@ const UserPermissionsManager: React.FC<UserPermissionsManagerProps> = ({ userId 
                                 : 'bg-red-600 text-white border-red-700'
                             }`}
                           >
-                            {hasFeaturePermission && !isPermissionExpired ? 'Liberado' : 'Bloqueado'}
+                            {hasFeaturePermission && !isPermissionExpired ? 'Habilitado' : 'Desabilitado'}
                           </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
@@ -382,6 +566,52 @@ const UserPermissionsManager: React.FC<UserPermissionsManagerProps> = ({ userId 
           </CardContent>
         </Card>
       ))}
+
+      {/* History Dialog */}
+      <Dialog open={showHistoryDialog} onOpenChange={setShowHistoryDialog}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>
+              Histórico de Mudanças - {selectedFeatureHistory && 
+                AVAILABLE_FEATURES.find(f => f.feature === selectedFeatureHistory)?.label}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 max-h-[400px] overflow-y-auto">
+            {statusHistory.length === 0 ? (
+              <p className="text-center text-muted-foreground py-8">
+                Nenhuma mudança registrada para esta feature.
+              </p>
+            ) : (
+              statusHistory.map((history: any) => (
+                <div key={history.id} className="border rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <Badge variant={getStatusBadgeVariant(history.old_status || 'blocked')}>
+                        {getStatusLabel(history.old_status || 'blocked')}
+                      </Badge>
+                      <span className="text-muted-foreground">→</span>
+                      <Badge variant={getStatusBadgeVariant(history.new_status)}>
+                        {getStatusLabel(history.new_status)}
+                      </Badge>
+                    </div>
+                    <span className="text-xs text-muted-foreground">
+                      {new Date(history.created_at).toLocaleString('pt-BR')}
+                    </span>
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    Por: {history.changed_by_profile?.nome || 'Sistema'}
+                  </div>
+                  {history.change_reason && (
+                    <div className="text-sm mt-2 p-2 bg-muted rounded">
+                      {history.change_reason}
+                    </div>
+                  )}
+                </div>
+              ))
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
