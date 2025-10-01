@@ -1,6 +1,6 @@
 import { supabase } from '@/integrations/supabase/client';
 import { DEFAULT_USER_PERMISSIONS } from './featureMapping';
-import { AppFeature } from '@/hooks/useFeatureAccess';
+import { AppFeature, FeatureStatus } from '@/hooks/useFeatureAccess';
 
 /**
  * Initialize default permissions for existing users who might not have permissions set up
@@ -39,6 +39,7 @@ export const initializeUserPermissions = async (userId: string) => {
         user_id: userId,
         feature,
         enabled: DEFAULT_USER_PERMISSIONS.includes(feature),
+        status: (DEFAULT_USER_PERMISSIONS.includes(feature) ? 'released' : 'blocked') as FeatureStatus,
         expires_at: null
       }));
 

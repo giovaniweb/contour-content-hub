@@ -19,9 +19,12 @@ export type AppFeature =
   | 'planner'
   | 'ideas';
 
+export type FeatureStatus = 'blocked' | 'coming_soon' | 'beta' | 'released';
+
 interface FeaturePermission {
   feature: AppFeature;
-  enabled: boolean;
+  enabled: boolean; // Deprecated - mantido para compatibilidade
+  status: FeatureStatus;
   expires_at?: string;
   granted_at?: string;
 }
@@ -37,6 +40,7 @@ interface FeatureNotification {
 
 interface UseFeatureAccessReturn {
   hasAccess: (feature: AppFeature) => boolean;
+  getFeatureStatus: (feature: AppFeature) => FeatureStatus | null;
   isLoading: boolean;
   permissions: FeaturePermission[];
   notifications: FeatureNotification[];
@@ -94,7 +98,7 @@ export const useFeatureAccess = (): UseFeatureAccessReturn => {
     try {
       const { data, error } = await supabase
         .from('user_feature_permissions')
-        .select('feature, enabled, expires_at, granted_at')
+        .select('feature, enabled, status, expires_at, granted_at')
         .eq('user_id', user.id);
 
       if (error) throw error;
@@ -117,7 +121,7 @@ export const useFeatureAccess = (): UseFeatureAccessReturn => {
         // Refetch after initialization
         const { data: newData } = await supabase
           .from('user_feature_permissions')
-          .select('feature, enabled, expires_at, granted_at')
+          .select('feature, enabled, status, expires_at, granted_at')
           .eq('user_id', user.id);
         setPermissions(newData || []);
       } else {
@@ -149,10 +153,15 @@ export const useFeatureAccess = (): UseFeatureAccessReturn => {
     await fetchPermissions();
   }, [fetchPermissions]);
 
+  const getFeatureStatus = useCallback((feature: AppFeature): FeatureStatus | null => {
+    const permission = permissions.find(p => p.feature === feature);
+    return permission?.status || null;
+  }, [permissions]);
+
   const hasAccess = useCallback((feature: AppFeature): boolean => {
-    // Admin has access to everything
+    // Admin has FULL override - acessa tudo sempre
     if (adminFlag) {
-      console.log('👑 [useFeatureAccess] Usuário é admin, acesso liberado para:', feature);
+      console.log('👑 [useFeatureAccess] Usuário é admin, acesso total para:', feature);
       return true;
     }
 
@@ -160,9 +169,9 @@ export const useFeatureAccess = (): UseFeatureAccessReturn => {
     console.log('🔍 [useFeatureAccess] Verificando acesso para feature:', {
       feature,
       permission: permission ? {
+        status: permission.status,
         enabled: permission.enabled,
-        expires_at: permission.expires_at,
-        isExpired: permission.expires_at ? new Date(permission.expires_at) < new Date() : false
+        expires_at: permission.expires_at
       } : 'NÃO ENCONTRADA'
     });
     
@@ -171,22 +180,43 @@ export const useFeatureAccess = (): UseFeatureAccessReturn => {
       return false;
     }
     
-    if (!permission.enabled) {
-      console.log('🔒 [useFeatureAccess] Feature bloqueada (enabled: false):', feature);
+    // Lógica baseada em status
+    const status = permission.status;
+    
+    // BLOCKED → ninguém acessa (exceto admin já tratado acima)
+    if (status === 'blocked') {
+      console.log('🔒 [useFeatureAccess] Feature bloqueada:', feature);
       return false;
     }
     
-    // Verificar se expirou
-    if (permission.expires_at) {
-      const expiryDate = new Date(permission.expires_at);
-      if (expiryDate < new Date()) {
-        console.log('⏰ [useFeatureAccess] Feature expirada:', feature);
-        return false;
-      }
+    // COMING_SOON → ninguém acessa (exceto admin já tratado acima)
+    if (status === 'coming_soon') {
+      console.log('⏳ [useFeatureAccess] Feature em breve:', feature);
+      return false;
     }
     
-    console.log('✅ [useFeatureAccess] Acesso liberado para:', feature);
-    return true;
+    // BETA → todos acessam (com warning no UI)
+    if (status === 'beta') {
+      console.log('🧪 [useFeatureAccess] Feature em BETA, acesso liberado:', feature);
+      return true;
+    }
+    
+    // RELEASED → todos acessam normalmente
+    if (status === 'released') {
+      // Verificar expiração se houver
+      if (permission.expires_at) {
+        const expiryDate = new Date(permission.expires_at);
+        if (expiryDate < new Date()) {
+          console.log('⏰ [useFeatureAccess] Feature expirada:', feature);
+          return false;
+        }
+      }
+      console.log('✅ [useFeatureAccess] Feature liberada, acesso permitido:', feature);
+      return true;
+    }
+    
+    console.log('❓ [useFeatureAccess] Status desconhecido:', status);
+    return false;
   }, [permissions, adminFlag]);
 
   const isNewFeature = useCallback((feature: AppFeature): boolean => {
@@ -291,6 +321,7 @@ export const useFeatureAccess = (): UseFeatureAccessReturn => {
 
   return {
     hasAccess,
+    getFeatureStatus,
     isLoading,
     permissions,
     notifications,
