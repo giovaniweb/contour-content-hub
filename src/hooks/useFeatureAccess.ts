@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { usePermissions } from '@/hooks/use-permissions';
+import { DEFAULT_USER_PERMISSIONS } from '@/utils/featureMapping';
 import '@/utils/debug'; // Import debug utilities
 
 export type AppFeature = 
@@ -175,9 +176,15 @@ export const useFeatureAccess = (): UseFeatureAccessReturn => {
       } : 'NÃO ENCONTRADA'
     });
     
+    // FALLBACK INTELIGENTE: Se permissão não encontrada, verificar defaults
     if (!permission) {
-      console.log('❌ [useFeatureAccess] Permissão não encontrada para:', feature);
-      return false;
+      const isDefaultFeature = DEFAULT_USER_PERMISSIONS.includes(feature);
+      console.log(
+        isDefaultFeature 
+          ? `✅ [useFeatureAccess] Permissão não encontrada, mas é feature default. Acesso liberado: ${feature}`
+          : `❌ [useFeatureAccess] Permissão não encontrada e não é feature default: ${feature}`
+      );
+      return isDefaultFeature;
     }
     
     // Lógica baseada em status
