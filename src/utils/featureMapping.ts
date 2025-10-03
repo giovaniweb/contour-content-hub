@@ -5,15 +5,24 @@ import { AppFeature } from '@/hooks/useFeatureAccess';
  */
 export const pathToFeatureMap: Record<string, AppFeature> = {
   '/dashboard': 'videos', // Dashboard is always accessible, map to videos
+  '/mestre-beleza': 'mestre_beleza',
   '/mestre-da-beleza': 'mestre_beleza',
   '/marketing-consultant': 'consultor_mkt', 
   '/fluidaroteirista': 'fluida_roteirista',
+  '/content/scripts': 'fluida_roteirista',
+  '/script-generator': 'fluida_roteirista',
   '/videos': 'videos',
+  '/video-storage': 'videos',
+  '/video-player': 'videos',
   '/photos': 'fotos',
   '/arts': 'artes',
+  '/media': 'artes',
   '/scientific-articles': 'artigos_cientificos',
   '/academia': 'academia',
-  '/equipments': 'equipamentos'
+  '/equipments': 'equipamentos',
+  '/copilot': 'videos', // Copilot is accessible to all
+  '/content-planner': 'videos',
+  '/my-documents': 'videos'
 };
 
 /**

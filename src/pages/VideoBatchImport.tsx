@@ -29,7 +29,7 @@ const VideoBatchImport: React.FC = () => {
               </p>
             </CardContent>
             <CardFooter>
-              <Button className="w-full" onClick={() => navigate(ROUTES.ADMIN_VIDEOS.IMPORT)}>
+              <Button className="w-full" onClick={() => navigate(ROUTES.ADMIN.VIDEOS.IMPORT)}>
                 Iniciar Upload em Lote <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </CardFooter>

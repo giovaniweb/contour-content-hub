@@ -13,11 +13,11 @@ const VideoCreatePageAdmin: React.FC = () => {
   const [activeTab, setActiveTab] = useState('individual');
 
   const handleUploadComplete = () => {
-    navigate(ROUTES.ADMIN_VIDEOS.ROOT);
+    navigate(ROUTES.ADMIN.VIDEOS.ROOT);
   };
 
   const handleCancel = () => {
-    navigate(ROUTES.ADMIN_VIDEOS.ROOT);
+    navigate(ROUTES.ADMIN.VIDEOS.ROOT);
   };
 
   return (

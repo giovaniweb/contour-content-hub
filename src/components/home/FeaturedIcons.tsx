@@ -66,7 +66,7 @@ const FeaturedIcons: React.FC = () => {
       icon: <Import className="h-8 w-8 text-amber-500" />,
       color: "text-amber-500",
       bgColor: "bg-amber-50",
-      link: ROUTES.ADMIN_VIDEOS.IMPORT,
+      link: ROUTES.ADMIN.VIDEOS.IMPORT,
       isAdmin: true
     },
     {

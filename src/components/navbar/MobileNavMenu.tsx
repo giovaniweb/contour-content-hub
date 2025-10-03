@@ -154,7 +154,7 @@ export const MobileNavMenu: React.FC<MobileNavMenuProps> = ({
                   <span>Administração</span>
                 </Link>
                 <Link
-                  to={ROUTES.ADMIN_VIDEOS.ROOT}
+                  to={ROUTES.ADMIN.VIDEOS.ROOT}
                   className="flex items-center gap-3 p-2 rounded-md hover:bg-muted"
                   onClick={() => setIsOpen(false)}
                 >
@@ -162,7 +162,7 @@ export const MobileNavMenu: React.FC<MobileNavMenuProps> = ({
                   <span>Gerenciar Vídeos</span>
                 </Link>
                 <Link
-                  to={ROUTES.ADMIN_VIDEOS.BATCH}
+                  to={ROUTES.ADMIN.VIDEOS.BATCH}
                   className="flex items-center gap-3 p-2 rounded-md hover:bg-muted"
                   onClick={() => setIsOpen(false)}
                 >
@@ -170,7 +170,7 @@ export const MobileNavMenu: React.FC<MobileNavMenuProps> = ({
                   <span>Lote de Vídeos</span>
                 </Link>
                 <Link
-                  to={ROUTES.ADMIN_VIDEOS.IMPORT}
+                  to={ROUTES.ADMIN.VIDEOS.IMPORT}
                   className="flex items-center gap-3 p-2 rounded-md hover:bg-muted"
                   onClick={() => setIsOpen(false)}
                 >

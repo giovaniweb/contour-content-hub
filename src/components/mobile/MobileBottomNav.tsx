@@ -23,24 +23,11 @@ export default function MobileBottomNav() {
   };
   
   const menuItems = [
-    { icon: LayoutDashboard, path: '/dashboard', label: 'Dashboard' },
-    { icon: BrainCircuit, path: '/ai-tools', label: 'IA', 
-      submenu: [
-        { path: '/mestre-da-beleza', label: 'Mestre da Beleza' },
-        { path: '/marketing-consultant', label: 'Consultor MKT' },
-        { path: '/fluidaroteirista', label: 'Roteirista' }
-      ]
-    },
-    { icon: Video, path: '/downloads', label: 'Download',
-      submenu: [
-        { path: '/videos', label: 'Vídeos' },
-        { path: '/photos', label: 'Fotos' },
-        { path: '/arts', label: 'Artes' },
-        { path: '/scientific-articles', label: 'Artigos' }
-      ]
-    },
+    { icon: LayoutDashboard, path: '/dashboard', label: 'Início' },
+    { icon: BrainCircuit, path: '/marketing-consultant', label: 'IA' },
+    { icon: Video, path: '/videos', label: 'Vídeos' },
     { icon: Wrench, path: '/equipments', label: 'Equipamentos' },
-    { icon: FileText, path: '/my-documents', label: 'Docs' },
+    { icon: FileText, path: '/fluidaroteirista', label: 'Roteiro' },
   ];
 
   return (

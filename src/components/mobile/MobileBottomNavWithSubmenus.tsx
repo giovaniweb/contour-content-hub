@@ -46,15 +46,26 @@ export default function MobileBottomNavWithSubmenus() {
   };
   
   const menuItems: MenuItem[] = [
-    { icon: LayoutDashboard, path: '/dashboard', label: 'Dashboard' },
-    { icon: BrainCircuit, path: '/ai-tools', label: 'IA', 
+    { 
+      icon: LayoutDashboard, 
+      path: '/dashboard', 
+      label: 'Início' 
+    },
+    { 
+      icon: BrainCircuit, 
+      path: '/marketing-consultant',
+      label: 'IA',
       submenu: [
-        { path: '/mestre-da-beleza', label: 'Mestre da Beleza' },
+        { path: '/mestre-beleza', label: 'Mestre da Beleza' },
         { path: '/marketing-consultant', label: 'Consultor MKT' },
-        { path: '/fluidaroteirista', label: 'Roteirista' }
+        { path: '/fluidaroteirista', label: 'Roteirista' },
+        { path: '/copilot', label: 'Copilot' }
       ]
     },
-    { icon: Video, path: '/downloads', label: 'Download',
+    { 
+      icon: Video, 
+      path: '/videos',
+      label: 'Mídia',
       submenu: [
         { path: '/videos', label: 'Vídeos' },
         { path: '/photos', label: 'Fotos' },
@@ -62,8 +73,12 @@ export default function MobileBottomNavWithSubmenus() {
         { path: '/scientific-articles', label: 'Artigos' }
       ]
     },
-    { icon: Wrench, path: '/equipments', label: 'Equipamentos' },
-    { icon: FileText, path: '/my-documents', label: 'Docs' },
+    { 
+      icon: Wrench, 
+      path: '/equipments', 
+      label: 'Equipamentos' 
+    },
+    { icon: FileText, path: '/content/scripts', label: 'Roteiros' }
   ];
 
   const handleItemClick = (item: MenuItem) => {

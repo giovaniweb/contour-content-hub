@@ -1,18 +1,22 @@
 
 export const ROUTES = {
+  // Auth & Basic
   HOME: '/',
   LANDING: '/landing',
   LOGIN: '/login',
   REGISTER: '/register',
   DASHBOARD: '/dashboard',
   PROFILE: '/profile',
+  PROFILE_DASHBOARD: '/profile-dashboard',
   WORKSPACE_SETTINGS: '/workspace-settings',
   
+  // Content Creation
   CONTENT: {
     SCRIPTS: {
       ROOT: '/content/scripts',
       GENERATOR: '/script-generator',
-      VALIDATION: '/script-validation'
+      VALIDATION: '/script-validation',
+      APPROVED: '/approved-scripts'
     },
     FLUIDAROTEIRISTA: '/fluidaroteirista',
     PLANNER: '/content-planner',
@@ -21,23 +25,37 @@ export const ROUTES = {
     CALENDAR: '/calendar'
   },
   
+  // Media Libraries
   VIDEOS: {
     ROOT: '/videos',
     PLAYER: '/video-player',
-    STORAGE: '/videos/storage',
+    STORAGE: '/video-storage',
     SWIPE: '/videos/swipe'
   },
+
+  PHOTOS: '/photos',
+  ARTS: '/arts',
+  MEDIA: '/media',
+  
+  // Documents & Knowledge
+  SCIENTIFIC_ARTICLES: '/scientific-articles',
+  MY_DOCUMENTS: '/my-documents',
+  
+  // Learning
+  ACADEMIA: '/academia',
+  
+  // AI Tools
+  MESTRE_BELEZA: '/mestre-beleza',
+  COPILOT: '/copilot',
+  
+  // Features
+  BEFORE_AFTER: '/before-after',
+  GAMIFICATION: '/gamification',
 
   EQUIPMENTS: {
     LIST: '/equipments',
     DETAILS: (id: string = ':id') => `/equipments/${id}`
   },
-
-  MEDIA: '/media',
-  SCIENTIFIC_ARTICLES: '/scientific-articles',
-  ACADEMIA: '/academia',
-  MESTRE_BELEZA: '/mestre-beleza',
-  BEFORE_AFTER: '/before-after',
   
   MARKETING: {
     CONSULTANT: '/marketing-consultant',
@@ -58,6 +76,7 @@ export const ROUTES = {
     BUSCA: '/videomaker/busca'
   },
 
+  // Admin Panel
   ADMIN: {
     ROOT: '/admin',
     USERS: '/admin/users',
@@ -75,19 +94,17 @@ export const ROUTES = {
     VIMEO: {
       SETTINGS: '/admin/vimeo-settings'
     },
-    WORKSPACE: '/admin/workspace'
-  },
-
-  ADMIN_VIDEOS: {
-    ROOT: '/admin/videos',
-    CREATE: '/admin/videos/create',
-    BATCH: '/admin/videos/batch',
-    IMPORT: '/admin/videos/import'
-  },
-
-  ADMIN_PHOTOS: {
-    ROOT: '/admin/photos',
-    UPLOAD: '/admin/photos/upload',
-    EDIT: (id: string = ':id') => `/admin/photos/edit/${id}`
+    WORKSPACE: '/admin/workspace',
+    VIDEOS: {
+      ROOT: '/admin/videos',
+      CREATE: '/admin/videos/create',
+      BATCH: '/admin/videos/batch',
+      IMPORT: '/admin/videos/import'
+    },
+    PHOTOS: {
+      ROOT: '/admin/photos',
+      UPLOAD: '/admin/photos/upload',
+      EDIT: (id: string = ':id') => `/admin/photos/edit/${id}`
+    }
   }
 } as const;
