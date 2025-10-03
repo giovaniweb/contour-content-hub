@@ -32,7 +32,11 @@ export const initializeUserPermissions = async (userId: string) => {
         'artes',
         'artigos_cientificos',
         'academia',
-        'equipamentos'
+        'equipamentos',
+        'fotos_antes_depois',
+        'reports',
+        'planner',
+        'ideas'
       ];
 
       const permissionsToInsert = allFeatures.map(feature => ({

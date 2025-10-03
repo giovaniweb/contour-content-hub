@@ -9,6 +9,7 @@ export const ROUTES = {
   PROFILE: '/profile',
   PROFILE_DASHBOARD: '/profile-dashboard',
   WORKSPACE_SETTINGS: '/workspace-settings',
+  UPGRADE: '/upgrade',
   
   // Content Creation
   CONTENT: {

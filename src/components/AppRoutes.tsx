@@ -63,6 +63,7 @@ const InstagramIntegration = React.lazy(() => import('@/pages/InstagramIntegrati
 const Gamification = React.lazy(() => import('@/pages/Gamification'));
 const WorkspaceSettings = React.lazy(() => import('@/pages/WorkspaceSettings'));
 const Profile = React.lazy(() => import('@/pages/Profile'));
+const UpgradePage = React.lazy(() => import('@/pages/UpgradePage'));
 const VideomakerCadastro = React.lazy(() => import('@/pages/VideomakerCadastro'));
 const VideomakerLogin = React.lazy(() => import('@/pages/VideomakerLogin'));
 const VideomakerDashboard = React.lazy(() => import('@/pages/VideomakerDashboard'));
@@ -512,6 +513,17 @@ const AppRoutes: React.FC = () => {
             <AppLayout>
               <Suspense fallback={<AuroraLoadingSkeleton />}>
                 <Profile />
+              </Suspense>
+            </AppLayout>
+          } 
+        />
+
+        <Route 
+          path="/upgrade" 
+          element={
+            <AppLayout>
+              <Suspense fallback={<AuroraLoadingSkeleton />}>
+                <UpgradePage />
               </Suspense>
             </AppLayout>
           } 
