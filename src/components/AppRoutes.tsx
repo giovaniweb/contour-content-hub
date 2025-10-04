@@ -42,10 +42,18 @@ const AdminUsers = React.lazy(() => import('@/pages/admin/AdminUsers'));
 const AdminUserEdit = React.lazy(() => import('@/pages/admin/AdminUserEdit'));
 const AdminEquipments = React.lazy(() => import('@/pages/admin/AdminEquipments'));
 const CreateEquipment = React.lazy(() => import('@/pages/admin/CreateEquipment'));
+const EditEquipment = React.lazy(() => import('@/pages/admin/EditEquipment'));
 const AdminVideos = React.lazy(() => import('@/pages/admin/AdminVideos'));
+const AdminVideosBatch = React.lazy(() => import('@/pages/admin/AdminVideosBatch'));
+const AdminVideosImport = React.lazy(() => import('@/pages/admin/AdminVideosImport'));
 const AdminPhotos = React.lazy(() => import('@/pages/admin/AdminPhotos'));
 const AdminPhotoEdit = React.lazy(() => import('@/pages/admin/AdminPhotoEdit'));
-const EditEquipment = React.lazy(() => import('@/pages/admin/EditEquipment'));
+const AdminContent = React.lazy(() => import('@/pages/admin/AdminContent'));
+const VimeoSettings = React.lazy(() => import('@/pages/admin/VimeoSettings'));
+const AdminWorkspaceSettings = React.lazy(() => import('@/pages/admin/WorkspaceSettings'));
+const AdminSystemDiagnostics = React.lazy(() => import('@/pages/admin/AdminSystemDiagnostics'));
+const AdminSystemIntelligence = React.lazy(() => import('@/pages/admin/AdminSystemIntelligence'));
+const NotFoundPage = React.lazy(() => import('@/pages/NotFoundPage'));
 const VideoCreatePage = React.lazy(() => import('@/pages/videos/VideoCreatePage'));
 const VideoCreatePageAdmin = React.lazy(() => import('@/pages/admin/VideoCreatePageAdmin'));
 const DownloadsPage = React.lazy(() => import('@/pages/DownloadsPage'));
@@ -652,6 +660,94 @@ const AppRoutes: React.FC = () => {
           />
 
           <Route 
+            path="/admin/equipments/edit/:id"
+            element={
+              <AppLayout requireAdmin={true}>
+                <Suspense fallback={<AuroraLoadingSkeleton />}>
+                  <EditEquipment />
+                </Suspense>
+              </AppLayout>
+            } 
+          />
+
+          <Route 
+            path="/admin/content"
+            element={
+              <AppLayout requireAdmin={true}>
+                <Suspense fallback={<AuroraLoadingSkeleton />}>
+                  <AdminContent />
+                </Suspense>
+              </AppLayout>
+            } 
+          />
+
+          <Route 
+            path="/admin/vimeo-settings"
+            element={
+              <AppLayout requireAdmin={true}>
+                <Suspense fallback={<AuroraLoadingSkeleton />}>
+                  <VimeoSettings />
+                </Suspense>
+              </AppLayout>
+            } 
+          />
+
+          <Route 
+            path="/admin/workspace"
+            element={
+              <AppLayout requireAdmin={true}>
+                <Suspense fallback={<AuroraLoadingSkeleton />}>
+                  <AdminWorkspaceSettings />
+                </Suspense>
+              </AppLayout>
+            } 
+          />
+
+          <Route 
+            path="/admin/system-diagnostics"
+            element={
+              <AppLayout requireAdmin={true}>
+                <Suspense fallback={<AuroraLoadingSkeleton />}>
+                  <AdminSystemDiagnostics />
+                </Suspense>
+              </AppLayout>
+            } 
+          />
+
+          <Route 
+            path="/admin/system-intelligence"
+            element={
+              <AppLayout requireAdmin={true}>
+                <Suspense fallback={<AuroraLoadingSkeleton />}>
+                  <AdminSystemIntelligence />
+                </Suspense>
+              </AppLayout>
+            } 
+          />
+
+          <Route 
+            path="/admin/videos/batch"
+            element={
+              <AppLayout requireAdmin={true}>
+                <Suspense fallback={<AuroraLoadingSkeleton />}>
+                  <AdminVideosBatch />
+                </Suspense>
+              </AppLayout>
+            } 
+          />
+
+          <Route 
+            path="/admin/videos/import"
+            element={
+              <AppLayout requireAdmin={true}>
+                <Suspense fallback={<AuroraLoadingSkeleton />}>
+                  <AdminVideosImport />
+                </Suspense>
+              </AppLayout>
+            } 
+          />
+
+          <Route 
             path="/admin/users"
             element={
               <AppLayout requireAdmin={true}>
@@ -742,9 +838,11 @@ const AppRoutes: React.FC = () => {
           <Route 
             path="/admin/photos/edit/:id"
             element={
-              <Suspense fallback={<AuroraLoadingSkeleton />}>
-                <AdminPhotoEdit />
-              </Suspense>
+              <AppLayout requireAdmin={true}>
+                <Suspense fallback={<AuroraLoadingSkeleton />}>
+                  <AdminPhotoEdit />
+                </Suspense>
+              </AppLayout>
             } 
           />
 
@@ -894,10 +992,14 @@ const AppRoutes: React.FC = () => {
         </Route>
       </Route>
 
-      {/* Catch all route */}
+      {/* 404 - Página não encontrada */}
       <Route 
         path="*" 
-        element={<Navigate to="/" replace />}
+        element={
+          <Suspense fallback={<AuroraLoadingSkeleton />}>
+            <NotFoundPage />
+          </Suspense>
+        }
       />
     </Routes>
   );

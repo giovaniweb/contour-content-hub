@@ -87,7 +87,7 @@ export const ROUTES = {
       EDIT: (id: string = ':id') => `/admin/equipments/edit/${id}`
     },
     CONTENT: '/admin/content',
-    AI: '/admin/ai',
+    AI: '/admin/ai-panel',
     SYSTEM: {
       DIAGNOSTICS: '/admin/system-diagnostics',
       INTELLIGENCE: '/admin/system-intelligence'
