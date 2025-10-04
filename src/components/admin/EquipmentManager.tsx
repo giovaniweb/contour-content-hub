@@ -5,11 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Loader2, Search, Plus, Trash2 } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Loader2, Search, Plus, Trash2, Download } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Equipment } from '@/types/equipment';
 import EquipmentList from './EquipmentList';
 import { getEquipments, deleteEquipment } from '@/api/equipment';
+import { exportToCSV, exportToJSON } from '@/utils/exportEquipment';
 
 const EquipmentManager: React.FC = () => {
   const navigate = useNavigate();
@@ -102,6 +104,27 @@ const EquipmentManager: React.FC = () => {
       setDeletingId(null);
     }
   };
+
+  const handleExport = (format: 'csv' | 'json') => {
+    try {
+      if (format === 'csv') {
+        exportToCSV(filteredEquipments);
+      } else {
+        exportToJSON(filteredEquipments);
+      }
+      toast({
+        title: "Exportação concluída",
+        description: `Equipamentos exportados em formato ${format.toUpperCase()} com sucesso.`,
+      });
+    } catch (error) {
+      console.error('Error exporting equipments:', error);
+      toast({
+        variant: "destructive",
+        title: "Erro ao exportar",
+        description: error instanceof Error ? error.message : "Não foi possível exportar os equipamentos.",
+      });
+    }
+  };
   
   return (
     <div className="space-y-4">
@@ -116,13 +139,36 @@ const EquipmentManager: React.FC = () => {
           />
         </div>
         
-        <Button 
-          onClick={handleCreateEquipment}
-          className="aurora-button"
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          Novo Equipamento
-        </Button>
+        <div className="flex gap-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button 
+                variant="outline"
+                className="aurora-glass border-aurora-electric-purple/30"
+                disabled={filteredEquipments.length === 0}
+              >
+                <Download className="h-4 w-4 mr-2" />
+                Exportar
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="aurora-glass border-aurora-electric-purple/30">
+              <DropdownMenuItem onClick={() => handleExport('csv')}>
+                Exportar CSV
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleExport('json')}>
+                Exportar JSON
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          <Button 
+            onClick={handleCreateEquipment}
+            className="aurora-button"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Novo Equipamento
+          </Button>
+        </div>
       </div>
       
       <Tabs defaultValue="all" className="w-full">
